@@ -11,8 +11,8 @@ statistics, generate enriched barplots, and boxplots. Further, conduct
 univariate analysis and multivariate analysis for advance analysis. It
 provides an overall user-friendly experience for users to conduct
 analyses on their own data. For advanced users, the CytoProfile R
-package is available on Github
-\[<https://github.com/saraswatsh/CytoProfile>\].
+package is available on
+[Github](https://github.com/saraswatsh/CytoProfile).
 
 ## Features
 
@@ -74,7 +74,10 @@ install.packages(c("base64enc", "shiny", "shinyjs", "dplyr", "ggplot2", "readxl"
 2.  Open RStudio: Open the project in RStudio or your preffered IDE.
 3.  Install Dependencies: Ensure all packages are installed.
 4.  Run the Application: Launch the app by executing
-    `{r, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE} shiny::runApp("app.R")`
+
+``` r
+ shiny::runApp("app.R") 
+```
 
 ## Application Workflow
 

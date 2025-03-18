@@ -22,7 +22,7 @@ Conduct exploratory analysis including summary statistics, generate enriched
 barplots, and boxplots. Further, conduct univariate analysis and 
 multivariate analysis for advance analysis. It provides an overall user-friendly
 experience for users to conduct analyses on their own data. For advanced users, 
-the CytoProfile R package is available on Github [https://github.com/saraswatsh/CytoProfile].
+the CytoProfile R package is available on [Github](https://github.com/saraswatsh/CytoProfile).
 
 
 ## Features
