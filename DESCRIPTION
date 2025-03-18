@@ -1,0 +1,47 @@
+Package: CytoProfileShinyApp
+Title: Comphrensive Cytokine Profiling Analysis Shiny Application
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Shubh", "Saraswat", email = "shubh.saraswat00@gmail.com", role = c("cre", "aut", "cph"),
+    comment = c(ORCID = "0009-0009-2359-1484")),
+    person("Xiaohua Douglas", "Zhang", email = "douglas.zhang@uky.edu", role = "aut",
+    comment = c(ORCID = "0000-0002-2486-7931")))
+Description: CytoProfileShinyApp is an interactive Shiny application for comprehensive cytokine profiling analysis.
+    It supports quality control by applying biologically meaningful cutoffs on raw cytokine measurements and 
+    employs tests for distributional symmetry to recommend suitable data transformations. The application 
+    provides a suite of exploratory and advanced analytical tools including summary statistics, enhanced boxplots,
+    barplots, univariate tests, multivariate techniques (e.g. PCA, sPLS-DA), Random Forest classification, and 
+    Extreme Gradient Boosting (XGBoost). These capabilities facilitate in-depth analysis and visualization of cytokine data.
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+URL: https://github.com/saraswatsh/CytoProfile, https://saraswatsh.github.io/CytoProfile/
+Depends: R (>= 3.5)
+Imports: 
+    mixOmics,
+    moments,
+    dplyr,
+    tidyr,
+    pROC,
+    plot3D,
+    caret,
+    xgboost,
+    randomForest,
+    gplots,
+    e1071, 
+    ggplot2,
+    ggrepel, 
+    gridExtra,
+    reshape2
+Suggests: 
+    BiocManager,
+    testthat,
+    knitr,
+    rmarkdown,
+    devtools,
+    Ckmeans.1d.dp
+NeedsCompilation: no
+License: GPL (>= 2)
+LazyData: true
+VignetteBuilder: knitr
+

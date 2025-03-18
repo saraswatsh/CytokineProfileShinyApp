@@ -1,0 +1,10 @@
+name: cytoprofile_shiny
+title:
+username: ssa390
+account: ssa390
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14241622
+bundleId: 9940320
+url: https://ssa390.shinyapps.io/cytoprofile_shiny/
+version: 1
