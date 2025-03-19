@@ -7,7 +7,7 @@
 cyt_splsda(
   data,
   group_col = NULL,
-  trt_col = NULL,
+  group_col2 = NULL,
   colors = NULL,
   pdf_title,
   ellipse = FALSE,
@@ -21,19 +21,20 @@ cyt_splsda(
   pch_values,
   style = NULL,
   roc = FALSE,
+  splsda_colors = NULL,
   progress = NULL
 )
 }
 \arguments{
 \item{data}{A matrix or data frame containing the variables. Columns not
-specified by \code{group_col} or \code{trt_col} are assumed to be continuous
+specified by \code{group_col} or \code{group_col2} are assumed to be continuous
 variables for analysis.}
 
-\item{group_col}{A string specifying the column name that contains group
-information. If \code{trt_col} is not provided, it will be used for both
+\item{group_col}{A string specifying the first grouping column name that contains grouping
+information. If \code{group_col2} is not provided, it will be used for both
 grouping and treatment.}
 
-\item{trt_col}{A string specifying the column name for treatments. Default is
+\item{group_col2}{A string specifying the second grouping column name. Default is
 \code{NULL}.}
 
 \item{colors}{A vector of colors for the groups or treatments. If
@@ -99,6 +100,6 @@ cyt_splsda(data.df[,-c(1,4)], pdf_title = "Example sPLS-DA Analysis.pdf",
            colors = c("black", "purple", "red2"), bg = TRUE, scale = "log2",
            conf_mat = TRUE, var_num = 25, cv_opt = "loocv", comp_num = 3,
            pch_values = c(16, 4, 3), style = "3d",
-           group_col = "Group", trt_col = "Treatment", roc = TRUE)
+           group_col = "Group", group_col2 = "Treatment", roc = TRUE)
 
 }

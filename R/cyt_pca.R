@@ -11,7 +11,7 @@
 #'
 #' @param data A data frame containing cytokine data.
 #' @param group_col Character. The name of the column containing the grouping information.
-#' @param trt_col Character. The name of the column containing the treatment information.
+#' @param group_col2 Character. The name of the second column containing the grouping information.
 #'   If one is missing, the provided column is used for both.
 #' @param colors A vector of colors corresponding to the groups. If NULL, a palette is generated.
 #' @param pdf_title Optional. A file name for the PDF output. If NULL, interactive mode is assumed.
@@ -30,10 +30,12 @@
 #' @import mixOmics
 #' @import ggplot2
 #' @import plot3D
-cyt_pca <- function(data, group_col = NULL, trt_col = NULL,
+cyt_pca <- function(data, group_col = NULL, group_col2 = NULL,
                     colors = NULL, pdf_title = NULL, ellipse = FALSE,
                     comp_num = 2, scale = NULL, pch_values = NULL,
-                    style = NULL, output_file = NULL, progress = NULL) {
+                    style = NULL, output_file = NULL,
+                    pca_colors = NULL,
+                    progress = NULL) {
   
   # If output_file is provided, override pdf_title to enable PDF mode.
   if (!is.null(output_file)) {
@@ -46,27 +48,27 @@ cyt_pca <- function(data, group_col = NULL, trt_col = NULL,
   }
   
   # If one factor is missing, use the provided column for both grouping and treatment.
-  if (is.null(group_col) && !is.null(trt_col)) {
-    message("No group column provided; using the treatment column as the grouping variable.")
-    group_col <- trt_col
+  if (is.null(group_col) && !is.null(group_col2)) {
+    message("Grouping column 2 not provided, using grouping column 1 as grouping variable.")
+    group_col <- group_col2
   }
-  if (is.null(trt_col) && !is.null(group_col)) {
-    message("No treatment column provided; using the group column as the treatment variable.")
-    trt_col <- group_col
+  if (is.null(group_col2) && !is.null(group_col)) {
+    message("Grouping column 1 not provided, using grouping column 2 as grouping variable.")
+    group_col2 <- group_col
   }
-  if (is.null(group_col) && is.null(trt_col)) {
+  if (is.null(group_col) && is.null(group_col2)) {
     stop("At least one factor column must be provided.")
   }
   
   # Optionally apply log2 transformation only to numeric columns (excluding factor columns)
   if (!is.null(scale) && scale == "log2") {
     numeric_idx <- sapply(data, is.numeric)
-    numeric_idx[names(data) %in% unique(c(group_col, trt_col))] <- FALSE
+    numeric_idx[names(data) %in% unique(c(group_col, group_col2))] <- FALSE
     if (sum(numeric_idx) == 0) {
       warning("No numeric columns available for log2 transformation.")
     }
     data <- data.frame(
-      data[, unique(c(group_col, trt_col)), drop = FALSE],
+      data[, unique(c(group_col, group_col2)), drop = FALSE],
       log2(data[, numeric_idx, drop = FALSE])
     )
     message("Results based on log2 transformation.")
@@ -80,15 +82,21 @@ cyt_pca <- function(data, group_col = NULL, trt_col = NULL,
   }
   
   # Convert factor column names to lowercase for consistency.
-  names(data)[names(data) %in% unique(c(group_col, trt_col))] <-
-    tolower(names(data)[names(data) %in% unique(c(group_col, trt_col))])
+  names(data)[names(data) %in% unique(c(group_col, group_col2))] <-
+    tolower(names(data)[names(data) %in% unique(c(group_col, group_col2))])
   group_col <- tolower(group_col)
-  trt_col <- tolower(trt_col)
+  group_col2 <- tolower(group_col2)
   
   # Generate color palette if not provided.
-  if (is.null(colors)) {
-    num_groups <- length(unique(data[[group_col]]))
+  if (!is.null(pca_colors) && length(pca_colors) > 0) {
+    colors <- pca_colors
+  }
+  
+  num_groups <- length(unique(data[[group_col]]))
+  if (is.null(colors) || length(colors) == 0) {
     colors <- rainbow(num_groups)
+  } else if (length(colors) < num_groups) {
+    colors <- rep(colors, length.out = num_groups)
   }
   
   # Decide on mode: PDF if pdf_title is provided; interactive otherwise.
@@ -106,12 +114,12 @@ cyt_pca <- function(data, group_col = NULL, trt_col = NULL,
     recordPlot()
   }
   
-  # CASE 1: Single-level analysis (when group_col equals trt_col)
-  if (group_col == trt_col) {
+  # CASE 1: Single-level analysis (when group_col equals group_col2)
+  if (group_col == group_col2) {
     overall_analysis <- "Overall Analysis"
     
     # Subset numeric data.
-    the_data_df <- data[, !(names(data) %in% unique(c(group_col, trt_col)))]
+    the_data_df <- data[, !(names(data) %in% unique(c(group_col, group_col2)))]
     the_data_df <- the_data_df[, sapply(the_data_df, is.numeric), drop = FALSE]
     
     the_groups <- as.vector(data[[group_col]])
@@ -258,15 +266,15 @@ cyt_pca <- function(data, group_col = NULL, trt_col = NULL,
     }
     
   } else {
-    # CASE 2: Multi-level analysis when group_col != trt_col.
+    # CASE 2: Multi-level analysis when group_col != group_col2.
     result_list <- list()
-    levels_vec <- unique(data[[trt_col]])
+    levels_vec <- unique(data[[group_col2]])
     
     for (lev in levels_vec) {
       current_level <- lev
       title_sub <- current_level
-      condt <- data[[trt_col]] == current_level
-      the_data_df <- data[condt, !(names(data) %in% unique(c(group_col, trt_col)))]
+      condt <- data[[group_col2]] == current_level
+      the_data_df <- data[condt, !(names(data) %in% unique(c(group_col, group_col2)))]
       the_data_df <- the_data_df[, sapply(the_data_df, is.numeric), drop = FALSE]
       the_groups <- as.vector(data[condt, group_col])
       

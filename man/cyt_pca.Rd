@@ -7,7 +7,7 @@
 cyt_pca(
   data,
   group_col = NULL,
-  trt_col = NULL,
+  group_col2 = NULL,
   colors = NULL,
   pdf_title = NULL,
   ellipse = FALSE,
@@ -16,6 +16,7 @@ cyt_pca(
   pch_values = NULL,
   style = NULL,
   output_file = NULL,
+  pca_colors = NULL,
   progress = NULL
 )
 }
@@ -24,7 +25,7 @@ cyt_pca(
 
 \item{group_col}{Character. The name of the column containing the grouping information.}
 
-\item{trt_col}{Character. The name of the column containing the treatment information.
+\item{group_col2}{Character. The name of the second column containing the grouping information.
 If one is missing, the provided column is used for both.}
 
 \item{colors}{A vector of colors corresponding to the groups. If NULL, a palette is generated.}

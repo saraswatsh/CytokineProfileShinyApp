@@ -1,12 +1,12 @@
 #' Analyze data with Sparse Partial Least Squares Discriminant Analysis (sPLS-DA).
 #'
 #' @param data A matrix or data frame containing the variables. Columns not
-#'   specified by \code{group_col} or \code{trt_col} are assumed to be continuous
+#'   specified by \code{group_col} or \code{group_col2} are assumed to be continuous
 #'   variables for analysis.
-#' @param group_col A string specifying the column name that contains group
-#'   information. If \code{trt_col} is not provided, it will be used for both
+#' @param group_col A string specifying the first grouping column name that contains grouping
+#'   information. If \code{group_col2} is not provided, it will be used for both
 #'   grouping and treatment.
-#' @param trt_col A string specifying the column name for treatments. Default is
+#' @param group_col2 A string specifying the second grouping column name. Default is
 #'   \code{NULL}.
 #' @param colors A vector of colors for the groups or treatments. If
 #'   \code{NULL}, a random palette (using \code{rainbow}) is generated based on
@@ -55,7 +55,7 @@
 #'            colors = c("black", "purple", "red2"), bg = TRUE, scale = "log2",
 #'            conf_mat = TRUE, var_num = 25, cv_opt = "loocv", comp_num = 3,
 #'            pch_values = c(16, 4, 3), style = "3d",
-#'            group_col = "Group", trt_col = "Treatment", roc = TRUE)
+#'            group_col = "Group", group_col2 = "Treatment", roc = TRUE)
 #'
 #' @export
 #' @import mixOmics
@@ -63,46 +63,54 @@
 #' @import plot3D
 #' @import reshape2
 #' @import caret
-cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
+cyt_splsda <- function(data, group_col = NULL, group_col2 = NULL, colors = NULL,
                        pdf_title, ellipse = FALSE, bg = FALSE, conf_mat = FALSE,
                        var_num, cv_opt = NULL, fold_num = 5, scale = NULL,
                        comp_num = 2, pch_values, style = NULL, roc = FALSE,
+                       splsda_colors = NULL,
                        progress = NULL) {
   # ---------------------------
   # Preliminary Processing
   # ---------------------------
   withProgress(message = paste("Starting Preliminary Processing"), value = 0, {
-  if (is.null(group_col) && !is.null(trt_col)) {
-    incProgress(0, detail = "No group column provided; using treatment column as grouping variable.")
-    group_col <- trt_col
+  if (is.null(group_col) && !is.null(group_col2)) {
+    incProgress(0, detail = "Grouping column 2 not provided, using grouping column 1 as grouping variable.")
+    group_col <- group_col2
   }
-  if (is.null(trt_col) && !is.null(group_col)) {
-    incProgress(0, detail = "No treatment column provided; using group column as treatment variable.")
-    trt_col <- group_col
+  if (is.null(group_col2) && !is.null(group_col)) {
+    incProgress(0, detail = "Grouping column 1 not provided, using grouping column 2 as grouping variable.")
+    group_col2 <- group_col
   }
-  if (is.null(group_col) && is.null(trt_col)) {
+  if (is.null(group_col) && is.null(group_col2)) {
     stop("At least one factor column must be provided.")
   }
   
   if (!is.null(scale) && scale == "log2") {
     data <- data.frame(
-      data[, c(group_col, trt_col), drop = FALSE],
-      log2(data[, !(names(data) %in% c(group_col, trt_col)), drop = FALSE])
+      data[, c(group_col, group_col2), drop = FALSE],
+      log2(data[, !(names(data) %in% c(group_col, group_col2)), drop = FALSE])
     )
     incProgress(0, detail = "Results based on log2 transformation:")
   } else {
     incProgress(0, detail ="Results based on no transformation:")
   }
   })
-  names(data)[names(data) %in% c(group_col, trt_col)] <-
-    tolower(names(data)[names(data) %in% c(group_col, trt_col)])
+  names(data)[names(data) %in% c(group_col, group_col2)] <-
+    tolower(names(data)[names(data) %in% c(group_col, group_col2)])
   group_col <- tolower(group_col)
-  trt_col <- tolower(trt_col)
+  group_col2 <- tolower(group_col2)
   
-  if (is.null(colors)) {
-    num_groups <- length(unique(data[[group_col]]))
-    colors <- rainbow(num_groups)
+  if (!is.null(splsda_colors) && length(splsda_colors) > 0) {
+    colors <- splsda_colors
   }
+  
+  num_groups <- length(unique(data[[group_col]]))
+  if (is.null(colors) || length(colors) == 0) {
+    colors <- rainbow(num_groups)
+  } else if (length(colors) < num_groups) {
+    colors <- rep(colors, length.out = num_groups)
+  }
+  
   
   ## ---------------------------
   ## PDF Mode Branch
@@ -112,7 +120,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
     pdf(file = pdf_title, width = 8.5, height = 8)
     
     # If single-level analysis (group and treatment the same)
-    if (group_col == trt_col) {
+    if (group_col == group_col2) {
       overall_analysis <- "Overall Analysis"
       the_data_df <- data[, !(names(data) %in% c(group_col))]
       the_data_df <- the_data_df[, sapply(the_data_df, is.numeric)]
@@ -330,40 +338,40 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
       
     } else {
       # ---------------------------
-      # PDF Multi-Level Branch: when group_col != trt_col
+      # PDF Multi-Level Branch: when group_col != group_col2
       # ---------------------------
       # Open a PDF device; each treatment will be a separate page.
       if (!is.null(progress)) progress$inc(0.05, detail = "Starting multi-level PDF analysis")
       
       pdf(file = pdf_title, width = 8.5, height = 8)
-      treatments <- unique(data[[trt_col]])
+      treatments <- unique(data[[group_col2]])
       
       for (trt in treatments) {
         current_level <- trt
         overall_analysis <- current_level
-        condt <- data[[trt_col]] == current_level
-        the_data_df <- data[condt, -which(names(data) %in% c(group_col, trt_col))]
+        condt <- data[[group_col2]] == current_level
+        the_data_df <- data[condt, -which(names(data) %in% c(group_col, group_col2))]
         the_data_df <- the_data_df[, sapply(the_data_df, is.numeric), drop = FALSE]
         the_groups <- as.vector(data[condt, group_col])
         if (length(unique(the_groups)) < 2) {
           stop("The grouping variable must have at least two levels for sPLS-DA.")
         }
-        if (!is.null(progress)) progress$inc(0.05, detail = paste("Fitting sPLS-DA model for treatment", current_level))
+        if (!is.null(progress)) progress$inc(0.05, detail = paste("Fitting sPLS-DA model for", current_level))
         model <- mixOmics::splsda(the_data_df, the_groups,
                                   scale = TRUE, ncomp = comp_num,
                                   keepX = rep(var_num, comp_num))
-        if (!is.null(progress)) progress$inc(0.05, detail = paste("Calculating predictions for treatment", current_level))
+        if (!is.null(progress)) progress$inc(0.05, detail = paste("Calculating predictions for", current_level))
         splsda_predict <- predict(model, the_data_df, dist = "max.dist")
         prediction1 <- cbind(original = the_groups, splsda_predict$class$max.dist)
         acc1 <- 100 * signif(sum(prediction1[,1] == prediction1[,2]) / length(prediction1[,1]), digits = 2)
         
-        if (!is.null(progress)) progress$inc(0.05, detail = paste("Generating classification plot for treatment", current_level))
+        if (!is.null(progress)) progress$inc(0.05, detail = paste("Generating classification plot for", current_level))
         bg_obj <- mixOmics::background.predict(model, comp.predicted = 2, dist = "max.dist")
         group_factors <- sort(unique(the_groups))
         plot_args <- list(model,
                           ind.names = NA, legend = TRUE, col = colors,
                           pch = pch_values, pch.levels = group_factors,
-                          title = paste("Treatment =", overall_analysis, "With Accuracy:", acc1, "%"),
+                          title = paste(overall_analysis, "With Accuracy:", acc1, "%"),
                           legend.title = group_col)
         if (ellipse) plot_args$ellipse <- TRUE
         if (bg) plot_args$background <- bg_obj
@@ -374,7 +382,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
           plot3D::scatter3D(scores[,1], scores[,2], scores[,3],
                             pch = pch_values, col = colors,
                             xlab = "Component 1", ylab = "Component 2", zlab = "Component 3",
-                            main = paste("3D Plot: Treatment =", overall_analysis),
+                            main = paste("3D Plot:", overall_analysis),
                             theta = 20, phi = 30, bty = "g", colkey = FALSE)
         }
         
@@ -383,7 +391,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
                           newdata = the_data_df,
                           outcome.test = the_groups,
                           plot = TRUE, roc.comp = comp_num,
-                          title = paste("ROC Curve: Treatment =", overall_analysis),
+                          title = paste("ROC Curve:", overall_analysis),
                           print = FALSE)
         }
         
@@ -397,7 +405,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
             cv_plot <- ggplot2::ggplot(error_df, ggplot2::aes(x = Component, y = ErrorRate)) +
               ggplot2::geom_line(color = "blue") +
               ggplot2::geom_point(color = "blue", size = 3) +
-              ggplot2::labs(title = paste("LOOCV Error Rate: Treatment =", overall_analysis),
+              ggplot2::labs(title = paste("LOOCV Error Rate:", overall_analysis),
                             x = "Number of Components", y = "Error Rate") +
               ggplot2::theme_minimal() +
               ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
@@ -411,7 +419,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
             cv_plot <- ggplot2::ggplot(error_df, ggplot2::aes(x = Component, y = ErrorRate)) +
               ggplot2::geom_line(color = "blue") +
               ggplot2::geom_point(color = "blue", size = 3) +
-              ggplot2::labs(title = paste("Mfold Error Rate: Treatment =", overall_analysis),
+              ggplot2::labs(title = paste("Mfold Error Rate:", overall_analysis),
                             x = "Number of Components", y = "Error Rate") +
               ggplot2::theme_minimal() +
               ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
@@ -424,7 +432,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
                                  comp = comp, contrib = "max", method = "mean",
                                  size.names = 1, size.legend = 1, size.title = 1,
                                  legend.color = colors,
-                                 title = paste("Loadings for Component", comp, ":", "Treatment =", overall_analysis),
+                                 title = paste("Loadings for Component", comp, ":", overall_analysis),
                                  legend = TRUE)
         }
         
@@ -438,7 +446,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
           vip_plot <- ggplot2::ggplot(bar, ggplot2::aes(x = reorder(metabo, score), y = score)) +
             ggplot2::geom_bar(stat = "identity", fill = "red2") +
             ggplot2::coord_flip() +
-            ggplot2::labs(title = paste("VIP Scores for Component", comp, ":", "Treatment =", overall_analysis),
+            ggplot2::labs(title = paste("VIP Scores for Component", comp, ":", overall_analysis),
                           x = "Variable", y = "VIP Score") +
             ggplot2::theme_minimal()
           print(vip_plot)
@@ -458,7 +466,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
           plot_args2 <- list(vip_model,
                              ind.names = NA, legend = TRUE, col = colors,
                              pch = pch_values, pch.levels = group_factors,
-                             title = paste("Treatment =", overall_analysis, "(VIP>1) With Accuracy:", acc2, "%"),
+                             title = paste(overall_analysis, "(VIP>1) With Accuracy:", acc2, "%"),
                              legend.title = group_col)
           if (ellipse) plot_args2$ellipse <- TRUE
           if (bg) plot_args2$background <- bg2
@@ -469,7 +477,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
             plot3D::scatter3D(scores2[,1], scores2[,2], scores2[,3],
                               pch = pch_values, col = colors,
                               xlab = "Component 1", ylab = "Component 2", zlab = "Component 3",
-                              main = paste("3D Plot (VIP>1): Treatment =", overall_analysis),
+                              main = paste("3D Plot (VIP>1):", overall_analysis),
                               theta = 20, phi = 30, bty = "g", colkey = FALSE)
           }
           
@@ -478,7 +486,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
                             newdata = predictors_vip,
                             outcome.test = the_groups,
                             plot = TRUE, roc.comp = comp_num,
-                            title = paste("ROC Curve (VIP>1): Treatment =", overall_analysis),
+                            title = paste("ROC Curve (VIP>1):", overall_analysis),
                             print = FALSE)
           }
           
@@ -492,7 +500,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
               vip_cv_plot <- ggplot2::ggplot(vip_err_df, ggplot2::aes(x = Component, y = ErrorRate)) +
                 ggplot2::geom_line(color = "red") +
                 ggplot2::geom_point(color = "red", size = 3) +
-                ggplot2::labs(title = paste("LOOCV Error Rate (VIP>1): Treatment =", overall_analysis),
+                ggplot2::labs(title = paste("LOOCV Error Rate (VIP>1):", overall_analysis),
                               x = "Component", y = "Error Rate") +
                 ggplot2::theme_minimal()
               print(vip_cv_plot)
@@ -505,7 +513,7 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
               vip_cv_plot <- ggplot2::ggplot(vip_err_df, ggplot2::aes(x = Component, y = ErrorRate)) +
                 ggplot2::geom_line(color = "red") +
                 ggplot2::geom_point(color = "red", size = 3) +
-                ggplot2::labs(title = paste("Mfold Error Rate (VIP>1): Treatment =", overall_analysis),
+                ggplot2::labs(title = paste("Mfold Error Rate (VIP>1):", overall_analysis),
                               x = "Component", y = "Error Rate") +
                 ggplot2::theme_minimal()
               print(vip_cv_plot)
@@ -563,8 +571,16 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
   run_overall_interactive <- function(df_subset, analysis_label) {
     withProgress(message = paste("Running sPLS-DA for", analysis_label), value = 0, {
       incProgress(0.1, detail = "Building overall model...")
+      
+      # Helper to record a base-graphics plot.
+      record_base_plot <- function(expr) {
+        if (dev.cur() > 1) dev.control(displaylist = "enable")
+        expr
+        recordPlot()
+      }
+      
       conf_text <- NULL
-      predictors <- df_subset[, setdiff(names(df_subset), unique(c(group_col, trt_col))), drop = FALSE]
+      predictors <- df_subset[, setdiff(names(df_subset), unique(c(group_col, group_col2))), drop = FALSE]
       predictors <- predictors[, sapply(predictors, is.numeric), drop = FALSE]
       groups <- as.vector(df_subset[[group_col]])
       if (length(unique(groups)) < 2) {
@@ -813,13 +829,13 @@ cyt_splsda <- function(data, group_col = NULL, trt_col = NULL, colors = NULL,
   ## ---------------------------
   ## Determine Analysis Branch (Interactive)
   ## ---------------------------
-  if (group_col == trt_col) {
+  if (group_col == group_col2) {
     return(run_overall_interactive(data, "Overall Analysis"))
   } else {
-    treatments <- unique(data[[trt_col]])
+    treatments <- unique(data[[group_col2]])
     results_by_treatment <- lapply(treatments, function(trt) {
-      subset_data <- data[data[[trt_col]] == trt, , drop = FALSE]
-      run_overall_interactive(subset_data, paste("Treatment =", trt))
+      subset_data <- data[data[[group_col2]] == trt, , drop = FALSE]
+      run_overall_interactive(subset_data, paste(trt))
     })
     names(results_by_treatment) <- treatments
     return(results_by_treatment)

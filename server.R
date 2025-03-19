@@ -94,12 +94,13 @@ server <- function(input, output, session) {
     
     # PCA options
     pca_group_col = NULL,
-    pca_trt_col = NULL,
+    pca_group_col2 = NULL,
     pca_comp_num = NULL,
     pca_log2 = NULL,
     pca_ellipse = NULL,
     pca_style = NULL,
     pca_pch = NULL,
+    pca_colors = NULL,
     
     # Random Forest options
     rf_group_col = NULL,
@@ -118,7 +119,7 @@ server <- function(input, output, session) {
     
     # sPLS-DA options
     splsda_group_col = NULL,
-    splsda_trt_col = NULL,
+    splsda_group_col2 = NULL,
     splsda_var_num = NULL,
     splsda_cv_opt = NULL,
     splsda_fold_num = NULL,
@@ -130,6 +131,7 @@ server <- function(input, output, session) {
     splsda_ellipse = NULL,
     splsda_bg = NULL,
     splsda_conf_mat = NULL,
+    splsda_colors = NULL,
     
     # Two-Sample T-Test options
     ttest_log2 = NULL,
@@ -298,6 +300,41 @@ server <- function(input, output, session) {
   ## ---------------------------
   ## Function Options UI (Step 3)
   ## ---------------------------
+  
+  # Colors vector for specific functions
+  allowed_colors <- c("red", "blue", "green", "orange", "purple", "brown", "pink", "yellow", "gray", "black")
+  
+  # PCH Values
+  pch_choices <- c(
+    "Square"                = 0,
+    "Circle"                = 1,
+    "Triangle Up"           = 2,
+    "Plus"                  = 3,
+    "Cross"                 = 4,
+    "Diamond"               = 5,
+    "Triangle Down"         = 6,
+    "Square Cross"          = 7,
+    "Star"                  = 8,
+    "Diamond Plus"          = 9,
+    "Circle Plus"          = 10,
+    "Triangles Up/Down"    = 11,
+    "Square Plus"          = 12,
+    "Circle Plus"          = 13,
+    "Square"               = 14,
+    "Square Filled"        = 15,
+    "Circle Filled"        = 16,
+    "Triangle Up Filled"   = 17,
+    "Diamond Filled"       = 18,
+    "Circle Filled"        = 19,
+    "Bullet"               = 20,
+    "Circle w/ Border"     = 21,
+    "Square w/ Border"     = 22,
+    "Diamond w/ Border"    = 23,
+    "Triangle Up w/ Border"= 24,
+    "Triangle Down w/ Border" = 25
+  )
+  
+  # Function Options UI
   output$function_options_ui <- renderUI({
     req(input$selected_function)
     userState$selected_function <- input$selected_function
@@ -315,7 +352,7 @@ server <- function(input, output, session) {
                numericInput("bp_bin_size", label = helper(type = "inline", 
                                                           title = "Bin size for boxplots", 
                                                           icon = "question-circle",
-                                                          shiny_tag = "Bin Size‎ ‎ ‎ ‎ ‎  ",
+                                                          shiny_tag = "Bin Size ‎ ‎ ‎ ‎ ‎  ",
                                                           content = "Determines the number of columns (variables) to group together in each set of box plots. 
                         For example, a bin size of 25 will display box plots for up to 25 columns (variables) at a time. 
                         If there are more columns, multiple sets of box plots will be generated.", 
@@ -526,7 +563,7 @@ server <- function(input, output, session) {
                                colour = "blue"
                              }), choices = cols, 
                            selected = isolate(userState$pca_group_col) %||% cols[1]),
-               selectInput("pca_trt_col",
+               selectInput("pca_group_col2",
                            label = helper(
                              type = "inline", 
                              title = "Grouping Column 2", 
@@ -538,7 +575,7 @@ server <- function(input, output, session) {
                              }else{
                                colour = "blue"
                              }), choices = cols, 
-                           selected = isolate(userState$pca_trt_col) %||% cols[1]),
+                           selected = isolate(userState$pca_group_col2) %||% cols[1]),
                numericInput("pca_comp_num",
                             label = helper(
                               type = "inline", 
@@ -552,6 +589,23 @@ server <- function(input, output, session) {
                                 colour = "blue"
                               }), 
                             value = isolate(userState$pca_comp_num) %||% 2, min = 2),
+               selectizeInput("pca_colors",
+                             label = helper(
+                               type = "inline", 
+                               title = "Select Colors for PCA Plot (Optional)", 
+                               icon = "question-circle",
+                               shiny_tag = HTML("Select Colors for PCA Plot (Optional) ‎ ‎ ‎ ‎ ‎ "),
+                               content = "The color palette to use for the PCA plot. Select the number of colors to match the number of categories in grouping column 1.", 
+                               if(input$theme_mode == "Dark"){
+                                 colour = "red"
+                               }else{
+                                 colour = "blue"
+                               }),
+                             choices = allowed_colors,
+                             multiple = TRUE,
+                             options = list(placeholder = "Select Colors (Optional)",
+                                            plugins = c("remove_button", "restore_on_backspace"))
+                             ),
                checkboxInput("pca_log2",
                              label = helper(
                                type = "inline", 
@@ -592,21 +646,24 @@ server <- function(input, output, session) {
                                colour = "blue"
                              }), choices = c("2D", "3D"), 
                            selected = isolate(userState$pca_style) %||% "2D"),
-               textInput("pca_pch",
+               selectizeInput("pca_pch",
                          label = helper(
                            type = "inline", 
-                           title = "PCH Values", 
+                           title = "Plotting Symbols", 
                            icon = "question-circle",
-                           shiny_tag = "PCH Values ‎ ‎ ‎ ‎ ‎ ",
-                           content = "The plotting character (PCH) values to use for plotting the data points. Separate multiple values with a comma.
-                           Click <a href='https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/points'>here</a> for more information on PCH values.", 
+                           shiny_tag = "Plotting Symbols ‎ ‎ ‎ ‎ ‎ ",
+                           content = "The plotting character (PCH) symbols to use for plotting the data points. Must be the same number as the number of grouping column 1 categories.", 
                            if(input$theme_mode == "Dark"){
                              colour = "red"
                            }else{
                              colour = "blue"
                            }), 
-                         value = isolate(userState$pca_pch) %||% "16,4")
-             )
+                         choices = pch_choices,
+                         multiple = TRUE,
+                         options = list(placeholder = "Select Symbols",
+                                        plugins = c("remove_button", "restore_on_backspace"))
+                         )
+               )
            },
            "Random Forest" = {
              df <- filteredData()
@@ -797,7 +854,7 @@ server <- function(input, output, session) {
                                colour = "blue"
                              }), choices = cols, 
                            selected = isolate(userState$splsda_group_col) %||% cols[1]),
-               selectInput("splsda_trt_col", 
+               selectInput("splsda_group_col2", 
                            label = helper(
                              type = "inline", 
                              title = "Grouping Column 2", 
@@ -809,7 +866,7 @@ server <- function(input, output, session) {
                              }else{
                                colour = "blue"
                              }), choices = cols, 
-                           selected = isolate(userState$splsda_trt_col) %||% cols[1]),
+                           selected = isolate(userState$splsda_group_col2) %||% cols[1]),
                numericInput("splsda_var_num", 
                             label = helper(
                               type = "inline", 
@@ -824,6 +881,23 @@ server <- function(input, output, session) {
                                 colour = "blue"
                               }),
                             value = isolate(userState$splsda_var_num) %||% 25, min = 1),
+               selectizeInput("splsda_colors",
+                              label = helper(
+                                type = "inline", 
+                                title = "Select Colors for sPLS-DA Plot (Optional)", 
+                                icon = "question-circle",
+                                shiny_tag = HTML("Select Colors for sPLS-DA Plot (Optional) ‎ ‎ ‎ "),
+                                content = "The color palette to use for the sPLS-DA plot. Select the number of colors to match the number of categories in grouping column 1.", 
+                                if(input$theme_mode == "Dark"){
+                                  colour = "red"
+                                }else{
+                                  colour = "blue"
+                                }),
+                              choices = allowed_colors,
+                              multiple = TRUE,
+                              options = list(placeholder = "Select Colors (Optional)",
+                                             plugins = c("remove_button", "restore_on_backspace"))
+               ),
                selectInput("splsda_cv_opt",
                            label = helper(
                              type = "inline", 
@@ -885,20 +959,23 @@ server <- function(input, output, session) {
                                 colour = "blue"
                               }), 
                             value = isolate(userState$splsda_comp_num) %||% 2, min = 2),
-               textInput("splsda_pch", 
+               selectizeInput("splsda_pch", 
                          label = helper(
                            type = "inline", 
-                           title = "PCH Values", 
+                           title = "Plotting Symbols", 
                            icon = "question-circle",
-                           shiny_tag = "PCH Values ‎ ‎ ‎ ‎ ‎ ",
-                           content = "The plotting character (PCH) values to use for plotting the data points. Separate multiple values with a comma.
-                           Click <a href='https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/points'>here</a> for more information on PCH values.", 
+                           shiny_tag = "Plotting Symbols ‎ ‎ ‎ ‎ ‎ ",
+                           content = "The plotting character (PCH) symbols to use for plotting the data points. Must be the same number as the number of grouping column 1 categories.", 
                            if(input$theme_mode == "Dark"){
                              colour = "red"
                            }else{
                              colour = "blue"
-                           }), 
-                         value = isolate(userState$splsda_pch) %||% "16,4"),
+                           }),
+                         choices = pch_choices,
+                         multiple = TRUE,
+                         options = list(placeholder = "Select PCH Values",
+                                        plugins = c("remove_button", "restore_on_backspace"))
+                         ),
                selectInput("splsda_style", 
                            label = helper(
                              type = "inline", 
@@ -1400,12 +1477,13 @@ server <- function(input, output, session) {
     }
     if (input$selected_function == "Principle Component Analysis (PCA)") {
       userState$pca_group_col <- input$pca_group_col
-      userState$pca_trt_col <- input$pca_trt_col
+      userState$pca_group_col2 <- input$pca_group_col2
       userState$pca_comp_num <- input$pca_comp_num
       userState$pca_log2 <- input$pca_log2
       userState$pca_ellipse <- input$pca_ellipse
       userState$pca_style <- input$pca_style
-      userState$pca_pch <- input$pca_pch
+      userState$pca_pch <- as.numeric(input$pca_pch)
+      userState$pca_colors <- input$pca_colors
     }
     if (input$selected_function == "Random Forest") {
       userState$rf_group_col <- input$rf_group_col
@@ -1424,18 +1502,19 @@ server <- function(input, output, session) {
     }
     if (input$selected_function == "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)") {
       userState$splsda_group_col <- input$splsda_group_col
-      userState$splsda_trt_col <- input$splsda_trt_col
+      userState$splsda_group_col2 <- input$splsda_group_col2
       userState$splsda_var_num <- input$splsda_var_num
       userState$splsda_cv_opt <- input$splsda_cv_opt
       userState$splsda_fold_num <- input$splsda_fold_num
       userState$splsda_log2 <- input$splsda_log2
       userState$splsda_comp_num <- input$splsda_comp_num
-      userState$splsda_pch <- input$splsda_pch
+      userState$splsda_pch <- as.numeric(input$splsda_pch)
       userState$splsda_style <- input$splsda_style
       userState$splsda_roc <- input$splsda_roc
       userState$splsda_ellipse <- input$splsda_ellipse
       userState$splsda_bg <- input$splsda_bg
       userState$splsda_conf_mat <- input$splsda_conf_mat
+      userState$splsda_colors <- input$splsda_colors
     }
     if (input$selected_function == "Two-Sample T-Test") {
       userState$ttest_log2 <- input$ttest_log2
@@ -1504,12 +1583,13 @@ server <- function(input, output, session) {
       # Principle Component Analysis (PCA)
       if (userState$selected_function == "Principle Component Analysis (PCA)") {
         updateSelectInput(session, "pca_group_col", selected = userState$pca_group_col)
-        updateSelectInput(session, "pca_trt_col", selected = userState$pca_trt_col)
+        updateSelectInput(session, "pca_group_col2", selected = userState$pca_group_col2)
         updateNumericInput(session, "pca_comp_num", value = userState$pca_comp_num)
         updateCheckboxInput(session, "pca_log2", value = userState$pca_log2)
         updateCheckboxInput(session, "pca_ellipse", value = userState$pca_ellipse)
         updateSelectInput(session, "pca_style", selected = userState$pca_style)
-        updateTextInput(session, "pca_pch", value = userState$pca_pch)
+        updateSelectizeInput(session, "pca_pch", selected = userState$pca_pch)
+        updateSelectizeInput(session, "pca_colors", selected = userState$pca_colors)
       }
       
       # Random Forest
@@ -1534,18 +1614,19 @@ server <- function(input, output, session) {
       # Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)
       if (userState$selected_function == "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)") {
         updateSelectInput(session, "splsda_group_col", selected = userState$splsda_group_col)
-        updateSelectInput(session, "splsda_trt_col", selected = userState$splsda_trt_col)
+        updateSelectInput(session, "splsda_group_col2", selected = userState$splsda_group_col2)
         updateNumericInput(session, "splsda_var_num", value = userState$splsda_var_num)
         updateCheckboxInput(session, "splsda_cv_opt", value = userState$splsda_cv_opt)
         updateNumericInput(session, "splsda_fold_num", value = userState$splsda_fold_num)
         updateCheckboxInput(session, "splsda_log2", value = userState$splsda_log2)
         updateNumericInput(session, "splsda_comp_num", value = userState$splsda_comp_num)
-        updateTextInput(session, "splsda_pch", value = userState$splsda_pch)
+        updateSelectizeInput(session, "splsda_pch", selected = userState$splsda_pch)
         updateSelectInput(session, "splsda_style", selected = userState$splsda_style)
         updateCheckboxInput(session, "splsda_roc", value = userState$splsda_roc)
         updateCheckboxInput(session, "splsda_ellipse", value = userState$splsda_ellipse)
         updateCheckboxInput(session, "splsda_bg", value = userState$splsda_bg)
         updateCheckboxInput(session, "splsda_conf_mat", value = userState$splsda_conf_mat)
+        updateSelectizeInput(session, "splsda_colors", selected = userState$splsda_colors)
       }
       
       # Two-Sample T-Test
@@ -1633,18 +1714,26 @@ server <- function(input, output, session) {
     }
     if (func_name == "Principle Component Analysis (PCA)") {
       opts$group_col <- input$pca_group_col
-      opts$trt_col <- input$pca_trt_col
+      opts$group_col2 <- input$pca_group_col2
       opts$comp_num <- input$pca_comp_num
       opts$scale <- if (input$pca_log2) "log2" else NULL
       opts$ellipse <- input$pca_ellipse
       opts$style <- if (input$pca_style == "3D") "3d" else NULL
-      if (nzchar(input$pca_pch)) {
-        pch_vals <- as.numeric(unlist(strsplit(input$pca_pch, ",")))
+      if (!is.null(input$pca_pch) && length(input$pca_pch) > 0) {
+        pch_vals <- as.numeric(input$pca_pch)  # Directly convert the vector
+        # If user picked fewer shapes than groups, replicate:
         uniq_groups <- sort(unique(filteredData()[[input$pca_group_col]]))
         if (length(pch_vals) < length(uniq_groups)) {
           pch_vals <- rep(pch_vals, length.out = length(uniq_groups))
         }
         opts$pch_values <- pch_vals
+      }
+      opts$pca_colors <- if (!is.null(input$pca_colors) && length(input$pca_colors) > 0) {
+        input$pca_colors
+      } else {
+        # Default: use a rainbow palette based on the number of groups
+        groups <- unique(filteredData()[[input$pca_group_col]])
+        rainbow(length(groups))
       }
     }
     if (func_name == "Random Forest") {
@@ -1664,15 +1753,28 @@ server <- function(input, output, session) {
     }
     if (func_name == "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)") {
       opts$group_col <- input$splsda_group_col
-      opts$trt_col <- input$splsda_trt_col
+      opts$group_col2 <- input$splsda_group_col2
       opts$var_num <- input$splsda_var_num
       opts$cv_opt <- if (input$splsda_cv_opt == "None") NULL else input$splsda_cv_opt
       opts$fold_num <- input$splsda_fold_num
       opts$scale <- if (input$splsda_log2) "log2" else NULL
       opts$comp_num <- input$splsda_comp_num
-      if (nzchar(input$splsda_pch)) {
-        opts$pch_values <- as.numeric(unlist(strsplit(input$splsda_pch, ",")))
+      opts$splsda_colors <- if (!is.null(input$splsda_colors) && length(input$splsda_colors) > 0) {
+        input$splsda_colors
+      } else {
+        groups <- unique(filteredData()[[input$splsda_group_col]])
+        rainbow(length(groups))
       }
+      if (!is.null(input$splsda_pch) && length(input$splsda_pch) > 0) {
+        pch_vals <- as.numeric(input$splsda_pch)  # Directly convert the vector
+        # If user picked fewer shapes than groups, replicate:
+        uniq_groups <- sort(unique(filteredData()[[input$splsda_group_col]]))
+        if (length(pch_vals) < length(uniq_groups)) {
+          pch_vals <- rep(pch_vals, length.out = length(uniq_groups))
+        }
+        opts$pch_values <- pch_vals
+      }
+      
       opts$style <- if (input$splsda_style == "3D") "3d" else NULL
       opts$roc <- input$splsda_roc
       opts$ellipse <- input$splsda_ellipse
@@ -2286,12 +2388,13 @@ server <- function(input, output, session) {
   observeEvent(input$hm_annotation, { userState$hm_annotation <- input$hm_annotation })
   # For PCA
   observeEvent(input$pca_group_col, { userState$pca_group_col <- input$pca_group_col })
-  observeEvent(input$pca_trt_col, { userState$pca_trt_col <- input$pca_trt_col })
+  observeEvent(input$pca_group_col2, { userState$pca_group_col2 <- input$pca_group_col2 })
   observeEvent(input$pca_comp_num, { userState$pca_comp_num <- input$pca_comp_num })
   observeEvent(input$pca_log2, { userState$pca_log2 <- input$pca_log2 })
   observeEvent(input$pca_ellipse, { userState$pca_ellipse <- input$pca_ellipse })
   observeEvent(input$pca_style, { userState$pca_style <- input$pca_style })
   observeEvent(input$pca_pch, { userState$pca_pch <- input$pca_pch })
+  observeEvent(input$pca_colors, { userState$pca_colors <- input$pca_colors })
   # For Random Forest
   observeEvent(input$rf_group_col, { userState$rf_group_col <- input$rf_group_col })
   observeEvent(input$rf_ntree, { userState$rf_ntree <- input$rf_ntree })
@@ -2307,7 +2410,7 @@ server <- function(input, output, session) {
   observeEvent(input$skku_print_log, { userState$skku_print_log <- input$skku_print_log })
   # For sPLS-DA
   observeEvent(input$splsda_group_col, { userState$splsda_group_col <- input$splsda_group_col })
-  observeEvent(input$splsda_trt_col, { userState$splsda_trt_col <- input$splsda_trt_col })
+  observeEvent(input$splsda_group_col2, { userState$splsda_group_col2 <- input$splsda_group_col2 })
   observeEvent(input$splsda_var_num, { userState$splsda_var_num <- input$splsda_var_num })
   observeEvent(input$splsda_cv_opt, { userState$splsda_cv_opt <- input$splsda_cv_opt })
   observeEvent(input$splsda_fold_num, { userState$splsda_fold_num <- input$splsda_fold_num })
@@ -2319,6 +2422,7 @@ server <- function(input, output, session) {
   observeEvent(input$splsda_ellipse, { userState$splsda_ellipse <- input$splsda_ellipse })
   observeEvent(input$splsda_bg, { userState$splsda_bg <- input$splsda_bg })
   observeEvent(input$splsda_conf_mat, { userState$splsda_conf_mat <- input$splsda_conf_mat })
+  observeEvent(input$splsda_colors, { userState$splsda_colors <- input$splsda_colors })
   # For Two-Sample T-Test
   observeEvent(input$ttest_log2, { userState$ttest_log2 <- input$ttest_log2 })
   observeEvent(input$ttest_format_output, { userState$ttest_format_output <- input$ttest_format_output })
