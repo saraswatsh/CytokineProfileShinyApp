@@ -12,6 +12,7 @@ library(shinyhelper)
 server <- function(input, output, session) {
   # Helpers
   observe_helpers()
+  
   ## ---------------------------
   ## Theme Toggle (unchanged)
   ## ---------------------------
@@ -351,8 +352,8 @@ server <- function(input, output, session) {
              ui_list <- tagList(
                numericInput("bp_bin_size", label = helper(type = "inline", 
                                                           title = "Bin size for boxplots", 
-                                                          icon = "question-circle",
-                                                          shiny_tag = "Bin Size ‎ ‎ ‎ ‎ ‎  ",
+                                                          icon = "fas fa-question-circle",
+                                                          shiny_tag = HTML("<span style='margin-right: 15px;'>Bin Size</span>"),
                                                           content = "Determines the number of columns (variables) to group together in each set of box plots. 
                         For example, a bin size of 25 will display box plots for up to 25 columns (variables) at a time. 
                         If there are more columns, multiple sets of box plots will be generated.", 
@@ -365,8 +366,8 @@ server <- function(input, output, session) {
                
                textInput("bp_mf_row", label = helper(type = "inline", 
                                                           title = "Graphs per Row and Column", 
-                                                          icon = "question-circle",
-                                                          shiny_tag = HTML("Graphs per Row and Columns<br>(rows, cols; comma-separated) ‎ ‎ ‎ ‎ ‎ ‎ ‎ "),
+                                                          icon = "fas fa-question-circle",
+                                                          shiny_tag = HTML("<span style='margin-right: 15px;'>Graphs per Row and Columns</span><br>(rows, cols; comma-separated)"),
                                                           content = "The number of rows and columns for the boxplots. 
                         For example, '2,2' will display 4 boxplots in a 2x2 grid.", 
                                                      if(input$theme_mode == "Dark"){
@@ -378,8 +379,8 @@ server <- function(input, output, session) {
                
                textInput("bp_y_lim", label = helper(type = "inline", 
                                                     title = "Y-axis Limits", 
-                                                    icon = "question-circle",
-                                                    shiny_tag = HTML("Y-axis Limits<br>(min, max; comma-separated; leave blank for auto) ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ "),
+                                                    icon = "fas fa-question-circle",
+                                                    shiny_tag = HTML("<span style='margin-right: 15px;'>Y-axis Limits</span><br>(min, max; comma-separated; leave blank for auto)"),
                                                     content = "The minimum and maximum values for the y-axis. Leave blank to automatically determine the limits.
                                                     This controls the vertical scale of the plot.", 
                                                     if(input$theme_mode == "Dark"){
@@ -391,8 +392,8 @@ server <- function(input, output, session) {
                          
                checkboxInput("bp_log2", label = helper(type = "inline", 
                                                     title = "Apply log2 transformation", 
-                                                    icon = "exclamation",
-                                                    shiny_tag = "Apply log2 transformation ‎ ‎ ‎ ‎ ‎ ",
+                                                    icon = "fas fa-exclamation-circle",
+                                                    shiny_tag = HTML("<span style='margin-right: 15px;'>Apply log2 transformation</span>"),
                                                     content = "Apply a log2 transformation to the data before generating the boxplots. This transformation can
                                                     help manage data that span a wide range of values.", 
                                                     if(input$theme_mode == "Dark"){
@@ -408,8 +409,8 @@ server <- function(input, output, session) {
                textInput("bp2_mf_row", 
                          label = helper(type = "inline", 
                                         title = "Graphs per Row and Column", 
-                                        icon = "question-circle",
-                                        shiny_tag = HTML("Graphs per Row and Columns<br>(rows, cols; comma-separated) ‎ ‎ ‎ ‎ ‎ ‎ ‎ "),
+                                        icon = "fas fa-question-circle",
+                                        shiny_tag = HTML("<span style='margin-right: 15px;'>Graphs per Row and Columns</span><br>(rows, cols; comma-separated)"),
                                         content = "The number of rows and columns for the boxplots. 
                                         For example, '2,2' will display 4 boxplots in a 2x2 grid.", 
                                         if(input$theme_mode == "Dark"){
@@ -421,8 +422,8 @@ server <- function(input, output, session) {
                textInput("bp2_y_lim",
                          label = helper(type = "inline", 
                                         title = "Y-axis Limits", 
-                                        icon = "question-circle",
-                                        shiny_tag = HTML("Y-axis Limits<br>(min, max; comma-separated; leave blank for auto) ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ "),
+                                        icon = "fas fa-question-circle",
+                                        shiny_tag = HTML("<span style='margin-right: 15px;'>Y-axis Limits</span><br>(min, max; comma-separated; leave blank for auto)"),
                                         content = "The minimum and maximum values for the y-axis. Leave blank to automatically determine the limits.
                                         This controls the vertical scale of the plot.", 
                                         if(input$theme_mode == "Dark"){
@@ -434,8 +435,8 @@ server <- function(input, output, session) {
                checkboxInput("bp2_log2", 
                              label = helper(type = "inline", 
                                             title = "Apply log2 transformation", 
-                                            icon = "exclamation",
-                                            shiny_tag = "Apply log2 transformation ‎ ‎ ‎ ‎ ‎ ",
+                                            icon = "fas fa-exclamation-circle",
+                                            shiny_tag = HTML("<span style='margin-right: 15px;'>Apply log2 transformation</span>"),
                                             content = "Apply a log2 transformation to the data before generating the boxplots.
                                              This transformation can help manage data that span a wide range of values.", 
                                             if(input$theme_mode == "Dark"){
@@ -454,8 +455,8 @@ server <- function(input, output, session) {
                selectInput("df_group_var",
                            label = helper(type = "inline", 
                                           title = "Grouping Variable", 
-                                          icon = "question-circle",
-                                          shiny_tag = "Grouping Variable ‎ ‎ ‎ ‎ ‎ ",
+                                          icon = "fas fa-question-circle",
+                                          shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Variable</span>"),
                                           content = "The column to use for grouping the data. For example, a column that
                                           specifies categories such as 'Control' or 'Treatment'.", 
                                           if(input$theme_mode == "Dark"){
@@ -469,8 +470,8 @@ server <- function(input, output, session) {
                numericInput("df_ssmd_thresh", 
                             label = helper(type = "inline", 
                                            title = "SSMD Threshold", 
-                                           icon = "question-circle",
-                                           shiny_tag = "SSMD Threshold ‎ ‎ ‎ ‎ ‎ ",
+                                           icon = "fas fa-question-circle",
+                                           shiny_tag = HTML("<span style='margin-right: 15px;'>SSMD Threshold</span>"),
                                            content = "The threshold for the SSMD (strictly standardized mean difference) value. 
                                            SSMD is a measure of how different two groups are. A higher threshold means that 
                                            only larger differences are considered significant.",
@@ -483,8 +484,8 @@ server <- function(input, output, session) {
                numericInput("df_log2fc_thresh",
                             label = helper(type = "inline", 
                                            title = "Log2 Fold Change Threshold", 
-                                           icon = "question-circle",
-                                           shiny_tag = "Log2 Fold Change Threshold ‎ ‎ ‎ ‎ ‎ ",
+                                           icon = "fas fa-question-circle",
+                                           shiny_tag = HTML("<span style='margin-right: 15px;'>Log2 Fold Change Threshold</span>"),
                                            content = "The threshold for the log2 fold change value.
                                            Fold change shows the ratio of difference between groups on a logarithmic scale; 
                                            for example, a value of 1 represents a doubling or halving.",
@@ -497,8 +498,8 @@ server <- function(input, output, session) {
                numericInput("df_top_labels",
                             label = helper(type = "inline", 
                                            title = "Top Labels", 
-                                           icon = "exclamation",
-                                           shiny_tag = "Top Labels ‎ ‎ ‎ ‎ ‎ ",
+                                           icon = "fas fa-exclamation-circle",
+                                           shiny_tag = HTML("<span style='margin-right: 15px;'>Top Labels</span>"),
                                            content = "The number of top labels to display on the plot. Usually, the top labels are 
                                            the most significant points.",
                                            if(input$theme_mode == "Dark"){
@@ -518,8 +519,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Apply log2 transformation", 
-                               icon = "exclamation",
-                               shiny_tag = "Apply log2 transformation ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Apply log2 transformation</span>"),
                                content = "Apply a log2 transformation to the data before generating the heatmap.
                                This transformation can help manage data that span a wide range of values.", 
                                if(input$theme_mode == "Dark"){
@@ -532,8 +533,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Annotation Column", 
-                             icon = "question-circle",
-                             shiny_tag = "Annotation Column ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Annotation Column</span>"),
                              content = "The column to use for annotating the heatmap.
                              This column will add color coding to help differentiate groups", 
                              if(input$theme_mode == "Dark"){
@@ -554,8 +555,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Grouping Column 1", 
-                             icon = "question-circle",
-                             shiny_tag = "Grouping Column 1 ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Column 1</span>"),
                              content = "The first column to use for grouping the data.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -567,8 +568,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Grouping Column 2", 
-                             icon = "question-circle",
-                             shiny_tag = "Grouping Column 2 ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Column 2</span>"),
                              content = "The second column to use for grouping the data.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -580,8 +581,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Number of Components", 
-                              icon = "question-circle",
-                              shiny_tag = "Number of Components ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Number of Components</span>"),
                               content = "The number of components to use for the PCA analysis. Must be at least 2.", 
                               if(input$theme_mode == "Dark"){
                                 colour = "red"
@@ -593,8 +594,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Select Colors for PCA Plot (Optional)", 
-                               icon = "question-circle",
-                               shiny_tag = HTML("Select Colors for PCA Plot (Optional) ‎ ‎ ‎ ‎ ‎ "),
+                               icon = "fas fa-question-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Select Colors for PCA Plot (Optional)</span>"),
                                content = "The color palette to use for the PCA plot. Select the number of colors to match the number of categories in grouping column 1.", 
                                if(input$theme_mode == "Dark"){
                                  colour = "red"
@@ -610,8 +611,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Apply log2 transformation", 
-                               icon = "exclamation",
-                               shiny_tag = "Apply log2 transformation ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Apply log2 transformation</span>"),
                                content = "Apply a log2 transformation to the data before generating the PCA plot.
                                This transformation can help manage data that span a wide range of values.", 
                                if(input$theme_mode == "Dark"){
@@ -624,8 +625,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Draw Ellipse", 
-                               icon = "exclamation",
-                               shiny_tag = "Draw Ellipse ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Draw Ellipse</span>"),
                                content = "Draw an ellipse around the data points on the PCA plot. (Draws an ellipse covering 95% of the data points.)", 
                                if(input$theme_mode == "Dark"){
                                  colour = "red"
@@ -637,8 +638,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Plot Style", 
-                             icon = "question-circle",
-                             shiny_tag = "Plot Style ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Plot Style</span>"),
                              content = "The style of the PCA plot. Choose between 2D and 3D. Requires at least 3 components for 3D.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -650,8 +651,8 @@ server <- function(input, output, session) {
                          label = helper(
                            type = "inline", 
                            title = "Plotting Symbols", 
-                           icon = "question-circle",
-                           shiny_tag = "Plotting Symbols ‎ ‎ ‎ ‎ ‎ ",
+                           icon = "fas fa-question-circle",
+                           shiny_tag = HTML("<span style='margin-right: 15px;'>Plotting Symbols</span>"),
                            content = "The plotting character (PCH) symbols to use for plotting the data points. Must be the same number as the number of grouping column 1 categories.", 
                            if(input$theme_mode == "Dark"){
                              colour = "red"
@@ -674,8 +675,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Grouping Column", 
-                             icon = "question-circle",
-                             shiny_tag = "Grouping Column ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Column</span>"),
                              content = "The column to use for grouping the data.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -687,8 +688,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Number of Trees", 
-                              icon = "question-circle",
-                              shiny_tag = "Number of Trees ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Number of Trees</span>"),
                               content = "The number of trees to grow in the random forest model.
                               Each tree is a simple model; more trees can improve predictions but take longer to compute.", 
                               if(input$theme_mode == "Dark"){
@@ -701,8 +702,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Number of Variables to Split", 
-                              icon = "question-circle",
-                              shiny_tag = "Number of Variables to Split ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Number of Variables to Split</span>"),
                               content = "The number of variables to randomly select at each split.
                               At each decision point, the model randomly considers this number of variables, which helps improve model accuracy.", 
                               if(input$theme_mode == "Dark"){
@@ -715,8 +716,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Train Fraction", 
-                              icon = "question-circle",
-                              shiny_tag = "Train Fraction ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Train Fraction</span>"),
                               content = "The fraction of the data to use for training the random forest model.
                               The remainder is used for testing the model.", 
                               if(input$theme_mode == "Dark"){
@@ -729,8 +730,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Plot ROC", 
-                               icon = "exclamation",
-                               shiny_tag = "Plot ROC (Binary Comparison Only) ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Plot ROC (Binary Comparison Only)</span>"),
                                content = "Plot the Recieving Operating Characteristic (ROC) curve for the random forest model.
                                Requires comparison to be a binary comparison (at most 2 groups). The ROC curve helps evaluate 
                                the model’s performance in distinguishing between two groups.", 
@@ -744,8 +745,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Run RFCV?", 
-                               icon = "exclamation",
-                               shiny_tag = "Run RFCV ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Run RFCV</span>"),
                                content = "Run Recursive Feature Elimination (RFE) with Cross-Validation (CV) to determine 
                                the optimal number of variables to include in the model.This process automatically tests 
                                different combinations of variables to find the ones that best predict the outcome.", 
@@ -761,8 +762,8 @@ server <- function(input, output, session) {
                               label = helper(
                                 type = "inline", 
                                 title = "Number of Folds", 
-                                icon = "question-circle",
-                                shiny_tag = "Number of Folds ‎ ‎ ‎ ‎ ‎ ",
+                                icon = "fas fa-question-circle",
+                                shiny_tag = HTML("<span style='margin-right: 15px;'>Number of Folds</span>"),
                                 content = "The number of folds to use for cross-validation in the RFCV process.
                                 Folds are subsets of the data used to train and test the model. More folds can improve accuracy but take longer to compute.", 
                                 if(input$theme_mode == "Dark"){
@@ -775,8 +776,8 @@ server <- function(input, output, session) {
                               label = helper(
                                 type = "inline", 
                                 title = "Step Size", 
-                                icon = "question-circle",
-                                shiny_tag = "Step Size ‎ ‎ ‎ ‎ ‎ ",
+                                icon = "fas fa-question-circle",
+                                shiny_tag = HTML("<span style='margin-right: 15px;'>Step Size</span>"),
                                 content = "The step size to use for the RFCV process. Must be between 0.1 and 0.9.
                                 The value controls how quickly the model eliminates variables. A smaller step size can help find the best variables.", 
                                 if(input$theme_mode == "Dark"){
@@ -796,8 +797,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Grouping Columns", 
-                             icon = "question-circle",
-                             shiny_tag = "Grouping Columns ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Columns</span>"),
                              content = "The columns to use for grouping the data.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -811,8 +812,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Print Raw Results", 
-                               icon = "exclamation",
-                               shiny_tag = "Print Raw Results ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Print Raw Results</span>"),
                                content = "Print the raw skewness and kurtosis values for each column in the data.", 
                                if(input$theme_mode == "Dark"){
                                  colour = "red"
@@ -825,8 +826,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Print Log-Transformed Results", 
-                               icon = "exclamation",
-                               shiny_tag = "Print Log-Transformed Results ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Print Log-Transformed Results</span>"),
                                content = "Print the skewness and kurtosis values for each column after applying a log2 transformation.", 
                                if(input$theme_mode == "Dark"){
                                  colour = "red"
@@ -845,8 +846,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Grouping Column 1", 
-                             icon = "question-circle",
-                             shiny_tag = "Grouping Column 1 ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Column 1</span>"),
                              content = "The first column to use for grouping the data.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -858,8 +859,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Grouping Column 2", 
-                             icon = "question-circle",
-                             shiny_tag = "Grouping Column 2 ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Column 2</span>"),
                              content = "The second column to use for grouping the data.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -871,8 +872,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Number of Variables", 
-                              icon = "question-circle",
-                              shiny_tag = "Number of Variables ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Number of Variables</span>"),
                               content = "The number of variables to use for the sPLS-DA analysis. It should match
                               the number of variables selected for the analysis.", 
                               if(input$theme_mode == "Dark"){
@@ -885,8 +886,8 @@ server <- function(input, output, session) {
                               label = helper(
                                 type = "inline", 
                                 title = "Select Colors for sPLS-DA Plot (Optional)", 
-                                icon = "question-circle",
-                                shiny_tag = HTML("Select Colors for sPLS-DA Plot (Optional) ‎ ‎ ‎ "),
+                                icon = "fas fa-question-circle",
+                                shiny_tag = HTML("<span style='margin-right: 15px;'>Select Colors for sPLS-DA Plot (Optional)</span>"),
                                 content = "The color palette to use for the sPLS-DA plot. Select the number of colors to match the number of categories in grouping column 1.", 
                                 if(input$theme_mode == "Dark"){
                                   colour = "red"
@@ -902,8 +903,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Cross-Validation Option", 
-                             icon = "question-circle",
-                             shiny_tag = "Cross-Validation Option ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Cross-Validation Option</span>"),
                              content = "The cross-validation option to use for the sPLS-DA analysis.
                              Cross-validation helps evaluate the model's performance. Choose between None, LOOCV, and Mfold.
                              LOOCV = Leave-One-Out Cross-Validation (LOOCV) which works by training the model on all data except one sample and then testing on the left-out sample.
@@ -921,8 +922,8 @@ server <- function(input, output, session) {
                               label = helper(
                                 type = "inline", 
                                 title = "Number of Folds", 
-                                icon = "question-circle",
-                                shiny_tag = "Number of Folds ‎ ‎ ‎ ‎ ‎ ",
+                                icon = "fas fa-question-circle",
+                                shiny_tag = HTML("<span style='margin-right: 15px;'>Number of Folds</span>"),
                                 content = "The number of folds to use for the M-Fold Cross-Validation process. More folds can improve 
                                 accuracy but take longer to compute.",
                                 if(input$theme_mode == "Dark"){
@@ -936,8 +937,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Apply log2 transformation", 
-                               icon = "exclamation",
-                               shiny_tag = "Apply log2 transformation ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Apply log2 transformation</span>"),
                                content = "Apply a log2 transformation to the data before generating the sPLS-DA plot.
                                This transformation can help manage data that span a wide range of values.", 
                                if(input$theme_mode == "Dark"){
@@ -950,8 +951,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Number of Components", 
-                              icon = "question-circle",
-                              shiny_tag = "Number of Components ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Number of Components</span>"),
                               content = "The number of components to use for the sPLS-DA analysis. Must be at least 2.", 
                               if(input$theme_mode == "Dark"){
                                 colour = "red"
@@ -963,8 +964,8 @@ server <- function(input, output, session) {
                          label = helper(
                            type = "inline", 
                            title = "Plotting Symbols", 
-                           icon = "question-circle",
-                           shiny_tag = "Plotting Symbols ‎ ‎ ‎ ‎ ‎ ",
+                           icon = "fas fa-question-circle",
+                           shiny_tag = HTML("<span style='margin-right: 15px;'>Plotting Symbols</span>"),
                            content = "The plotting character (PCH) symbols to use for plotting the data points. Must be the same number as the number of grouping column 1 categories.", 
                            if(input$theme_mode == "Dark"){
                              colour = "red"
@@ -980,8 +981,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Plot Style", 
-                             icon = "question-circle",
-                             shiny_tag = "Plot Style ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Plot Style</span>"),
                              content = "The style of the sPLS-DA plot. Choose between 2D and 3D. Requires at least 3 components for 3D.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -993,8 +994,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Plot ROC", 
-                               icon = "question-circle",
-                               shiny_tag = "Plot ROC  ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-question-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Plot ROC</span>"),
                                content = "Plot the Recieving Operating Characteristic (ROC) curve for the sPLS-DA model. This curve shows
                                how well the model distinguishes between classes.", 
                                if(input$theme_mode == "Dark"){
@@ -1007,8 +1008,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Draw Ellipse", 
-                               icon = "exclamation",
-                               shiny_tag = "Draw Ellipse ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Draw Ellipse</span>"),
                                content = "Draw an ellipse around the data points on the sPLS-DA plot. (Draws an ellipse covering 95% of the data points.)", 
                                if(input$theme_mode == "Dark"){
                                  colour = "red"
@@ -1020,8 +1021,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Background Color", 
-                               icon = "exclamation",
-                               shiny_tag = "Shaded Background Prediction ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Shaded Background Prediction</span>"),
                                content = "Draws a shaded background prediction on the sPLS-DA plot. 
                                This shading indicates the model’s predicted classification regions", 
                                if(input$theme_mode == "Dark"){
@@ -1034,8 +1035,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Confusion Matrix", 
-                               icon = "exclamation",
-                               shiny_tag = "Confusion Matrix ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Confusion Matrix</span>"),
                                content = "Display the confusion matrix for the sPLS-DA model. This table shows how many
                                predictions were correct and provides key performance measures.", 
                                if(input$theme_mode == "Dark"){
@@ -1052,8 +1053,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Apply log2 transformation", 
-                               icon = "exclamation",
-                               shiny_tag = "Apply log2 transformation ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Apply log2 transformation</span>"),
                                content = "Apply a log2 transformation to the data before performing the two-sample t-test.
                                This transformation can help manage data that span a wide range of values.", 
                                if(input$theme_mode == "Dark"){
@@ -1075,8 +1076,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Grouping Column", 
-                             icon = "question-circle",
-                             shiny_tag = "Grouping Column ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Column</span>"),
                              content = "The column to use for grouping the data.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -1089,8 +1090,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Fold Change Threshold", 
-                              icon = "question-circle",
-                              shiny_tag = "Fold Change Threshold ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Fold Change Threshold</span>"),
                               content = "The threshold for the fold change value.
                               Fold change indicates the ratio of differences between groups; 
                               values above this threshold are considered significant.", 
@@ -1104,8 +1105,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "P-Value Threshold", 
-                              icon = "question-circle",
-                              shiny_tag = "P-Value Threshold ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>P-Value Threshold</span>"),
                               content = "The threshold for the p-value. P-values indicate the probability that the 
                               observed difference is due to chance; lower values suggest more significant differences.", 
                               if(input$theme_mode == "Dark"){
@@ -1118,8 +1119,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Top Labels", 
-                              icon = "exclamation",
-                              shiny_tag = "Top Labels ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-exclamation-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Top Labels</span>"),
                               content = "The number of top labels to display on the plot.", 
                               if(input$theme_mode == "Dark"){
                                 colour = "red"
@@ -1138,8 +1139,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Grouping Column", 
-                             icon = "question-circle",
-                             shiny_tag = "Grouping Column ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Column</span>"),
                              content = "The column to use for grouping the data.", 
                              if(input$theme_mode == "Dark"){
                                colour = "red"
@@ -1151,8 +1152,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Train Fraction", 
-                              icon = "question-circle",
-                              shiny_tag = "Train Fraction ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Train Fraction</span>"),
                               content = "The fraction of the data to use for training the XGBoost model.
                               Remainder is used for testing the model.", 
                               if(input$theme_mode == "Dark"){
@@ -1165,8 +1166,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Number of Rounds", 
-                              icon = "question-circle",
-                              shiny_tag = "Number of Rounds ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Number of Rounds</span>"),
                               content = "The number of rounds to grow the trees in the XGBoost model.
                               Each round adds a new tree to improve the model’s predictions.", 
                               if(input$theme_mode == "Dark"){
@@ -1179,8 +1180,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Maximum Depth", 
-                              icon = "question-circle",
-                              shiny_tag = "Maximum Depth ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Maximum Depth</span>"),
                               content = "The maximum depth of the trees in the XGBoost model.
                               Deeper trees can capture more complex relationships but may risk overfitting.", 
                               if(input$theme_mode == "Dark"){
@@ -1193,8 +1194,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline", 
                               title = "Learning Rate", 
-                              icon = "question-circle",
-                              shiny_tag = "Learning Rate ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-question-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Learning Rate</span>"),
                               content = "The learning rate of the XGBoost model.
                               This controls how much each new tree influences the model; 
                               lower rates make the model learn more slowly but can improve accuracy.", 
@@ -1208,8 +1209,8 @@ server <- function(input, output, session) {
                            label = helper(
                              type = "inline", 
                              title = "Evaluation Metric", 
-                             icon = "question-circle",
-                             shiny_tag = "Evaluation Metric ‎ ‎ ‎ ‎ ‎ ",
+                             icon = "fas fa-question-circle",
+                             shiny_tag = HTML("<span style='margin-right: 15px;'>Evaluation Metric</span>"),
                              content = "The evaluation metric to use for the XGBoost model.
                              Choose 'mlogloss' to measure classification error or 'auc' for the area under the ROC curve.", 
                              if(input$theme_mode == "Dark"){
@@ -1223,8 +1224,8 @@ server <- function(input, output, session) {
                             label = helper(
                               type = "inline",
                               title = "Top Number of Features",
-                              icon = "exclamation",
-                              shiny_tag = "Top Number of Features ‎ ‎ ‎ ‎ ‎ ",
+                              icon = "fas fa-exclamation-circle",
+                              shiny_tag = HTML("<span style='margin-right: 15px;'>Top Number of Features</span>"),
                               content = "The number of top features to display on the plot.",
                               if(input$theme_mode == "Dark"){
                                 colour = "red"
@@ -1236,8 +1237,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Plot ROC", 
-                               icon = "question-circle",
-                               shiny_tag = "Plot ROC (Binary Comparison Only) ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-question-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Plot ROC (Binary Comparison Only)</span>"),
                                content = "Plot the Recieving Operating Characteristic (ROC) curve for the XGBoost model.
                                Requires comparison to be a binary comparison (at most 2 groups). The ROC curve 
                                helps evaluate how well the model distinguishes between two groups.", 
@@ -1251,8 +1252,8 @@ server <- function(input, output, session) {
                              label = helper(
                                type = "inline", 
                                title = "Cross-Validation", 
-                               icon = "exclamation",
-                               shiny_tag = "Cross-Validation ‎ ‎ ‎ ‎ ‎ ",
+                               icon = "fas fa-exclamation-circle",
+                               shiny_tag = HTML("<span style='margin-right: 15px;'>Cross-Validation</span>"),
                                content = "Perform cross-validation on the XGBoost model.
                                Cross-validation helps evaluate the model’s performance on different subsets of the data.", 
                                if(input$theme_mode == "Dark"){
@@ -1267,8 +1268,8 @@ server <- function(input, output, session) {
                               label = helper(
                                 type = "inline", 
                                 title = "Number of Folds", 
-                                icon = "question-circle",
-                                shiny_tag = "Number of Folds ‎ ‎ ‎ ‎ ‎ ",
+                                icon = "fas fa-question-circle",
+                                shiny_tag = HTML("<span style='margin-right: 15px;'>Number of Folds</span>"),
                                 content = "The number of folds to use for cross-validation in the XGBoost model.
                                 The folds are used to train and test the model. More folds can improve accuracy but take longer to compute.", 
                                 if(input$theme_mode == "Dark"){
@@ -1297,8 +1298,8 @@ server <- function(input, output, session) {
                   label = helper(
                     type = "inline", 
                     title = "Condition 1", 
-                    icon = "question-circle",
-                    shiny_tag = "Condition 1 ‎ ‎ ‎ ‎ ‎ ",
+                    icon = "fas fa-question-circle",
+                    shiny_tag = HTML("<span style='margin-right: 15px;'>Condition 1</span>"),
                     content = "The first condition to compare.", 
                     if(input$theme_mode == "Dark"){
                       colour = "red"
@@ -1309,8 +1310,8 @@ server <- function(input, output, session) {
                   label = helper(
                     type = "inline", 
                     title = "Condition 2", 
-                    icon = "question-circle",
-                    shiny_tag = "Condition 2 ‎ ‎ ‎ ‎ ‎ ",
+                    icon = "fas fa-question-circle",
+                    shiny_tag = HTML("<span style='margin-right: 15px;'>Condition 2</span>"),
                     content = "The second condition to compare.", 
                     if(input$theme_mode == "Dark"){
                       colour = "red"
@@ -1331,8 +1332,8 @@ server <- function(input, output, session) {
                     label = helper(
                       type = "inline", 
                       title = "Condition 1", 
-                      icon = "question-circle",
-                      shiny_tag = "Condition 1 ‎ ‎ ‎ ‎ ‎ ",
+                      icon = "fas fa-question-circle",
+                      shiny_tag = HTML("<span style='margin-right: 15px;'>Condition 1</span>"),
                       content = "The first condition to compare.", 
                       if(input$theme_mode == "Dark"){
                         colour = "red"
@@ -1343,8 +1344,8 @@ server <- function(input, output, session) {
                     label = helper(
                       type = "inline", 
                       title = "Condition 2", 
-                      icon = "question-circle",
-                      shiny_tag = "Condition 2 ‎ ‎ ‎ ‎ ‎ ",
+                      icon = "fas fa-question-circle",
+                      shiny_tag = HTML("<span style='margin-right: 15px;'>Condition 2</span>"),
                       content = "The second condition to compare.", 
                       if(input$theme_mode == "Dark"){
                         colour = "red"
