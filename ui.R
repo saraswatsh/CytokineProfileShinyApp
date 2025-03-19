@@ -52,9 +52,9 @@ ui <- fluidPage(
     condition = "output.currentStep == 1",
     div(
       style = "text-align: center; margin-bottom: 20px;",
-      tags$a(href = "https://github.com/saraswatsh/CytoProfile", "GitHub Repository", target = "_blank"),
+      tags$a(href = "https://github.com/saraswatsh/CytoProfileShinyApp", "GitHub Repository", target = "_blank"),
       " | ",
-      tags$a(href = "https://saraswatsh.github.io/CytoProfile/", "Project Website", target = "_blank")
+      tags$a(href = "https://saraswatsh.github.io/CytoProfileShinyApp/", "Project Website", target = "_blank")
     )
   ),
   

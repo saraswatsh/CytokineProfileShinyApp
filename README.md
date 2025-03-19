@@ -14,6 +14,9 @@ analyses on their own data. For advanced users, the CytoProfile R
 package is available on
 [Github](https://github.com/saraswatsh/CytoProfile).
 
+The Shiny application is available at [CytoProfile Shiny
+App](https://ssa390.shinyapps.io/cytoprofile_shiny/).
+
 ## Features
 
 - Data Upload & Built-in Data Options: Upload your own data files (CSV,
@@ -22,20 +25,20 @@ package is available on
 - Dynamic Column Selection & Filtering: Easily select columns and apply
   filters based on categorical variables to focus your analysis.
 
-- Multiple Analysis Functions: Choose from several analysis functions,
-  including:
+- Multiple Analysis Functions:
 
-  1.  ANOVA
-  2.  Boxplots and Enhanced Boxplots
-  3.  Dual-Flashlight Plot
-  4.  Heatmap
-  5.  Principal Component Analysis (PCA)
-  6.  Random Forest
-  7.  Skewness/Kurtosis
-  8.  Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)
-  9.  Two-Sample T-Test
-  10. Volcano Plot
-  11. Extreme Gradient Boosting (XGBoost)
+  - Choose from several analysis functions, including:
+    1.  ANOVA
+    2.  Boxplots and Enhanced Boxplots
+    3.  Dual-Flashlight Plot
+    4.  Heatmap
+    5.  Principal Component Analysis (PCA)
+    6.  Random Forest
+    7.  Skewness/Kurtosis
+    8.  Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)
+    9.  Two-Sample T-Test
+    10. Volcano Plot
+    11. Extreme Gradient Boosting (XGBoost)
 
 - Interactive & Downloadable Outputs: View results directly within the
   app or download outputs (e.g., PDF reports, images).

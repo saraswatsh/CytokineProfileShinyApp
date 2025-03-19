@@ -24,6 +24,8 @@ multivariate analysis for advance analysis. It provides an overall user-friendly
 experience for users to conduct analyses on their own data. For advanced users, 
 the CytoProfile R package is available on [Github](https://github.com/saraswatsh/CytoProfile).
 
+The Shiny application is available at [CytoProfile Shiny App](https://ssa390.shinyapps.io/cytoprofile_shiny/).
+
 
 ## Features
 
@@ -34,7 +36,7 @@ the CytoProfile R package is available on [Github](https://github.com/saraswatsh
     Easily select columns and apply filters based on categorical variables to focus your analysis.
 
 * Multiple Analysis Functions:
-    Choose from several analysis functions, including:
+  - Choose from several analysis functions, including:
     1. ANOVA
     2. Boxplots and Enhanced Boxplots
     3. Dual-Flashlight Plot

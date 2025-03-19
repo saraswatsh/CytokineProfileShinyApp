@@ -1,0 +1,52 @@
+url: https://saraswatsh.github.io/CytoProfileShinyApp/
+template:
+  bootstrap: 5
+  light-switch: yes
+home:
+  title: Welcome to CytoProfile Shiny Application
+  tagline: An Interactive Web Application for Comprehensive Cytokine Data Analysis
+  links:
+  - text: App Link
+    href: https://ssa390.shinyapps.io/cytoprofile_shiny/
+  - text: Report a bug
+    href: https://github.com/saraswatsh/CytoProfileShinyApp/issues
+navbar:
+  title: CytoProfile Shiny App
+  left:
+  - text: Reference
+    href: reference/index.html
+reference:
+- title: Exploratory Analysis
+  description: |
+    Functions for exploring raw data, summarizing statistics,
+    and visualizing key patterns.
+  contents:
+  - cyt_anova
+  - cyt_ttest
+  - cyt_bp
+  - cyt_bp2
+  - cyt_skku
+  - cyt_volc
+  - cyt_heatmap
+  - cyt_dualflashplot
+- title: Multivariate Analysis
+  description: |
+    Functions for deeper multivariate insights.
+  contents:
+  - cyt_splsda
+  - cyt_pca
+- title: Machine Learning Methods
+  contents:
+  - cyt_rf
+  - cyt_xgb
+- title: Datasets
+  contents:
+  - ExampleData1
+  - ExampleData2
+  - ExampleData3
+footer:
+  left: © 2025 Shubh Saraswat
+  right: Built with pkgdown
+development:
+  mode: auto
+
