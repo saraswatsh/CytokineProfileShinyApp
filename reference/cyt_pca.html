@@ -56,7 +56,7 @@ and a correlation circle plot.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cyt_pca</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
 <span>  group_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  trt_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  group_col2 <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pdf_title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ellipse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -65,6 +65,7 @@ and a correlation circle plot.</p>
 <span>  pch_values <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  style <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pca_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -81,8 +82,8 @@ and a correlation circle plot.</p>
 <dd><p>Character. The name of the column containing the grouping information.</p></dd>
 
 
-<dt id="arg-trt-col">trt_col<a class="anchor" aria-label="anchor" href="#arg-trt-col"></a></dt>
-<dd><p>Character. The name of the column containing the treatment information.
+<dt id="arg-group-col-">group_col2<a class="anchor" aria-label="anchor" href="#arg-group-col-"></a></dt>
+<dd><p>Character. The name of the second column containing the grouping information.
 If one is missing, the provided column is used for both.</p></dd>
 
 

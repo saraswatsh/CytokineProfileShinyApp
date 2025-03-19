@@ -47,7 +47,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cyt_splsda</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
 <span>  group_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  trt_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  group_col2 <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">pdf_title</span>,</span>
 <span>  ellipse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -61,6 +61,7 @@
 <span>  <span class="va">pch_values</span>,</span>
 <span>  style <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  roc <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  splsda_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -71,18 +72,18 @@
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
 <dd><p>A matrix or data frame containing the variables. Columns not
-specified by <code>group_col</code> or <code>trt_col</code> are assumed to be continuous
+specified by <code>group_col</code> or <code>group_col2</code> are assumed to be continuous
 variables for analysis.</p></dd>
 
 
 <dt id="arg-group-col">group_col<a class="anchor" aria-label="anchor" href="#arg-group-col"></a></dt>
-<dd><p>A string specifying the column name that contains group
-information. If <code>trt_col</code> is not provided, it will be used for both
+<dd><p>A string specifying the first grouping column name that contains grouping
+information. If <code>group_col2</code> is not provided, it will be used for both
 grouping and treatment.</p></dd>
 
 
-<dt id="arg-trt-col">trt_col<a class="anchor" aria-label="anchor" href="#arg-trt-col"></a></dt>
-<dd><p>A string specifying the column name for treatments. Default is
+<dt id="arg-group-col-">group_col2<a class="anchor" aria-label="anchor" href="#arg-group-col-"></a></dt>
+<dd><p>A string specifying the second grouping column name. Default is
 <code>NULL</code>.</p></dd>
 
 
@@ -176,8 +177,8 @@ returned with the following elements (in this order):
 <span class="r-in"><span>           colors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"purple"</span>, <span class="st">"red2"</span><span class="op">)</span>, bg <span class="op">=</span> <span class="cn">TRUE</span>, scale <span class="op">=</span> <span class="st">"log2"</span>,</span></span>
 <span class="r-in"><span>           conf_mat <span class="op">=</span> <span class="cn">TRUE</span>, var_num <span class="op">=</span> <span class="fl">25</span>, cv_opt <span class="op">=</span> <span class="st">"loocv"</span>, comp_num <span class="op">=</span> <span class="fl">3</span>,</span></span>
 <span class="r-in"><span>           pch_values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">16</span>, <span class="fl">4</span>, <span class="fl">3</span><span class="op">)</span>, style <span class="op">=</span> <span class="st">"3d"</span>,</span></span>
-<span class="r-in"><span>           group_col <span class="op">=</span> <span class="st">"Group"</span>, trt_col <span class="op">=</span> <span class="st">"Treatment"</span>, roc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in withProgress(message = paste("Starting Preliminary Processing"),     value = 0, {        if (is.null(group_col) &amp;&amp; !is.null(trt_col)) {            incProgress(0, detail = "No group column provided; using treatment column as grouping variable.")            group_col &lt;- trt_col        }        if (is.null(trt_col) &amp;&amp; !is.null(group_col)) {            incProgress(0, detail = "No treatment column provided; using group column as treatment variable.")            trt_col &lt;- group_col        }        if (is.null(group_col) &amp;&amp; is.null(trt_col)) {            stop("At least one factor column must be provided.")        }        if (!is.null(scale) &amp;&amp; scale == "log2") {            data &lt;- data.frame(data[, c(group_col, trt_col),                 drop = FALSE], log2(data[, !(names(data) %in%                 c(group_col, trt_col)), drop = FALSE]))            incProgress(0, detail = "Results based on log2 transformation:")        }        else {            incProgress(0, detail = "Results based on no transformation:")        }    }):</span> could not find function "withProgress"</span>
+<span class="r-in"><span>           group_col <span class="op">=</span> <span class="st">"Group"</span>, group_col2 <span class="op">=</span> <span class="st">"Treatment"</span>, roc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in withProgress(message = paste("Starting Preliminary Processing"),     value = 0, {        if (is.null(group_col) &amp;&amp; !is.null(group_col2)) {            incProgress(0, detail = "Grouping column 2 not provided, using grouping column 1 as grouping variable.")            group_col &lt;- group_col2        }        if (is.null(group_col2) &amp;&amp; !is.null(group_col)) {            incProgress(0, detail = "Grouping column 1 not provided, using grouping column 2 as grouping variable.")            group_col2 &lt;- group_col        }        if (is.null(group_col) &amp;&amp; is.null(group_col2)) {            stop("At least one factor column must be provided.")        }        if (!is.null(scale) &amp;&amp; scale == "log2") {            data &lt;- data.frame(data[, c(group_col, group_col2),                 drop = FALSE], log2(data[, !(names(data) %in%                 c(group_col, group_col2)), drop = FALSE]))            incProgress(0, detail = "Results based on log2 transformation:")        }        else {            incProgress(0, detail = "Results based on no transformation:")        }    }):</span> could not find function "withProgress"</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
