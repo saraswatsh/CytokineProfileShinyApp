@@ -1856,6 +1856,7 @@ server <- function(input, output, session) {
             if (!is.null(res$loadings)) uiOutput("splsda_loadingsUI") else NULL,
             if (!is.null(res$vip_scores)) uiOutput("splsda_vipScoresUI") else NULL,
             if (!is.null(res$vip_indiv_plot)) plotOutput("splsda_vipIndivPlot", height = "400px") else NULL,
+            if (!is.null(res$vip_loadings)) uiOutput("splsda_vipLoadingsUI") else NULL,
             if (!is.null(res$vip_3D)) plotOutput("splsda_vip3DPlot", height = "400px") else NULL,
             if (!is.null(res$vip_ROC)) plotOutput("splsda_vipRocPlot", height = "400px") else NULL,
             if (!is.null(res$vip_CV)) plotOutput("splsda_vipCvPlot", height = "400px") else NULL,
@@ -1882,6 +1883,8 @@ server <- function(input, output, session) {
                   uiOutput(paste0("splsda_vipScoresUI_", trt)) else NULL,
                 if (!is.null(res[[trt]]$vip_indiv_plot))
                   plotOutput(paste0("splsda_vipIndivPlot_", trt), height = "400px") else NULL,
+                if (!is.null(res[[trt]]$vip_loadings))
+                  uiOutput(paste0("splsda_vipLoadingsUI_", trt)) else NULL,
                 if (!is.null(res[[trt]]$vip_3D))
                   plotOutput(paste0("splsda_vip3DPlot_", trt), height = "400px") else NULL,
                 if (!is.null(res[[trt]]$vip_ROC))
@@ -2044,6 +2047,21 @@ server <- function(input, output, session) {
             })
           })
         }
+        output$splsda_vipLoadingsUI <- renderUI({
+          if (!is.null(res$vip_loadings)) {
+            tagList(lapply(seq_along(res$vip_loadings), function(i) {
+              plotOutput(paste0("splsda_vipLoadings_overall_", i), height = "300px")
+            }))
+          }
+        })
+        for (i in seq_along(res$vip_loadings)) {
+          local({
+            ii <- i
+            output[[paste0("splsda_vipLoadings_overall_", ii)]] <- renderPlot({
+              replayPlot(res$vip_loadings[[ii]])
+            })
+          })
+        }
         output$splsda_vipIndivPlot <- renderPlot({ if (!is.null(res$vip_indiv_plot)) replayPlot(res$vip_indiv_plot) })
         output$splsda_vip3DPlot   <- renderPlot({ if (!is.null(res$vip_3D)) replayPlot(res$vip_3D) })
         output$splsda_vipRocPlot  <- renderPlot({ if (!is.null(res$vip_ROC)) replayPlot(res$vip_ROC) })
@@ -2068,14 +2086,14 @@ server <- function(input, output, session) {
                   plotOutput(paste0("splsda_overallRocPlot_", currentGroup), height = "400px"),
                 if (!is.null(currentSubres$overall_CV))
                   plotOutput(paste0("splsda_overallCvPlot_", currentGroup), height = "400px"),
-                # Loadings UI container
                 if (!is.null(currentSubres$loadings))
                   uiOutput(paste0("splsda_loadingsUI_", currentGroup)),
-                # VIP scores UI container
                 if (!is.null(currentSubres$vip_scores))
                   uiOutput(paste0("splsda_vipScoresUI_", currentGroup)),
                 if (!is.null(currentSubres$vip_indiv_plot))
                   plotOutput(paste0("splsda_vipIndivPlot_", currentGroup), height = "400px"),
+                if (!is.null(currentSubres$vip_loadings))
+                  uiOutput(paste0("splsda_vipLoadingsUI_", currentGroup)),
                 if (!is.null(currentSubres$vip_3D))
                   plotOutput(paste0("splsda_vip3DPlot_", currentGroup), height = "400px"),
                 if (!is.null(currentSubres$vip_ROC))
@@ -2145,6 +2163,21 @@ server <- function(input, output, session) {
               if (!is.null(currentSubres$vip_indiv_plot))
                 replayPlot(currentSubres$vip_indiv_plot)
             })
+            if (!is.null(currentSubres$vip_loadings)) {
+              output[[paste0("splsda_vipLoadingsUI_", currentGroup)]] <- renderUI({
+                tagList(lapply(seq_along(currentSubres$vip_loadings), function(i) {
+                  plotOutput(paste0("splsda_vipLoadings_", currentGroup, "_", i), height = "300px")
+                }))
+              })
+              for (i in seq_along(currentSubres$vip_loadings)) {
+                local({
+                  ii <- i
+                  output[[paste0("splsda_vipLoadings_", currentGroup, "_", ii)]] <- renderPlot({
+                    replayPlot(currentSubres$vip_loadings[[ii]])
+                  })
+                })
+              }
+            }
             output[[paste0("splsda_vip3DPlot_", currentGroup)]] <- renderPlot({
               if (!is.null(currentSubres$vip_3D))
                 replayPlot(currentSubres$vip_3D)
