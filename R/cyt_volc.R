@@ -25,7 +25,9 @@
 #' @return If output_file is NULL, a list of ggplot objects (one per pair) is returned.
 #'         If output_file is provided, the plot(s) are written to that file and the function returns NULL invisibly.
 #'
-#' @import ggplot2 dplyr ggrepel
+#' @import ggplot2
+#' @importFrom dplyr arrange mutate desc row_number
+#' @importFrom ggrepel geom_text_repel
 #' @export
 cyt_volc <- function(data, group_col, cond1 = NULL, cond2 = NULL,
                      fold_change_thresh = 2,

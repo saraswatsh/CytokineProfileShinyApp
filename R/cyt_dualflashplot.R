@@ -34,9 +34,9 @@
 #' }
 #'
 #' @import dplyr
-#' @import tidyr
+#' @importFrom tidyr pivot_longer pivot_wider
 #' @import ggplot2
-#' @import ggrepel
+#' @importFrom ggrepel geom_text_repel
 #' @export
 cyt_dualflashplot <- function(data, group_var, group1, group2, ssmd_thresh = 1,
                               log2fc_thresh = 1, top_labels = 15, output_file = NULL,

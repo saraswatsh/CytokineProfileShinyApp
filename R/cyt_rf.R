@@ -50,10 +50,10 @@
 #'        ntree = 1000, mtry = 4, run_rfcv = TRUE, plot_roc = TRUE,
 #'        output_file = "RF_Analysis.pdf")
 #'
-#' @import randomForest
-#' @import caret
+#' @importFrom randomForest randomForest rfcv importance
+#' @importFrom caret createDataPartition confusionMatrix
 #' @import ggplot2
-#' @import pROC
+#' @importFrom pROC roc auc ggroc
 #' @export
 cyt_rf <- function(data, group_col, ntree = 500, mtry = 5,
                    train_fraction = 0.7, plot_roc = FALSE,

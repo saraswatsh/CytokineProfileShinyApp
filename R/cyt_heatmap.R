@@ -17,7 +17,7 @@
 #' cyt_heatmap(cytodata[, -c(1,3,4)], scale = "log2", annotation_col_name = "Group", output_file = "myheatmap.pdf")
 #' }
 #'
-#' @import gplots
+#' @importFrom gplots heatmap.2
 #' @export
 cyt_heatmap <- function(data, scale = NULL, annotation_col_name = NULL, output_file = NULL, progress = NULL) {
   if (!is.null(progress)) progress$inc(0.05, detail = "Validating input data")

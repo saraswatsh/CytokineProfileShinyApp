@@ -58,11 +58,11 @@
 #'            group_col = "Group", group_col2 = "Treatment", roc = TRUE)
 #'
 #' @export
-#' @import mixOmics
+#' @importFrom mixOmics splsda background.predict perf vip auroc plotIndiv plotLoadings
 #' @import ggplot2
-#' @import plot3D
-#' @import reshape2
-#' @import caret
+#' @importFrom plot3D scatter3D
+#' @importFrom reshape2 melt
+#' @importFrom caret confusionMatrix
 cyt_splsda <- function(data, group_col = NULL, group_col2 = NULL, colors = NULL,
                        pdf_title, ellipse = FALSE, bg = FALSE, conf_mat = FALSE,
                        var_num, cv_opt = NULL, fold_num = 5, scale = NULL,

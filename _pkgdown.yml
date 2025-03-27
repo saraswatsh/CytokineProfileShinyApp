@@ -44,6 +44,7 @@ reference:
   - ExampleData1
   - ExampleData2
   - ExampleData3
+  - ExampleData4
 footer:
   left: © 2025 Shubh Saraswat
   right: Built with pkgdown

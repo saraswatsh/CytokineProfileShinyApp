@@ -19,10 +19,10 @@
 #'   - p_kurt: Overlayed histogram of raw and log2 kurtosis.
 #' Otherwise, writes the plots to a PDF and returns NULL invisibly.
 #'
-#' @import e1071 
-#' @import ggplot2 
+#' @importFrom e1071 skewness kurtosis
+#' @import ggplot2
+#' @importFrom gridExtra grid.arrange
 #' @import dplyr
-#' @import gridExtra
 #' @export
 cyt_skku <- function(data, group_cols = NULL, output_file = NULL,
                      print_res_raw = FALSE, print_res_log = FALSE, progress = NULL) {

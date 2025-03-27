@@ -56,7 +56,10 @@
 #'   output_file = "XGB_Analysis.pdf"
 #' )
 #'
-#' @import xgboost caret ggplot2 pROC
+#' @importFrom xgboost xgb.DMatrix xgb.train xgb.importance xgb.ggplot.importance xgb.cv getinfo
+#' @importFrom caret createDataPartition confusionMatrix
+#' @import ggplot2
+#' @importFrom pROC roc auc ggroc
 #' @export
 cyt_xgb <- function(data, group_col, train_fraction = 0.7,
                     nrounds = 500, max_depth = 6, eta = 0.1,

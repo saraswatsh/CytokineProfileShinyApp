@@ -9,23 +9,37 @@ A data frame with 64 rows and 14 columns:
 \describe{
 \item{Stimulation}{Stimulation assigned to the subjects.}
 \item{Group}{Group assigned to the subjects.}
-\item{...}{Additional numeric columns representing measured cytokines.}
+\item{GM.CSF}{Observed concentration of GM.CSF cytokine.}
+\item{IFN.G}{Observed concentration of IFN.G cytokine.}
+\item{IL.10}{Observed concentration of IL.10 cytokine.}
+\item{CCL.20.MIP.3A}{Observed concentration of CCL.20.MIP.3A cytokine.}
+\item{IL.12.P70}{Observed concentration of IL.12.P70 cytokine.}
+\item{IL.13}{Observed concentration of IL.13 cytokine.}
+\item{IL.15}{Observed concentration of IL.15 cytokine.}
+\item{IL.9}{Observed concentration of IL.9 cytokine.}
+\item{IL.1B}{Observed concentration of IL.1B cytokine.}
+\item{IL.21}{Observed concentration of IL.21 cytokine.}
+\item{IL.6}{Observed concentration of IL.6 cytokine.}
+\item{TNF.A}{Observed concentration of TNF.A cytokine.}
 }
-@source Example data compiled for cytokine profiling.
-@references
-SantaCruz-Calvo S, Saraswat S, Hasturk H, Dawson DR, Zhang XD,
-Nikolajczyk BS. Periodontitis and Diabetes Differentially Affect
-Inflammation in Obesity. \emph{J Dent Res.} 2024;103(12):1313-1322.
-doi:10.1177/00220345241280743
-
-@examples
-data(ExampleData3)
+}
+\source{
+Example data compiled for cytokine profiling.
 }
 \usage{
 ExampleData3
 }
 \description{
-Contains observed values of cytokines and their respective treatment
+Contains observed concentrations of cytokines and their respective treatment
 and groups, derived from:
+}
+\examples{
+data(ExampleData3)
+}
+\references{
+SantaCruz-Calvo S, Saraswat S, Hasturk H, Dawson DR, Zhang XD,
+Nikolajczyk BS. Periodontitis and Diabetes Differentially Affect
+Inflammation in Obesity. \emph{J Dent Res.} 2024;103(12):1313-1322.
+doi:10.1177/00220345241280743
 }
 \keyword{datasets}

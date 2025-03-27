@@ -30,7 +30,6 @@
 #' cyt_bp2(data_df, output_file = "boxplot2_output.pdf", scale = "log2")
 #'
 #' @import ggplot2
-#' @import reshape2
 #' @import dplyr
 #' @export
 cyt_bp2 <- function(data, output_file = NULL, mf_row = c(1, 1),

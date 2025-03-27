@@ -27,9 +27,9 @@
 #'         In interactive mode, a (possibly nested) list of recorded plots is returned.
 #'
 #' @export
-#' @import mixOmics
+#' @importFrom mixOmics pca plotIndiv plotLoadings plotVar
 #' @import ggplot2
-#' @import plot3D
+#' @importFrom plot3D scatter3D
 cyt_pca <- function(data, group_col = NULL, group_col2 = NULL,
                     colors = NULL, pdf_title = NULL, ellipse = FALSE,
                     comp_num = 2, scale = NULL, pch_values = NULL,

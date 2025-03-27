@@ -26,7 +26,7 @@
 #' cyt_bp(data.df, output_file = "boxplot_output.pdf", scale = "log2")
 #'
 #' @import ggplot2
-#' @import reshape2
+#' @importFrom reshape2 melt
 #' @export
 cyt_bp <- function(data, output_file = NULL, bin_size = 25,
                    mf_row = c(1, 1), y_lim = NULL, scale = NULL, progress = NULL) {
