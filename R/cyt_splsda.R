@@ -94,10 +94,6 @@ cyt_splsda <- function(data, group_col = NULL, group_col2 = NULL, colors = NULL,
     incProgress(0, detail ="Results based on no transformation:")
   }
   })
-  names(data)[names(data) %in% c(group_col, group_col2)] <-
-    tolower(names(data)[names(data) %in% c(group_col, group_col2)])
-  group_col <- tolower(group_col)
-  group_col2 <- tolower(group_col2)
   
   if (!is.null(splsda_colors) && length(splsda_colors) > 0) {
     colors <- splsda_colors
@@ -138,10 +134,12 @@ cyt_splsda <- function(data, group_col = NULL, group_col2 = NULL, colors = NULL,
       acc1 <- 100 * signif(sum(prediction1[,1] == prediction1[,2]) / length(prediction1[,1]), digits = 2)
       
       if (!is.null(progress)) progress$inc(0.05, detail = "Generating classification plot (overall)")
-      bg_obj <- mixOmics::background.predict(model, comp.predicted = 2, dist = "max.dist",
+      if (bg) {
+        bg_obj <- mixOmics::background.predict(model, comp.predicted = 2, dist = "max.dist",
                                              xlim = c(-15,15),
                                              ylim = c(-15,15),
-                                             resolution = 200)
+                                             resolution = 300)
+      }
       group_factors <- sort(unique(the_groups))
       plot_args <- list(model,
                         ind.names = NA, legend = TRUE, col = colors,
@@ -236,10 +234,12 @@ cyt_splsda <- function(data, group_col = NULL, group_col2 = NULL, colors = NULL,
         prediction2 <- cbind(original = the_groups, vip_pred$class$max.dist)
         acc2 <- 100 * signif(sum(prediction2[,1] == prediction2[,2]) / length(prediction2[,1]), digits = 2)
         
-        bg2 <- mixOmics::background.predict(vip_model, comp.predicted = 2, dist = "max.dist",
+        if (bg) {
+          bg2 <- mixOmics::background.predict(vip_model, comp.predicted = 2, dist = "max.dist",
                                             xlim = c(-15,15),
                                             ylim = c(-15,15),
-                                            resolution = 200)
+                                            resolution = 300)
+        }
         plot_args2 <- list(vip_model,
                            ind.names = NA, legend = TRUE, col = colors,
                            pch = pch_values, pch.levels = group_factors,
@@ -380,10 +380,12 @@ cyt_splsda <- function(data, group_col = NULL, group_col2 = NULL, colors = NULL,
         acc1 <- 100 * signif(sum(prediction1[,1] == prediction1[,2]) / length(prediction1[,1]), digits = 2)
         
         if (!is.null(progress)) progress$inc(0.05, detail = paste("Generating classification plot for", current_level))
-        bg_obj <- mixOmics::background.predict(model, comp.predicted = 2, dist = "max.dist",
+        if (bg) {
+          bg_obj <- mixOmics::background.predict(model, comp.predicted = 2, dist = "max.dist",
                                                xlim = c(-15,15),
                                                ylim = c(-15,15),
-                                               resolution = 200)
+                                               resolution = 300)
+        }
         group_factors <- sort(unique(the_groups))
         plot_args <- list(model,
                           ind.names = NA, legend = TRUE, col = colors,
@@ -479,10 +481,12 @@ cyt_splsda <- function(data, group_col = NULL, group_col2 = NULL, colors = NULL,
           prediction2 <- cbind(original = the_groups, vip_pred$class$max.dist)
           acc2 <- 100 * signif(sum(prediction2[,1] == prediction2[,2]) / length(prediction2[,1]), digits = 2)
           
-          bg2 <- mixOmics::background.predict(vip_model, comp.predicted = 2, dist = "max.dist",
+          if (bg) {
+            bg2 <- mixOmics::background.predict(vip_model, comp.predicted = 2, dist = "max.dist",
                                               xlim = c(-15,15),
                                               ylim = c(-15,15),
-                                              resolution = 200)
+                                              resolution = 300)
+          }
           plot_args2 <- list(vip_model,
                              ind.names = NA, legend = TRUE, col = colors,
                              pch = pch_values, pch.levels = group_factors,
@@ -637,7 +641,7 @@ cyt_splsda <- function(data, group_col = NULL, group_col2 = NULL, colors = NULL,
                                                                               dist = "max.dist",
                                                                               xlim = c(-15,15),
                                                                               ylim = c(-15,15),
-                                                                              resolution = 200) else NULL)
+                                                                              resolution = 300) else NULL)
       })
       
       incProgress(0.05, detail = "Generating 3D plot...")
@@ -759,7 +763,7 @@ cyt_splsda <- function(data, group_col = NULL, group_col2 = NULL, colors = NULL,
                                                                                dist = "max.dist",
                                                                                xlim = c(-15,15),
                                                                                ylim = c(-15,15),
-                                                                               resolution = 200) else NULL)
+                                                                               resolution = 300) else NULL)
         })
         
         # Add VIP loadings plots for each component and record them
