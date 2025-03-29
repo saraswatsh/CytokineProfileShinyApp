@@ -122,6 +122,7 @@ server <- function(input, output, session) {
     splsda_group_col = NULL,
     splsda_group_col2 = NULL,
     splsda_var_num = NULL,
+    splsda_var_num_manual = FALSE,
     splsda_cv_opt = NULL,
     splsda_fold_num = NULL,
     splsda_log2 = NULL,
@@ -214,11 +215,18 @@ server <- function(input, output, session) {
     df <- userData()
     req(df)
     # Use stored columns if available
+    # currentCols <- if (!is.null(userState$selected_columns)) {
+    #   userState$selected_columns
+    # } else {
+    #   input$selected_columns
+    # }
+    
     currentCols <- if (!is.null(userState$selected_columns)) {
-      userState$selected_columns
+      intersect(userState$selected_columns, names(df))
     } else {
-      input$selected_columns
+      intersect(input$selected_columns, names(df))
     }
+    
     if (!is.null(currentCols) && length(currentCols) > 0) {
       df <- df[, currentCols, drop = FALSE]
     }
@@ -660,9 +668,11 @@ server <- function(input, output, session) {
                              colour = "blue"
                            }), 
                          choices = pch_choices,
+                         selected = pch_choices[c(17,5)],
                          multiple = TRUE,
                          options = list(placeholder = "Select Symbols",
-                                        plugins = c("remove_button", "restore_on_backspace"))
+                                        plugins = c("remove_button", "restore_on_backspace"),
+                                        create = TRUE)
                          )
                )
            },
@@ -840,6 +850,13 @@ server <- function(input, output, session) {
            "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
              df <- filteredData()
              if (is.null(df)) return(NULL)
+             default_num_vars <- sum(sapply(df, is.numeric))
+             
+             # If the user hasn't manually changed the value, update it.
+             if (!isTRUE(userState$splsda_var_num_manual)) {
+               userState$splsda_var_num <- default_num_vars
+             }
+             
              cols <- names(df)
              ui_list <- tagList(
                selectInput("splsda_group_col", 
@@ -881,7 +898,7 @@ server <- function(input, output, session) {
                               }else{
                                 colour = "blue"
                               }),
-                            value = isolate(userState$splsda_var_num) %||% 25, min = 1),
+                            value = userState$splsda_var_num, min = 1),
                selectizeInput("splsda_colors",
                               label = helper(
                                 type = "inline", 
@@ -973,9 +990,12 @@ server <- function(input, output, session) {
                              colour = "blue"
                            }),
                          choices = pch_choices,
+                         selected = pch_choices[c(17,5)],
                          multiple = TRUE,
                          options = list(placeholder = "Select PCH Values",
-                                        plugins = c("remove_button", "restore_on_backspace"))
+                                        plugins = c("remove_button", "restore_on_backspace"),
+                                        create = TRUE
+                                        )
                          ),
                selectInput("splsda_style", 
                            label = helper(
@@ -1284,6 +1304,20 @@ server <- function(input, output, session) {
     )
     do.call(tagList, ui_list)
   })
+  
+  observe({
+    # Get the filtered data reactively
+    df <- filteredData()
+    req(df)  # ensure df is available
+    
+    # Count numeric columns in the dataset
+    numeric_cols <- sapply(df, is.numeric)
+    default_num_vars <- sum(numeric_cols)
+    
+    # Always update the input with the new default value
+    updateNumericInput(session, "splsda_var_num", value = default_num_vars)
+  })
+  
   
   output$df_conditions_ui <- renderUI({
     req(filteredData())
@@ -1661,7 +1695,6 @@ server <- function(input, output, session) {
       }
     }
   })
-  
   
   ## ---------------------------
   ## Analysis and Results
@@ -2445,7 +2478,16 @@ server <- function(input, output, session) {
   # For sPLS-DA
   observeEvent(input$splsda_group_col, { userState$splsda_group_col <- input$splsda_group_col })
   observeEvent(input$splsda_group_col2, { userState$splsda_group_col2 <- input$splsda_group_col2 })
-  observeEvent(input$splsda_var_num, { userState$splsda_var_num <- input$splsda_var_num })
+  observeEvent(input$splsda_var_num, {
+    df <- filteredData()
+    req(df)
+    computed_default <- sum(sapply(df, is.numeric))
+    # Mark as manually changed if the input does not equal the computed default.
+    userState$splsda_var_num_manual <- (input$splsda_var_num != computed_default)
+    # Also, update the stored value so it’s available if the user has modified it.
+    userState$splsda_var_num <- input$splsda_var_num
+  })
+  
   observeEvent(input$splsda_cv_opt, { userState$splsda_cv_opt <- input$splsda_cv_opt })
   observeEvent(input$splsda_fold_num, { userState$splsda_fold_num <- input$splsda_fold_num })
   observeEvent(input$splsda_log2, { userState$splsda_log2 <- input$splsda_log2 })

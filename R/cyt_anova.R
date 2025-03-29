@@ -21,11 +21,11 @@
 #' @examples
 #' data("cytodata")
 #' # Return list output (default)
-#' anova_results <- cyt_anova(cytodata[, c(2:4, 5:6)])
+#' anova_results <- cyt_anova(ExampleData1[, c(2:4, 5:6)])
 #' print(anova_results)
 #'
 #' # Return formatted output as a data frame
-#' anova_df <- cyt_anova(cytodata[, c(2:4, 5:6)], format_output = TRUE)
+#' anova_df <- cyt_anova(ExampleData1[, c(2:4, 5:6)], format_output = TRUE)
 #' head(anova_df)
 #'
 #' @export
