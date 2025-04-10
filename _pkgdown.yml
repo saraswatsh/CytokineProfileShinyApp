@@ -25,6 +25,7 @@ reference:
   - cyt_ttest
   - cyt_bp
   - cyt_bp2
+  - cyt_errbp
   - cyt_skku
   - cyt_volc
   - cyt_heatmap

@@ -3,6 +3,7 @@ library(base64enc)
 library(shiny)
 library(shinyjs)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 library(readxl)
 library(bslib)
@@ -83,6 +84,16 @@ server <- function(input, output, session) {
     bp2_log2 = NULL,
     bp2_y_lim = NULL,
     
+    # Error-BarPlot
+    eb_group_col = NULL,
+    eb_p_lab = NULL,
+    eb_es_lab = NULL,
+    eb_class_symbol = NULL,
+    eb_x_lab = NULL,
+    eb_y_lab = NULL,
+    eb_title = NULL,
+    eb_log2 = NULL,
+
     # Dual-Flashlight Plot options
     df_group_var = NULL,
     df_ssmd_thresh = NULL,
@@ -214,13 +225,6 @@ server <- function(input, output, session) {
   filteredData <- reactive({
     df <- userData()
     req(df)
-    # Use stored columns if available
-    # currentCols <- if (!is.null(userState$selected_columns)) {
-    #   userState$selected_columns
-    # } else {
-    #   input$selected_columns
-    # }
-    
     currentCols <- if (!is.null(userState$selected_columns)) {
       intersect(userState$selected_columns, names(df))
     } else {
@@ -454,6 +458,126 @@ server <- function(input, output, session) {
                                             }),
                              value = isolate(userState$bp2_log2) %||% FALSE)
              )
+           },
+           "Error-BarPlot" ={
+             df <- filteredData()
+             df <- filteredData()
+             if (is.null(df)) return(NULL)
+             cols <- names(df)
+             # Identify candidate grouping columns (categorical variables)
+             cat_vars <- names(df)[sapply(df, function(x) is.factor(x) || is.character(x))]
+
+             ui_list <- tagList(
+              if (length(cat_vars) > 0){
+              selectInput("eb_group_col",
+              label = helper(type = "inline", 
+              title = "Grouping Variable", 
+              icon = "fas fa-question-circle",
+              shiny_tag = HTML("<span style='margin-right: 15px;'>Grouping Variable</span>"),
+              content = "The column to use for grouping the data. For example, a column that
+                        specifies categories such as 'Control' or 'Treatment'.", 
+              if(input$theme_mode == "Dark"){
+                 colour = "red"
+              }else{
+                    colour = "blue"
+                    }), 
+                    , choices = cols, 
+                    selected = isolate(userState$eb_group_col) %||% cols[0])
+              },
+              checkboxInput("eb_log2",
+              label = helper(type = "inline", 
+                title = "Apply log2 transformation", 
+                icon = "fas fa-question-circle",
+                shiny_tag = HTML("<span style='margin-right: 15px;'>Apply log2 transformation</span>"),
+                content = "Transform numeric variables using log2 transformation.", 
+                if(input$theme_mode == "Dark"){
+                  colour = "red"
+                }else{
+                  colour = "blue"
+                }),
+              value = isolate(userState$eb_log2) %||% FALSE
+              ),
+              checkboxInput("eb_p_lab",
+              label = helper(type = "inline", 
+                title = "Display P-value Labels", 
+                icon = "fas fa-question-circle",
+                shiny_tag = HTML("<span style='margin-right: 15px;'>Display P-value Labels</span>"),
+                content = "Display P-value labels above the bar plots to indicate whether results are
+                significant or not.", 
+                if(input$theme_mode == "Dark"){
+                  colour = "red"
+                }else{
+                  colour = "blue"
+                }),
+              value = isolate(userState$eb_p_lab) %||% FALSE
+              ),  
+              checkboxInput("eb_es_lab",
+              label = helper(type = "inline", 
+                title = "Display Effect Size Labels", 
+                icon = "fas fa-question-circle",
+                shiny_tag = HTML("<span style='margin-right: 15px;'>Display Effect Size Labels</span>"),
+                content = "Display effect size labels above the bar plots to indicate the effect observed by strictly
+                standardized mean differences (SSMD).", 
+                if(input$theme_mode == "Dark"){
+                  colour = "red"
+                }else{
+                  colour = "blue"
+                }),
+              value = isolate(userState$eb_es_lab) %||% FALSE
+              ),
+              checkboxInput("eb_class_symbol",
+              label = helper(type = "inline", 
+                title = "Display Class Symbol", 
+                icon = "fas fa-question-circle",
+                shiny_tag = HTML("<span style='margin-right: 15px;'>Display Class Symbol</span>"),
+                content = "P-values and effect sizes are shown as symbols otherwise numeric values are displayed.", 
+                if(input$theme_mode == "Dark"){
+                  colour = "red"
+                }else{
+                  colour = "blue"
+                }),
+              value = isolate(userState$eb_class_symbol) %||% FALSE
+              ),    
+              textInput("eb_x_lab",
+              label = helper(type = "inline", 
+                title = "X-Axis Label", 
+                icon = "fas fa-exclamation-circle",
+                shiny_tag = HTML("<span style='margin-right: 15px;'>X-Axis Label</span>"),
+                content = "The X-axis label you would like to have in the plot.", 
+                if(input$theme_mode == "Dark"){
+                  colour = "red"
+                }else{
+                  colour = "blue"
+                }),
+              value = isolate(userState$eb_x_lab) %||% "Cytokine"
+              ), 
+              textInput("eb_y_lab",
+              label = helper(type = "inline", 
+                title = "Y-Axis Label", 
+                icon = "fas fa-exclamation-circle",
+                shiny_tag = HTML("<span style='margin-right: 15px;'>Y-Axis Label</span>"),
+                content = "The X-axis label you would like to have in the plot.", 
+                if(input$theme_mode == "Dark"){
+                  colour = "red"
+                }else{
+                  colour = "blue"
+                }),
+              value = isolate(userState$eb_y_lab) %||% "Concentration"
+              ),   
+              textInput("eb_title",
+              label = helper(type = "inline", 
+                title = "Title", 
+                icon = "fas fa-exclamation-circle",
+                shiny_tag = HTML("<span style='margin-right: 15px;'>Title</span>"),
+                content = "Title of the plot.", 
+                if(input$theme_mode == "Dark"){
+                  colour = "red"
+                }else{
+                  colour = "blue"
+                }),
+              value = isolate(userState$eb_title) %||% "Error-BarPlot"
+              )
+            )  
            },
            "Dual-Flashlight Plot" = {
              df <- filteredData()
@@ -1432,6 +1556,7 @@ server <- function(input, output, session) {
                     choices = c("ANOVA",
                                 "Boxplots",
                                 "Enhanced Boxplots",
+                                "Error-BarPlot",
                                 "Dual-Flashlight Plot",
                                 "Heatmap",
                                 "Principle Component Analysis (PCA)",
@@ -1499,6 +1624,16 @@ server <- function(input, output, session) {
       userState$bp2_mf_row <- input$bp2_mf_row
       userState$bp2_log2 <- input$bp2_log2
       userState$bp2_y_lim <- input$bp2_y_lim
+    }
+    if (input$selected_function == "Error-BarPlot") {
+      userState$eb_group_col <- input$eb_group_col
+      userState$eb_p_lab <- input$eb_p_lab
+      userState$eb_es_lab <- input$eb_es_lab
+      userState$eb_class_symbol <- input$eb_class_symbol
+      userState$eb_x_lab <- input$eb_x_lab
+      userState$eb_y_lab <- input$eb_y_lab
+      userState$eb_title <- input$eb_title
+      userState$eb_log2 <- input$eb_log2
     }
     if (input$selected_function == "Dual-Flashlight Plot") {
       userState$df_group_var <- input$df_group_var
@@ -1600,7 +1735,16 @@ server <- function(input, output, session) {
         updateCheckboxInput(session, "bp2_log2", value = userState$bp2_log2)
         updateTextInput(session, "bp2_y_lim", value = userState$bp2_y_lim)
       }
-      
+      if (userState$selected_function == "Error-BarPlot") {
+        updateSelectInput(session, "eb_group_col", selected = userState$eb_group_col)
+        updateCheckboxInput(session, "eb_p_lab", value = userState$eb_p_lab)
+        updateCheckboxInput(session, "eb_es_lab", value = userState$eb_es_lab)
+        updateCheckboxInput(session, "eb_class_symbol", value = userState$eb_class_symbol)
+        updateTextInput(session, "eb_x_lab", value = userState$eb_x_lab)
+        updateTextInput(session, "eb_y_lab", value = userState$eb_y_lab)
+        updateTextInput(session, "eb_title", value = userState$eb_title)
+        updateCheckboxInput(session, "eb_log2", value = userState$eb_log2)
+      }
       # Dual-Flashlight Plot
       if (userState$selected_function == "Dual-Flashlight Plot") {
         updateSelectInput(session, "df_group_var", selected = userState$df_group_var)
@@ -1737,6 +1881,16 @@ server <- function(input, output, session) {
         opts$y_lim <- as.numeric(unlist(strsplit(input$bp2_y_lim, ",")))
       }
     }
+    if(func_name == "Error-BarPlot"){
+      opts$group_col <- input$eb_group_col
+      opts$p_lab <- input$eb_p_lab
+      opts$es_lab <- input$eb_es_lab
+      opts$class_symbol <- input$eb_class_symbol
+      opts$x_lab <- input$eb_x_lab
+      opts$y_lab <- input$eb_y_lab
+      opts$title <- input$eb_title
+      opts$log2 <- input$eb_log2
+    }
     if (func_name == "Dual-Flashlight Plot") {
       opts$ssmd_thresh <- input$df_ssmd_thresh
       opts$log2fc_thresh <- input$df_log2fc_thresh
@@ -1844,6 +1998,7 @@ server <- function(input, output, session) {
                   "ANOVA" = do.call(cyt_anova, c(list(data = df, progress = prog), opts)),
                   "Boxplots" = do.call(cyt_bp, c(list(data = df, output_file = if(mode == "Download") out_file else NULL, progress = prog), opts)),
                   "Enhanced Boxplots" = do.call(cyt_bp2, c(list(data = df, output_file = if(mode == "Download") out_file else NULL, progress = prog), opts)),
+                  "Error-BarPlot" = do.call(cyt_errbp, c(list(data = df,output_file = if(mode == "Download") out_file else NULL,  progress = prog), opts)),
                   "Dual-Flashlight Plot" = do.call(cyt_dualflashplot, c(list(data = df, group_var = input$df_group_var,
                                                                              group1 = input$df_cond1, group2 = input$df_cond2,
                                                                              output_file = if(mode == "Download") out_file else NULL,
@@ -1963,6 +2118,11 @@ server <- function(input, output, session) {
             )
           }))
         }
+      } else if (func_name == "Error-BarPlot" && inherits(res, "ggplot")) {
+        tagList(
+          h3("Error-Bar Plot Results:"),
+          plotOutput("errorBarPlotOutput", height = "400px")
+        )
       } else if (func_name == "Random Forest" && is.list(res)) {
         tagList(
           h3("Random Forest Results"),
@@ -2010,7 +2170,7 @@ server <- function(input, output, session) {
         )
       } else if (inherits(res, "ggplot")) {
         tagList(
-          h3("Results (Dual-Flash Plot)"),
+          h3("Results (Dual-Flashlight Plot)"),
           plotOutput("dualflashPlotOutput", height = "400px"),
           verbatimTextOutput("textResults")
         )
@@ -2410,7 +2570,12 @@ server <- function(input, output, session) {
       print(log_results)
     }
   })
-  
+  output$errorBarPlotOutput <- renderPlot({
+    req(analysisResult())
+    res <- analysisResult()
+    print(res) 
+})
+
   output$download_output <- downloadHandler(
     filename = function() {
       if (nzchar(input$output_file_name))
@@ -2445,6 +2610,15 @@ server <- function(input, output, session) {
   observeEvent(input$bp2_mf_row, { userState$bp2_mf_row <- input$bp2_mf_row })
   observeEvent(input$bp2_log2, { userState$bp2_log2 <- input$bp2_log2 })
   observeEvent(input$bp2_y_lim, { userState$bp2_y_lim <- input$bp2_y_lim })
+  # For Error-BarPlot
+  observeEvent(input$eb_group_col, {userState$eb_group_col <- input$eb_group_col})
+  observeEvent(input$eb_p_lab, {userState$eb_p_lab <- input$eb_p_lab})
+  observeEvent(input$eb_es_lab, {userState$eb_es_lab <- input$eb_es_lab})
+  observeEvent(input$eb_class_symbol, {userState$eb_class_symbol <- input$eb_class_symbol})
+  observeEvent(input$eb_x_lab, {userState$eb_x_lab <- input$eb_x_lab})
+  observeEvent(input$eb_y_lab, {userState$eb_y_lab <- input$eb_y_lab})
+  observeEvent(input$eb_title, {userState$eb_title <- input$eb_title})
+  observeEvent(input$eb_log2, {userState$eb_log2 <- input$eb_log2})
   # For Dual-Flashlight Plot
   observeEvent(input$df_group_var, { userState$df_group_var <- input$df_group_var })
   observeEvent(input$df_ssmd_thresh, { userState$df_ssmd_thresh <- input$df_ssmd_thresh })

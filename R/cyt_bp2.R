@@ -20,7 +20,7 @@
 #'
 #' @examples
 #' # Loading data
-#' data_df <- cytodata[, -c(1, 4)]
+#' data_df <- ExampleData1[, -c(1, 4)]
 #'
 #' # To display the boxplots interactively:
 #' plots <- cyt_bp2(data_df, scale = "log2")
