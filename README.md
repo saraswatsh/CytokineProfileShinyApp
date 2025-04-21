@@ -12,10 +12,11 @@ univariate analysis and multivariate analysis for advance analysis. It
 provides an overall user-friendly experience for users to conduct
 analyses on their own data. For advanced users, the CytoProfile R
 package is available on
-[Github](https://github.com/saraswatsh/CytoProfile).
+[Github](https://github.com/saraswatsh/CytoProfile) and at
+[CRAN](https://cran.r-project.org/package=CytoProfile).
 
 The Shiny application is available at [CytoProfile Shiny
-App](https://ssa390.shinyapps.io/cytoprofile_shiny/).
+App](https://saraswatsh-cytoprofileshinyapp.share.connect.posit.cloud).
 
 ## Features
 
@@ -68,7 +69,19 @@ App](https://ssa390.shinyapps.io/cytoprofile_shiny/).
 Install the required packages using the following code:
 
 ``` r
-install.packages(c("base64enc", "shiny", "shinyjs", "dplyr", "ggplot2", "readxl", "bslib", "shinyhelper"))
+install.packages(c(
+  "base64enc",
+  "shiny",
+  "shinyjs",
+  "dplyr",
+  "ggplot2",
+  "readxl",
+  "bslib",
+  "shinyhelper",
+  "DT",
+  "shinyFeedback",
+  "skimr"
+))
 ```
 
 ## Setup and Installation
@@ -80,7 +93,7 @@ install.packages(c("base64enc", "shiny", "shinyjs", "dplyr", "ggplot2", "readxl"
 4.  Run the Application: Launch the app by executing
 
 ``` r
- shiny::runApp("app.R") 
+shiny::runApp("app.R")
 ```
 
 ## Application Workflow

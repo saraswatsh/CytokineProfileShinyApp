@@ -16,7 +16,17 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 URL: https://github.com/saraswatsh/CytoProfileShinyApp, https://saraswatsh.github.io/CytoProfileShinyApp/, https://ssa390.shinyapps.io/cytoprofile_shiny/
-Depends: R (>= 3.5)
+Depends: 
+    R (>= 4.3),
+    shiny,
+    shinyjs,
+    base64enc,
+    readxl,
+    bslib,
+    shinyhelper,
+    DT,
+    shinyFeedback,
+    skimr 
 Imports: 
     mixOmics,
     moments,
