@@ -1,15 +1,3 @@
-if (!requireNamespace("mixOmics", quietly = TRUE))
-  BiocManager::install("mixOmics")
-options(repos = c(CRAN = "https://cran.rstudio.com"))
-if (!requireNamespace("DT", quietly = TRUE)) {
-  install.packages("DT")
-}
-if (!requireNamespace("shinyFeedback", quietly = TRUE)) {
-  install.packages("shinyFeedback")
-}
-if (!requireNamespace("skimr", quietly = TRUE)) {
-  install.packages("skimr")
-}
 library(base64enc)
 library(shiny)
 library(mixOmics)

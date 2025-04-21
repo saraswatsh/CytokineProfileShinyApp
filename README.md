@@ -65,6 +65,11 @@ App](https://saraswatsh-cytoprofileshinyapp.share.connect.posit.cloud).
 - readxl
 - bslib
 - shinyhelper
+- DT
+- shinyFeedback
+- skimr
+- BiocManager
+- mixOmics
 
 Install the required packages using the following code:
 
@@ -75,6 +80,7 @@ install.packages(c(
   "shinyjs",
   "dplyr",
   "ggplot2",
+  "BiocManager",
   "readxl",
   "bslib",
   "shinyhelper",
@@ -82,6 +88,9 @@ install.packages(c(
   "shinyFeedback",
   "skimr"
 ))
+
+# Install mixOmics from Bioconductor
+BiocManager::install("mixOmics")
 ```
 
 ## Setup and Installation
