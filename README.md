@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# CytoProfile Shiny Application
+# CytoProfile Shiny Application <a href="https://saraswatsh.github.io/CytoProfileShinyApp/"><img src="man/figures/logo.png" align="right" height="134" alt="CytoProfileShinyApp website" /></a>
 
 The goal of CytoProfile Shiny is to conduct quality control using
 biological meaningful cutoff on raw measured values of cytokines.

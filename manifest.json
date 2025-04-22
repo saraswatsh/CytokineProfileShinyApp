@@ -3276,14 +3276,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "CRAN",
         "Date/Publication": "2024-09-17 22:10:02 UTC",
-        "Built": "R 4.4.3; ; 2025-04-19 02:24:00 UTC; windows",
-        "RemoteType": "standard",
-        "RemoteRef": "pkgdown",
-        "RemotePkgRef": "pkgdown",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "2.1.1"
+        "Built": "R 4.4.3; ; 2025-04-19 02:24:00 UTC; windows"
       }
     },
     "plot3D": {
@@ -4198,6 +4191,33 @@
         "Built": "R 4.4.3; ; 2025-04-19 02:24:15 UTC; windows"
       }
     },
+    "shinyWidgets": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "shinyWidgets",
+        "Title": "Custom Inputs Widgets for Shiny",
+        "Version": "0.9.0",
+        "Authors@R": "c(\n  person(\"Victor\", \"Perrier\", email = \"victor.perrier@dreamrs.fr\", role = c(\"aut\", \"cre\", \"cph\")),\n  person(\"Fanny\", \"Meyer\", role = \"aut\"),\n  person(\"David\", \"Granjon\", role = \"aut\"),\n  person(\"Ian\", \"Fellows\", role = \"ctb\", comment = \"Methods for mutating vertical tabs & updateMultiInput\"),\n  person(\"Wil\", \"Davis\", role = \"ctb\", comment = \"numericRangeInput function\"),\n  person(\"Spencer\", \"Matthews\", role = \"ctb\", comment = \"autoNumeric methods\"),\n  person(family = \"JavaScript and CSS libraries authors\", role = c(\"ctb\", \"cph\"), comment = \"All authors are listed in LICENSE.md\")\n  )",
+        "Description": "Collection of custom input controls and user interface components for 'Shiny' applications. \n  Give your applications a unique and colorful style !",
+        "URL": "https://github.com/dreamRs/shinyWidgets,\nhttps://dreamrs.github.io/shinyWidgets/",
+        "BugReports": "https://github.com/dreamRs/shinyWidgets/issues",
+        "License": "GPL-3",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "RoxygenNote": "7.3.2",
+        "Depends": "R (>= 3.1.0)",
+        "Imports": "bslib, sass, shiny (>= 1.6.0), htmltools (>= 0.5.1), jsonlite,\ngrDevices, rlang",
+        "Suggests": "testthat, covr, ggplot2, DT, scales, shinydashboard,\nshinydashboardPlus",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-02-21 09:09:48 UTC; perri",
+        "Author": "Victor Perrier [aut, cre, cph],\n  Fanny Meyer [aut],\n  David Granjon [aut],\n  Ian Fellows [ctb] (Methods for mutating vertical tabs &\n    updateMultiInput),\n  Wil Davis [ctb] (numericRangeInput function),\n  Spencer Matthews [ctb] (autoNumeric methods),\n  JavaScript and CSS libraries authors [ctb, cph] (All authors are listed\n    in LICENSE.md)",
+        "Maintainer": "Victor Perrier <victor.perrier@dreamrs.fr>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-02-21 12:30:02 UTC",
+        "Built": "R 4.4.3; ; 2025-04-19 02:23:55 UTC; windows"
+      }
+    },
     "shinyhelper": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -5089,13 +5109,16 @@
       "checksum": "d5f960a2ff001b61309d14683ce23ab4"
     },
     ".Rbuildignore": {
-      "checksum": "efbe5384092e0bdd7cef0c477cb60924"
+      "checksum": "bbc41279531a25667d73c5021ab65963"
     },
     "_pkgdown.yml": {
       "checksum": "2ce9dd288546e6a01b92eabe852bf17d"
     },
     "app.R": {
       "checksum": "cc88c936684ed8e34e3300792bc7ea96"
+    },
+    "cytoprofile_logo2.png": {
+      "checksum": "83a8a76d775edb40aeb62cf3008c5633"
     },
     "data-raw/ExampleData1.csv": {
       "checksum": "e4319e440f4603b6b058cbe400d41a42"
@@ -5125,10 +5148,13 @@
       "checksum": "1dae8244af4d6b220e8cce630e5ce5f1"
     },
     "docs/404.html": {
-      "checksum": "885811c74554a038ae8b908f6bf31dd9"
+      "checksum": "f7927fab9c16fe87329839f772f08f58"
+    },
+    "docs/apple-touch-icon.png": {
+      "checksum": "0fd3e69a41725945729ef3a92b3fb5c5"
     },
     "docs/authors.html": {
-      "checksum": "704f8561f11e3d161f409737b944c6d4"
+      "checksum": "56cf12361c3817919c2ab8f3cae6f826"
     },
     "docs/deps/bootstrap-5.3.1/bootstrap.bundle.min.js": {
       "checksum": "e2b09c06f0e714b6144a6788a28e3950"
@@ -5208,14 +5234,23 @@
     "docs/deps/search-1.0.0/mark.min.js": {
       "checksum": "d0c5399929d81f67cd6d7687880498a6"
     },
+    "docs/favicon-96x96.png": {
+      "checksum": "0a9eeb93663488c0c1ce95ff2b6690ee"
+    },
+    "docs/favicon.ico": {
+      "checksum": "d37d58d2c2778f8ce5be813e9079d39d"
+    },
+    "docs/favicon.svg": {
+      "checksum": "b54f484a38e96b33a7e4b1baec4edf5f"
+    },
     "docs/index.html": {
-      "checksum": "da0b731101af767995bd7c0e35e41cab"
+      "checksum": "098f32091916e06631aab5f02d931e39"
     },
     "docs/katex-auto.js": {
       "checksum": "b6babfc10247cf9190b9fa172dde62b8"
     },
     "docs/LICENSE.html": {
-      "checksum": "2f67670c3f698116600412739178123f"
+      "checksum": "3b6ed997892dfc2d9051e09b26b51461"
     },
     "docs/lightswitch.js": {
       "checksum": "5806fcea81ccc70e1ffc453a7d9e12b5"
@@ -5223,74 +5258,89 @@
     "docs/link.svg": {
       "checksum": "4759f31f8a585e9af173fc579d730265"
     },
+    "docs/logo.png": {
+      "checksum": "c248dd2a9681d73f52211a72a131aae5"
+    },
     "docs/pkgdown.js": {
       "checksum": "dca708c90eee1f2352a32f4754901a6a"
     },
     "docs/pkgdown.yml": {
-      "checksum": "51efc4a5bc07212cb074debc73790b79"
+      "checksum": "d15625e19bf545b6c6d35a7e28dec6be"
     },
     "docs/reference/boxplot2_output.pdf": {
-      "checksum": "a8e056f925595ce567d78e3a6f9047c6"
+      "checksum": "7fbd0ea790a54bc2f184cd9d6d50b25c"
     },
     "docs/reference/cyt_anova.html": {
-      "checksum": "da3fb6d5e3927ae4b6cbaec3a990e4b3"
+      "checksum": "30bbb222158f506d9db28271fb94f62d"
     },
     "docs/reference/cyt_bp.html": {
-      "checksum": "27e94a504853866d8f1f730031655ec4"
+      "checksum": "97ed5f5036199b0ecedd156af36bedcd"
     },
     "docs/reference/cyt_bp2.html": {
-      "checksum": "ab063d7815b3ba2544237d0f1936b5ea"
+      "checksum": "27d4ef18672175eca2ff62fed989edad"
     },
     "docs/reference/cyt_dualflashplot.html": {
-      "checksum": "f096531226e0cc4911584bd96f022bb9"
+      "checksum": "d94a64e38e282913c330dff5fabf8c3f"
     },
     "docs/reference/cyt_errbp.html": {
-      "checksum": "a1d4a38135face93a8e6f158d60e95bb"
+      "checksum": "1f519f3277d8c1371bec93b7f5d9d902"
     },
     "docs/reference/cyt_heatmap.html": {
-      "checksum": "8f770baefccfa1343a83ff76f0e1f059"
+      "checksum": "e8a2fc78fefe4a487f8c34b4c35c7afa"
     },
     "docs/reference/cyt_pca.html": {
-      "checksum": "5e640dfc18f3d63f7b97ac0536b86d32"
+      "checksum": "8b4fb65b0862d528cbeb1ec4d8dc51ad"
     },
     "docs/reference/cyt_rf.html": {
-      "checksum": "8742d7b3de878c4f3365036c92f4eac8"
+      "checksum": "2f248b274d71864f82e3638aee2c5bb1"
     },
     "docs/reference/cyt_skku.html": {
-      "checksum": "406d2e8d56ba900044fbc1428760ffc2"
+      "checksum": "9f9c6602a424e081157fdd6d11e4410c"
     },
     "docs/reference/cyt_splsda.html": {
-      "checksum": "7ded73365c63e988409a973b198092d9"
+      "checksum": "60194971ac2276ce62b5e8ffe8eaf9b9"
     },
     "docs/reference/cyt_ttest.html": {
-      "checksum": "b771f802494acdea90f87677cccb00f6"
+      "checksum": "ac43362f599883f767c03f419722f135"
     },
     "docs/reference/cyt_volc.html": {
-      "checksum": "cdea6eab990160dd5c5ba3a38ff602f7"
+      "checksum": "51b18b7dea013e1d817a1cb6332cab30"
     },
     "docs/reference/cyt_xgb.html": {
-      "checksum": "6aa25fb6c08064e26f04477ec4085d62"
+      "checksum": "f5ba46475f98996835540311066fc9ec"
     },
     "docs/reference/ExampleData1.html": {
-      "checksum": "271819d2b0c539b177e4c619f1b2bc56"
+      "checksum": "40a769a0704cda4d7526e29cc9cb130f"
     },
     "docs/reference/ExampleData2.html": {
-      "checksum": "713fecc5fe7d8acefb71172438cc6a02"
+      "checksum": "131adaf02c195f3b17b28d1e0597aaaf"
     },
     "docs/reference/ExampleData3.html": {
-      "checksum": "cf23a0c0d5b199af7d999dc8e4e4e42e"
+      "checksum": "b1ef0626ed5a3ff132969e95a87039f7"
     },
     "docs/reference/ExampleData4.html": {
-      "checksum": "95c75dc66af7bb16f9b7532bb6865a8e"
+      "checksum": "9fdc87f19ae5198a3b757e07d4367419"
+    },
+    "docs/reference/figures/logo.png": {
+      "checksum": "c248dd2a9681d73f52211a72a131aae5"
     },
     "docs/reference/index.html": {
-      "checksum": "dfb931a5c11a736c581a0e75b2e08610"
+      "checksum": "b9bc2d323b61fe65f8bde11440559d75"
     },
     "docs/search.json": {
-      "checksum": "5a45bc92fed16d50a17f35780bc755ec"
+      "checksum": "0541fd456a5d21e2edb8967a004407f4"
+    },
+    "docs/site.webmanifest": {
+      "checksum": "aa2a240255534cbd81d92a24956916f5"
     },
     "docs/sitemap.xml": {
       "checksum": "937b1f6dedd1817f3fe9fff1979560d9"
+    },
+    "docs/web-app-manifest-192x192.png": {
+      "checksum": "f75ce77e03a2e746326726ab2698b1b3"
+    },
+    "docs/web-app-manifest-512x512.png": {
+      "checksum": "59fcce46b358130bcdcd1abb186cc357"
     },
     "global.R": {
       "checksum": "ac3bef10b6e5053be2411b2b3aed0788"
@@ -5349,8 +5399,32 @@
     "man/ExampleData4.Rd": {
       "checksum": "00d1a18e0fe69077bd2c6f11a9dc9e02"
     },
+    "man/figures/logo.png": {
+      "checksum": "c248dd2a9681d73f52211a72a131aae5"
+    },
     "NAMESPACE": {
       "checksum": "ccfd685b96112c16f7515c450c6f3f92"
+    },
+    "pkgdown/favicon/apple-touch-icon.png": {
+      "checksum": "0fd3e69a41725945729ef3a92b3fb5c5"
+    },
+    "pkgdown/favicon/favicon-96x96.png": {
+      "checksum": "0a9eeb93663488c0c1ce95ff2b6690ee"
+    },
+    "pkgdown/favicon/favicon.ico": {
+      "checksum": "d37d58d2c2778f8ce5be813e9079d39d"
+    },
+    "pkgdown/favicon/favicon.svg": {
+      "checksum": "b54f484a38e96b33a7e4b1baec4edf5f"
+    },
+    "pkgdown/favicon/site.webmanifest": {
+      "checksum": "aa2a240255534cbd81d92a24956916f5"
+    },
+    "pkgdown/favicon/web-app-manifest-192x192.png": {
+      "checksum": "f75ce77e03a2e746326726ab2698b1b3"
+    },
+    "pkgdown/favicon/web-app-manifest-512x512.png": {
+      "checksum": "59fcce46b358130bcdcd1abb186cc357"
     },
     "R/cyt_anova.R": {
       "checksum": "9127e4c27a18ef7cca9b070f9bb9e63b"
@@ -5395,16 +5469,19 @@
       "checksum": "2160eb7a77c807c736e65892db9ca671"
     },
     "README.md": {
-      "checksum": "b2069b938959293e1efd7e87513a1572"
+      "checksum": "6e149318f66ea974addf258de7e55208"
     },
     "README.Rmd": {
-      "checksum": "c2a21348662576265fa7ff0c839b7b0b"
+      "checksum": "988f5f25e0300bcc585011251271ab0d"
     },
     "server.R": {
-      "checksum": "d66019c65ece18eed6dc0d77dfdd1c67"
+      "checksum": "5684ae031b65c2a75ac8a428289d4792"
     },
     "ui.R": {
-      "checksum": "655da9f1f179920645ed3e67860cf561"
+      "checksum": "962e8b0f9d7532607f75477bd91077c6"
+    },
+    "WWW/logo.png": {
+      "checksum": "c248dd2a9681d73f52211a72a131aae5"
     }
   },
   "users": null
