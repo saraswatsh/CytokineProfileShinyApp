@@ -63,14 +63,18 @@ ui <- fluidPage(
     }
     /* in tags$head(...) */
     .sticky-progress {
-      position: sticky;
-      top: 70px;         /* adjust to sit just under your navbar/hero */
+      position: fixed-top;
+      top: 0px;         /* adjust to sit just under your navbar/hero */
       z-index: 1000;     /* above the rest of the page */
       background: var(--bs-body-bg);
       padding-top: 0.5rem;
       padding-bottom: 0.5rem;
     }
-
+  
+      /* push the rest of the app down so it isn’t hidden */
+    #main_content {
+      margin-top: calc(70px + 1rem);
+    }
     "
     ))
   ),
@@ -114,9 +118,13 @@ ui <- fluidPage(
           style = "font-weight:300; font-size:2.5rem;"
         ),
         tags$p(
-          "CytoProfile is an R Shiny Application based on the R package for advanced cytokine data analysis. ",
-          "It provides a comprehensive suite of functions for exploratory, univariate, ",
-          "and multivariate analysis as well as machine learning methods tailored to your data."
+          HTML(paste0(
+            "CytoProfile is an R Shiny Application based on the CytoProfile R package available at ",
+            "<a href='https://cran.r-project.org/web/packages/CytoProfile/index.html'>CRAN</a>. ",
+            "This application is designed for advanced cytokine data analysis. ",
+            "It provides a comprehensive suite of functions for exploratory, univariate, ",
+            "and multivariate analysis as well as machine learning methods tailored to your data."
+          ))
         )
       ),
       # 1/3 width hexagon logo
@@ -127,13 +135,30 @@ ui <- fluidPage(
     )
   ),
   div(
-    style = "max-width:960px;margin:1rem auto;",
     class = "sticky-progress",
+    style = "
+      max-width: 960px;
+      margin: 1rem auto;
+      display: flex;
+      align-items: center;
+    ",
+    conditionalPanel(
+      condition = "output.currentStep > 1",
+      div(
+        class = "hexagon",
+        style = "
+          background-image: url('logo.png');
+          margin-right: 1rem;
+          flex: none;       /* keep it its own size */
+        "
+      )
+    ),
     div(
       class = "wizard-container",
+      style = "flex: 1;",
       shinyWidgets::progressBar(
         id = "wizard_pb",
-        value = 0, # initial step
+        value = 0,
         title = "Step 1 of 4",
         display_pct = TRUE,
         striped = TRUE,
@@ -143,8 +168,7 @@ ui <- fluidPage(
     )
   ),
   # Wizard UI and result display
-  uiOutput("wizardUI"),
-  uiOutput("result_display"),
+  div(id = "main_content", uiOutput("wizardUI"), uiOutput("result_display")),
 
   br(),
   # Download button (visible when output_mode is Download)

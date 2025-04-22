@@ -14,6 +14,12 @@ library(skimr)
 
 ## Define server logic
 server <- function(input, output, session) {
+  # Creating a temp dir for data uploads
+  upload_dir <- file.path(tempdir(), "uploads")
+  dir.create(upload_dir, recursive = TRUE, showWarnings = FALSE)
+  builtins_dir <- file.path(tempdir(), "builtins")
+  dir.create(builtins_dir, recursive = TRUE, showWarnings = FALSE)
+
   # Helpers
   observe_helpers()
   useShinyFeedback()
@@ -51,6 +57,10 @@ server <- function(input, output, session) {
     # General state
     selected_columns = NULL,
     selected_function = NULL,
+
+    # Built=in Data built‑in tracking:
+    use_builtin = FALSE,
+    built_in_choice = NULL,
 
     # ANOVA options
     anova_format_output = NULL,
@@ -156,32 +166,61 @@ server <- function(input, output, session) {
   ## ---------------------------
   ## Data Upload and Built-in Data Option
   ## ---------------------------
+  # remember the checkbox
+  observeEvent(
+    input$use_builtin,
+    {
+      userState$use_builtin <- input$use_builtin
+    },
+    ignoreNULL = FALSE
+  )
+
+  # remember which built‑in data they picked
+  observeEvent(
+    input$built_in_choice,
+    {
+      userState$built_in_choice <- input$built_in_choice
+    },
+    ignoreNULL = FALSE
+  )
   userData <- reactive({
+    # built‑in branch stays the same
     if (isTRUE(input$use_builtin)) {
       req(input$built_in_choice)
-      return(get(input$built_in_choice))
-    } else if (!is.null(input$datafile)) {
-      ext <- tolower(tools::file_ext(input$datafile$name))
-      if (ext == "csv") {
-        df <- read.csv(input$datafile$datapath, stringsAsFactors = FALSE)
-      } else if (ext == "txt") {
-        df <- read.table(
-          input$datafile$datapath,
-          header = TRUE,
-          sep = "\t",
-          stringsAsFactors = FALSE
-        )
-      } else if (ext %in% c("xls", "xlsx")) {
-        sheet_num <- ifelse(is.null(input$sheet), 1, input$sheet)
-        df <- read_excel(input$datafile$datapath, sheet = sheet_num)
-        df <- as.data.frame(df)
-      } else {
-        stop("Unsupported file type.")
+      # pull the data frame out of memory
+      df <- get(input$built_in_choice)
+      # snapshot it to disk so it "sticks around" just like an upload
+      dest <- file.path(builtins_dir, paste0(input$built_in_choice, ".rds"))
+      if (!file.exists(dest)) {
+        saveRDS(df, dest)
       }
       return(df)
-    } else {
-      return(NULL)
     }
+    # user upload branch
+    req(input$datafile)
+    # copy into our session‐local tempdir
+    dest <- file.path(upload_dir, input$datafile$name)
+    if (!file.exists(dest)) {
+      file.copy(input$datafile$datapath, dest, overwrite = TRUE)
+    }
+    # read from dest (not from the app root!)
+    ext <- tolower(tools::file_ext(dest))
+    if (ext == "csv") {
+      df <- read.csv(dest, stringsAsFactors = FALSE)
+    } else if (ext == "txt") {
+      df <- read.table(
+        dest,
+        header = TRUE,
+        sep = "\t",
+        stringsAsFactors = FALSE
+      )
+    } else if (ext %in% c("xls", "xlsx")) {
+      sheet_num <- ifelse(is.null(input$sheet), 1, input$sheet)
+      df <- readxl::read_excel(dest, sheet = sheet_num) %>% as.data.frame()
+    } else {
+      stop("Unsupported file type.")
+    }
+    df
   })
 
   ## ---------------------------
@@ -197,16 +236,13 @@ server <- function(input, output, session) {
     }
   })
   output$built_in_selector <- renderUI({
-    if (isTRUE(input$use_builtin)) {
-      selectInput(
-        "built_in_choice",
-        "Select Built-in Data:",
-        choices = builtInList,
-        selected = builtInList[1]
-      )
-    } else {
-      return(NULL)
-    }
+    if (!isTRUE(input$use_builtin)) return(NULL)
+    selectInput(
+      "built_in_choice",
+      "Select Built-in Data:",
+      choices = builtInList,
+      selected = isolate(userState$built_in_choice) %||% builtInList[[1]]
+    )
   })
   # Summary stats
   output$data_summary <- renderUI({
@@ -225,11 +261,13 @@ server <- function(input, output, session) {
       )
     )
   })
-
+  output$preview_ui <- renderUI({
+    req(isTruthy(input$datafile) || input$use_builtin)
+    DT::dataTableOutput("data_preview")
+  })
   # Preview first 10 rows
   output$data_preview <- renderDataTable(
     {
-      req(userData())
       userData()
     },
     options = list(
@@ -2268,10 +2306,11 @@ server <- function(input, output, session) {
         checkboxInput("use_builtin", "Use built-in data?", FALSE),
         uiOutput("built_in_selector"),
         uiOutput("sheet_selector"),
-        uiOutput("data_summary"),
-        DT::dataTableOutput("data_preview"),
-        checkboxInput("show_summary", "Show summary statistics", FALSE),
-
+        uiOutput("preview_ui"),
+        conditionalPanel(
+          condition = "input.use_builtin == true",
+          checkboxInput("show_summary", "Show summary statistics", FALSE)
+        ),
         conditionalPanel(
           condition = "input.show_summary == true",
           h3("Summary Statistics"),
@@ -2403,13 +2442,24 @@ server <- function(input, output, session) {
       )
     }
   })
+
+  # Calculating percentage for progress bar
+  totalSteps <- 4
   observeEvent(currentStep(), {
-    pct <- round(currentStep() / 4 * 100)
+    step_i <- currentStep()
+    if (step_i == totalSteps) {
+      pct <- 100
+      title <- "Finished!"
+    } else {
+      pct <- round((step_i - 1) / totalSteps * 100)
+      title <- paste("Step", step_i, "of", totalSteps)
+    }
+
     updateProgressBar(
       session,
       "wizard_pb",
       value = pct,
-      title = paste("Step", currentStep(), "of 4")
+      title = title
     )
   })
   ## ---------------------------
@@ -2550,6 +2600,22 @@ server <- function(input, output, session) {
   ## ---------------------------
 
   observeEvent(currentStep(), {
+    if (currentStep() == 1) {
+      # restore the “Use built‑in?” toggle
+      updateCheckboxInput(session, "use_builtin", value = userState$use_builtin)
+
+      # if they *had* chosen built‑in, make sure the selector
+      # comes back with the right choice
+      if (
+        isTRUE(userState$use_builtin) && !is.null(userState$built_in_choice)
+      ) {
+        updateSelectInput(
+          session,
+          "built_in_choice",
+          selected = userState$built_in_choice
+        )
+      }
+    }
     if (currentStep() == 3 && !is.null(userState$selected_function)) {
       if (!is.null(userState$analysis_categories)) {
         updateRadioButtons(
@@ -4195,4 +4261,11 @@ server <- function(input, output, session) {
   observeEvent(input$ml_function, {
     userState$ml_function <- input$ml_function
   })
+  observeEvent(
+    input$built_in_choice,
+    {
+      userState$built_in_choice <- input$built_in_choice
+    },
+    ignoreNULL = FALSE
+  )
 }
