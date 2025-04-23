@@ -3142,15 +3142,8 @@
         "Maintainer": "Xavier Robin <pROC-cran@xavier.robin.name>",
         "Repository": "CRAN",
         "Date/Publication": "2023-11-01 17:50:13 UTC",
-        "Built": "R 4.4.3; x86_64-w64-mingw32; 2025-04-19 01:36:49 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemoteRef": "pROC",
-        "RemotePkgRef": "pROC",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "1.18.5"
+        "Built": "R 4.4.3; x86_64-w64-mingw32; 2025-04-21 01:32:43 UTC; windows",
+        "Archs": "x64"
       }
     },
     "parallelly": {
@@ -3734,15 +3727,8 @@
         "Date/Publication": "2024-09-22 09:14:44 UTC",
         "Author": "Leo Breiman [aut] (Fortran original),\n  Adele Cutler [aut] (Fortran original),\n  Andy Liaw [aut, cre] (R port),\n  Matthew Wiener [aut] (R port)",
         "Maintainer": "Andy Liaw <andy_liaw@merck.com>",
-        "Built": "R 4.4.3; x86_64-w64-mingw32; 2025-04-19 00:33:13 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemoteRef": "randomForest",
-        "RemotePkgRef": "randomForest",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "4.7-1.2"
+        "Built": "R 4.4.3; x86_64-w64-mingw32; 2025-04-21 00:30:35 UTC; windows",
+        "Archs": "x64"
       }
     },
     "rappdirs": {
@@ -4216,6 +4202,32 @@
         "Repository": "CRAN",
         "Date/Publication": "2025-02-21 12:30:02 UTC",
         "Built": "R 4.4.3; ; 2025-04-19 02:23:55 UTC; windows"
+      }
+    },
+    "shinycssloaders": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "shinycssloaders",
+        "Title": "Add Loading Animations to a 'shiny' Output While It's\nRecalculating",
+        "Version": "1.1.0",
+        "Authors@R": "c(\n    person(\"Dean\",\"Attali\",email=\"daattali@gmail.com\",role=c(\"aut\",\"cre\"),\n        comment = c(\"Maintainer/developer of shinycssloaders since 2019\", ORCID=\"0000-0002-5645-3493\")),\n    person(\"Andras\",\"Sali\",email=\"andras.sali@alphacruncher.hu\",role=c(\"aut\"),comment=\"Original creator of shinycssloaders package\"),\n    person(\"Luke\",\"Hass\",role=c(\"ctb\",\"cph\"),comment=\"Author of included CSS loader code\")\n    )",
+        "Description": "When a 'Shiny' output (such as a plot, table, map, etc.) is recalculating, it remains \n    visible but gets greyed out. Using 'shinycssloaders', you can add a loading animation (\"spinner\")\n    to outputs instead. By wrapping a 'Shiny' output in 'withSpinner()', a spinner will automatically\n    appear while the output is recalculating. You can also manually show and hide the spinner, or add\n    a full-page spinner to cover the entire page.\n    See the demo online at <https://daattali.com/shiny/shinycssloaders-demo/>.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://github.com/daattali/shinycssloaders,\nhttps://daattali.com/shiny/shinycssloaders-demo/",
+        "BugReports": "https://github.com/daattali/shinycssloaders/issues",
+        "Depends": "R (>= 3.1)",
+        "Imports": "digest, glue, grDevices, htmltools (>= 0.3.5), shiny",
+        "Suggests": "knitr, shinydisconnect, shinyjs",
+        "RoxygenNote": "7.2.3",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-07-30 18:52:48 UTC; Dean",
+        "Author": "Dean Attali [aut, cre] (Maintainer/developer of shinycssloaders since\n    2019, <https://orcid.org/0000-0002-5645-3493>),\n  Andras Sali [aut] (Original creator of shinycssloaders package),\n  Luke Hass [ctb, cph] (Author of included CSS loader code)",
+        "Maintainer": "Dean Attali <daattali@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-07-30 22:30:02 UTC",
+        "Built": "R 4.4.3; ; 2025-04-21 02:23:35 UTC; windows"
       }
     },
     "shinyhelper": {
@@ -4984,8 +4996,8 @@
         "Package": "xgboost",
         "Type": "Package",
         "Title": "Extreme Gradient Boosting",
-        "Version": "1.7.9.1",
-        "Date": "2025-03-25",
+        "Version": "1.7.10.1",
+        "Date": "2025-04-22",
         "Authors@R": "c(\n  person(\"Tianqi\", \"Chen\", role = c(\"aut\"),\n         email = \"tianqi.tchen@gmail.com\"),\n  person(\"Tong\", \"He\", role = c(\"aut\"),\n         email = \"hetong007@gmail.com\"),\n  person(\"Michael\", \"Benesty\", role = c(\"aut\"),\n         email = \"michael@benesty.fr\"),\n  person(\"Vadim\", \"Khotilovich\", role = c(\"aut\"),\n         email = \"khotilovich@gmail.com\"),\n  person(\"Yuan\", \"Tang\", role = c(\"aut\"),\n         email = \"terrytangyuan@gmail.com\",\n         comment = c(ORCID = \"0000-0001-5243-233X\")),\n  person(\"Hyunsu\", \"Cho\", role = c(\"aut\"),\n         email = \"chohyu01@cs.washington.edu\"),\n  person(\"Kailong\", \"Chen\", role = c(\"aut\")),\n  person(\"Rory\", \"Mitchell\", role = c(\"aut\")),\n  person(\"Ignacio\", \"Cano\", role = c(\"aut\")),\n  person(\"Tianyi\", \"Zhou\", role = c(\"aut\")),\n  person(\"Mu\", \"Li\", role = c(\"aut\")),\n  person(\"Junyuan\", \"Xie\", role = c(\"aut\")),\n  person(\"Min\", \"Lin\", role = c(\"aut\")),\n  person(\"Yifeng\", \"Geng\", role = c(\"aut\")),\n  person(\"Yutian\", \"Li\", role = c(\"aut\")),\n  person(\"Jiaming\", \"Yuan\", role = c(\"aut\", \"cre\"),\n         email = \"jm.yuan@outlook.com\"),\n  person(\"XGBoost contributors\", role = c(\"cph\"),\n         comment = \"base XGBoost implementation\")\n  )",
         "Maintainer": "Jiaming Yuan <jm.yuan@outlook.com>",
         "Description": "Extreme Gradient Boosting, which is an efficient implementation\n    of the gradient boosting framework from Chen & Guestrin (2016) <doi:10.1145/2939672.2939785>.\n    This package is its R interface. The package includes efficient linear\n    model solver and tree learning algorithms. The package can automatically\n    do parallel computation on a single machine which could be more than 10\n    times faster than existing gradient boosting packages. It supports\n    various objective functions, including regression, classification and ranking.\n    The package is made to be extensible, so that users are also allowed to define\n    their own objectives easily.",
@@ -5000,19 +5012,12 @@
         "RoxygenNote": "7.3.2",
         "Encoding": "UTF-8",
         "SystemRequirements": "GNU make, C++17",
-        "Packaged": "2025-03-26 09:17:37 UTC; jiamingy",
+        "Packaged": "2025-04-22 09:49:41 UTC; jiamingy",
         "Author": "Tianqi Chen [aut],\n  Tong He [aut],\n  Michael Benesty [aut],\n  Vadim Khotilovich [aut],\n  Yuan Tang [aut] (<https://orcid.org/0000-0001-5243-233X>),\n  Hyunsu Cho [aut],\n  Kailong Chen [aut],\n  Rory Mitchell [aut],\n  Ignacio Cano [aut],\n  Tianyi Zhou [aut],\n  Mu Li [aut],\n  Junyuan Xie [aut],\n  Min Lin [aut],\n  Yifeng Geng [aut],\n  Yutian Li [aut],\n  Jiaming Yuan [aut, cre],\n  XGBoost contributors [cph] (base XGBoost implementation)",
         "Repository": "CRAN",
-        "Date/Publication": "2025-03-26 14:30:02 UTC",
-        "Built": "R 4.4.3; x86_64-w64-mingw32; 2025-04-19 01:37:13 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemoteRef": "xgboost",
-        "RemotePkgRef": "xgboost",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "1.7.9.1"
+        "Date/Publication": "2025-04-22 11:10:02 UTC",
+        "Built": "R 4.4.2; x86_64-w64-mingw32; 2025-04-23 03:51:19 UTC; windows",
+        "Archs": "x64"
       }
     },
     "xml2": {
@@ -5115,7 +5120,7 @@
       "checksum": "2ce9dd288546e6a01b92eabe852bf17d"
     },
     "app.R": {
-      "checksum": "cc88c936684ed8e34e3300792bc7ea96"
+      "checksum": "18fbb80b2943ba652c0c0b39a66aa114"
     },
     "cytoprofile_logo2.png": {
       "checksum": "83a8a76d775edb40aeb62cf3008c5633"
@@ -5436,7 +5441,7 @@
       "checksum": "87e70dc549392cc420e2eba72d45a86a"
     },
     "R/cyt_dualflashplot.R": {
-      "checksum": "9c2d62cb0223c396ea0ff182422b63e1"
+      "checksum": "df913e0691c75687f025c8e0d56ff0af"
     },
     "R/cyt_errbp.R": {
       "checksum": "4351295eb6c69abd6bc65b017ce413e0"
@@ -5448,7 +5453,7 @@
       "checksum": "9321b25fa8ed56f391f5626cf0a046a1"
     },
     "R/cyt_rf.R": {
-      "checksum": "e46b7eeaf44da03f713738aa69075a4c"
+      "checksum": "4a367ac246539f610147ff89a22fc5bb"
     },
     "R/cyt_skku.R": {
       "checksum": "3d4b7ce3b67ea47dd9ac72fba8f2126d"
@@ -5463,7 +5468,7 @@
       "checksum": "279fa9c3f299608ba729df197b6cc278"
     },
     "R/cyt_xgb.R": {
-      "checksum": "f507a4138c30bd691ef96474487a3f44"
+      "checksum": "8f3bb7e4c471b6626297d1283b788d09"
     },
     "R/data.R": {
       "checksum": "2160eb7a77c807c736e65892db9ca671"
@@ -5475,10 +5480,10 @@
       "checksum": "988f5f25e0300bcc585011251271ab0d"
     },
     "server.R": {
-      "checksum": "71141a0f1253b5d5ab0ce1dac50e7a0c"
+      "checksum": "b71bf294e1a23be104a760a97d702046"
     },
     "ui.R": {
-      "checksum": "a64644399fe74f338874a6809232aa2e"
+      "checksum": "dd8736fa7dfa50cbcdbea0f1eba7e1cd"
     },
     "WWW/logo.png": {
       "checksum": "c248dd2a9681d73f52211a72a131aae5"

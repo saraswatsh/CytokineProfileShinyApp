@@ -34,7 +34,7 @@ ui <- fluidPage(
       align-items:     center;
       max-width:       960px;              /* limit width */
       margin:          0 auto 1.5rem auto; /* center horizontally */
-      padding:         2rem;
+      padding:         0.5rem;
        background-color: var(--bs-card-bg)   !important;
       color: var(--bs-card-color) !important;
       border: 1px solid var(--bs-card-border-color);
@@ -59,21 +59,24 @@ ui <- fluidPage(
     }
     @media (max-width: 768px) {
       .hero-card { flex-direction: column; }
-      .hero-text { margin-bottom: 1rem; }
+      .hero-text { margin-bottom: 0.5rem; }
     }
-    /* in tags$head(...) */
-    .sticky-progress {
-      position: fixed-top;
-      top: 0px;         /* adjust to sit just under your navbar/hero */
-      z-index: 1000;     /* above the rest of the page */
-      background: var(--bs-body-bg);
-      padding-top: 0.5rem;
-      padding-bottom: 0.5rem;
-    }
-  
-      /* push the rest of the app down so it isn’t hidden */
+    /* push the rest of the app down so it isn’t hidden */
     #main_content {
-      margin-top: calc(70px + 1rem);
+      margin-top: 1rem;
+    }
+    /* tighten the space under every step heading */
+    .wizard-ui h3 {
+      margin-bottom: 0.25rem !important;
+    }
+    .step-title {
+      margin-bottom: -0.1rem !important;
+    }
+      /* wrapper to size & space the bar */
+    .progress-wrapper {
+      width: 60ch;               /* ~60 characters wide */
+      margin-top: -0.1rem;       /* small gap above bar */
+      margin-bottom: 1.5rem;     /* small gap below bar */
     }
     "
     ))
@@ -135,35 +138,27 @@ ui <- fluidPage(
     )
   ),
   div(
-    class = "sticky-progress",
-    style = "
+    conditionalPanel(
+      h1(
+        "CytoProfile",
+        style = "font-weight:300; font-size:2.5rem;"
+      ),
+      class = "sticky-progress",
+      style = "
       max-width: 960px;
-      margin: 1rem auto;
+      margin: 1rem left;
       display: flex;
       align-items: center;
     ",
-    conditionalPanel(
       condition = "output.currentStep > 1",
       div(
         class = "hexagon",
         style = "
           background-image: url('logo.png');
+          margin-left: 1rem;
           margin-right: 1rem;
           flex: none;       /* keep it its own size */
         "
-      )
-    ),
-    div(
-      class = "wizard-container",
-      style = "flex: 1;",
-      shinyWidgets::progressBar(
-        id = "wizard_pb",
-        value = 0,
-        title = "Step 1 of 4",
-        display_pct = TRUE,
-        striped = TRUE,
-        size = "xs",
-        status = "info"
       )
     )
   ),

@@ -50,70 +50,114 @@
 #'        ntree = 1000, mtry = 4, run_rfcv = TRUE, plot_roc = TRUE,
 #'        output_file = "RF_Analysis.pdf")
 #'
+#' @import ggplot2
 #' @importFrom randomForest randomForest rfcv importance
 #' @importFrom caret createDataPartition confusionMatrix
-#' @import ggplot2
 #' @importFrom pROC roc auc ggroc
 #' @export
-cyt_rf <- function(data, group_col, ntree = 500, mtry = 5,
-                   train_fraction = 0.7, plot_roc = FALSE,
-                   k_folds = 5, step = 0.5, run_rfcv = TRUE,
-                   output_file = NULL, progress = NULL) {
-  
+cyt_rf <- function(
+  data,
+  group_col,
+  ntree = 500,
+  mtry = 5,
+  train_fraction = 0.7,
+  plot_roc = FALSE,
+  k_folds = 5,
+  step = 0.5,
+  run_rfcv = TRUE,
+  output_file = NULL,
+  progress = NULL
+) {
   # Start progress
-  if (!is.null(progress)) progress$set(message = "Starting Random Forest Analysis", value = 0)
-  
+  if (!is.null(progress))
+    progress$set(message = "Starting Random Forest Analysis", value = 0)
+
   # Ensure the grouping variable is a factor
   data[[group_col]] <- as.factor(data[[group_col]])
-  if (!is.null(progress)) progress$inc(0.05, detail = "Converting grouping variable to factor")
-  
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Converting grouping variable to factor")
+
   # Split data into training and test sets
-  set.seed(123)  # for reproducibility
-  train_indices <- caret::createDataPartition(data[[group_col]], p = train_fraction, list = FALSE)
+  set.seed(123) # for reproducibility
+  train_indices <- caret::createDataPartition(
+    data[[group_col]],
+    p = train_fraction,
+    list = FALSE
+  )
   train_data <- data[train_indices, ]
   test_data <- data[-train_indices, ]
-  if (!is.null(progress)) progress$inc(0.1, detail = "Splitting data into training and test sets")
-  
+  if (!is.null(progress))
+    progress$inc(0.1, detail = "Splitting data into training and test sets")
+
   # Prepare formula for the random forest model
   predictors <- setdiff(colnames(data), group_col)
-  formula_rf <- as.formula(paste(group_col, "~", paste(predictors, collapse = "+")))
+  formula_rf <- as.formula(paste(
+    group_col,
+    "~",
+    paste(predictors, collapse = "+")
+  ))
   if (!is.null(progress)) progress$inc(0.05, detail = "Preparing model formula")
-  
+
   # Fit the Random Forest model on training data
-  rf_model <- randomForest::randomForest(formula_rf, data = train_data, ntree = ntree,
-                                         mtry = mtry, importance = TRUE)
-  if (!is.null(progress)) progress$inc(0.1, detail = "Fitting Random Forest model")
-  
+  rf_model <- randomForest::randomForest(
+    formula_rf,
+    data = train_data,
+    ntree = ntree,
+    mtry = mtry,
+    importance = TRUE
+  )
+  if (!is.null(progress))
+    progress$inc(0.1, detail = "Fitting Random Forest model")
+
   # Predict on training set for confusion matrix
   train_pred <- predict(rf_model, newdata = train_data)
   train_conf_mat <- caret::confusionMatrix(train_pred, train_data[[group_col]])
   accuracy_train <- train_conf_mat$overall["Accuracy"]
-  if (!is.null(progress)) progress$inc(0.05, detail = "Evaluating training set performance")
-  
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Evaluating training set performance")
+
   # Predict on the test set
   test_pred <- predict(rf_model, newdata = test_data)
   test_conf_mat <- caret::confusionMatrix(test_pred, test_data[[group_col]])
   accuracy_test <- test_conf_mat$overall["Accuracy"]
-  if (!is.null(progress)) progress$inc(0.05, detail = "Evaluating test set performance")
-  
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Evaluating test set performance")
+
   # Build ROC plot if binary classification
   roc_plot <- NULL
   if (plot_roc && length(levels(data[[group_col]])) == 2) {
     rf_prob <- predict(rf_model, newdata = test_data, type = "prob")[, 2]
-    roc_obj <- roc(test_data[[group_col]], rf_prob)
-    auc_value <- auc(roc_obj)
-    roc_plot <- ggroc(roc_obj, color = "blue", linewidth = 1.5, legacy.axes = TRUE) +
+    roc_obj <- pROC::roc(test_data[[group_col]], rf_prob)
+    auc_value <- pROC::auc(roc_obj)
+    roc_plot <- pROC::ggroc(
+      roc_obj,
+      color = "blue",
+      linewidth = 1.5,
+      legacy.axes = TRUE
+    ) +
       geom_abline(linetype = "dashed", color = "red", linewidth = 1) +
-      labs(title = "ROC Curve (Test Set)", x = "1 - Specificity", y = "Sensitivity") +
-      annotate("text", x = 0.75, y = 0.25, label = paste("AUC =", round(auc_value, 3)),
-               size = 5, color = "blue") +
+      labs(
+        title = "ROC Curve (Test Set)",
+        x = "1 - Specificity",
+        y = "Sensitivity"
+      ) +
+      annotate(
+        "text",
+        x = 0.75,
+        y = 0.25,
+        label = paste("AUC =", round(auc_value, 3)),
+        size = 5,
+        color = "blue"
+      ) +
       theme_minimal()
     if (!is.null(progress)) progress$inc(0.05, detail = "Building ROC curve")
   }
-  
+
   # Variable importance
-  imp_data <- data.frame(Variable = rownames(importance(rf_model)),
-                         Gini = importance(rf_model)[, "MeanDecreaseGini"])
+  imp_data <- data.frame(
+    Variable = rownames(randomForest::importance(rf_model)),
+    Gini = randomForest::importance(rf_model)[, "MeanDecreaseGini"]
+  )
   vip_plot <- ggplot(imp_data, aes(x = reorder(Variable, Gini), y = Gini)) +
     geom_bar(stat = "identity", fill = "red2") +
     coord_flip() +
@@ -121,8 +165,9 @@ cyt_rf <- function(data, group_col, ntree = 500, mtry = 5,
     xlab("Features") +
     ylab("Importance (Gini Index)") +
     theme_minimal()
-  if (!is.null(progress)) progress$inc(0.05, detail = "Generating variable importance plot")
-  
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Generating variable importance plot")
+
   # Run RFCV if requested
   rfcv_result <- NULL
   rfcv_data <- NULL
@@ -130,9 +175,16 @@ cyt_rf <- function(data, group_col, ntree = 500, mtry = 5,
   if (run_rfcv) {
     x_train <- train_data[, predictors, drop = FALSE]
     y_train <- train_data[[group_col]]
-    rfcv_result <- rfcv(x_train, y_train, cv.fold = k_folds, step = step)
-    rfcv_data <- data.frame(Variables = rfcv_result$n.var,
-                            Error = rfcv_result$error.cv)
+    rfcv_result <- randomForest::rfcv(
+      x_train,
+      y_train,
+      cv.fold = k_folds,
+      step = step
+    )
+    rfcv_data <- data.frame(
+      Variables = rfcv_result$n.var,
+      Error = rfcv_result$error.cv
+    )
     rfcv_plot <- ggplot(rfcv_data, aes(x = Variables, y = Error)) +
       geom_line(color = "blue") +
       geom_point(color = "blue") +
@@ -140,41 +192,58 @@ cyt_rf <- function(data, group_col, ntree = 500, mtry = 5,
       xlab("Number of Variables") +
       ylab("Cross-Validation Error") +
       theme_minimal()
-    if (!is.null(progress)) progress$inc(0.05, detail = "Performing Random Forest cross-validation")
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Performing Random Forest cross-validation")
   }
-  
+
   # Return interactive results or write PDF if output_file is provided
   if (is.null(output_file)) {
     # Build summary text
     summary_text <- capture.output({
       cat("### RANDOM FOREST RESULTS ###\n\n")
-      
+
       cat("--- Training Set ---\n")
       cat("Confusion Matrix:\n")
       print(train_conf_mat$table)
       cat("\nAccuracy:", round(accuracy_train, 3), "\n")
-      
+
       if (nlevels(data[[group_col]]) == 2) {
-        cat("\nSensitivity (train):", round(train_conf_mat$byClass["Sensitivity"], 3), "\n")
-        cat("Specificity (train):", round(train_conf_mat$byClass["Specificity"], 3), "\n")
+        cat(
+          "\nSensitivity (train):",
+          round(train_conf_mat$byClass["Sensitivity"], 3),
+          "\n"
+        )
+        cat(
+          "Specificity (train):",
+          round(train_conf_mat$byClass["Specificity"], 3),
+          "\n"
+        )
       } else {
         cat("\nPer-Class Sensitivity (train):\n")
         print(round(train_conf_mat$byClass[, "Sensitivity"], 3))
         cat("\nPer-Class Specificity (train):\n")
         print(round(train_conf_mat$byClass[, "Specificity"], 3))
       }
-      
+
       cat("\n--- Test Set ---\n")
       cat("Confusion Matrix:\n")
       print(test_conf_mat$table)
       cat("\nAccuracy:", round(accuracy_test, 3), "\n")
-      
+
       if (plot_roc) {
         cat("\nAUC:", round(auc_value, 3), "\n")
       }
       if (nlevels(data[[group_col]]) == 2) {
-        cat("\nSensitivity (test):", round(test_conf_mat$byClass["Sensitivity"], 3), "\n")
-        cat("Specificity (test):", round(test_conf_mat$byClass["Specificity"], 3), "\n")
+        cat(
+          "\nSensitivity (test):",
+          round(test_conf_mat$byClass["Sensitivity"], 3),
+          "\n"
+        )
+        cat(
+          "Specificity (test):",
+          round(test_conf_mat$byClass["Specificity"], 3),
+          "\n"
+        )
       } else {
         cat("\nPer-Class Sensitivity (test):\n")
         print(round(test_conf_mat$byClass[, "Sensitivity"], 3))
@@ -183,14 +252,13 @@ cyt_rf <- function(data, group_col, ntree = 500, mtry = 5,
       }
     })
     summary_text <- paste(summary_text, collapse = "\n")
-    
+
     return(list(
       summary_text = summary_text,
       vip_plot = vip_plot,
       roc_plot = roc_plot,
       rfcv_plot = rfcv_plot
     ))
-    
   } else {
     # PDF mode: print outputs to PDF
     pdf(file = output_file, width = 8, height = 8)
@@ -198,7 +266,7 @@ cyt_rf <- function(data, group_col, ntree = 500, mtry = 5,
     print(train_conf_mat$table)
     cat("\nTest Confusion Matrix:\n")
     print(test_conf_mat$table)
-    
+
     if (!is.null(roc_plot)) print(roc_plot)
     print(vip_plot)
     if (!is.null(rfcv_plot)) print(rfcv_plot)

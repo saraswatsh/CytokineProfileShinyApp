@@ -56,56 +56,73 @@
 #'   output_file = "XGB_Analysis.pdf"
 #' )
 #'
-#' @importFrom xgboost xgb.DMatrix xgb.train xgb.importance xgb.ggplot.importance xgb.cv getinfo
+#' @importFrom xgboost xgb.DMatrix xgb.train xgb.importance xgb.ggplot.importance xgb.cv
 #' @importFrom caret createDataPartition confusionMatrix
 #' @import ggplot2
 #' @importFrom pROC roc auc ggroc
 #' @export
-cyt_xgb <- function(data, group_col, train_fraction = 0.7,
-                    nrounds = 500, max_depth = 6, eta = 0.1,
-                    nfold = 5, cv = FALSE,
-                    objective = "multi:softprob", early_stopping_rounds = NULL,
-                    eval_metric = "mlogloss",
-                    gamma = 0, colsample_bytree = 1, subsample = 1,
-                    min_child_weight = 1,
-                    top_n_features = 10, plot_roc = FALSE,
-                    output_file = NULL, progress = NULL) {
-  
+cyt_xgb <- function(
+  data,
+  group_col,
+  train_fraction = 0.7,
+  nrounds = 500,
+  max_depth = 6,
+  eta = 0.1,
+  nfold = 5,
+  cv = FALSE,
+  objective = "multi:softprob",
+  early_stopping_rounds = NULL,
+  eval_metric = "mlogloss",
+  gamma = 0,
+  colsample_bytree = 1,
+  subsample = 1,
+  min_child_weight = 1,
+  top_n_features = 10,
+  plot_roc = FALSE,
+  output_file = NULL,
+  progress = NULL
+) {
   # Start progress if provided
   if (!is.null(progress)) {
     progress$set(message = "Starting XGBoost analysis", value = 0)
   }
-  
+
   # Make sure group_col is a factor
   if (!is.null(progress)) progress$inc(0.05, detail = "Setting up data...")
   data[[group_col]] <- as.factor(data[[group_col]])
-  
+
   # Create mapping from group names to numeric labels
   class_labels <- levels(data[[group_col]])
   class_mapping <- setNames(0:(length(class_labels) - 1), class_labels)
-  
+
   # Convert grouping variable to numeric for xgboost
   data[[group_col]] <- as.numeric(data[[group_col]]) - 1
-  
+
   # Prepare dataset
   if (!is.null(progress)) progress$inc(0.05, detail = "Preparing dataset...")
   X <- as.matrix(data[, setdiff(colnames(data), group_col)])
   y <- data[[group_col]]
-  
+
   # Train/test split
-  if (!is.null(progress)) progress$inc(0.05, detail = "Splitting data into train and test sets...")
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Splitting data into train and test sets...")
   set.seed(123)
-  train_indices <- caret::createDataPartition(y, p = train_fraction, list = FALSE)
+  train_indices <- caret::createDataPartition(
+    y,
+    p = train_fraction,
+    list = FALSE
+  )
   X_train <- X[train_indices, ]
   y_train <- y[train_indices]
   X_test <- X[-train_indices, ]
   y_test <- y[-train_indices]
-  
+
   dtrain <- xgboost::xgb.DMatrix(data = X_train, label = y_train)
-  dtest  <- xgboost::xgb.DMatrix(data = X_test, label = y_test)
-  
+  dtest <- xgboost::xgb.DMatrix(data = X_test, label = y_test)
+
   # Set xgboost parameters
-  if (!is.null(progress)) progress$inc(0.05, detail = "Setting XGBoost parameters...")
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Setting XGBoost parameters...")
   params <- list(
     objective = objective,
     eval_metric = eval_metric,
@@ -117,74 +134,111 @@ cyt_xgb <- function(data, group_col, train_fraction = 0.7,
     subsample = subsample,
     min_child_weight = min_child_weight
   )
-  
+
   # Train model
-  if (!is.null(progress)) progress$inc(0.1, detail = "Training XGBoost model...")
+  if (!is.null(progress))
+    progress$inc(0.1, detail = "Training XGBoost model...")
   xgb_model <- xgboost::xgb.train(
-    params = params, data = dtrain, nrounds = nrounds,
+    params = params,
+    data = dtrain,
+    nrounds = nrounds,
     watchlist = list(train = dtrain, test = dtest),
-    early_stopping_rounds = early_stopping_rounds, verbose = FALSE
+    early_stopping_rounds = early_stopping_rounds,
+    verbose = FALSE
   )
-  
+
   if (!is.null(progress)) progress$inc(0.05, detail = "Evaluating model...")
   # Best iteration
   eval_col_name <- paste0("test_", eval_metric)
   best_iter <- which.min(xgb_model$evaluation_log[[eval_col_name]])
-  
+
   # Predictions and confusion matrix
-  if (!is.null(progress)) progress$inc(0.05, detail = "Making predictions on test set...")
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Making predictions on test set...")
   preds <- predict(xgb_model, X_test)
   pred_matrix <- matrix(preds, ncol = length(unique(y_test)), byrow = TRUE)
   pred_labels <- max.col(pred_matrix) - 1
-  
-  confusion_mat <- caret::confusionMatrix(as.factor(pred_labels), as.factor(y_test))
+
+  confusion_mat <- caret::confusionMatrix(
+    as.factor(pred_labels),
+    as.factor(y_test)
+  )
   accuracy_test <- confusion_mat$overall["Accuracy"]
-  
+
   # Build ROC plot if applicable (for binary classification)
   roc_plot <- NULL
   auc_value <- NA
   if (plot_roc && length(unique(y_test)) == 2) {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Computing ROC curve...")
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Computing ROC curve...")
     xgb_prob <- pred_matrix[, 2]
     roc_obj <- pROC::roc(y_test, xgb_prob)
     auc_value <- pROC::auc(roc_obj)
-    roc_plot <- ggroc(roc_obj, color = "blue", linewidth = 1.5, legacy.axes = TRUE) +
+    roc_plot <- pROC::ggroc(
+      roc_obj,
+      color = "blue",
+      linewidth = 1.5,
+      legacy.axes = TRUE
+    ) +
       geom_abline(linetype = "dashed", color = "red", linewidth = 1) +
-      labs(title = "ROC Curve (Test Set)", x = "1 - Specificity", y = "Sensitivity") +
-      annotate("text", x = 0.75, y = 0.25, label = paste("AUC =", round(auc_value, 3)),
-               size = 5, color = "blue") +
+      labs(
+        title = "ROC Curve (Test Set)",
+        x = "1 - Specificity",
+        y = "Sensitivity"
+      ) +
+      annotate(
+        "text",
+        x = 0.75,
+        y = 0.25,
+        label = paste("AUC =", round(auc_value, 3)),
+        size = 5,
+        color = "blue"
+      ) +
       theme_minimal()
   }
-  
+
   # Feature importance
-  if (!is.null(progress)) progress$inc(0.05, detail = "Calculating feature importance...")
-  importance_matrix <- xgboost::xgb.importance(feature_names = colnames(X), model = xgb_model)
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Calculating feature importance...")
+  importance_matrix <- xgboost::xgb.importance(
+    feature_names = colnames(X),
+    model = xgb_model
+  )
   top_features <- head(importance_matrix, top_n_features)
-  vip_plot <- xgboost::xgb.ggplot.importance(importance_matrix = top_features, top_n = top_n_features) +
+  vip_plot <- xgboost::xgb.ggplot.importance(
+    importance_matrix = top_features,
+    top_n = top_n_features
+  ) +
     geom_bar(stat = "identity", fill = "red2", show.legend = FALSE) +
     ggtitle("Top Features by Gain") +
     ylab("Importance (Gain)") +
     xlab("Features") +
     theme_minimal()
-  
+
   # Cross-validation (if requested)
   cv_results <- NULL
   best_cv_iter <- NULL
   if (cv) {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Performing cross-validation...")
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Performing cross-validation...")
     xgb_cv <- xgboost::xgb.cv(
-      params = params, data = dtrain, nrounds = nrounds, nfold = nfold,
-      early_stopping_rounds = early_stopping_rounds, verbose = FALSE,
+      params = params,
+      data = dtrain,
+      nrounds = nrounds,
+      nfold = nfold,
+      early_stopping_rounds = early_stopping_rounds,
+      verbose = FALSE,
       prediction = TRUE
     )
     eval_col_name_cv <- paste0("test_", eval_metric, "_mean")
     best_cv_iter <- which.min(xgb_cv$evaluation_log[[eval_col_name_cv]])
     cv_results <- xgb_cv
   }
-  
+
   # If in interactive mode, build a summary text and return results
   if (is.null(output_file)) {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Finalizing interactive results...")
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Finalizing interactive results...")
     summary_text <- capture.output({
       cat("### XGBOOST RESULTS ###\n\n")
       cat("1) Group -> Numeric Label Mapping:\n")
@@ -198,7 +252,11 @@ cyt_xgb <- function(data, group_col, train_fraction = 0.7,
         cat("\nSensitivity:", confusion_mat$byClass["Sensitivity"], "\n")
         cat("Specificity:", confusion_mat$byClass["Specificity"], "\n")
         if (plot_roc) {
-          cat("\nAUC:", ifelse(is.na(auc_value), "N/A", round(auc_value, 3)), "\n")
+          cat(
+            "\nAUC:",
+            ifelse(is.na(auc_value), "N/A", round(auc_value, 3)),
+            "\n"
+          )
         }
       }
       cat("\n4) Top", top_n_features, "Important Features:\n")
@@ -212,18 +270,17 @@ cyt_xgb <- function(data, group_col, train_fraction = 0.7,
       }
     })
     summary_text <- paste(summary_text, collapse = "\n")
-    
+
     return(list(
-      summary_text     = summary_text,
-      model            = xgb_model,
+      summary_text = summary_text,
+      model = xgb_model,
       confusion_matrix = confusion_mat$table,
-      importance       = top_features,
-      class_mapping    = class_mapping,
-      cv_results       = cv_results,
-      plot             = vip_plot,
-      roc_plot         = roc_plot
+      importance = top_features,
+      class_mapping = class_mapping,
+      cv_results = cv_results,
+      plot = vip_plot,
+      roc_plot = roc_plot
     ))
-    
   } else {
     # PDF mode: print outputs to PDF
     pdf(file = output_file, width = 8, height = 8)
@@ -245,4 +302,3 @@ cyt_xgb <- function(data, group_col, train_fraction = 0.7,
     return(invisible(NULL))
   }
 }
-

@@ -11,6 +11,7 @@ library(shinyhelper)
 library(DT)
 library(shinyFeedback)
 library(skimr)
+library(shinycssloaders)
 
 ## Define server logic
 server <- function(input, output, session) {
@@ -88,6 +89,8 @@ server <- function(input, output, session) {
 
     # Dual-Flashlight Plot options
     df_group_var = NULL,
+    df_cond1 = NULL,
+    df_cond2 = NULL,
     df_ssmd_thresh = NULL,
     df_log2fc_thresh = NULL,
     df_top_labels = NULL,
@@ -2207,7 +2210,7 @@ server <- function(input, output, session) {
           }
         ),
         choices = choices,
-        selected = choices[1]
+        selected = isolate(userState$df_cond1) %||% choices[1]
       ),
       selectInput(
         "df_cond2",
@@ -2226,7 +2229,7 @@ server <- function(input, output, session) {
           }
         ),
         choices = choices,
-        selected = choices[2]
+        selected = isolate(userState$df_cond2) %||% choices[2]
       )
     )
   })
@@ -2257,7 +2260,7 @@ server <- function(input, output, session) {
             }
           ),
           choices = choices,
-          selected = choices[1]
+          selected = isolate(userState$volc_cond1) %||% choices[1]
         ),
         selectInput(
           "volc_cond2",
@@ -2278,7 +2281,7 @@ server <- function(input, output, session) {
             }
           ),
           choices = choices,
-          selected = choices[2]
+          selected = isolate(userState$volc_cond2) %||% choices[2]
         )
       )
     } else {
@@ -2293,9 +2296,42 @@ server <- function(input, output, session) {
   ## ---------------------------
   output$wizardUI <- renderUI({
     step <- currentStep()
-    if (step == 1) {
-      tagList(
-        h3("Step 1: Upload Data"),
+    totalSteps <- 4
+    pct <- round((step - 1) / (totalSteps - 1) * 100)
+
+    # helper to inject title + bar
+    stepHeader <- tagList(
+      div(
+        class = "step-title",
+        h3(
+          switch(
+            as.character(step),
+            "1" = "Step 1: Upload Data",
+            "2" = "Step 2: Select Columns & Apply Filters",
+            "3" = "Step 3: Analysis Options",
+            "4" = "Step 4: Analysis Results"
+          )
+        )
+      ),
+      div(
+        class = "progress-wrapper",
+        # this div will shrink-wrap itself and pick up our #wizard_pb CSS
+        shinyWidgets::progressBar(
+          id = "wizard_pb",
+          value = pct,
+          display_pct = TRUE,
+          striped = TRUE,
+          size = "xs",
+          status = "info"
+        )
+      )
+    )
+    switch(
+      as.character(step),
+
+      # STEP 1 ----
+      "1" = tagList(
+        stepHeader,
         fileInput(
           "datafile",
           HTML(
@@ -2314,13 +2350,18 @@ server <- function(input, output, session) {
         conditionalPanel(
           condition = "input.show_summary == true",
           h3("Summary Statistics"),
-          DTOutput("summary_stats_table")
+          #DTOutput("summary_stats_table")
+          shinycssloaders::withSpinner(
+            DTOutput("summary_stats_table"),
+            type = 8 # pick a spinner style (1–8)
+          )
         ),
         actionButton("next1", "Next")
-      )
-    } else if (step == 2) {
-      tagList(
-        h3("Step 2: Select Columns & Apply Filters"),
+      ),
+
+      # STEP 2 ----
+      "2" = tagList(
+        stepHeader,
         uiOutput("column_selection_ui"),
         uiOutput("select_buttons_ui"),
         uiOutput("filter_ui"),
@@ -2334,12 +2375,11 @@ server <- function(input, output, session) {
             div(style = "display: inline-block;", actionButton("next2", "Next"))
           )
         )
-      )
-    } else if (step == 3) {
-      tagList(
-        h3("Step 3: Analysis Options"),
+      ),
 
-        # ——— Category selector ———
+      # STEP 3 ----
+      "3" = tagList(
+        stepHeader,
         radioButtons(
           "analysis_categories",
           "Select Analysis Categories:",
@@ -2351,7 +2391,7 @@ server <- function(input, output, session) {
           )
         ),
 
-        # ——— Statistical Tests ———
+        # conditional pickers…
         conditionalPanel(
           condition = "input.analysis_categories && input.analysis_categories.indexOf('stat_tests') > -1",
           selectInput(
@@ -2361,8 +2401,6 @@ server <- function(input, output, session) {
             selected = "ANOVA"
           )
         ),
-
-        # ——— Exploratory Visualization ———
         conditionalPanel(
           condition = "input.analysis_categories && input.analysis_categories.indexOf('exploratory') > -1",
           selectInput(
@@ -2372,7 +2410,7 @@ server <- function(input, output, session) {
               "Boxplots",
               "Enhanced Boxplots",
               "Error-BarPlot",
-              "Dual‑Flashlight Plot",
+              "Dual-Flashlight Plot",
               "Heatmap",
               "Skewness/Kurtosis",
               "Volcano Plot"
@@ -2380,8 +2418,6 @@ server <- function(input, output, session) {
             selected = "Boxplots"
           )
         ),
-
-        # ——— Multivariate Analysis ———
         conditionalPanel(
           condition = "input.analysis_categories && input.analysis_categories.indexOf('multivariate') > -1",
           selectInput(
@@ -2394,8 +2430,6 @@ server <- function(input, output, session) {
             selected = "Principle Component Analysis (PCA)"
           )
         ),
-
-        # ——— Machine Learning ———
         conditionalPanel(
           condition = "input.analysis_categories && input.analysis_categories.indexOf('machine') > -1",
           selectInput(
@@ -2405,9 +2439,9 @@ server <- function(input, output, session) {
             selected = "Random Forest"
           )
         ),
-        # Function options UI
+
         uiOutput("function_options_ui"),
-        # ——— Output mode & Download name ———
+
         radioButtons(
           "output_mode",
           "Output Mode:",
@@ -2419,10 +2453,9 @@ server <- function(input, output, session) {
           textInput("output_file_name", "Output File Name (no extension)", "")
         ),
 
-        # ——— Navigation ———
         fluidRow(
           div(
-            style = "text-aligh: left;",
+            style = "text-align: left;",
             div(
               style = "display:inline-block; margin-right:10px;",
               actionButton("back3", "Back")
@@ -2433,14 +2466,15 @@ server <- function(input, output, session) {
             )
           )
         )
-      )
-    } else if (step == 4) {
-      tagList(
-        h3("Step 4: Analysis Results"),
+      ),
+
+      # STEP 4 ----
+      "4" = tagList(
+        stepHeader,
         uiOutput("result_display"),
         actionButton("back4", "Back")
       )
-    }
+    )
   })
 
   # Calculating percentage for progress bar
@@ -2515,6 +2549,8 @@ server <- function(input, output, session) {
       userState$df_ssmd_thresh <- input$df_ssmd_thresh
       userState$df_log2fc_thresh <- input$df_log2fc_thresh
       userState$df_top_labels <- input$df_top_labels
+      userState$df_cond1 <- input$df_cond1
+      userState$df_cond2 <- input$df_cond2
     }
     if (selected_function() == "Heatmap") {
       userState$hm_log2 <- input$hm_log2
@@ -2695,6 +2731,16 @@ server <- function(input, output, session) {
           session,
           "df_group_var",
           selected = userState$df_group_var
+        )
+        updateSelectInput(
+          session,
+          "df_cond1",
+          selected = userState$df_cond1
+        )
+        updateSelectInput(
+          session,
+          "df_cond2",
+          selected = userState$df_cond2
         )
         updateNumericInput(
           session,
@@ -2973,9 +3019,10 @@ server <- function(input, output, session) {
 
     df <- filteredData()
     mode <- input$output_mode
-    out_file <- NULL
-    if (mode == "Download" && nzchar(input$output_file_name)) {
+    out_file <- if (mode == "Download" && nzchar(input$output_file_name)) {
       file.path(tempdir(), paste0(input$output_file_name, ".pdf"))
+    } else {
+      NULL
     }
 
     results <- list()
@@ -3055,7 +3102,7 @@ server <- function(input, output, session) {
           )
         },
 
-        "Dual‑Flashlight Plot" = {
+        "Dual-Flashlight Plot" = {
           results$dualflash <- cyt_dualflashplot(
             data = df,
             group_var = input$df_group_var,
@@ -3222,7 +3269,7 @@ server <- function(input, output, session) {
       return(paste("Output file generated:", out_file))
     }
 
-    if (length(results) == 1 && is.list(results[[1]])) {
+    if (length(results) == 1) {
       results <- results[[1]]
     }
     return(results)
@@ -3248,28 +3295,65 @@ server <- function(input, output, session) {
           tagList(
             h3("Results (sPLS-DA) - Overall Analysis"),
             if (!is.null(res$overall_indiv_plot))
-              plotOutput("splsda_overallIndivPlot", height = "400px") else NULL,
+              shinycssloaders::withSpinner(
+                plotOutput("splsda_overallIndivPlot", height = "400px"),
+                type = 8
+              ) else NULL,
             if (!is.null(res$overall_3D))
-              plotOutput("splsda_overall3DPlot", height = "400px") else NULL,
+              shinycssloaders::withSpinner(
+                plotOutput("splsda_overall3DPlot", height = "400px"),
+                type = 8
+              ) else NULL,
             if (!is.null(res$overall_ROC))
-              plotOutput("splsda_overallRocPlot", height = "400px") else NULL,
+              shinycssloaders::withSpinner(
+                plotOutput("splsda_overallRocPlot", height = "400px"),
+                type = 8
+              ) else NULL,
             if (!is.null(res$overall_CV))
-              plotOutput("splsda_overallCvPlot", height = "400px") else NULL,
-            if (!is.null(res$loadings)) uiOutput("splsda_loadingsUI") else NULL,
-            if (!is.null(res$vip_scores)) uiOutput("splsda_vipScoresUI") else
-              NULL,
+              shinycssloaders::withSpinner(
+                plotOutput("splsda_overallCvPlot", height = "400px"),
+                type = 8
+              ) else NULL,
+            if (!is.null(res$loadings))
+              shinycssloaders::withSpinner(
+                uiOutput("splsda_loadingsUI"),
+                type = 8
+              ) else NULL,
+            if (!is.null(res$vip_scores))
+              shinycssloaders::withSpinner(
+                uiOutput("splsda_vipScoresUI"),
+                type = 8
+              ) else NULL,
             if (!is.null(res$vip_indiv_plot))
-              plotOutput("splsda_vipIndivPlot", height = "400px") else NULL,
+              shinycssloaders::withSpinner(
+                plotOutput("splsda_vipIndivPlot", height = "400px"),
+                type = 8
+              ) else NULL,
             if (!is.null(res$vip_loadings))
-              uiOutput("splsda_vipLoadingsUI") else NULL,
+              shinycssloaders::withSpinner(
+                uiOutput("splsda_vipLoadingsUI"),
+                type = 8
+              ) else NULL,
             if (!is.null(res$vip_3D))
-              plotOutput("splsda_vip3DPlot", height = "400px") else NULL,
+              shinycssloaders::withSpinner(
+                plotOutput("splsda_vip3DPlot", height = "400px"),
+                type = 8
+              ) else NULL,
             if (!is.null(res$vip_ROC))
-              plotOutput("splsda_vipRocPlot", height = "400px") else NULL,
+              shinycssloaders::withSpinner(
+                plotOutput("splsda_vipRocPlot", height = "400px"),
+                type = 8
+              ) else NULL,
             if (!is.null(res$vip_CV))
-              plotOutput("splsda_vipCvPlot", height = "400px") else NULL,
+              shinycssloaders::withSpinner(
+                plotOutput("splsda_vipCvPlot", height = "400px"),
+                type = 8
+              ) else NULL,
             if (!is.null(res$conf_matrix))
-              verbatimTextOutput("splsda_confMatrix") else NULL
+              shinycssloaders::withSpinner(
+                verbatimTextOutput("splsda_confMatrix"),
+                type = 8
+              ) else NULL
           )
         } else {
           # Multi-level analysis: create a tab for each treatment
@@ -3281,54 +3365,89 @@ server <- function(input, output, session) {
                 tagList(
                   h3(paste("Results (sPLS-DA) for", trt)),
                   if (!is.null(res[[trt]]$overall_indiv_plot))
-                    plotOutput(
-                      paste0("splsda_overallIndivPlot_", trt),
-                      height = "400px"
+                    shinycssloaders::withSpinner(
+                      plotOutput(
+                        paste0("splsda_overallIndivPlot_", trt),
+                        height = "400px"
+                      ),
+                      type = 8
                     ) else NULL,
                   if (!is.null(res[[trt]]$overall_3D))
-                    plotOutput(
-                      paste0("splsda_overall3DPlot_", trt),
-                      height = "400px"
+                    shinycssloaders::withSpinner(
+                      plotOutput(
+                        paste0("splsda_overall3DPlot_", trt),
+                        height = "400px"
+                      ),
+                      type = 8
                     ) else NULL,
                   if (!is.null(res[[trt]]$overall_ROC))
-                    plotOutput(
-                      paste0("splsda_overallRocPlot_", trt),
-                      height = "400px"
+                    shinycssloaders::withSpinner(
+                      plotOutput(
+                        paste0("splsda_overallRocPlot_", trt),
+                        height = "400px"
+                      ),
+                      type = 8
                     ) else NULL,
                   if (!is.null(res[[trt]]$overall_CV))
-                    plotOutput(
-                      paste0("splsda_overallCvPlot_", trt),
-                      height = "400px"
+                    shinycssloaders::withSpinner(
+                      plotOutput(
+                        paste0("splsda_overallCvPlot_", trt),
+                        height = "400px"
+                      ),
+                      type = 8
                     ) else NULL,
                   if (!is.null(res[[trt]]$loadings))
-                    uiOutput(paste0("splsda_loadingsUI_", trt)) else NULL,
+                    shinycssloaders::withSpinner(
+                      uiOutput(paste0("splsda_loadingsUI_", trt)),
+                      type = 8
+                    ) else NULL,
                   if (!is.null(res[[trt]]$vip_scores))
-                    uiOutput(paste0("splsda_vipScoresUI_", trt)) else NULL,
+                    shinycssloaders::withSpinner(
+                      uiOutput(paste0("splsda_vipScoresUI_", trt)),
+                      type = 8
+                    ) else NULL,
                   if (!is.null(res[[trt]]$vip_indiv_plot))
-                    plotOutput(
-                      paste0("splsda_vipIndivPlot_", trt),
-                      height = "400px"
+                    shinycssloaders::withSpinner(
+                      plotOutput(
+                        paste0("splsda_vipIndivPlot_", trt),
+                        height = "400px"
+                      ),
+                      type = 8
                     ) else NULL,
                   if (!is.null(res[[trt]]$vip_loadings))
-                    uiOutput(paste0("splsda_vipLoadingsUI_", trt)) else NULL,
+                    shinycssloaders::withSpinner(
+                      uiOutput(paste0("splsda_vipLoadingsUI_", trt)),
+                      type = 8
+                    ) else NULL,
                   if (!is.null(res[[trt]]$vip_3D))
-                    plotOutput(
-                      paste0("splsda_vip3DPlot_", trt),
-                      height = "400px"
+                    shinycssloaders::withSpinner(
+                      plotOutput(
+                        paste0("splsda_vip3DPlot_", trt),
+                        height = "400px"
+                      ),
+                      type = 8
                     ) else NULL,
                   if (!is.null(res[[trt]]$vip_ROC))
-                    plotOutput(
-                      paste0("splsda_vipRocPlot_", trt),
-                      height = "400px"
+                    shinycssloaders::withSpinner(
+                      plotOutput(
+                        paste0("splsda_vipRocPlot_", trt),
+                        height = "400px"
+                      ),
+                      type = 8
                     ) else NULL,
                   if (!is.null(res[[trt]]$vip_CV))
-                    plotOutput(
-                      paste0("splsda_vipCvPlot_", trt),
-                      height = "400px"
+                    shinycssloaders::withSpinner(
+                      plotOutput(
+                        paste0("splsda_vipCvPlot_", trt),
+                        height = "400px"
+                      ),
+                      type = 8
                     ) else NULL,
                   if (!is.null(res[[trt]]$conf_matrix))
-                    verbatimTextOutput(paste0("splsda_confMatrix_", trt)) else
-                    NULL
+                    shinycssloaders::withSpinner(
+                      verbatimTextOutput(paste0("splsda_confMatrix_", trt)),
+                      type = 8
+                    ) else NULL,
                 )
               )
             })
@@ -3341,7 +3460,10 @@ server <- function(input, output, session) {
       ) {
         tagList(
           h3("Results (Heatmap)"),
-          imageOutput("heatmapImage", height = "600px"),
+          shinycssloaders::withSpinner(
+            imageOutput("heatmapImage", height = "600px"),
+            type = 8
+          ),
           verbatimTextOutput("textResults")
         )
       } else if (
@@ -3350,13 +3472,31 @@ server <- function(input, output, session) {
         if ("overall_indiv_plot" %in% names(res)) {
           tagList(
             h3("Results (PCA - Single-Level)"),
-            plotOutput("pca_indivPlot", height = "400px"),
+            shinycssloaders::withSpinner(
+              plotOutput("pca_indivPlot", height = "400px"),
+              type = 8
+            ),
             if (!is.null(res$overall_3D))
-              plotOutput("pca_3DPlot", height = "400px"),
-            plotOutput("pca_screePlot", height = "400px"),
-            uiOutput("pca_loadingsUI"),
-            plotOutput("pca_biplot", height = "400px"),
-            plotOutput("pca_corrCircle", height = "400px")
+              shinycssloaders::withSpinner(
+                plotOutput("pca_3DPlot", height = "400px"),
+                type = 8
+              ),
+            shinycssloaders::withSpinner(
+              plotOutput("pca_screePlot", height = "400px"),
+              type = 8
+            ),
+            shinycssloaders::withSpinner(
+              uiOutput("pca_loadingsUI"),
+              type = 8
+            ),
+            shinycssloaders::withSpinner(
+              plotOutput("pca_biplot", height = "400px"),
+              type = 8
+            ),
+            shinycssloaders::withSpinner(
+              plotOutput("pca_corrCircle", height = "400px"),
+              type = 8
+            )
           )
         } else {
           do.call(
@@ -3365,14 +3505,31 @@ server <- function(input, output, session) {
               tabPanel(
                 title = lvl,
                 h3(paste("Results (PCA) for", lvl)),
-                plotOutput(paste0("pca_indivPlot_", lvl), height = "400px"),
+                shinycssloaders::withSpinner(
+                  plotOutput(paste0("pca_indivPlot_", lvl), height = "400px"),
+                  type = 8
+                ),
                 if (!is.null(res[[lvl]]$overall_3D))
-                  plotOutput(paste0("pca_3DPlot_", lvl), height = "400px") else
-                  NULL,
-                plotOutput(paste0("pca_screePlot_", lvl), height = "400px"),
-                uiOutput(paste0("pca_loadingsUI_", lvl)),
-                plotOutput(paste0("pca_biplot_", lvl), height = "400px"),
-                plotOutput(paste0("pca_corrCircle_", lvl), height = "400px")
+                  shinycssloaders::withSpinner(
+                    plotOutput(paste0("pca_3DPlot_", lvl), height = "400px"),
+                    type = 8
+                  ) else NULL,
+                shinycssloaders::withSpinner(
+                  plotOutput(paste0("pca_screePlot_", lvl), height = "400px"),
+                  type = 8
+                ),
+                shinycssloaders::withSpinner(
+                  uiOutput(paste0("pca_loadingsUI_", lvl)),
+                  type = 8
+                ),
+                shinycssloaders::withSpinner(
+                  plotOutput(paste0("pca_biplot_", lvl), height = "400px"),
+                  type = 8
+                ),
+                shinycssloaders::withSpinner(
+                  plotOutput(paste0("pca_corrCircle_", lvl), height = "400px"),
+                  type = 8
+                )
               )
             })
           )
@@ -3380,18 +3537,30 @@ server <- function(input, output, session) {
       } else if (func_name == "Error-BarPlot" && inherits(res, "ggplot")) {
         tagList(
           h3("Error-Bar Plot Results:"),
-          plotOutput("errorBarPlotOutput", height = "400px")
+          shinycssloaders::withSpinner(
+            plotOutput("errorBarPlotOutput", height = "400px"),
+            type = 8
+          )
         )
       } else if (func_name == "Random Forest" && is.list(res)) {
         tagList(
           h3("Random Forest Results"),
           verbatimTextOutput("rf_summary"),
-          plotOutput("rf_vipPlot", height = "400px"),
+          shinycssloaders::withSpinner(
+            plotOutput("rf_vipPlot", height = "400px"),
+            type = 8
+          ),
           if (!is.null(res$roc_plot)) {
-            plotOutput("rf_rocPlot", height = "400px")
+            shinycssloaders::withSpinner(
+              plotOutput("rf_rocPlot", height = "400px"),
+              type = 8
+            )
           },
           if (!is.null(res$rfcv_plot)) {
-            plotOutput("rf_rfcvPlot", height = "400px")
+            shinycssloaders::withSpinner(
+              plotOutput("rf_rfcvPlot", height = "400px"),
+              type = 8
+            )
           }
         )
       } else if (
@@ -3400,17 +3569,29 @@ server <- function(input, output, session) {
         tagList(
           h3("XGBoost Results"),
           verbatimTextOutput("xgb_summary"),
-          plotOutput("xgb_vipPlot", height = "400px"),
+          shinycssloaders::withSpinner(
+            plotOutput("xgb_vipPlot", height = "400px"),
+            type = 8
+          ),
           conditionalPanel(
             condition = "output.xgb_hasROC == true",
-            plotOutput("xgb_rocPlot", height = "400px")
+            shinycssloaders::withSpinner(
+              plotOutput("xgb_rocPlot", height = "400px"),
+              type = 8
+            )
           )
         )
       } else if (func_name == "Skewness/Kurtosis") {
         tagList(
           h3("Skewness/Kurtosis Results"),
-          plotOutput("skku_skewPlot", height = "400px"),
-          plotOutput("skku_kurtPlot", height = "400px"),
+          shinycssloaders::withSpinner(
+            plotOutput("skku_skewPlot", height = "400px"),
+            type = 8
+          ),
+          shinycssloaders::withSpinner(
+            plotOutput("skku_kurtPlot", height = "400px"),
+            type = 8
+          ),
           conditionalPanel(
             # Conditional panel to see if print raw results or print log results
             condition = "input.skku_print_raw == true",
@@ -3421,6 +3602,18 @@ server <- function(input, output, session) {
             verbatimTextOutput("skku_log_results")
           )
         )
+      } else if (func_name == "Dual-Flashlight Plot") {
+        tagList(
+          h3("Results (Dual-Flashlight Plot)"),
+          shinycssloaders::withSpinner(
+            plotOutput("dualflashPlotOutput", height = "400px"),
+            type = 8
+          ),
+          shinycssloaders::withSpinner(
+            tableOutput("dualflashStats"),
+            type = 8
+          )
+        )
       } else if (
         is.list(res) &&
           length(res) > 0 &&
@@ -3429,14 +3622,11 @@ server <- function(input, output, session) {
         tagList(
           h3("Results:"),
           lapply(seq_along(res), function(i) {
-            plotOutput(paste0("dynamicPlot_", i), height = "400px")
+            shinycssloaders::withSpinner(
+              plotOutput(paste0("dynamicPlot_", i), height = "400px"),
+              type = 8
+            )
           }),
-          verbatimTextOutput("textResults")
-        )
-      } else if (inherits(res, "ggplot")) {
-        tagList(
-          h3("Results (Dual-Flashlight Plot)"),
-          plotOutput("dualflashPlotOutput", height = "400px"),
           verbatimTextOutput("textResults")
         )
       } else {
@@ -3915,8 +4105,18 @@ server <- function(input, output, session) {
     req(analysisResult())
     if (input$output_mode != "Interactive") return(NULL)
     res <- analysisResult()
-    if (inherits(res, "ggplot")) print(res)
+    req(res$plot)
+    print(res$plot)
   })
+  output$dualflashStats <- renderTable(
+    {
+      req(analysisResult())
+      res <- analysisResult()
+      req(res$stats)
+      res$stats
+    },
+    rownames = FALSE
+  )
 
   output$heatmapImage <- renderImage(
     {
@@ -4055,6 +4255,12 @@ server <- function(input, output, session) {
   # For Dual-Flashlight Plot
   observeEvent(input$df_group_var, {
     userState$df_group_var <- input$df_group_var
+  })
+  observeEvent(input$df_cond1, {
+    userState$df_cond1 <- input$df_cond1
+  })
+  observeEvent(input$df_cond2, {
+    userState$df_cond2 <- input$df_cond2
   })
   observeEvent(input$df_ssmd_thresh, {
     userState$df_ssmd_thresh <- input$df_ssmd_thresh
