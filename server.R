@@ -4,6 +4,7 @@ library(mixOmics)
 library(shinyjs)
 library(dplyr)
 library(tidyr)
+library(broom)
 library(ggplot2)
 library(readxl)
 library(bslib)
@@ -64,7 +65,7 @@ server <- function(input, output, session) {
     built_in_choice = NULL,
 
     # ANOVA options
-    anova_format_output = NULL,
+    anova_log2 = NULL,
 
     # Boxplots options
     bp_bin_size = NULL,
@@ -143,7 +144,6 @@ server <- function(input, output, session) {
 
     # Two-Sample T-Test options
     ttest_log2 = NULL,
-    ttest_format_output = NULL,
 
     # Volcano Plot options
     volc_group_col = NULL,
@@ -537,9 +537,25 @@ server <- function(input, output, session) {
       "ANOVA" = {
         ui_list <- tagList(
           checkboxInput(
-            "anova_format_output",
-            "Format output as tidy table",
-            value = isolate(userState$anova_format_output) %||% FALSE
+            "anova_log2",
+            label = helper(
+              type = "inline",
+              title = "Apply log2 transformation",
+              icon = "fas fa-exclamation-circle",
+              shiny_tag = HTML(
+                "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
+              ),
+              content = "Apply a log2 transformation to the data before performing the ANOVA test.
+                               This transformation can help manage data that span a wide range of values.",
+              if (
+                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+              ) {
+                colour = "red"
+              } else {
+                colour = "blue"
+              }
+            ),
+            value = isolate(userState$anova_log2) %||% FALSE
           )
         )
       },
@@ -1831,11 +1847,6 @@ server <- function(input, output, session) {
               }
             ),
             value = isolate(userState$ttest_log2) %||% FALSE
-          ),
-          checkboxInput(
-            "ttest_format_output",
-            "Format output as tidy table",
-            value = isolate(userState$ttest_format_output) %||% FALSE
           )
         )
       },
@@ -2309,7 +2320,7 @@ server <- function(input, output, session) {
             "1" = "Step 1: Upload Data",
             "2" = "Step 2: Select Columns & Apply Filters",
             "3" = "Step 3: Analysis Options",
-            "4" = "Step 4: Analysis Results"
+            "4" = "Analysis Results: "
           )
         )
       ),
@@ -2342,7 +2353,16 @@ server <- function(input, output, session) {
         checkboxInput("use_builtin", "Use built-in data?", FALSE),
         uiOutput("built_in_selector"),
         uiOutput("sheet_selector"),
-        uiOutput("preview_ui"),
+
+        # Create a conditional panel to show data_summary
+        conditionalPanel(
+          condition = "input.use_builtin == true",
+          checkboxInput("view_data", "View Data Loaded?", FALSE),
+        ),
+        conditionalPanel(
+          condition = "input.view_data == true",
+          uiOutput("preview_ui")
+        ),
         conditionalPanel(
           condition = "input.use_builtin == true",
           checkboxInput("show_summary", "Show summary statistics", FALSE)
@@ -2350,10 +2370,9 @@ server <- function(input, output, session) {
         conditionalPanel(
           condition = "input.show_summary == true",
           h3("Summary Statistics"),
-          #DTOutput("summary_stats_table")
           shinycssloaders::withSpinner(
             DTOutput("summary_stats_table"),
-            type = 8 # pick a spinner style (1–8)
+            type = 8
           )
         ),
         actionButton("next1", "Next")
@@ -2602,7 +2621,9 @@ server <- function(input, output, session) {
     }
     if (selected_function() == "Two-Sample T-Test") {
       userState$ttest_log2 <- input$ttest_log2
-      userState$ttest_format_output <- input$ttest_format_output
+    }
+    if (selected_function() == "ANOVA") {
+      userState$anova_log2 <- input$anova_log2
     }
     if (selected_function() == "Volcano Plot") {
       userState$volc_group_col <- input$volc_group_col
@@ -2920,13 +2941,11 @@ server <- function(input, output, session) {
       # Two-Sample T-Test
       if (userState$selected_function == "Two-Sample T-Test") {
         updateCheckboxInput(session, "ttest_log2", value = userState$ttest_log2)
-        updateCheckboxInput(
-          session,
-          "ttest_format_output",
-          value = userState$ttest_format_output
-        )
       }
-
+      # ANOVA
+      if (userState$selected_function == "ANOVA") {
+        updateCheckboxInput(session, "anova_log2", value = userState$anova_log2)
+      }
       # Volcano Plot
       if (userState$selected_function == "Volcano Plot") {
         updateSelectInput(
@@ -3038,7 +3057,7 @@ server <- function(input, output, session) {
           results$anova <- cyt_anova(
             data = df,
             progress = prog,
-            format_output = input$anova_format_output
+            format_output = TRUE
           )
         },
         "Two-Sample T-Test" = {
@@ -3046,7 +3065,7 @@ server <- function(input, output, session) {
             data = df,
             progress = prog,
             scale = if (input$ttest_log2) "log2" else NULL,
-            format_output = input$ttest_format_output
+            format_output = TRUE
           )
         }
       )
@@ -3363,7 +3382,6 @@ server <- function(input, output, session) {
               tabPanel(
                 title = trt,
                 tagList(
-                  h3(paste("Results (sPLS-DA) for", trt)),
                   if (!is.null(res[[trt]]$overall_indiv_plot))
                     shinycssloaders::withSpinner(
                       plotOutput(
@@ -3459,19 +3477,28 @@ server <- function(input, output, session) {
           grepl("\\.png$", res, ignore.case = TRUE)
       ) {
         tagList(
-          h3("Results (Heatmap)"),
           shinycssloaders::withSpinner(
             imageOutput("heatmapImage", height = "600px"),
             type = 8
           ),
           verbatimTextOutput("textResults")
         )
+      } else if (func_name == "Volcano Plot" && is.list(res)) {
+        tagList(
+          shinycssloaders::withSpinner(
+            plotOutput("volcPlotOutput", height = "400px"),
+            type = 8
+          ),
+          shinycssloaders::withSpinner(
+            tableOutput("volcStats"),
+            type = 8
+          )
+        )
       } else if (
         func_name == "Principle Component Analysis (PCA)" && is.list(res)
       ) {
         if ("overall_indiv_plot" %in% names(res)) {
           tagList(
-            h3("Results (PCA - Single-Level)"),
             shinycssloaders::withSpinner(
               plotOutput("pca_indivPlot", height = "400px"),
               type = 8
@@ -3504,7 +3531,6 @@ server <- function(input, output, session) {
             lapply(names(res), function(lvl) {
               tabPanel(
                 title = lvl,
-                h3(paste("Results (PCA) for", lvl)),
                 shinycssloaders::withSpinner(
                   plotOutput(paste0("pca_indivPlot_", lvl), height = "400px"),
                   type = 8
@@ -3536,7 +3562,6 @@ server <- function(input, output, session) {
         }
       } else if (func_name == "Error-BarPlot" && inherits(res, "ggplot")) {
         tagList(
-          h3("Error-Bar Plot Results:"),
           shinycssloaders::withSpinner(
             plotOutput("errorBarPlotOutput", height = "400px"),
             type = 8
@@ -3544,7 +3569,6 @@ server <- function(input, output, session) {
         )
       } else if (func_name == "Random Forest" && is.list(res)) {
         tagList(
-          h3("Random Forest Results"),
           verbatimTextOutput("rf_summary"),
           shinycssloaders::withSpinner(
             plotOutput("rf_vipPlot", height = "400px"),
@@ -3567,7 +3591,6 @@ server <- function(input, output, session) {
         func_name == "Extreme Gradient Boosting (XGBoost)" && is.list(res)
       ) {
         tagList(
-          h3("XGBoost Results"),
           verbatimTextOutput("xgb_summary"),
           shinycssloaders::withSpinner(
             plotOutput("xgb_vipPlot", height = "400px"),
@@ -3583,7 +3606,6 @@ server <- function(input, output, session) {
         )
       } else if (func_name == "Skewness/Kurtosis") {
         tagList(
-          h3("Skewness/Kurtosis Results"),
           shinycssloaders::withSpinner(
             plotOutput("skku_skewPlot", height = "400px"),
             type = 8
@@ -3604,7 +3626,6 @@ server <- function(input, output, session) {
         )
       } else if (func_name == "Dual-Flashlight Plot") {
         tagList(
-          h3("Results (Dual-Flashlight Plot)"),
           shinycssloaders::withSpinner(
             plotOutput("dualflashPlotOutput", height = "400px"),
             type = 8
@@ -3620,7 +3641,6 @@ server <- function(input, output, session) {
           all(sapply(res, function(x) inherits(x, "ggplot")))
       ) {
         tagList(
-          h3("Results:"),
           lapply(seq_along(res), function(i) {
             shinycssloaders::withSpinner(
               plotOutput(paste0("dynamicPlot_", i), height = "400px"),
@@ -3631,8 +3651,7 @@ server <- function(input, output, session) {
         )
       } else {
         tagList(
-          h3("Results:"),
-          verbatimTextOutput("textResults")
+          DT::dataTableOutput("statResults")
         )
       }
     }
@@ -3762,7 +3781,6 @@ server <- function(input, output, session) {
               tabPanel(
                 title = currentGroup,
                 tagList(
-                  h3(paste("Results (sPLS-DA) for", currentGroup)),
                   if (!is.null(currentSubres$overall_indiv_plot))
                     plotOutput(
                       paste0("splsda_overallIndivPlot_", currentGroup),
@@ -4101,6 +4119,87 @@ server <- function(input, output, session) {
     }
   })
 
+  # Add dedicated server renderers for Volcano Plot outputs
+  output$volcPlotOutput <- renderPlot({
+    req(analysisResult())
+    if (input$output_mode != "Interactive") return(NULL)
+    res <- analysisResult()
+    req(res$plot)
+    print(res$plot)
+  })
+
+  output$volcStats <- renderTable({
+    req(analysisResult())
+    res <- analysisResult()
+    req(res$stats)
+    res$stats
+  })
+
+  output$statResults <- DT::renderDT(
+    {
+      res <- analysisResult()
+      func <- selected_function()
+
+      # —————————— ANOVA branch ——————————
+      if (func == "ANOVA") {
+        if (is.data.frame(res)) {
+          df <- res
+        } else if (is.list(res)) {
+          df <- bind_rows(
+            lapply(names(res), function(key) {
+              parts <- strsplit(key, "_")[[1]]
+              tibble(
+                Outcome = parts[1],
+                Categorical = parts[2],
+                Comparison = names(res[[key]]),
+                P_adj = unname(res[[key]])
+              )
+            })
+          )
+        } else {
+          df <- tibble(Message = as.character(res))
+        }
+
+        # —————————— Two-Sample T-Test branch ——————————
+      } else if (func == "Two-Sample T-Test") {
+        if (is.data.frame(res)) {
+          df <- res
+        } else if (
+          is.list(res) && all(vapply(res, inherits, logical(1), "htest"))
+        ) {
+          df <- bind_rows(
+            lapply(names(res), function(key) {
+              tt <- res[[key]]
+              parts <- strsplit(key, "_")[[1]]
+              lvl <- levels(filteredData()[[parts[2]]])
+              tibble(
+                Outcome = parts[1],
+                Categorical = parts[2],
+                Comparison = paste(lvl[1], "vs", lvl[2]),
+                Test = tt$method,
+                Estimate = if ("estimate" %in% names(tt))
+                  unname(tt$estimate)[1] else NA_real_,
+                Statistic = unname(tt$statistic)[1],
+                P_value = tt$p.value
+              )
+            })
+          )
+        } else {
+          df <- tibble(Message = as.character(res))
+        }
+
+        # —————————— fallback for everything else ——————————
+      } else {
+        df <- if (is.data.frame(res)) res else
+          tibble(Result = as.character(res))
+      }
+
+      df
+    },
+    options = list(pageLength = 10, scrollX = TRUE),
+    rownames = FALSE
+  )
+
   output$dualflashPlotOutput <- renderPlot({
     req(analysisResult())
     if (input$output_mode != "Interactive") return(NULL)
@@ -4393,8 +4492,9 @@ server <- function(input, output, session) {
   observeEvent(input$ttest_log2, {
     userState$ttest_log2 <- input$ttest_log2
   })
-  observeEvent(input$ttest_format_output, {
-    userState$ttest_format_output <- input$ttest_format_output
+  # ANOVA
+  observeEvent(input$ttest_log2, {
+    userState$anova_log2 <- input$anova_log2
   })
   # For Volcano Plot
   observeEvent(input$volc_group_col, {

@@ -29,90 +29,122 @@
 #' @importFrom dplyr arrange mutate desc row_number
 #' @importFrom ggrepel geom_text_repel
 #' @export
-cyt_volc <- function(data, group_col, cond1 = NULL, cond2 = NULL,
-                     fold_change_thresh = 2,
-                     p_value_thresh = 0.05,
-                     top_labels = 10,
-                     output_file = NULL,
-                     progress = NULL) {
+cyt_volc <- function(
+  data,
+  group_col,
+  cond1 = NULL,
+  cond2 = NULL,
+  fold_change_thresh = 2,
+  p_value_thresh = 0.05,
+  top_labels = 10,
+  output_file = NULL,
+  progress = NULL
+) {
   if (!is.null(progress)) progress$inc(0.05, detail = "Validating input data")
   if (!is.data.frame(data)) {
     stop("Input data must be a data frame.")
   }
-  
-  if (!is.null(cond1) && nzchar(cond1) &&
-      !is.null(cond2) && nzchar(cond2)) {
+
+  if (!is.null(cond1) && nzchar(cond1) && !is.null(cond2) && nzchar(cond2)) {
     condition_pairs <- list(c(cond1, cond2))
   } else {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Generating condition pairs")
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Generating condition pairs")
     conditions <- unique(data[[group_col]])
     condition_pairs <- combn(conditions, 2, simplify = FALSE)
   }
-  
+
   numeric_cols <- sapply(data, is.numeric)
   if (sum(numeric_cols) == 0) stop("No numeric columns found in data.")
   data_numeric <- data[, numeric_cols, drop = FALSE]
-  
+
   plot_list <- list()
   total_pairs <- length(condition_pairs)
   pair_count <- 0
-  
-  if (!is.null(progress)) progress$inc(0.05, detail = "Processing condition pairs")
+
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Processing condition pairs")
   for (pair in condition_pairs) {
     pair_count <- pair_count + 1
     current_cond1 <- pair[1]
     current_cond2 <- pair[2]
-    
+
     data_cond1 <- data[data[[group_col]] == current_cond1, ]
     data_cond2 <- data[data[[group_col]] == current_cond2, ]
-    
-    means_cond1 <- colMeans(data_cond1[, numeric_cols, drop = FALSE], na.rm = TRUE)
-    means_cond2 <- colMeans(data_cond2[, numeric_cols, drop = FALSE], na.rm = TRUE)
-    
-    fold_changes <- mapply(function(x, y) {
-      if (length(x) < 2 || length(y) < 2) NA else mean(y, na.rm = TRUE) / mean(x, na.rm = TRUE)
-    },
-    as.list(data_cond1[, numeric_cols, drop = FALSE]),
-    as.list(data_cond2[, numeric_cols, drop = FALSE]))
-    
-    p_values <- mapply(function(x, y) {
-      if (length(x) < 2 || length(y) < 2) NA else t.test(x, y)$p.value
-    },
-    as.list(data_cond1[, numeric_cols, drop = FALSE]),
-    as.list(data_cond2[, numeric_cols, drop = FALSE]))
-    
+
+    means_cond1 <- colMeans(
+      data_cond1[, numeric_cols, drop = FALSE],
+      na.rm = TRUE
+    )
+    means_cond2 <- colMeans(
+      data_cond2[, numeric_cols, drop = FALSE],
+      na.rm = TRUE
+    )
+
+    fold_changes <- mapply(
+      function(x, y) {
+        if (length(x) < 2 || length(y) < 2) NA else
+          mean(y, na.rm = TRUE) / mean(x, na.rm = TRUE)
+      },
+      as.list(data_cond1[, numeric_cols, drop = FALSE]),
+      as.list(data_cond2[, numeric_cols, drop = FALSE])
+    )
+
+    p_values <- mapply(
+      function(x, y) {
+        if (length(x) < 2 || length(y) < 2) NA else t.test(x, y)$p.value
+      },
+      as.list(data_cond1[, numeric_cols, drop = FALSE]),
+      as.list(data_cond2[, numeric_cols, drop = FALSE])
+    )
+
     fc_log <- log2(fold_changes)
     p_log <- -log10(p_values)
-    
+
     plot_data <- data.frame(
       variable = names(fold_changes),
       fc_log = fc_log,
       p_log = p_log,
       stringsAsFactors = FALSE
     )
-    
+
     plot_data <- plot_data %>%
-      mutate(significant = (abs(fc_log) >= log2(fold_change_thresh)) & (p_log >= -log10(p_value_thresh))) %>%
+      mutate(
+        significant = (abs(fc_log) >= log2(fold_change_thresh)) &
+          (p_log >= -log10(p_value_thresh))
+      ) %>%
       arrange(desc(significant), desc(p_log)) %>%
       mutate(label = ifelse(row_number() <= top_labels, variable, ""))
-    
+
     if (!is.null(progress))
-      progress$inc(0.05, detail = paste("Processed pair", pair_count, "of", total_pairs))
+      progress$inc(
+        0.05,
+        detail = paste("Processed pair", pair_count, "of", total_pairs)
+      )
     p <- ggplot(plot_data, aes(x = fc_log, y = p_log, label = label)) +
       geom_point(aes(color = significant), size = 2) +
-      geom_vline(xintercept = c(log2(fold_change_thresh), -log2(fold_change_thresh)),
-                 linetype = "dashed", color = "blue") +
-      geom_hline(yintercept = -log10(p_value_thresh),
-                 linetype = "dashed", color = "blue") +
+      geom_vline(
+        xintercept = c(log2(fold_change_thresh), -log2(fold_change_thresh)),
+        linetype = "dashed",
+        color = "blue"
+      ) +
+      geom_hline(
+        yintercept = -log10(p_value_thresh),
+        linetype = "dashed",
+        color = "blue"
+      ) +
       ggrepel::geom_text_repel(size = 3, max.overlaps = 50) +
       scale_color_manual(values = c("FALSE" = "grey", "TRUE" = "red")) +
-      labs(title = paste("Volcano Plot:", current_cond1, "vs", current_cond2),
-           x = "Log2 Fold Change", y = "-Log10 P-Value") +
+      labs(
+        title = paste("Volcano Plot:", current_cond1, "vs", current_cond2),
+        x = "Log2 Fold Change",
+        y = "-Log10 P-Value"
+      ) +
       theme_minimal()
-    
+
     plot_list[[paste(current_cond1, "vs", current_cond2)]] <- p
   }
-  
+
   if (!is.null(output_file)) {
     if (!is.null(progress)) progress$inc(0.05, detail = "Saving plots to file")
     ext <- tools::file_ext(output_file)
@@ -125,7 +157,13 @@ cyt_volc <- function(data, group_col, cond1 = NULL, cond2 = NULL,
       if (!is.null(progress)) progress$inc(0.05, detail = "File saved")
       return(invisible(NULL))
     } else if (tolower(ext) %in% c("png", "jpg", "jpeg")) {
-      png(filename = output_file, res = 300, width = 2100, height = 1500, units = "px")
+      png(
+        filename = output_file,
+        res = 300,
+        width = 2100,
+        height = 1500,
+        units = "px"
+      )
       print(plot_list[[1]])
       dev.off()
       return(invisible(NULL))
@@ -133,8 +171,8 @@ cyt_volc <- function(data, group_col, cond1 = NULL, cond2 = NULL,
       stop("Output file must have extension .pdf, .png, .jpg, or .jpeg")
     }
   } else {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Returning list of plots")
-    return(plot_list)
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Returning list of plots")
+    return(list(plot = p, stats = plot_data[, -5]))
   }
 }
-

@@ -25,22 +25,16 @@ If TRUE, returns a data frame with columns "Outcome", "Categorical", "Comparison
 This function performs pairwise comparisons between two groups for each combination
 of a categorical predictor (with exactly two levels) and a continuous outcome variable.
 It first converts any character variables in \code{data} to factors and, if specified,
-applies a log2 transformation to the continuous variables. Depending on the value of
-\code{scale}, the function conducts either a two-sample t-test (if \code{scale = "log2"})
-or a Mann-Whitney U test (if \code{scale} is \code{NULL}). The resulting p-values are printed
-and returned.
+applies a log2 transformation to the continuous variables. The function conducts a Shapiro-Wilk
+normality test to decide whether to use a Two-Sample T-Test vs. a Wilcoxon Rank Sum Test.
+The resulting p-values are printed and returned.
 }
 \examples{
 \dontrun{
-data_df <- cytodata[, -c(1, 4)]
-data_df <- dplyr::filter(data_df, Group != "ND", Treatment != "Unstimulated")
-# Two-sample t-test (log2 transformation)
-res <- cyt_ttest(data_df[, c(1,2,5:6)], scale = "log2", format_output = TRUE)
+data_df <- ExampleData1[, -c(2: 4)]
+data_df <- dplyr::filter(data_df, Group != "ND")
+
+res <- cyt_ttest(data_df[, c(1,5:6)], scale = "log2", format_output = TRUE)
 head(res)
-
-# Mann-Whitney U test (no transformation)
-res2 <- cyt_ttest(data_df[, c(1,2,5:6)], format_output = TRUE)
-head(res2)
 }
-
 }
