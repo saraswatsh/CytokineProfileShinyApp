@@ -2353,22 +2353,16 @@ server <- function(input, output, session) {
         checkboxInput("use_builtin", "Use built-in data?", FALSE),
         uiOutput("built_in_selector"),
         uiOutput("sheet_selector"),
+        uiOutput("viewSummaryCheckboxes"),
 
-        # Create a conditional panel to show data_summary
         conditionalPanel(
-          condition = "input.use_builtin == true",
-          checkboxInput("view_data", "View Data Loaded?", FALSE),
-        ),
-        conditionalPanel(
-          condition = "input.view_data == true",
+          condition = "input.view_data",
+          uiOutput("data_summary"),
           uiOutput("preview_ui")
         ),
+
         conditionalPanel(
-          condition = "input.use_builtin == true",
-          checkboxInput("show_summary", "Show summary statistics", FALSE)
-        ),
-        conditionalPanel(
-          condition = "input.show_summary == true",
+          condition = "input.show_summary",
           h3("Summary Statistics"),
           shinycssloaders::withSpinner(
             DTOutput("summary_stats_table"),
@@ -2493,6 +2487,15 @@ server <- function(input, output, session) {
         uiOutput("result_display"),
         actionButton("back4", "Back")
       )
+    )
+  })
+  output$viewSummaryCheckboxes <- renderUI({
+    # Require either built-in data is used OR a file has been successfully uploaded
+    req(input$use_builtin || isTruthy(input$datafile))
+    # If the condition above is met, render the checkboxes
+    tagList(
+      checkboxInput("view_data", "View Data Loaded?", FALSE),
+      checkboxInput("show_summary", "Show summary statistics", FALSE)
     )
   })
 
@@ -3310,9 +3313,7 @@ server <- function(input, output, session) {
           is.list(res)
       ) {
         if ("overall_indiv_plot" %in% names(res)) {
-          # Overall (single-level) analysis exists
           tagList(
-            h3("Results (sPLS-DA) - Overall Analysis"),
             if (!is.null(res$overall_indiv_plot))
               shinycssloaders::withSpinner(
                 plotOutput("splsda_overallIndivPlot", height = "400px"),
@@ -3375,7 +3376,6 @@ server <- function(input, output, session) {
               ) else NULL
           )
         } else {
-          # Multi-level analysis: create a tab for each treatment
           do.call(
             tabsetPanel,
             lapply(names(res), function(trt) {
@@ -3465,7 +3465,7 @@ server <- function(input, output, session) {
                     shinycssloaders::withSpinner(
                       verbatimTextOutput(paste0("splsda_confMatrix_", trt)),
                       type = 8
-                    ) else NULL,
+                    ) else NULL
                 )
               )
             })
@@ -3489,10 +3489,7 @@ server <- function(input, output, session) {
             plotOutput("volcPlotOutput", height = "400px"),
             type = 8
           ),
-          shinycssloaders::withSpinner(
-            tableOutput("volcStats"),
-            type = 8
-          )
+          shinycssloaders::withSpinner(tableOutput("volcStats"), type = 8)
         )
       } else if (
         func_name == "Principle Component Analysis (PCA)" && is.list(res)
@@ -3512,10 +3509,7 @@ server <- function(input, output, session) {
               plotOutput("pca_screePlot", height = "400px"),
               type = 8
             ),
-            shinycssloaders::withSpinner(
-              uiOutput("pca_loadingsUI"),
-              type = 8
-            ),
+            shinycssloaders::withSpinner(uiOutput("pca_loadingsUI"), type = 8),
             shinycssloaders::withSpinner(
               plotOutput("pca_biplot", height = "400px"),
               type = 8
@@ -3615,7 +3609,6 @@ server <- function(input, output, session) {
             type = 8
           ),
           conditionalPanel(
-            # Conditional panel to see if print raw results or print log results
             condition = "input.skku_print_raw == true",
             verbatimTextOutput("skku_raw_results")
           ),
@@ -3630,10 +3623,7 @@ server <- function(input, output, session) {
             plotOutput("dualflashPlotOutput", height = "400px"),
             type = 8
           ),
-          shinycssloaders::withSpinner(
-            tableOutput("dualflashStats"),
-            type = 8
-          )
+          shinycssloaders::withSpinner(tableOutput("dualflashStats"), type = 8)
         )
       } else if (
         is.list(res) &&
@@ -3680,13 +3670,13 @@ server <- function(input, output, session) {
     if (input$output_mode != "Interactive") return(NULL)
     res <- analysisResult()
     func_name <- selected_function()
+
     if (
       selected_function() ==
         "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" &&
         is.list(res)
     ) {
       if ("overall_indiv_plot" %in% names(res)) {
-        # Single-level (overall) mode
         output$splsda_overallIndivPlot <- renderPlot({
           replayPlot(res$overall_indiv_plot)
         })
@@ -3699,7 +3689,6 @@ server <- function(input, output, session) {
         output$splsda_overallCvPlot <- renderPlot({
           if (!is.null(res$overall_CV)) print(res$overall_CV)
         })
-
         output$splsda_loadingsUI <- renderUI({
           if (!is.null(res$loadings)) {
             tagList(lapply(seq_along(res$loadings), function(i) {
@@ -3710,14 +3699,17 @@ server <- function(input, output, session) {
             }))
           }
         })
-        for (i in seq_along(res$loadings)) {
-          local({
-            ii <- i
-            output[[paste0("splsda_loadings_overall_", ii)]] <- renderPlot({
-              replayPlot(res$loadings[[ii]])
+        if (!is.null(res$loadings)) {
+          for (i in seq_along(res$loadings)) {
+            local({
+              ii <- i
+              output[[paste0("splsda_loadings_overall_", ii)]] <- renderPlot({
+                replayPlot(res$loadings[[ii]])
+              })
             })
-          })
+          }
         }
+
         output$splsda_vipScoresUI <- renderUI({
           if (!is.null(res$vip_scores)) {
             tagList(lapply(seq_along(res$vip_scores), function(i) {
@@ -3728,13 +3720,15 @@ server <- function(input, output, session) {
             }))
           }
         })
-        for (i in seq_along(res$vip_scores)) {
-          local({
-            ii <- i
-            output[[paste0("splsda_vipScore_overall_", ii)]] <- renderPlot({
-              print(res$vip_scores[[ii]])
+        if (!is.null(res$vip_scores)) {
+          for (i in seq_along(res$vip_scores)) {
+            local({
+              ii <- i
+              output[[paste0("splsda_vipScore_overall_", ii)]] <- renderPlot({
+                print(res$vip_scores[[ii]])
+              })
             })
-          })
+          }
         }
         output$splsda_vipLoadingsUI <- renderUI({
           if (!is.null(res$vip_loadings)) {
@@ -3746,14 +3740,20 @@ server <- function(input, output, session) {
             }))
           }
         })
-        for (i in seq_along(res$vip_loadings)) {
-          local({
-            ii <- i
-            output[[paste0("splsda_vipLoadings_overall_", ii)]] <- renderPlot({
-              replayPlot(res$vip_loadings[[ii]])
+
+        if (!is.null(res$vip_loadings)) {
+          for (i in seq_along(res$vip_loadings)) {
+            local({
+              ii <- i
+              output[[paste0("splsda_vipLoadings_overall_", ii)]] <- renderPlot(
+                {
+                  replayPlot(res$vip_loadings[[ii]])
+                }
+              )
             })
-          })
+          }
         }
+
         output$splsda_vipIndivPlot <- renderPlot({
           if (!is.null(res$vip_indiv_plot)) replayPlot(res$vip_indiv_plot)
         })
@@ -3771,73 +3771,6 @@ server <- function(input, output, session) {
             cat(paste(res$conf_matrix, collapse = "\n"))
         })
       } else {
-        # Multi-level mode: create a tab for each treatment group
-        do.call(
-          tabsetPanel,
-          lapply(names(res), function(grp) {
-            local({
-              currentGroup <- grp
-              currentSubres <- res[[currentGroup]]
-              tabPanel(
-                title = currentGroup,
-                tagList(
-                  if (!is.null(currentSubres$overall_indiv_plot))
-                    plotOutput(
-                      paste0("splsda_overallIndivPlot_", currentGroup),
-                      height = "400px"
-                    ),
-                  if (!is.null(currentSubres$overall_3D))
-                    plotOutput(
-                      paste0("splsda_overall3DPlot_", currentGroup),
-                      height = "400px"
-                    ),
-                  if (!is.null(currentSubres$overall_ROC))
-                    plotOutput(
-                      paste0("splsda_overallRocPlot_", currentGroup),
-                      height = "400px"
-                    ),
-                  if (!is.null(currentSubres$overall_CV))
-                    plotOutput(
-                      paste0("splsda_overallCvPlot_", currentGroup),
-                      height = "400px"
-                    ),
-                  if (!is.null(currentSubres$loadings))
-                    uiOutput(paste0("splsda_loadingsUI_", currentGroup)),
-                  if (!is.null(currentSubres$vip_scores))
-                    uiOutput(paste0("splsda_vipScoresUI_", currentGroup)),
-                  if (!is.null(currentSubres$vip_indiv_plot))
-                    plotOutput(
-                      paste0("splsda_vipIndivPlot_", currentGroup),
-                      height = "400px"
-                    ),
-                  if (!is.null(currentSubres$vip_loadings))
-                    uiOutput(paste0("splsda_vipLoadingsUI_", currentGroup)),
-                  if (!is.null(currentSubres$vip_3D))
-                    plotOutput(
-                      paste0("splsda_vip3DPlot_", currentGroup),
-                      height = "400px"
-                    ),
-                  if (!is.null(currentSubres$vip_ROC))
-                    plotOutput(
-                      paste0("splsda_vipRocPlot_", currentGroup),
-                      height = "400px"
-                    ),
-                  if (!is.null(currentSubres$vip_CV))
-                    plotOutput(
-                      paste0("splsda_vipCvPlot_", currentGroup),
-                      height = "400px"
-                    ),
-                  if (!is.null(currentSubres$conf_matrix))
-                    verbatimTextOutput(paste0(
-                      "splsda_confMatrix_",
-                      currentGroup
-                    ))
-                )
-              )
-            })
-          })
-        )
-        # Then, separately create the observers for each treatment group:
         for (grp in names(res)) {
           local({
             currentGroup <- grp
@@ -3870,7 +3803,6 @@ server <- function(input, output, session) {
               if (!is.null(currentSubres$overall_CV))
                 print(currentSubres$overall_CV)
             })
-            # Loadings: create a UI container and observers for each loadings plot
             if (!is.null(currentSubres$loadings)) {
               output[[paste0("splsda_loadingsUI_", currentGroup)]] <- renderUI({
                 tagList(lapply(seq_along(currentSubres$loadings), function(i) {
@@ -3894,7 +3826,6 @@ server <- function(input, output, session) {
                 })
               }
             }
-            # VIP scores:
             if (!is.null(currentSubres$vip_scores)) {
               output[[paste0("splsda_vipScoresUI_", currentGroup)]] <- renderUI(
                 {
@@ -3993,12 +3924,14 @@ server <- function(input, output, session) {
         req(res$roc_plot)
         print(res$roc_plot)
       })
-      outputOptions(output, "xgb_rocPlot", suspendWhenHidden = FALSE)
       output$xgb_hasROC <- reactive({
         !is.null(res$roc_plot)
       })
+
+      outputOptions(output, "xgb_rocPlot", suspendWhenHidden = FALSE)
       outputOptions(output, "xgb_hasROC", suspendWhenHidden = FALSE)
     }
+
     if (func_name == "Random Forest" && is.list(res)) {
       output$rf_summary <- renderPrint({
         cat(res$summary_text)
@@ -4016,8 +3949,8 @@ server <- function(input, output, session) {
         print(res$rfcv_plot)
       })
     }
+
     if (func_name == "Principle Component Analysis (PCA)" && is.list(res)) {
-      # Single-level PCA branch
       if ("overall_indiv_plot" %in% names(res)) {
         output$pca_indivPlot <- renderPlot({
           replayPlot(res$overall_indiv_plot)
@@ -4044,7 +3977,7 @@ server <- function(input, output, session) {
             }))
           }
         })
-        # Capture each loading plot in its own local environment:
+
         if (!is.null(res$loadings)) {
           for (i in seq_along(res$loadings)) {
             local({
@@ -4055,15 +3988,11 @@ server <- function(input, output, session) {
             })
           }
         }
-
-        # Multi-level PCA branch
       } else {
         for (lvl in names(res)) {
-          # Capture the current group (treatment level) in a local environment:
           local({
             currentGroup <- lvl
             subres <- res[[currentGroup]]
-
             output[[paste0("pca_indivPlot_", currentGroup)]] <- renderPlot({
               if (!is.null(subres$overall_indiv_plot))
                 replayPlot(subres$overall_indiv_plot)
@@ -4083,11 +4012,9 @@ server <- function(input, output, session) {
                 replayPlot(subres$correlation_circle)
             })
 
-            # For loadings, create a UI container with unique IDs:
             output[[paste0("pca_loadingsUI_", currentGroup)]] <- renderUI({
               if (!is.null(subres$loadings)) {
                 tagList(lapply(seq_along(subres$loadings), function(i) {
-                  # Sanitize the group name if necessary:
                   safeGroup <- gsub("[^A-Za-z0-9_]+", "_", currentGroup)
                   plotOutput(
                     paste0("pca_loadings_", safeGroup, "_", i),
@@ -4096,7 +4023,6 @@ server <- function(input, output, session) {
                 }))
               }
             })
-            # Now assign each loadings plot a unique output:
             if (!is.null(subres$loadings)) {
               for (i in seq_along(subres$loadings)) {
                 local({
@@ -4119,7 +4045,6 @@ server <- function(input, output, session) {
     }
   })
 
-  # Add dedicated server renderers for Volcano Plot outputs
   output$volcPlotOutput <- renderPlot({
     req(analysisResult())
     if (input$output_mode != "Interactive") return(NULL)
@@ -4140,15 +4065,14 @@ server <- function(input, output, session) {
       res <- analysisResult()
       func <- selected_function()
 
-      # —————————— ANOVA branch ——————————
       if (func == "ANOVA") {
         if (is.data.frame(res)) {
           df <- res
         } else if (is.list(res)) {
-          df <- bind_rows(
+          df <- dplyr::bind_rows(
             lapply(names(res), function(key) {
               parts <- strsplit(key, "_")[[1]]
-              tibble(
+              tibble::tibble(
                 Outcome = parts[1],
                 Categorical = parts[2],
                 Comparison = names(res[[key]]),
@@ -4157,22 +4081,24 @@ server <- function(input, output, session) {
             })
           )
         } else {
-          df <- tibble(Message = as.character(res))
+          df <- tibble::tibble(Message = as.character(res))
         }
-
-        # —————————— Two-Sample T-Test branch ——————————
       } else if (func == "Two-Sample T-Test") {
         if (is.data.frame(res)) {
           df <- res
         } else if (
           is.list(res) && all(vapply(res, inherits, logical(1), "htest"))
         ) {
-          df <- bind_rows(
+          df <- dplyr::bind_rows(
             lapply(names(res), function(key) {
               tt <- res[[key]]
               parts <- strsplit(key, "_")[[1]]
-              lvl <- levels(filteredData()[[parts[2]]])
-              tibble(
+
+              lvl <- tryCatch(
+                levels(filteredData()[[parts[2]]]),
+                error = function(e) c("Level1", "Level2")
+              )
+              tibble::tibble(
                 Outcome = parts[1],
                 Categorical = parts[2],
                 Comparison = paste(lvl[1], "vs", lvl[2]),
@@ -4185,13 +4111,11 @@ server <- function(input, output, session) {
             })
           )
         } else {
-          df <- tibble(Message = as.character(res))
+          df <- tibble::tibble(Message = as.character(res))
         }
-
-        # —————————— fallback for everything else ——————————
       } else {
         df <- if (is.data.frame(res)) res else
-          tibble(Result = as.character(res))
+          tibble::tibble(Result = as.character(res))
       }
 
       df
@@ -4199,7 +4123,6 @@ server <- function(input, output, session) {
     options = list(pageLength = 10, scrollX = TRUE),
     rownames = FALSE
   )
-
   output$dualflashPlotOutput <- renderPlot({
     req(analysisResult())
     if (input$output_mode != "Interactive") return(NULL)
@@ -4255,12 +4178,12 @@ server <- function(input, output, session) {
   })
   output$skku_raw_results <- renderPrint({
     req(analysisResult())
+
     if (input$skku_print_raw) {
       raw_results <- analysisResult()$raw_results
       print(raw_results)
     }
   })
-
   output$skku_log_results <- renderPrint({
     req(analysisResult())
     if (input$skku_print_log) {
@@ -4268,6 +4191,7 @@ server <- function(input, output, session) {
       print(log_results)
     }
   })
+
   output$errorBarPlotOutput <- renderPlot({
     req(analysisResult())
     res <- analysisResult()
@@ -4282,7 +4206,8 @@ server <- function(input, output, session) {
     content = function(file) {
       req(input$output_mode == "Download")
       req(downloadPath())
-      file.copy(downloadPath(), file, overwrite = TRUE)
+
+      file.copy(downloadPath(), file, overwrite = TRUE) # [source: 132]
     }
   )
 

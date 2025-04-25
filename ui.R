@@ -163,7 +163,7 @@ ui <- fluidPage(
     )
   ),
   # Wizard UI and result display
-  div(id = "main_content", uiOutput("wizardUI"), uiOutput("result_display")),
+  div(id = "main_content", uiOutput("wizardUI")),
 
   br(),
   # Download button (visible when output_mode is Download)
