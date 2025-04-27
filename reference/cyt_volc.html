@@ -119,6 +119,47 @@ If output_file is provided, the plot(s) are written to that file and the functio
 Otherwise, the function automatically generates all possible pairwise comparisons.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Loading data</span></span></span>
+<span class="r-in"><span><span class="va">data_df</span> <span class="op">&lt;-</span> <span class="va">ExampleData1</span><span class="op">[</span>,<span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">cyt_volc</span><span class="op">(</span><span class="va">data_df</span>, <span class="st">"Group"</span>, cond1 <span class="op">=</span> <span class="st">"T2D"</span>, cond2 <span class="op">=</span> <span class="st">"ND"</span>,</span></span>
+<span class="r-in"><span>fold_change_thresh <span class="op">=</span> <span class="fl">2.0</span>, top_labels<span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $plot</span>
+<span class="r-plt img"><img src="cyt_volc-1.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stats</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    variable      fc_log      p_log significant</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70         IL.12.P70 -2.60117683 2.18641971        TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6                   IL.6 -0.95013174 3.94758527       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27                 IL.27 -0.67878724 2.33099419       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23                 IL.23 -0.87320747 1.95290632       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A CCL.20.MIP.3A -0.48569948 1.40917287       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2                   IL.2 -0.80577278 1.22848122       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F               IL.17F -0.93024059 1.16938373       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10                 IL.10 -0.48121242 1.01734902       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A               IL.28A -0.31081278 0.98351262       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A               IL.17A -0.80415853 0.90173665       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B                 IL.1B -0.61564856 0.83381951       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF               GM.CSF  0.45980342 0.62042612       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21                 IL.21 -0.62254771 0.51843946       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25   IL.17E.IL.25  0.01449957 0.49515782       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22                 IL.22 -0.30363695 0.47550506       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9                   IL.9 -0.32752255 0.43117675       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A                 TNF.A -0.15647551 0.21142412       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31                 IL.31  0.21056699 0.20929529       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4                   IL.4  0.21161574 0.20542291       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5                   IL.5 -0.20808037 0.17512546       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15                 IL.15 -0.05298748 0.12055764       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13                 IL.13 -0.07717527 0.06654004       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G                 IFN.G -0.09088794 0.06221451       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B                 TNF.B  0.07037796 0.05224667       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33                 IL.33  0.01213249 0.01719622       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

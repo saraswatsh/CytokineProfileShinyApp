@@ -17,8 +17,8 @@
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Welcome to CytoProfile Shiny Application">
-<meta name="description" content="CytoProfileShinyApp is an interactive Shiny application for comprehensive cytokine profiling analysis. It supports quality control by applying biologically meaningful cutoffs on raw cytokine measurements and employs tests for distributional symmetry to recommend suitable data transformations. The application provides a suite of exploratory and advanced analytical tools including summary statistics, enhanced boxplots, barplots, univariate tests, multivariate techniques (e.g. PCA, sPLS-DA), Random Forest classification, and Extreme Gradient Boosting (XGBoost). These capabilities facilitate in-depth analysis and visualization of cytokine data.">
-<meta property="og:description" content="CytoProfileShinyApp is an interactive Shiny application for comprehensive cytokine profiling analysis. It supports quality control by applying biologically meaningful cutoffs on raw cytokine measurements and employs tests for distributional symmetry to recommend suitable data transformations. The application provides a suite of exploratory and advanced analytical tools including summary statistics, enhanced boxplots, barplots, univariate tests, multivariate techniques (e.g. PCA, sPLS-DA), Random Forest classification, and Extreme Gradient Boosting (XGBoost). These capabilities facilitate in-depth analysis and visualization of cytokine data.">
+<meta name="description" content="An interactive Shiny application that provides comprehensive cytokine profiling analysis through quality control using biologically meaningful cutoffs on raw cytokine measurements and by testing for distributional symmetry to recommend appropriate transformations. Offers exploratory data analysis with summary statistics, enhanced boxplots, and barplots, along with univariate and multivariate analytical capabilities for in-depth cytokine profiling such as Principal Component Analysis based on Andrzej Maćkiewicz and Waldemar Ratajczak (1993) &lt;doi:10.1016/0098-3004(93)90090-R&gt;, Sparse Partial Least Squares Discriminant Analysis based on Lê Cao K-A, Boitard S, and Besse P (2011) &lt;doi:10.1186/1471-2105-12-253&gt;, Random Forest based on Breiman, L. (2001) &lt;doi:10.1023/A:1010933404324&gt;, and Extreme Gradient Boosting based on Tianqi Chen and Carlos Guestrin (2016) &lt;doi:10.1145/2939672.2939785&gt;.">
+<meta property="og:description" content="An interactive Shiny application that provides comprehensive cytokine profiling analysis through quality control using biologically meaningful cutoffs on raw cytokine measurements and by testing for distributional symmetry to recommend appropriate transformations. Offers exploratory data analysis with summary statistics, enhanced boxplots, and barplots, along with univariate and multivariate analytical capabilities for in-depth cytokine profiling such as Principal Component Analysis based on Andrzej Maćkiewicz and Waldemar Ratajczak (1993) &lt;doi:10.1016/0098-3004(93)90090-R&gt;, Sparse Partial Least Squares Discriminant Analysis based on Lê Cao K-A, Boitard S, and Besse P (2011) &lt;doi:10.1186/1471-2105-12-253&gt;, Random Forest based on Breiman, L. (2001) &lt;doi:10.1023/A:1010933404324&gt;, and Extreme Gradient Boosting based on Tianqi Chen and Carlos Guestrin (2016) &lt;doi:10.1145/2939672.2939785&gt;.">
 <meta property="og:image" content="https://saraswatsh.github.io/CytoProfileShinyApp/logo.png">
 </head>
 <body>
@@ -112,10 +112,14 @@
 <li>ggplot2</li>
 <li>readxl</li>
 <li>bslib</li>
+<li>jsonlite</li>
+<li>fontawesome</li>
+<li>shinyWidgets</li>
 <li>shinyhelper</li>
 <li>DT</li>
 <li>shinyFeedback</li>
 <li>skimr</li>
+<li>shinycssloaders</li>
 <li>BiocManager</li>
 <li>mixOmics</li>
 </ul>
@@ -127,13 +131,18 @@
 <span>  <span class="st">"shinyjs"</span>,</span>
 <span>  <span class="st">"dplyr"</span>,</span>
 <span>  <span class="st">"ggplot2"</span>,</span>
-<span>  <span class="st">"BiocManager"</span>,</span>
 <span>  <span class="st">"readxl"</span>,</span>
 <span>  <span class="st">"bslib"</span>,</span>
+<span>  <span class="st">"jsonlite"</span>,</span>
+<span>  <span class="st">"fontawesome"</span>,</span>
+<span>  <span class="st">"shinyWidgets"</span>,</span>
 <span>  <span class="st">"shinyhelper"</span>,</span>
 <span>  <span class="st">"DT"</span>,</span>
 <span>  <span class="st">"shinyFeedback"</span>,</span>
-<span>  <span class="st">"skimr"</span></span>
+<span>  <span class="st">"skimr"</span>,</span>
+<span>  <span class="st">"shinycssloaders"</span>,</span>
+<span>  <span class="st">"BiocManager"</span>,</span>
+<span>  <span class="st">"mixOmics"</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Install mixOmics from Bioconductor</span></span>

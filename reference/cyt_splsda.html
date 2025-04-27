@@ -47,8 +47,8 @@
 <span>  <span class="va">data</span>,</span>
 <span>  group_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_col2 <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">pdf_title</span>,</span>
+<span>  splsda_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  output_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ellipse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  conf_mat <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -60,7 +60,6 @@
 <span>  <span class="va">pch_values</span>,</span>
 <span>  style <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  roc <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  splsda_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -86,13 +85,13 @@ grouping and treatment.</p></dd>
 <code>NULL</code>.</p></dd>
 
 
-<dt id="arg-colors">colors<a class="anchor" aria-label="anchor" href="#arg-colors"></a></dt>
-<dd><p>A vector of colors for the groups or treatments. If
+<dt id="arg-splsda-colors">splsda_colors<a class="anchor" aria-label="anchor" href="#arg-splsda-colors"></a></dt>
+<dd><p>A vector of splsda_colors for the groups or treatments. If
 <code>NULL</code>, a random palette (using <code>rainbow</code>) is generated based on
 the number of groups.</p></dd>
 
 
-<dt id="arg-pdf-title">pdf_title<a class="anchor" aria-label="anchor" href="#arg-pdf-title"></a></dt>
+<dt id="arg-output-file">output_file<a class="anchor" aria-label="anchor" href="#arg-output-file"></a></dt>
 <dd><p>A string specifying the file name for saving the PDF output.
 If set to NULL, the function runs in interactive mode.</p></dd>
 
@@ -152,8 +151,8 @@ Default is <code>FALSE</code>.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>In Download mode (pdf_title not NULL), a PDF file is written and the function
-returns NULL invisibly. In Interactive mode (pdf_title = NULL), a named list is
+    <p>In Download mode (output_file not NULL), a PDF file is written and the function
+returns NULL invisibly. In Interactive mode (output_file = NULL), a named list is
 returned with the following elements (in this order):
 1. overall_indiv_plot: Main individual classification plot
 2. overall_3D: Main 3D plot (if generated)
@@ -170,14 +169,118 @@ returned with the following elements (in this order):
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">data.df</span> <span class="op">&lt;-</span> <span class="va">cytodata</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'cytodata' not found</span>
-<span class="r-in"><span><span class="fu">cyt_splsda</span><span class="op">(</span><span class="va">data.df</span><span class="op">[</span>,<span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">4</span><span class="op">)</span><span class="op">]</span>, pdf_title <span class="op">=</span> <span class="st">"Example sPLS-DA Analysis.pdf"</span>,</span></span>
-<span class="r-in"><span>           colors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"purple"</span>, <span class="st">"red2"</span><span class="op">)</span>, bg <span class="op">=</span> <span class="cn">TRUE</span>, scale <span class="op">=</span> <span class="st">"log2"</span>,</span></span>
-<span class="r-in"><span>           conf_mat <span class="op">=</span> <span class="cn">TRUE</span>, var_num <span class="op">=</span> <span class="fl">25</span>, cv_opt <span class="op">=</span> <span class="st">"loocv"</span>, comp_num <span class="op">=</span> <span class="fl">3</span>,</span></span>
-<span class="r-in"><span>           pch_values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">16</span>, <span class="fl">4</span>, <span class="fl">3</span><span class="op">)</span>, style <span class="op">=</span> <span class="st">"3d"</span>,</span></span>
-<span class="r-in"><span>           group_col <span class="op">=</span> <span class="st">"Group"</span>, group_col2 <span class="op">=</span> <span class="st">"Treatment"</span>, roc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in withProgress(message = paste("Starting Preliminary Processing"),     value = 0, {        if (!is.null(group_col) &amp;&amp; is.null(group_col2)) {            incProgress(0, detail = "No second grouping column provided; performing overall analysis.")            group_col2 &lt;- group_col        }        if (is.null(group_col) &amp;&amp; !is.null(group_col2)) {            stop("No first grouping column provided; must provide the first grouping column.")        }        if (is.null(group_col) &amp;&amp; is.null(group_col2)) {            stop("At least one grouping column must be provided.")        }        if (!is.null(scale) &amp;&amp; scale == "log2") {            data &lt;- data.frame(data[, c(group_col, group_col2),                 drop = FALSE], log2(data[, !(names(data) %in%                 c(group_col, group_col2)), drop = FALSE]))            incProgress(0, detail = "Results based on log2 transformation:")        }        else {            incProgress(0, detail = "Results based on no transformation:")        }    }):</span> 'session' is not a ShinySession object.</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">data_df</span> <span class="op">&lt;-</span> <span class="va">ExampleData1</span><span class="op">[</span>,<span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">data_df</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">data_df</span>, <span class="va">Group</span> <span class="op">!=</span> <span class="st">"ND"</span>, <span class="va">Treatment</span> <span class="op">!=</span> <span class="st">"Unstimulated"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">cyt_splsda</span><span class="op">(</span><span class="va">data_df</span>, output_file <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>splsda_colors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"purple"</span><span class="op">)</span>, bg <span class="op">=</span> <span class="cn">FALSE</span>, scale <span class="op">=</span> <span class="st">"log2"</span>,</span></span>
+<span class="r-in"><span>conf_mat <span class="op">=</span> <span class="cn">FALSE</span>, var_num <span class="op">=</span> <span class="fl">25</span>, cv_opt <span class="op">=</span> <span class="cn">NULL</span>, comp_num <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>pch_values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">16</span>, <span class="fl">4</span><span class="op">)</span>, style <span class="op">=</span> <span class="cn">NULL</span>, ellipse <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>group_col <span class="op">=</span> <span class="st">"Group"</span>, group_col2 <span class="op">=</span> <span class="st">"Treatment"</span>, roc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Results based on log2 transformation:</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>the standard deviation is zero</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'pch.levels' is deprecated, please use 'pch' to specify point types</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'pch.levels' is deprecated, please use 'pch' to specify point types</span>
+<span class="r-plt img"><img src="cyt_splsda-1.png" alt="" width="700" height="433"></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>the standard deviation is zero</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'pch.levels' is deprecated, please use 'pch' to specify point types</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'pch.levels' is deprecated, please use 'pch' to specify point types</span>
+<span class="r-plt img"><img src="cyt_splsda-2.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="cyt_splsda-3.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$overall_indiv_plot</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$overall_3D</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$overall_ROC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$overall_CV</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$loadings</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$loadings[[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$loadings[[2]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_scores</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_scores[[1]]</span>
+<span class="r-plt img"><img src="cyt_splsda-4.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_scores[[2]]</span>
+<span class="r-plt img"><img src="cyt_splsda-5.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_indiv_plot</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_loadings</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_loadings[[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_loadings[[2]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_3D</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_ROC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$vip_CV</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$conf_matrix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$overall_indiv_plot</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$overall_3D</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$overall_ROC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$overall_CV</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$loadings</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$loadings[[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$loadings[[2]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_scores</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_scores[[1]]</span>
+<span class="r-plt img"><img src="cyt_splsda-6.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_scores[[2]]</span>
+<span class="r-plt img"><img src="cyt_splsda-7.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_indiv_plot</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_loadings</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_loadings[[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_loadings[[2]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_3D</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_ROC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$vip_CV</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $LPS$conf_matrix</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

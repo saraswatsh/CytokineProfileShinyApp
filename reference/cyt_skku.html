@@ -98,6 +98,449 @@ If NULL (default), the function returns a list of two ggplot objects.</p></dd>
 Otherwise, writes the plots to a PDF and returns NULL invisibly.</p></li>
 </ul></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Example with grouping columns (e.g., "Group" and "Treatment")</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ExampleData1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">cyt_skku</span><span class="op">(</span><span class="va">ExampleData1</span><span class="op">[</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">]</span>, output_file <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  group_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Group"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $p_skew</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Removed 2 rows containing non-finite outside the scale range (`stat_bin()`).</span>
+<span class="r-plt img"><img src="cyt_skku-1.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $p_kurt</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Removed 2 rows containing non-finite outside the scale range (`stat_bin()`).</span>
+<span class="r-plt img"><img src="cyt_skku-2.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $raw_results</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  group  n       center       spread   skewness     kurtosis</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.1            ND 99 1.630606e+00 3.974028e-01 2.99982406  9.209239700</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.2        PreT2D 99 2.354747e+00 5.830367e-01 3.34320816 13.706577012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.3           T2D 99 3.107273e+00 6.973380e-01 2.52144944  5.759032042</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.1            ND 99 2.645960e+00 5.152769e-01 2.63488288  6.609974976</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.2        PreT2D 99 3.110162e+00 5.627745e-01 2.51638522  6.557316562</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.3           T2D 99 1.923838e+00 3.300642e-01 3.26349518 12.226559900</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.1             ND 99 5.773049e+04 1.700813e+04 3.61517891 13.266239016</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.2         PreT2D 99 1.830264e+04 4.817582e+03 3.38743745 11.972247856</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.3            T2D 99 6.148444e+04 1.443278e+04 3.31320874 12.553498114</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.1             ND 99 9.788124e+02 1.417338e+02 1.83197036  2.700552698</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.2         PreT2D 99 8.362581e+02 1.094424e+02 1.46243749  1.681226741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.3            T2D 99 1.366340e+03 1.832667e+02 1.57575291  1.974864526</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.1     ND 99 6.335988e+02 8.241240e+01 1.76544852  2.407593154</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.2 PreT2D 99 4.035826e+02 5.262189e+01 2.09420465  5.681631391</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.3    T2D 99 8.872060e+02 8.997902e+01 1.12236690  0.232975291</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.1         ND 99 1.300202e+01 2.048427e+00 3.18751825 11.086675747</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.2     PreT2D 99 3.905242e+01 1.609426e+01 5.72575804 32.654631951</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.3        T2D 99 7.889384e+01 2.361737e+01 5.05665669 27.276641114</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.1             ND 99 1.063981e+03 2.378724e+02 3.09124522 11.180626436</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.2         PreT2D 99 1.542979e+03 3.354189e+02 2.62700836  6.848779314</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.3            T2D 99 1.122447e+03 2.232330e+02 2.24980522  4.420990567</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.1             ND 99 7.924545e+00 5.982594e-01 0.03211706 -1.542231219</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.2         PreT2D 99 4.286364e+00 5.101738e-01 2.29609382  8.587681484</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.3            T2D 99 8.221010e+00 7.497416e-01 0.91508459  0.742560449</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.1            ND 99 3.521896e+02 9.744011e+01 4.82462360 28.892732797</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.2        PreT2D 99 6.529712e+02 1.705094e+02 4.40988365 24.757745532</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.3           T2D 99 6.149678e+02 1.400899e+02 2.95561737  9.175506305</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.1             ND 99 5.131313e-02 6.803855e-03 2.60084630  7.328348344</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.2         PreT2D 99 6.838384e-02 6.749191e-03 1.75162685  2.982116752</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.3            T2D 99 6.333333e-02 1.039223e-02 2.74853160  8.486117451</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.1              ND 99 2.025448e+02 3.675899e+01 2.02983517  3.377398652</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.2          PreT2D 99 2.557497e+02 4.619515e+01 1.74325278  1.845844298</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.3             T2D 99 2.541647e+02 4.422604e+01 1.83892690  2.690282859</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.1             ND 99 2.805961e+03 8.181707e+02 7.00616245 56.631947325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.2         PreT2D 99 2.976948e+03 6.164554e+02 3.32958277 11.794940068</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.3            T2D 99 4.299424e+03 6.165332e+02 2.24887180  6.904162557</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.1             ND 99 1.170000e+00 1.454232e-01 0.93581838 -0.476656325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.2         PreT2D 99 1.426162e+00 1.653311e-01 0.92562995 -0.370206164</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.3            T2D 99 1.160202e+00 1.388049e-01 1.12503656  0.304114711</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.1              ND 99 9.226578e+03 1.621464e+03 1.94106591  3.841518835</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.2          PreT2D 99 1.071787e+04 2.034159e+03 2.36958766  6.073354710</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.3             T2D 99 1.612881e+04 3.245301e+03 2.60199503  6.760621737</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.1             ND 99 2.054537e+02 5.640337e+01 4.97669390 28.535389307</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.2         PreT2D 99 2.099691e+02 5.018823e+01 3.47440192 12.746193172</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.3            T2D 99 3.163148e+02 9.128969e+01 4.92690984 26.634904355</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.1              ND 99 3.435354e-01 6.547061e-02 2.28905678  5.482461633</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.2          PreT2D 99 7.074747e-01 1.728634e-01 3.67655683 14.805237062</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.3             T2D 99 2.966667e-01 6.914369e-02 3.29459732 11.937599353</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.1             ND 99 1.470707e-01 1.776890e-02 1.07544272  0.005223299</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.2         PreT2D 99 2.425253e-01 3.076545e-02 1.76991181  3.354598989</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.3            T2D 99 2.693939e-01 4.405185e-02 3.03194745 10.748968818</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.1              ND 99 1.342252e+02 3.314886e+01 3.18142729  9.890779807</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.2          PreT2D 99 3.396195e+02 9.990430e+01 4.46180915 23.030108740</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.3             T2D 99 1.550502e+02 3.541031e+01 3.05027655  9.759233834</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.1              ND 99 4.619515e+03 5.378219e+02 1.57068408  2.360890601</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.2          PreT2D 99 5.197266e+03 7.600175e+02 1.35785184  0.427473701</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.3             T2D 99 8.925129e+03 9.442372e+02 1.32523537  1.226048071</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.1      ND 99 1.010101e-02 1.010101e-04 9.65039341 92.060299969</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.2  PreT2D 99 1.626263e-02 6.262626e-03 9.65039341 92.060299969</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.3     T2D 99 1.000000e-02 0.000000e+00        NaN          NaN</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.1             ND 99 6.619192e-02 7.902032e-03 1.91844877  3.829957107</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.2         PreT2D 99 8.339394e-02 7.561591e-03 1.08473744  0.825361041</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.3            T2D 99 1.059596e-01 1.140503e-02 1.71257538  3.625578083</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.1             ND 99 4.090909e-02 8.178955e-03 3.30076545 11.574412961</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.2         PreT2D 99 9.050505e-02 2.220775e-02 4.39326555 23.188596285</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.3            T2D 99 3.535354e-02 7.518702e-03 4.28999760 20.177881506</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.1             ND 99 5.045597e+03 8.422166e+02 2.19718335  4.452970038</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.2         PreT2D 99 3.069403e+03 4.052952e+02 1.15478569  0.034664628</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.3            T2D 99 5.623625e+03 7.772489e+02 1.63753728  2.002478829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.1             ND 99 6.407071e-01 1.546916e-01 3.08792361 10.487879290</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.2         PreT2D 99 7.093939e-01 1.670758e-01 2.70228963  6.669909864</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.3            T2D 99 6.102020e-01 1.474811e-01 3.12580034 10.144547289</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.1            ND 99 5.369697e-02 4.976992e-03 0.99221771 -0.184126585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.2        PreT2D 99 7.098990e-02 7.177485e-03 2.40325133 10.898871337</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.3           T2D 99 6.660606e-02 6.133635e-03 0.86723859 -0.365098003</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   measurement</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.1               IL.17F</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.2               IL.17F</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.3               IL.17F</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.1               GM.CSF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.2               GM.CSF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.3               GM.CSF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.1                 IFN.G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.2                 IFN.G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.3                 IFN.G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.1                 IL.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.2                 IL.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.3                 IL.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.1 CCL.20.MIP.3A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.2 CCL.20.MIP.3A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.3 CCL.20.MIP.3A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.1         IL.12.P70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.2         IL.12.P70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.3         IL.12.P70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.1                 IL.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.2                 IL.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.3                 IL.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.1                 IL.15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.2                 IL.15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.3                 IL.15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.1               IL.17A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.2               IL.17A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.3               IL.17A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.1                 IL.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.2                 IL.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.3                 IL.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.1                   IL.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.2                   IL.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.3                   IL.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.1                 IL.1B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.2                 IL.1B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.3                 IL.1B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.1                 IL.33</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.2                 IL.33</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.3                 IL.33</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.1                   IL.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.2                   IL.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.3                   IL.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.1                 IL.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.2                 IL.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.3                 IL.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.1                   IL.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.2                   IL.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.3                   IL.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.1                 IL.23</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.2                 IL.23</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.3                 IL.23</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.1                   IL.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.2                   IL.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.3                   IL.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.1                   IL.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.2                   IL.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.3                   IL.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.1   IL.17E.IL.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.2   IL.17E.IL.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.3   IL.17E.IL.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.1                 IL.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.2                 IL.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.3                 IL.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.1                 IL.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.2                 IL.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.3                 IL.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.1                 TNF.A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.2                 TNF.A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.3                 TNF.A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.1                 TNF.B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.2                 TNF.B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.3                 TNF.B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.1               IL.28A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.2               IL.28A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.3               IL.28A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $log_results</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  group  n     center      spread    skewness    kurtosis</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.1            ND 99 -3.5828417 0.351980629  1.01626515 -0.49942903</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.2        PreT2D 99 -3.5333791 0.378470690  1.03269646 -0.51913247</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.3           T2D 99 -3.0781557 0.399204352  0.83109531 -0.94082211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.1            ND 99 -1.4671168 0.349221653 -0.15476241 -1.12276844</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.2        PreT2D 99 -1.4576112 0.386291693 -0.19068331 -1.42932106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.3           T2D 99 -1.3727661 0.343414306 -0.53248636 -1.14104395</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.1             ND 99  8.6049161 0.570876692  0.21995638 -0.33442537</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.2         PreT2D 99  6.4613313 0.692114137 -0.16103465 -0.76048245</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.3            T2D 99  8.5498794 0.711430519 -0.37212895 -0.45956256</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.1             ND 99  7.5847878 0.374039587 -1.27584698  2.29210067</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.2         PreT2D 99  6.1387908 0.529965149 -0.92811035 -0.08873370</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.3            T2D 99  7.5859898 0.487611018 -1.61526777  2.32518464</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.1     ND 99  7.8184777 0.246192912 -0.37599055 -0.91191530</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.2 PreT2D 99  6.8875567 0.312550116 -1.56634330  4.60641987</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.3    T2D 99  8.5515075 0.250300291 -0.97123977 -0.08775773</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.1         ND 99  2.2876817 0.269158797 -1.66358627  3.61207050</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.2     PreT2D 99  1.1817357 0.448884917 -0.68705106 -0.55047603</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.3        T2D 99  2.8908755 0.398628172 -0.81159956  0.65649576</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.1             ND 99  5.5764604 0.473655712 -0.51788435  0.49415755</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.2         PreT2D 99  6.2541601 0.435202170 -0.40245350  1.16646715</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.3            T2D 99  5.6019259 0.466647131 -0.27437840  0.08718305</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.1             ND 99  1.3532109 0.366391084 -1.47936762  0.59035128</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.2         PreT2D 99 -0.4918429 0.420553306 -0.64731665 -1.41512684</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.3            T2D 99  0.8461552 0.420755008 -1.07058856 -0.64929010</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.1            ND 99  0.7063492 0.689118633  0.19326410 -1.56762480</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.2        PreT2D 99  1.1788933 0.710980721  0.21363792 -1.48233063</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.3           T2D 99  0.8022952 0.749120212  0.26049927 -1.63681477</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.1             ND 99 -5.0081223 0.136672183  0.80517342 -0.32972553</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.2         PreT2D 99 -4.4631697 0.138500251 -0.01547591 -0.90616556</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.3            T2D 99 -5.0669261 0.160903263  1.03913714 -0.10483893</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.1              ND 99  2.2297150 0.599289369 -0.30151544 -1.23939989</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.2          PreT2D 99  3.9398429 0.448418062 -0.46232315  0.25291304</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.3             T2D 99  2.4178700 0.602998178 -0.25151084 -1.21166807</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.1             ND 99  8.2875035 0.436809612 -1.35703181  2.33333498</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.2         PreT2D 99  6.8815515 0.604369465 -0.88143813 -0.16438208</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.3            T2D 99  9.6439051 0.383842461 -1.01838290  0.45629841</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.1             ND 99 -2.5705146 0.371699407 -0.01686628 -1.86311686</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.2         PreT2D 99 -1.9219035 0.362838392 -0.32164282 -1.67199792</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.3            T2D 99 -2.2423845 0.358573996 -0.23816919 -1.76896973</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.1              ND 99  3.4861893 0.881967462  0.14485599 -1.55059525</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.2          PreT2D 99  3.1649887 0.880076267  0.26376345 -1.46828218</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.3             T2D 99  2.9196308 0.958437329  0.31695257 -1.64081181</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.1             ND 99  5.1232245 0.319449649 -1.16560239  3.63077674</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.2         PreT2D 99  5.1840263 0.322038862 -1.15200539  3.51332654</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.3            T2D 99  5.1875360 0.389241106 -1.24248056  2.33992072</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.1              ND 99 -4.4450108 0.290423442  0.92212667 -0.93104138</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.2          PreT2D 99 -4.0718078 0.325646364  0.87686506 -0.88045211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.3             T2D 99 -4.6699455 0.271431045  1.12619166 -0.35365647</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.1             ND 99 -4.2806102 0.232826198  0.21263828 -1.77255006</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.2         PreT2D 99 -3.6152206 0.248202337 -0.05671923 -1.64601656</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.3            T2D 99 -3.8241162 0.266062676  0.16032933 -1.64223041</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.1              ND 99  1.2593183 0.531113133  0.10429061 -1.03319704</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.2          PreT2D 99  0.9684245 0.599777331  0.33988699 -1.06140145</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.3             T2D 99  1.6880285 0.530790447  0.03627787 -1.01269625</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.1              ND 99 10.2855617 0.376932842 -2.09808773  6.07118835</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.2          PreT2D 99  7.7573135 0.669685761 -1.09539085  0.04641368</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.3             T2D 99 10.6504321 0.546896106 -2.21452173  4.20059827</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.1      ND 99 -6.4969296 0.009423089  9.65039341 92.06029997</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.2  PreT2D 99 -6.4473419 0.059010753  9.65039341 92.06029997</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.3     T2D 99 -6.5063527 0.000000000         NaN         NaN</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.1             ND 99 -4.7769656 0.161845472  0.33244815 -1.28340545</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.2         PreT2D 99 -4.3024211 0.162536058 -0.25678056 -1.42054587</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.3            T2D 99 -4.1438022 0.179456978 -0.12984039 -1.37331934</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.1             ND 99 -5.7533095 0.148519154  1.77578831  1.77271898</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.2         PreT2D 99 -5.3366856 0.197856309  1.38618926  0.53419067</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.3            T2D 99 -5.8110642 0.135508621  1.87775126  2.55172320</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.1             ND 99  9.6316531 0.380472738 -1.06252955  2.07845167</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.2         PreT2D 99  8.2684267 0.487319964 -0.92115000  0.16291361</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.3            T2D 99  9.5182511 0.466256822 -1.35460316  2.07166709</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.1             ND 99 -4.4181081 0.319184500  1.10997350 -0.40410152</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.2         PreT2D 99 -4.4227877 0.328992221  1.11120625 -0.45210679</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.3            T2D 99 -4.3994828 0.319335675  1.04287727 -0.56530186</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.1            ND 99 -4.8420150 0.143613182  0.09103786 -1.48881317</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.2        PreT2D 99 -4.5133883 0.154906578 -0.09971731 -1.35553114</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.3           T2D 99 -4.6048784 0.155295561 -0.04231882 -1.53421657</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   measurement</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.1               IL.17F</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.2               IL.17F</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F.3               IL.17F</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.1               GM.CSF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.2               GM.CSF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF.3               GM.CSF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.1                 IFN.G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.2                 IFN.G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G.3                 IFN.G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.1                 IL.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.2                 IL.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10.3                 IL.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.1 CCL.20.MIP.3A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.2 CCL.20.MIP.3A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A.3 CCL.20.MIP.3A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.1         IL.12.P70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.2         IL.12.P70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70.3         IL.12.P70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.1                 IL.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.2                 IL.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13.3                 IL.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.1                 IL.15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.2                 IL.15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15.3                 IL.15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.1               IL.17A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.2               IL.17A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A.3               IL.17A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.1                 IL.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.2                 IL.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22.3                 IL.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.1                   IL.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.2                   IL.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9.3                   IL.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.1                 IL.1B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.2                 IL.1B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B.3                 IL.1B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.1                 IL.33</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.2                 IL.33</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33.3                 IL.33</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.1                   IL.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.2                   IL.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2.3                   IL.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.1                 IL.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.2                 IL.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21.3                 IL.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.1                   IL.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.2                   IL.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4.3                   IL.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.1                 IL.23</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.2                 IL.23</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23.3                 IL.23</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.1                   IL.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.2                   IL.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5.3                   IL.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.1                   IL.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.2                   IL.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6.3                   IL.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.1   IL.17E.IL.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.2   IL.17E.IL.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25.3   IL.17E.IL.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.1                 IL.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.2                 IL.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27.3                 IL.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.1                 IL.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.2                 IL.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31.3                 IL.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.1                 TNF.A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.2                 TNF.A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A.3                 TNF.A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.1                 TNF.B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.2                 TNF.B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B.3                 TNF.B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.1               IL.28A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.2               IL.28A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A.3               IL.28A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Example without grouping columns (analyzes the entire data set)</span></span></span>
+<span class="r-in"><span><span class="fu">cyt_skku</span><span class="op">(</span><span class="va">ExampleData1</span><span class="op">[</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">]</span>, output_file <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $p_skew</span>
+<span class="r-plt img"><img src="cyt_skku-3.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $p_kurt</span>
+<span class="r-plt img"><img src="cyt_skku-4.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $raw_results</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 group   n       center       spread  skewness     kurtosis</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F        overall 297 2.364209e+00 3.314183e-01  3.133674  10.89117880</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF        overall 297 2.559987e+00 2.776373e-01  2.890797   8.88740475</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G         overall 297 4.583919e+04 7.665730e+03  4.260801  20.53459407</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10         overall 297 1.060470e+03 8.611004e+01  1.871192   3.51160970</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A overall 297 6.414625e+02 4.561187e+01  1.685767   2.26993467</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70     overall 297 4.364943e+01 9.648127e+00  6.856980  51.51362267</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13         overall 297 1.243136e+03 1.559298e+02  2.893996   9.34143992</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15         overall 297 6.810640e+00 3.755952e-01  1.022872   1.21441500</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A        overall 297 5.400429e+02 8.051488e+01  4.342477  25.18122491</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22         overall 297 6.101010e-02 4.714645e-03  2.744305   9.76195998</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9          overall 297 2.374864e+02 2.454693e+01  1.903967   2.77050411</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B         overall 297 3.360778e+03 3.990847e+02  5.144103  40.14132176</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33         overall 297 1.252121e+00 8.676425e-02  1.026027  -0.07571013</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2          overall 297 1.202442e+04 1.392417e+03  3.001013  11.03641790</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21         overall 297 2.439126e+02 3.946726e+01  5.424996  36.22522333</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4          overall 297 4.492256e-01 6.642530e-02  4.965314  32.01012354</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23         overall 297 2.196633e-01 1.904656e-02  3.202424  14.91826057</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5          overall 297 2.096316e+02 3.728173e+01  6.244337  51.93434241</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6          overall 297 6.247303e+03 4.542745e+02  1.615678   2.40496971</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25  overall 297 1.212121e-02 2.087700e-03 17.053372 289.86776520</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27         overall 297 8.518182e-02 5.334063e-03  1.851630   4.76209385</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31         overall 297 5.558923e-02 8.374130e-03  6.148333  51.20805730</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A         overall 297 4.579542e+03 4.088041e+02  2.224462   5.28994484</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B         overall 297 6.534343e-01 9.015390e-02  2.990202   9.07409575</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A        overall 297 6.376431e-02 3.571131e-03  1.801585   7.24542487</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 measurement</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F               IL.17F</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF               GM.CSF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G                 IFN.G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10                 IL.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A CCL.20.MIP.3A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70         IL.12.P70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13                 IL.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15                 IL.15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A               IL.17A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22                 IL.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9                   IL.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B                 IL.1B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33                 IL.33</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2                   IL.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21                 IL.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4                   IL.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23                 IL.23</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5                   IL.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6                   IL.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25   IL.17E.IL.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27                 IL.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31                 IL.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A                 TNF.A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B                 TNF.B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A               IL.28A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $log_results</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 group   n     center     spread      skewness    kurtosis</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F        overall 297 -3.3981255 0.21735319  0.9733768447  -0.6196997</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF        overall 297 -1.4324980 0.20724006 -0.2841457817  -1.2235308</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G         overall 297  7.8720423 0.38477517 -0.1988744285  -0.4051272</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10         overall 297  7.1031895 0.27248305 -1.3296589732   1.4316481</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A overall 297  7.7525140 0.16109099 -1.1952535288   3.0595258</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70     overall 297  2.1200976 0.22239955 -0.9483217297   0.7599284</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13         overall 297  5.8108488 0.26462431 -0.4162337733   0.6019132</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15         overall 297  0.5691744 0.23646975 -1.0252013678  -0.6954990</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A        overall 297  0.8958459 0.41263487  0.2280184341  -1.5389208</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22         overall 297 -4.8460727 0.08535363  0.6156005307  -0.6311699</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9          overall 297  2.8624760 0.32238980 -0.4063011871  -0.8384243</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B         overall 297  8.2709867 0.28622449 -1.2462179280   1.3229128</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33         overall 297 -2.2449342 0.21024527 -0.1922164959  -1.7701552</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2          overall 297  3.1902696 0.52238165  0.2461114653  -1.5423932</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21         overall 297  5.1649290 0.19857221 -1.2240541495   3.2262868</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4          overall 297 -4.3955881 0.17131260  1.0000129714  -0.6374594</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23         overall 297 -3.9066490 0.14440997  0.1248375787  -1.6421015</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5          overall 297  1.3052571 0.31971663  0.1699016916  -1.0125293</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6          overall 297  9.5644358 0.32213930 -1.7697916367   2.5131071</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25  overall 297 -6.4835414 0.01990898 16.4897515242 275.7812924</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27         overall 297 -4.4077297 0.09800443  0.0003865828  -1.3939048</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31         overall 297 -5.6336864 0.09450923  1.7445238776   1.8934979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A         overall 297  9.1394437 0.25973985 -1.1671398255   1.4281808</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B         overall 297 -4.4134595 0.18558744  1.0999842179  -0.4371800</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A        overall 297 -4.6534272 0.08746820 -0.0068924973  -1.4347748</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 measurement</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17F               IL.17F</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> GM.CSF               GM.CSF</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IFN.G                 IFN.G</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.10                 IL.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> CCL.20.MIP.3A CCL.20.MIP.3A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.12.P70         IL.12.P70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.13                 IL.13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.15                 IL.15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17A               IL.17A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.22                 IL.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.9                   IL.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.1B                 IL.1B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.33                 IL.33</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.2                   IL.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.21                 IL.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.4                   IL.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.23                 IL.23</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.5                   IL.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.6                   IL.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.17E.IL.25   IL.17E.IL.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.27                 IL.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.31                 IL.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.A                 TNF.A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TNF.B                 TNF.B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> IL.28A               IL.28A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
