@@ -52,3 +52,11 @@ two groups. The results are log2-transformed (for fold change) and -log10-transf
 If both cond1 and cond2 are provided (non-empty), only that pair is compared.
 Otherwise, the function automatically generates all possible pairwise comparisons.
 }
+\examples{
+# Loading data
+data_df <- ExampleData1[,-c(2:3)]
+
+cyt_volc(data_df, "Group", cond1 = "T2D", cond2 = "ND",
+fold_change_thresh = 2.0, top_labels= 15)
+
+}

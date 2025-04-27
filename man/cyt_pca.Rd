@@ -8,15 +8,13 @@ cyt_pca(
   data,
   group_col = NULL,
   group_col2 = NULL,
-  colors = NULL,
-  pdf_title = NULL,
+  pca_colors = NULL,
   ellipse = FALSE,
   comp_num = 2,
   scale = NULL,
   pch_values = NULL,
   style = NULL,
   output_file = NULL,
-  pca_colors = NULL,
   progress = NULL
 )
 }
@@ -28,9 +26,7 @@ cyt_pca(
 \item{group_col2}{Character. The name of the second column containing the grouping information.
 If one is missing, the provided column is used for both.}
 
-\item{colors}{A vector of colors corresponding to the groups. If NULL, a palette is generated.}
-
-\item{pdf_title}{Optional. A file name for the PDF output. If NULL, interactive mode is assumed.}
+\item{pca_colors}{A vector of pca_colors corresponding to the groups. If NULL, a palette is generated.}
 
 \item{ellipse}{Logical. If TRUE, a 95\% confidence ellipse is drawn on the individuals plot.}
 
@@ -42,7 +38,7 @@ If one is missing, the provided column is used for both.}
 
 \item{style}{Character. If "3d" (case insensitive) and comp_num equals 3, a 3D scatter plot is generated.}
 
-\item{output_file}{Optional. A file name for output (PDF mode); if provided, this overrides pdf_title.}
+\item{output_file}{Optional. A file name for output (PDF mode); if provided, this overrides output_file.}
 
 \item{progress}{Optional. A progress object (e.g., from shiny::Progress) to report progress.}
 }
@@ -57,7 +53,24 @@ a scree plot, loadings plots for each component, a biplot (using the default sta
 and a correlation circle plot.
 }
 \details{
-In PDF mode (if pdf_title or output_file is provided) the plots are printed to a PDF.
-In interactive mode (if both pdf_title and output_file are NULL) the plots are captured using recordPlot()
+In PDF mode (if output_file or output_file is provided) the plots are printed to a PDF.
+In interactive mode (if both output_file and output_file are NULL) the plots are captured using recordPlot()
 and returned as a list for display in Shiny.
+}
+\examples{
+data <- ExampleData1[, -c(3,23)]
+data_df <- dplyr::filter(data, Group != "ND" & Treatment != "Unstimulated")
+# Run PCA analysis and save plots to a PDF file
+cyt_pca(
+  data = data_df,
+  output_file = NULL,
+  pca_colors = c("black", "red2"),
+  scale = "log2",
+  comp_num = 3,
+  pch_values = c(16, 4),
+  style = "3D",
+  group_col = "Group",
+  group_col2 = "Treatment",
+  ellipse = FALSE
+)
 }

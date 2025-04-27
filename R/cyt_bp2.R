@@ -20,84 +20,93 @@
 #'
 #' @examples
 #' # Loading data
-#' data_df <- ExampleData1[, -c(1, 4)]
-#'
-#' # To display the boxplots interactively:
-#' plots <- cyt_bp2(data_df, scale = "log2")
-#' print(plots[["IL6_vs_Group"]])
-#'
-#' # To save the boxplots to a PDF file:
-#' cyt_bp2(data_df, output_file = "boxplot2_output.pdf", scale = "log2")
+#' data_df <- ExampleData1[, -c(3, 5:28)]
+#' data_df <- dplyr::filter(data_df, Group == "T2D", Treatment == "Unstimulated")
+#' cyt_bp2(data_df, output_file = NULL, scale = "log2")
 #'
 #' @import ggplot2
 #' @import dplyr
 #' @export
-cyt_bp2 <- function(data, output_file = NULL, mf_row = c(1, 1),
-                    scale = NULL, y_lim = NULL, progress = NULL) {
-  if (!is.null(progress)) progress$inc(0.05, detail = "Converting data to data frame")
+cyt_bp2 <- function(
+  data,
+  output_file = NULL,
+  mf_row = c(1, 1),
+  scale = NULL,
+  y_lim = NULL,
+  progress = NULL
+) {
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Converting data to data frame")
   data <- as.data.frame(data)
   char_cols <- sapply(data, is.character)
   if (any(char_cols)) {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Converting characters to factors")
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Converting characters to factors")
     data[char_cols] <- lapply(data[char_cols], as.factor)
   }
-  
-  if (!is.null(progress)) progress$inc(0.05, detail = "Identifying numeric and factor columns")
+
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Identifying numeric and factor columns")
   num_cols <- names(data)[sapply(data, is.numeric)]
   fac_cols <- names(data)[sapply(data, function(x) is.factor(x))]
-  
-  if (length(num_cols) == 0) stop("Data must contain at least one numeric column")
-  if (length(fac_cols) == 0) stop("Data must contain at least one factor column")
-  
+
+  if (length(num_cols) == 0)
+    stop("Data must contain at least one numeric column")
+  if (length(fac_cols) == 0)
+    stop("Data must contain at least one factor column")
+
   if (!is.null(scale) && scale == "log2") {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Applying log2 transformation")
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Applying log2 transformation")
     data[num_cols] <- lapply(data[num_cols], function(x) {
       x[x <= 0] <- NA
       log2(x)
     })
   }
-  
+
   plot_list <- list()
   if (!is.null(progress)) progress$inc(0.05, detail = "Generating boxplots")
   for (num in num_cols) {
     for (fac in fac_cols) {
       plot_data <- data %>%
-        select(!!num, !!fac) %>%
-        rename(Outcome = !!num, Group = !!fac)
-      
-      p <- ggplot(plot_data, aes(x = Group, y = Outcome, fill = Group)) +
-        geom_boxplot(alpha = 0.5) +
-        geom_jitter(width = 0.2, alpha = 0.5) +
-        labs(title = paste(num, "vs", fac),
-             x = fac, y = num) +
-        theme_minimal() +
-        theme(legend.position = "none")
-      
+        dplyr::select(!!num, !!fac) %>%
+        dplyr::rename(Outcome = !!num, Group = !!fac)
+
+      p <- ggplot2::ggplot(
+        plot_data,
+        aes(x = Group, y = Outcome, fill = Group)
+      ) +
+        ggplot2::geom_boxplot(alpha = 0.5) +
+        ggplot2::geom_jitter(width = 0.2, alpha = 0.5) +
+        ggplot2::labs(title = paste(num, "vs", fac), x = fac, y = num) +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(legend.position = "none")
+
       if (!is.null(y_lim)) {
-        p <- p + coord_cartesian(ylim = y_lim)
+        p <- p + ggplot2::coord_cartesian(ylim = y_lim)
       }
-      
+
       plot_name <- paste(num, "vs", fac, sep = "_")
       plot_list[[plot_name]] <- p
       if (!is.null(progress))
         progress$inc(0.01, detail = paste("Processed", plot_name))
     }
   }
-  
+
   if (!is.null(output_file)) {
     if (!is.null(progress)) progress$inc(0.05, detail = "Saving plots to PDF")
-    pdf(file = output_file, width = 7, height = 5)
-    old_par <- par(mfrow = mf_row)
-    on.exit(par(old_par), add = TRUE)
+    grDevices::pdf(file = output_file, width = 7, height = 5)
+    old_par <- graphics::par(no.readonly = TRUE)
+    on.exit(graphics::par(old_par), add = TRUE)
     for (p in plot_list) {
       print(p)
     }
-    dev.off()
+    grDevices::dev.off()
     if (!is.null(progress)) progress$inc(0.05, detail = "PDF saved")
     return(invisible(NULL))
   } else {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Returning list of plots")
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Returning list of plots")
     return(plot_list)
   }
 }
-

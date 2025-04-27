@@ -65,19 +65,12 @@ and performance metrics such as accuracy, sensitivity, and specificity. For bina
 the function can also plot the ROC curve and compute the AUC.
 }
 \examples{
-data.df0 <- cytodata
-data.df <- data.frame(data.df0[, 1:4], log2(data.df0[, -c(1:4)]))
-data.df <- data.df[, -c(1, 3, 4)]
+data.df0 <- ExampleData1
+data.df <- data.frame(data.df0[, 1:3], log2(data.df0[, -c(1:3)]))
+data.df <- data.df[, -c(2:3)]
 data.df <- dplyr::filter(data.df, Group != "ND")
 
-# For interactive use:
-results <- cyt_rf(data = data.df, group_col = "Group", k_folds = 5,
-                  ntree = 1000, mtry = 4, run_rfcv = TRUE, plot_roc = TRUE)
-print(results$vip_plot)
-
-# To save outputs to a PDF:
-cyt_rf(data = data.df, group_col = "Group", k_folds = 5,
-       ntree = 1000, mtry = 4, run_rfcv = TRUE, plot_roc = TRUE,
-       output_file = "RF_Analysis.pdf")
+cyt_rf(data = data.df, group_col = "Group", k_folds = 5, ntree = 1000,
+  mtry = 4, run_rfcv = TRUE, plot_roc = TRUE)
 
 }

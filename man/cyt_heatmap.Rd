@@ -28,13 +28,15 @@ If output_file is NULL, returns a character string with the file path of the PNG
 Heat Map.
 }
 \examples{
-\dontrun{
-# Interactive mode:
-temp_file <- cyt_heatmap(cytodata[, -c(1,3,4)], scale = "log2", annotation_col_name = "Group", output_file = NULL)
-# temp_file will contain the path to the generated PNG.
-
-# Download mode:
-cyt_heatmap(cytodata[, -c(1,3,4)], scale = "log2", annotation_col_name = "Group", output_file = "myheatmap.pdf")
-}
+# Load sample data
+data("ExampleData1")
+data_df <- ExampleData1
+# Generate a heatmap with log2 scaling and annotation based on
+# the "Group" column
+cyt_heatmap(
+  data = data_df[, -c(2:3)],
+  scale = "log2",  # Optional scaling
+  annotation_col_name = "Group"
+)
 
 }

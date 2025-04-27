@@ -41,3 +41,14 @@ It produces overlayed histograms for skewness and kurtosis for both raw and log2
 If an output_file is provided, the two plots are arranged side by side in a single PDF page;
 otherwise, a list of two ggplot objects is returned.
 }
+\examples{
+# Example with grouping columns (e.g., "Group" and "Treatment")
+data(ExampleData1)
+cyt_skku(ExampleData1[, -c(2:3)], output_file = NULL,
+  group_cols = c("Group")
+)
+
+# Example without grouping columns (analyzes the entire data set)
+cyt_skku(ExampleData1[, -c(1:3)], output_file = NULL)
+
+}

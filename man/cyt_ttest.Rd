@@ -30,11 +30,8 @@ normality test to decide whether to use a Two-Sample T-Test vs. a Wilcoxon Rank 
 The resulting p-values are printed and returned.
 }
 \examples{
-\dontrun{
-data_df <- ExampleData1[, -c(2: 4)]
-data_df <- dplyr::filter(data_df, Group != "ND")
+data_df <- ExampleData1[, -c(3)]
+data_df <- dplyr::filter(data_df, Group != "ND", Treatment != "Unstimulated")
 
-res <- cyt_ttest(data_df[, c(1,5:6)], scale = "log2", format_output = TRUE)
-head(res)
-}
+cyt_ttest(data_df[, c(1, 2, 5:6)], scale = "log2", format_output = TRUE)
 }

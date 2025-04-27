@@ -2274,6 +2274,37 @@
         "RemoteSha": "1.1.2"
       }
     },
+    "hunspell": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "hunspell",
+        "Type": "Package",
+        "Title": "High-Performance Stemmer, Tokenizer, and Spell Checker",
+        "Version": "3.0.6",
+        "Depends": "R (>= 3.0.2)",
+        "Encoding": "UTF-8",
+        "Authors@R": "c(\n    person(\"Jeroen\", \"Ooms\", ,\"jeroenooms@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"Authors of libhunspell\", role = \"cph\", comment = \"see AUTHORS file\"))",
+        "Description": "Low level spell checker and morphological analyzer based on the \n    famous 'hunspell' library <https://hunspell.github.io>. The package can analyze\n    or check individual words as well as parse text, latex, html or xml documents.\n    For a more user-friendly interface use the 'spelling' package which builds on\n    this package to automate checking of files, documentation and vignettes in all\n    common formats.",
+        "License": "GPL-2 | LGPL-2.1 | MPL-1.1",
+        "URL": "https://docs.ropensci.org/hunspell/\nhttps://ropensci.r-universe.dev/hunspell",
+        "BugReports": "https://github.com/ropensci/hunspell/issues",
+        "Imports": "Rcpp, digest",
+        "LinkingTo": "Rcpp (>= 0.12.12)",
+        "Suggests": "spelling, testthat, knitr, rmarkdown",
+        "VignetteBuilder": "knitr",
+        "RoxygenNote": "7.2.3",
+        "Language": "en-US",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-03-22 20:15:55 UTC; jeroen",
+        "Author": "Jeroen Ooms [aut, cre],\n  Authors of libhunspell [cph] (see AUTHORS file)",
+        "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-03-22 20:50:02 UTC",
+        "Built": "R 4.4.3; x86_64-w64-mingw32; 2025-04-21 00:33:25 UTC; windows",
+        "Archs": "x64"
+      }
+    },
     "igraph": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -3004,34 +3035,6 @@
         "Author": "Kim-Anh Le Cao [aut],\n  Florian Rohart [aut],\n  Ignacio Gonzalez [aut],\n  Sebastien Dejean [aut],\n  Al J Abadi [ctb],\n  Max Bladen [ctb],\n  Benoit Gautier [ctb],\n  Francois Bartolo [ctb],\n  Pierre Monget [ctb],\n  Jeff Coquery [ctb],\n  FangZou Yao [ctb],\n  Benoit Liquet [ctb],\n  Eva Hamrud [ctb, cre]",
         "Maintainer": "Eva Hamrud <mixomicsdeveloper@gmail.com>",
         "Built": "R 4.4.1; ; 2024-10-30 16:16:30 UTC; windows"
-      }
-    },
-    "moments": {
-      "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
-      "description": {
-        "Package": "moments",
-        "Type": "Package",
-        "Title": "Moments, Cumulants, Skewness, Kurtosis and Related Tests",
-        "Version": "0.14.1",
-        "Date": "2015-01-05",
-        "Author": "Lukasz Komsta <lukasz.komsta@umlub.pl>, Frederick Novomestky\n        <fnovomes@poly.edu>",
-        "Maintainer": "Lukasz Komsta <lukasz.komsta@umlub.pl>",
-        "Description": "Functions to calculate: moments, Pearson's kurtosis,\n        Geary's kurtosis and skewness; tests related to them\n        (Anscombe-Glynn, D'Agostino, Bonett-Seier).",
-        "License": "GPL (>= 2)",
-        "URL": "https://www.r-project.org, http://www.komsta.net/",
-        "Packaged": "2022-05-02 10:08:08 UTC; hornik",
-        "NeedsCompilation": "no",
-        "Repository": "CRAN",
-        "Date/Publication": "2022-05-02 13:01:55 UTC",
-        "Built": "R 4.4.0; ; 2024-04-23 00:24:43 UTC; windows",
-        "RemoteType": "standard",
-        "RemoteRef": "moments",
-        "RemotePkgRef": "moments",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "0.14.1"
       }
     },
     "munsell": {
@@ -4451,6 +4454,32 @@
         "RemoteSha": "0.3.3"
       }
     },
+    "spelling": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "spelling",
+        "Title": "Tools for Spell Checking in R",
+        "Version": "2.3.1",
+        "Authors@R": "c(\n    person(\"Jeroen\", \"Ooms\", , \"jeroenooms@gmail.com\", role = c(\"cre\", \"aut\"),\n      comment = c(ORCID = \"0000-0002-4035-0289\")),\n    person(\"Jim\", \"Hester\", , \"james.hester@rstudio.com\", role = \"aut\"))",
+        "Description": "Spell checking common document formats including latex, markdown, manual pages,\n    and description files. Includes utilities to automate checking of documentation and \n    vignettes as a unit test during 'R CMD check'. Both British and American English are \n    supported out of the box and other languages can be added. In addition, packages may\n    define a 'wordlist' to allow custom terminology without having to abuse punctuation.",
+        "License": "MIT + file LICENSE",
+        "Encoding": "UTF-8",
+        "URL": "https://ropensci.r-universe.dev/spelling\nhttps://docs.ropensci.org/spelling/",
+        "BugReports": "https://github.com/ropensci/spelling/issues",
+        "Imports": "commonmark, xml2, hunspell (>= 3.0), knitr",
+        "Suggests": "pdftools",
+        "RoxygenNote": "7.3.1",
+        "Language": "en-GB",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-10-04 14:29:19 UTC; jeroen",
+        "Author": "Jeroen Ooms [cre, aut] (<https://orcid.org/0000-0002-4035-0289>),\n  Jim Hester [aut]",
+        "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-10-04 17:10:02 UTC",
+        "Built": "R 4.4.3; ; 2025-04-21 01:41:07 UTC; windows"
+      }
+    },
     "stringi": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -4833,7 +4862,7 @@
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "CRAN",
         "Date/Publication": "2025-04-15 15:50:03 UTC",
-        "Built": "R 4.4.3; ; 2025-04-19 01:14:46 UTC; windows"
+        "Built": "R 4.4.3; ; 2025-04-25 01:32:01 UTC; windows"
       }
     },
     "tzdb": {
@@ -5173,13 +5202,13 @@
       "checksum": "d5f960a2ff001b61309d14683ce23ab4"
     },
     ".Rbuildignore": {
-      "checksum": "bbc41279531a25667d73c5021ab65963"
+      "checksum": "404375aac885490352f9b450ae435d7b"
     },
     "_pkgdown.yml": {
       "checksum": "2ce9dd288546e6a01b92eabe852bf17d"
     },
     "app.R": {
-      "checksum": "18fbb80b2943ba652c0c0b39a66aa114"
+      "checksum": "95f7e887a1cd7599af11527a3acd4a26"
     },
     "cytoprofile_logo2.png": {
       "checksum": "83a8a76d775edb40aeb62cf3008c5633"
@@ -5209,7 +5238,7 @@
       "checksum": "b77f12d98bb00a973f6d6a2b22d9a7b3"
     },
     "DESCRIPTION": {
-      "checksum": "1dae8244af4d6b220e8cce630e5ce5f1"
+      "checksum": "600b817aaa1b8754f2d0227e8e739ec7"
     },
     "docs/404.html": {
       "checksum": "f7927fab9c16fe87329839f772f08f58"
@@ -5308,7 +5337,7 @@
       "checksum": "b54f484a38e96b33a7e4b1baec4edf5f"
     },
     "docs/index.html": {
-      "checksum": "098f32091916e06631aab5f02d931e39"
+      "checksum": "414555c37e3906ad62b9e4438d1f8b84"
     },
     "docs/katex-auto.js": {
       "checksum": "b6babfc10247cf9190b9fa172dde62b8"
@@ -5329,49 +5358,130 @@
       "checksum": "dca708c90eee1f2352a32f4754901a6a"
     },
     "docs/pkgdown.yml": {
-      "checksum": "d15625e19bf545b6c6d35a7e28dec6be"
+      "checksum": "6c1e21bc66b20bf091f05b8bb9a29323"
     },
     "docs/reference/boxplot2_output.pdf": {
       "checksum": "7fbd0ea790a54bc2f184cd9d6d50b25c"
     },
     "docs/reference/cyt_anova.html": {
-      "checksum": "30bbb222158f506d9db28271fb94f62d"
+      "checksum": "1c6bd3912da44a1747d89672568e9597"
+    },
+    "docs/reference/cyt_bp-1.png": {
+      "checksum": "4dd2db0a7b210e2c42bd76f0440a6fb1"
     },
     "docs/reference/cyt_bp.html": {
-      "checksum": "97ed5f5036199b0ecedd156af36bedcd"
+      "checksum": "531103de3c3861a6d4df41ede326b2c0"
+    },
+    "docs/reference/cyt_bp2-1.png": {
+      "checksum": "fd9686c555ee6b349b7c3aed98ececa5"
+    },
+    "docs/reference/cyt_bp2-2.png": {
+      "checksum": "ec8c473d934cfe4b4124aa04073a7637"
     },
     "docs/reference/cyt_bp2.html": {
-      "checksum": "27d4ef18672175eca2ff62fed989edad"
+      "checksum": "9360124ce04383a2d62d04ecf0a8cbd6"
+    },
+    "docs/reference/cyt_dualflashplot-1.png": {
+      "checksum": "de9f8d34668089bfa023fbc3c7c5657d"
     },
     "docs/reference/cyt_dualflashplot.html": {
-      "checksum": "d94a64e38e282913c330dff5fabf8c3f"
+      "checksum": "7b8387d0739acc5196df7a3109f9fb3f"
+    },
+    "docs/reference/cyt_errbp-1.png": {
+      "checksum": "aca806a03721c25bd467393c5345baf5"
     },
     "docs/reference/cyt_errbp.html": {
-      "checksum": "1f519f3277d8c1371bec93b7f5d9d902"
+      "checksum": "14e9e3a35f24976cee1c484c43a85d07"
     },
     "docs/reference/cyt_heatmap.html": {
-      "checksum": "e8a2fc78fefe4a487f8c34b4c35c7afa"
+      "checksum": "bbb1952552f682d003244c034dc1acae"
+    },
+    "docs/reference/cyt_pca-1.png": {
+      "checksum": "900dce810808eafd5cb7b0fe2edcc203"
+    },
+    "docs/reference/cyt_pca-2.png": {
+      "checksum": "d7becdd527c77e8a8216b001bb36867b"
+    },
+    "docs/reference/cyt_pca-3.png": {
+      "checksum": "4c5c94a35cd96c21f36cbdb0fc418fbb"
+    },
+    "docs/reference/cyt_pca-4.png": {
+      "checksum": "d7becdd527c77e8a8216b001bb36867b"
+    },
+    "docs/reference/cyt_pca-5.png": {
+      "checksum": "207ae984c18b03a794d53382445b2ba7"
     },
     "docs/reference/cyt_pca.html": {
-      "checksum": "8b4fb65b0862d528cbeb1ec4d8dc51ad"
+      "checksum": "59618dca0e5f32cf60423827547ff8cc"
+    },
+    "docs/reference/cyt_rf-1.png": {
+      "checksum": "5d88efdbd250bbc0e6a996bd598803b6"
+    },
+    "docs/reference/cyt_rf-2.png": {
+      "checksum": "c606c9346a6d790490c672582294dc8b"
+    },
+    "docs/reference/cyt_rf-3.png": {
+      "checksum": "cb8832a430afd3347f8b6f0b150c39e3"
     },
     "docs/reference/cyt_rf.html": {
-      "checksum": "2f248b274d71864f82e3638aee2c5bb1"
+      "checksum": "7c1899e4580cda79ddb85bf7f504cd79"
+    },
+    "docs/reference/cyt_skku-1.png": {
+      "checksum": "c9fe1b01d82eee0cf607605f53e103ec"
+    },
+    "docs/reference/cyt_skku-2.png": {
+      "checksum": "1447a5cf2e670b31cff108f35b76490a"
+    },
+    "docs/reference/cyt_skku-3.png": {
+      "checksum": "62da52f2ac47354cc7053a81fa94d1eb"
+    },
+    "docs/reference/cyt_skku-4.png": {
+      "checksum": "da059a7b477f2b63e0e33f37517bed47"
     },
     "docs/reference/cyt_skku.html": {
-      "checksum": "9f9c6602a424e081157fdd6d11e4410c"
+      "checksum": "658712e7b92a258bc07ee22cd25777a8"
+    },
+    "docs/reference/cyt_splsda-1.png": {
+      "checksum": "e0c57d2b526e5f0d38453352895c986f"
+    },
+    "docs/reference/cyt_splsda-2.png": {
+      "checksum": "9043a694ea6cca5c7d22eeb3032d74eb"
+    },
+    "docs/reference/cyt_splsda-3.png": {
+      "checksum": "b3067cfe4af534a847442ce3fea902fd"
+    },
+    "docs/reference/cyt_splsda-4.png": {
+      "checksum": "2b196a735ab735a9bbba857f0291cf40"
+    },
+    "docs/reference/cyt_splsda-5.png": {
+      "checksum": "2df660c017ac9e95e091e0c75951b921"
+    },
+    "docs/reference/cyt_splsda-6.png": {
+      "checksum": "b264888a0f51d387ed29a4627e2d5e4f"
+    },
+    "docs/reference/cyt_splsda-7.png": {
+      "checksum": "9043a694ea6cca5c7d22eeb3032d74eb"
     },
     "docs/reference/cyt_splsda.html": {
-      "checksum": "60194971ac2276ce62b5e8ffe8eaf9b9"
+      "checksum": "ca58df6478d793eb80be0b90de9d73c5"
     },
     "docs/reference/cyt_ttest.html": {
-      "checksum": "ac43362f599883f767c03f419722f135"
+      "checksum": "c32950bdba9344bacbf133ac739f758f"
+    },
+    "docs/reference/cyt_volc-1.png": {
+      "checksum": "2c3c770ab8814ffb328cfec040a2c411"
     },
     "docs/reference/cyt_volc.html": {
-      "checksum": "51b18b7dea013e1d817a1cb6332cab30"
+      "checksum": "f78572be365f326d8762212a955df40a"
+    },
+    "docs/reference/cyt_xgb-1.png": {
+      "checksum": "0abc8dba74bf72b4707444345d80a653"
+    },
+    "docs/reference/cyt_xgb-2.png": {
+      "checksum": "f12cb94ca1b30cd265a4e96532439acc"
     },
     "docs/reference/cyt_xgb.html": {
-      "checksum": "f5ba46475f98996835540311066fc9ec"
+      "checksum": "a5038d988306533af409c0c018e6bc57"
     },
     "docs/reference/ExampleData1.html": {
       "checksum": "40a769a0704cda4d7526e29cc9cb130f"
@@ -5392,7 +5502,7 @@
       "checksum": "b9bc2d323b61fe65f8bde11440559d75"
     },
     "docs/search.json": {
-      "checksum": "0541fd456a5d21e2edb8967a004407f4"
+      "checksum": "7fa828bfb1f00ad874ad91f5bc41b1bb"
     },
     "docs/site.webmanifest": {
       "checksum": "aa2a240255534cbd81d92a24956916f5"
@@ -5407,49 +5517,52 @@
       "checksum": "59fcce46b358130bcdcd1abb186cc357"
     },
     "global.R": {
-      "checksum": "ac3bef10b6e5053be2411b2b3aed0788"
+      "checksum": "286cd9ae51e0d35e9df99c00d101c41e"
+    },
+    "inst/WORDLIST": {
+      "checksum": "a81b034f3e75bf847a8c1beb910373d6"
     },
     "LICENSE.md": {
       "checksum": "8e37d7de575b4c556aaed64b86dc8b49"
     },
     "man/cyt_anova.Rd": {
-      "checksum": "c253c2faca5f4ad5a4649ce7a6039325"
+      "checksum": "f04fc1cbc63c61f9dfca22436ac5fa51"
     },
     "man/cyt_bp.Rd": {
-      "checksum": "4f2a8ae747346efaa256ece5e80c25fe"
+      "checksum": "790667460ac11f8c6db6b16ab4bb5f66"
     },
     "man/cyt_bp2.Rd": {
-      "checksum": "74f61eafba27a1debc33a632187c803e"
+      "checksum": "8d7bbe88e3aac2bb7af8cbb763b267e7"
     },
     "man/cyt_dualflashplot.Rd": {
-      "checksum": "f4672a9ef15d3b5ae70796509615b967"
+      "checksum": "5d3e831b117883af0f17266c46b521e0"
     },
     "man/cyt_errbp.Rd": {
-      "checksum": "bc46063e1e8322a7fe94a31f1b3fcb82"
+      "checksum": "f9fc4387e923a052845b3e5bff788a03"
     },
     "man/cyt_heatmap.Rd": {
-      "checksum": "40120a45d1166ee827f7d26e2cee4655"
+      "checksum": "3a9afc3a647edd5e2377d8ff1fc834a9"
     },
     "man/cyt_pca.Rd": {
-      "checksum": "cdca1250f5f94415b14b5e98ea8aed08"
+      "checksum": "6ce553e3a0badba4c149597499e8a787"
     },
     "man/cyt_rf.Rd": {
-      "checksum": "05a2e107352251efb6dc23f1bc5fd869"
+      "checksum": "dc8e5139bc2cbc9b97fa5cb370ca70c9"
     },
     "man/cyt_skku.Rd": {
-      "checksum": "14514670a070cdcb2db140d0635e6732"
+      "checksum": "a6477cd81a18b39c778461816134d733"
     },
     "man/cyt_splsda.Rd": {
-      "checksum": "6a387f31931538ae960f2be35d16ae51"
+      "checksum": "199f4aab3b9563f61d7a785cd1483014"
     },
     "man/cyt_ttest.Rd": {
-      "checksum": "9f45c6b0c611fcbac83d1973dc4d7e49"
+      "checksum": "c29ab82efe165bdccd1beca604fe83a6"
     },
     "man/cyt_volc.Rd": {
-      "checksum": "80b195e7cc9543b796e0ffa1873f0a72"
+      "checksum": "c6f3de25f51ca9b42ab266aa5e91644b"
     },
     "man/cyt_xgb.Rd": {
-      "checksum": "513a306d7d920ece37f3e43779b949ac"
+      "checksum": "2b61feee34a3a3a8b6dd3256bb5710f9"
     },
     "man/ExampleData1.Rd": {
       "checksum": "d94abb04c96697b7e7f747b4a5a9d3f0"
@@ -5491,58 +5604,64 @@
       "checksum": "59fcce46b358130bcdcd1abb186cc357"
     },
     "R/cyt_anova.R": {
-      "checksum": "69914f745c22bccf4ed1c431495c12ce"
+      "checksum": "1455d4d4026a7d803803e36287575f4d"
     },
     "R/cyt_bp.R": {
-      "checksum": "3d5a893fc7acbe86ea1625cac937da32"
+      "checksum": "f31c3a720faa562e43f6aad346537c8b"
     },
     "R/cyt_bp2.R": {
-      "checksum": "87e70dc549392cc420e2eba72d45a86a"
+      "checksum": "f9fd78b2163ea26625ec46f768b6fc6c"
     },
     "R/cyt_dualflashplot.R": {
-      "checksum": "df913e0691c75687f025c8e0d56ff0af"
+      "checksum": "775dee59fc0971f92dac3603dae9624b"
     },
     "R/cyt_errbp.R": {
-      "checksum": "4351295eb6c69abd6bc65b017ce413e0"
+      "checksum": "8c81528c157a7fb565e74866209d60d1"
     },
     "R/cyt_heatmap.R": {
-      "checksum": "f7ce1a610fdd7f9542e20c4bf3da8fe5"
+      "checksum": "cddb9c266dad4fb9106daf9b8e77cb05"
     },
     "R/cyt_pca.R": {
-      "checksum": "9321b25fa8ed56f391f5626cf0a046a1"
+      "checksum": "76bea55bd54ea619d0623b3766b87306"
     },
     "R/cyt_rf.R": {
-      "checksum": "4a367ac246539f610147ff89a22fc5bb"
+      "checksum": "770941bb0aa642e87a5c69cb359d4d8b"
     },
     "R/cyt_skku.R": {
-      "checksum": "3d4b7ce3b67ea47dd9ac72fba8f2126d"
+      "checksum": "e1bbc8a299a31fb3b4c7390dafeca2bf"
     },
     "R/cyt_splsda.R": {
-      "checksum": "4c99181fb2800d903b24d3b2b9754b43"
+      "checksum": "a3d2b7f7c52e380b24cfdb5c86929d7c"
     },
     "R/cyt_ttest.R": {
-      "checksum": "bde27b93985ef566282305740ec69a4d"
+      "checksum": "e88eb81554088207d5f6596c06ef420f"
     },
     "R/cyt_volc.R": {
-      "checksum": "32f301c4f4d78f641ced98e169d06f60"
+      "checksum": "b9408fcf9df9e7a2f28d52f345362511"
     },
     "R/cyt_xgb.R": {
-      "checksum": "8f3bb7e4c471b6626297d1283b788d09"
+      "checksum": "46d13739138a0a2c95bbfdd1a4e3417d"
     },
     "R/data.R": {
       "checksum": "2160eb7a77c807c736e65892db9ca671"
     },
+    "R/global_variables.R": {
+      "checksum": "1e750872d61f2dc6256c4a02ef385571"
+    },
     "README.md": {
-      "checksum": "6e149318f66ea974addf258de7e55208"
+      "checksum": "c846e2e79f5a4ed112b502c438a71598"
     },
     "README.Rmd": {
-      "checksum": "988f5f25e0300bcc585011251271ab0d"
+      "checksum": "d95934e4e4a27eef3b8a166ef2ac4f8a"
     },
     "server.R": {
-      "checksum": "bb85a92c3fbc74e4d05062acb96fc100"
+      "checksum": "6a5528f660468dde4f253212639f253a"
+    },
+    "tests/spelling.R": {
+      "checksum": "332173f20d20942c02019350ea4dcadc"
     },
     "ui.R": {
-      "checksum": "dd8736fa7dfa50cbcdbea0f1eba7e1cd"
+      "checksum": "d9bbb414809530b83923c318f25628c5"
     },
     "WWW/logo.png": {
       "checksum": "c248dd2a9681d73f52211a72a131aae5"

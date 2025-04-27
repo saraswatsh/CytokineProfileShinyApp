@@ -8,8 +8,8 @@ cyt_splsda(
   data,
   group_col = NULL,
   group_col2 = NULL,
-  colors = NULL,
-  pdf_title,
+  splsda_colors = NULL,
+  output_file = NULL,
   ellipse = FALSE,
   bg = FALSE,
   conf_mat = FALSE,
@@ -21,7 +21,6 @@ cyt_splsda(
   pch_values,
   style = NULL,
   roc = FALSE,
-  splsda_colors = NULL,
   progress = NULL
 )
 }
@@ -37,11 +36,11 @@ grouping and treatment.}
 \item{group_col2}{A string specifying the second grouping column name. Default is
 \code{NULL}.}
 
-\item{colors}{A vector of colors for the groups or treatments. If
+\item{splsda_colors}{A vector of splsda_colors for the groups or treatments. If
 \code{NULL}, a random palette (using \code{rainbow}) is generated based on
 the number of groups.}
 
-\item{pdf_title}{A string specifying the file name for saving the PDF output.
+\item{output_file}{A string specifying the file name for saving the PDF output.
 If set to NULL, the function runs in interactive mode.}
 
 \item{ellipse}{Logical. Whether to draw a 95\\% confidence ellipse on the figures.
@@ -76,8 +75,8 @@ a 3D plot is generated using the \code{plot3D} package. Default is \code{NULL}.}
 Default is \code{FALSE}.}
 }
 \value{
-In Download mode (pdf_title not NULL), a PDF file is written and the function
-returns NULL invisibly. In Interactive mode (pdf_title = NULL), a named list is
+In Download mode (output_file not NULL), a PDF file is written and the function
+returns NULL invisibly. In Interactive mode (output_file = NULL), a named list is
 returned with the following elements (in this order):
 1. overall_indiv_plot: Main individual classification plot
 2. overall_3D: Main 3D plot (if generated)
@@ -95,11 +94,13 @@ returned with the following elements (in this order):
 Analyze data with Sparse Partial Least Squares Discriminant Analysis (sPLS-DA).
 }
 \examples{
-data.df <- cytodata
-cyt_splsda(data.df[,-c(1,4)], pdf_title = "Example sPLS-DA Analysis.pdf",
-           colors = c("black", "purple", "red2"), bg = TRUE, scale = "log2",
-           conf_mat = TRUE, var_num = 25, cv_opt = "loocv", comp_num = 3,
-           pch_values = c(16, 4, 3), style = "3d",
-           group_col = "Group", group_col2 = "Treatment", roc = TRUE)
+data_df <- ExampleData1[,-c(3)]
+data_df <- dplyr::filter(data_df, Group != "ND", Treatment != "Unstimulated")
+
+cyt_splsda(data_df, output_file = NULL,
+splsda_colors = c("black", "purple"), bg = FALSE, scale = "log2",
+conf_mat = FALSE, var_num = 25, cv_opt = NULL, comp_num = 2,
+pch_values = c(16, 4), style = NULL, ellipse = TRUE,
+group_col = "Group", group_col2 = "Treatment", roc = FALSE)
 
 }

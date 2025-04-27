@@ -14,8 +14,8 @@ available_themes <- c(
   "cyborg"
 )
 ## Define UI for application (wizard style)
-ui <- fluidPage(
-  useShinyjs(),
+ui <- shiny::fluidPage(
+  shinyjs::useShinyjs(),
   theme = bs_theme(),
   tags$head(
     # Load Font Awesome, etc.
@@ -82,7 +82,7 @@ ui <- fluidPage(
     ))
   ),
   # Always-visible theme toggle in an absolute panel
-  absolutePanel(
+  shiny::absolutePanel(
     top = 10,
     right = 10,
     width = 200,
@@ -95,7 +95,7 @@ ui <- fluidPage(
   ),
 
   # Only show the header links on the first page (wizard step 1)
-  conditionalPanel(
+  shiny::conditionalPanel(
     condition = "output.currentStep == 1",
     div(
       style = "text-align: center; margin-bottom: 20px;",
@@ -138,7 +138,7 @@ ui <- fluidPage(
     )
   ),
   div(
-    conditionalPanel(
+    shiny::conditionalPanel(
       h1(
         "CytoProfile",
         style = "font-weight:300; font-size:2.5rem;"
@@ -163,12 +163,12 @@ ui <- fluidPage(
     )
   ),
   # Wizard UI and result display
-  div(id = "main_content", uiOutput("wizardUI")),
+  div(id = "main_content", shiny::uiOutput("wizardUI")),
 
   br(),
   # Download button (visible when output_mode is Download)
-  conditionalPanel(
+  shiny::conditionalPanel(
     condition = "input.output_mode == 'Download'",
-    downloadButton("download_output", "Download PDF")
+    shiny::downloadButton("download_output", "Download PDF")
   )
 )

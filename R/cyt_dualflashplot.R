@@ -21,17 +21,16 @@
 #' otherwise, the plot is saved to the specified file and the function returns NULL invisibly.
 #'
 #' @examples
-#' \dontrun{
-#' # Interactive mode:
-#' p <- cyt_dualflashplot(cytodata, group_var = "Group", group1 = "T2D", group2 = "ND",
-#'                         ssmd_thresh = 1, log2fc_thresh = 1, top_labels = 15)
-#' print(p)
-#'
-#' # Download mode:
-#' cyt_dualflashplot(cytodata, group_var = "Group", group1 = "T2D", group2 = "ND",
-#'                    ssmd_thresh = 1, log2fc_thresh = 1, top_labels = 15,
-#'                    output_file = "dualflashplot.pdf")
-#' }
+#' data_df <- ExampleData1[, -c(2:3)]
+#' cyt_dualflashplot(
+#'   data_df,
+#'   group_var = "Group",
+#'   group1 = "T2D",
+#'   group2 = "ND",
+#'   ssmd_thresh = -0.2,
+#'   log2fc_thresh = 1,
+#'   top_labels = 10
+#' )
 #'
 #' @import dplyr
 #' @importFrom tidyr pivot_longer pivot_wider
@@ -66,17 +65,17 @@ cyt_dualflashplot <- function(
   if (!is.null(progress))
     progress$inc(0.1, detail = "Calculating summary statistics")
   stats <- data_long %>%
-    group_by(cytokine, .data[[group_var]]) %>%
-    summarise(
+    dplyr::group_by(cytokine, .data[[group_var]]) %>%
+    dplyr::summarise(
       mean = mean(level, na.rm = TRUE),
-      variance = var(level, na.rm = TRUE),
+      variance = stats::var(level, na.rm = TRUE),
       .groups = "drop"
     ) %>%
     tidyr::pivot_wider(
       names_from = .data[[group_var]],
       values_from = c(mean, variance)
     ) %>%
-    mutate(
+    dplyr::mutate(
       ssmd = (get(paste0("mean_", group1)) - get(paste0("mean_", group2))) /
         sqrt(
           (get(paste0("variance_", group1)) +
@@ -99,8 +98,8 @@ cyt_dualflashplot <- function(
   top_stats <- dplyr::top_n(stats, n = top_labels, wt = abs(ssmd))
 
   if (!is.null(progress)) progress$inc(0.1, detail = "Generating plot")
-  p <- ggplot(stats, aes(x = log2FC, y = ssmd, label = cytokine)) +
-    geom_point(aes(color = SSMD_Category, shape = Significant)) +
+  p <- ggplot2::ggplot(stats, aes(x = log2FC, y = ssmd, label = cytokine)) +
+    ggplot2::geom_point(aes(color = SSMD_Category, shape = Significant)) +
     ggrepel::geom_text_repel(
       data = top_stats,
       size = 3,
@@ -108,28 +107,28 @@ cyt_dualflashplot <- function(
       hjust = 1.1,
       max.overlaps = 50
     ) +
-    geom_hline(yintercept = 0, linetype = "dashed") +
-    geom_vline(
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+    ggplot2::geom_vline(
       xintercept = c(log2fc_thresh, -log2fc_thresh),
       linetype = "dashed",
       color = "blue"
     ) +
-    labs(
+    ggplot2::labs(
       x = "Average log2 Fold Change",
       y = "SSMD",
       title = paste("SSMD vs log2FC for", group1, "vs", group2)
     ) +
-    theme_minimal()
+    ggplot2::theme_minimal()
 
   if (!is.null(output_file)) {
     if (!is.null(progress)) progress$inc(0.1, detail = "Saving plot to file")
     ext <- tools::file_ext(output_file)
     if (tolower(ext) == "pdf") {
-      pdf(file = output_file, width = 7, height = 5)
+      grDevices::pdf(file = output_file, width = 7, height = 5)
       print(p)
-      dev.off()
+      grDevices::dev.off()
     } else if (tolower(ext) %in% c("png", "jpg", "jpeg")) {
-      png(
+      grDevices::png(
         filename = output_file,
         res = 300,
         width = 2100,
@@ -137,12 +136,12 @@ cyt_dualflashplot <- function(
         units = "px"
       )
       print(p)
-      dev.off()
+      grDevices::dev.off()
     } else {
       warning("Unknown file extension; defaulting to PDF")
-      pdf(file = output_file, width = 7, height = 5)
+      grDevices::pdf(file = output_file, width = 7, height = 5)
       print(p)
-      dev.off()
+      grDevices::dev.off()
     }
     if (!is.null(progress)) progress$inc(0.05, detail = "Plot saved")
     return(invisible(NULL))

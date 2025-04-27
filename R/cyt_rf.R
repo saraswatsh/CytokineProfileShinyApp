@@ -35,20 +35,13 @@
 #' If \code{output_file} is provided, a PDF is generated and the function returns \code{NULL} invisibly.
 #'
 #' @examples
-#' data.df0 <- cytodata
-#' data.df <- data.frame(data.df0[, 1:4], log2(data.df0[, -c(1:4)]))
-#' data.df <- data.df[, -c(1, 3, 4)]
+#' data.df0 <- ExampleData1
+#' data.df <- data.frame(data.df0[, 1:3], log2(data.df0[, -c(1:3)]))
+#' data.df <- data.df[, -c(2:3)]
 #' data.df <- dplyr::filter(data.df, Group != "ND")
 #'
-#' # For interactive use:
-#' results <- cyt_rf(data = data.df, group_col = "Group", k_folds = 5,
-#'                   ntree = 1000, mtry = 4, run_rfcv = TRUE, plot_roc = TRUE)
-#' print(results$vip_plot)
-#'
-#' # To save outputs to a PDF:
-#' cyt_rf(data = data.df, group_col = "Group", k_folds = 5,
-#'        ntree = 1000, mtry = 4, run_rfcv = TRUE, plot_roc = TRUE,
-#'        output_file = "RF_Analysis.pdf")
+#' cyt_rf(data = data.df, group_col = "Group", k_folds = 5, ntree = 1000,
+#'   mtry = 4, run_rfcv = TRUE, plot_roc = TRUE)
 #'
 #' @import ggplot2
 #' @importFrom randomForest randomForest rfcv importance
@@ -91,7 +84,7 @@ cyt_rf <- function(
 
   # Prepare formula for the random forest model
   predictors <- setdiff(colnames(data), group_col)
-  formula_rf <- as.formula(paste(
+  formula_rf <- stats::as.formula(paste(
     group_col,
     "~",
     paste(predictors, collapse = "+")
@@ -110,14 +103,14 @@ cyt_rf <- function(
     progress$inc(0.1, detail = "Fitting Random Forest model")
 
   # Predict on training set for confusion matrix
-  train_pred <- predict(rf_model, newdata = train_data)
+  train_pred <- stats::predict(rf_model, newdata = train_data)
   train_conf_mat <- caret::confusionMatrix(train_pred, train_data[[group_col]])
   accuracy_train <- train_conf_mat$overall["Accuracy"]
   if (!is.null(progress))
     progress$inc(0.05, detail = "Evaluating training set performance")
 
   # Predict on the test set
-  test_pred <- predict(rf_model, newdata = test_data)
+  test_pred <- stats::predict(rf_model, newdata = test_data)
   test_conf_mat <- caret::confusionMatrix(test_pred, test_data[[group_col]])
   accuracy_test <- test_conf_mat$overall["Accuracy"]
   if (!is.null(progress))
@@ -126,7 +119,7 @@ cyt_rf <- function(
   # Build ROC plot if binary classification
   roc_plot <- NULL
   if (plot_roc && length(levels(data[[group_col]])) == 2) {
-    rf_prob <- predict(rf_model, newdata = test_data, type = "prob")[, 2]
+    rf_prob <- stats::predict(rf_model, newdata = test_data, type = "prob")[, 2]
     roc_obj <- pROC::roc(test_data[[group_col]], rf_prob)
     auc_value <- pROC::auc(roc_obj)
     roc_plot <- pROC::ggroc(
@@ -135,13 +128,13 @@ cyt_rf <- function(
       linewidth = 1.5,
       legacy.axes = TRUE
     ) +
-      geom_abline(linetype = "dashed", color = "red", linewidth = 1) +
-      labs(
+      ggplot2::geom_abline(linetype = "dashed", color = "red", linewidth = 1) +
+      ggplot2::labs(
         title = "ROC Curve (Test Set)",
         x = "1 - Specificity",
         y = "Sensitivity"
       ) +
-      annotate(
+      ggplot2::annotate(
         "text",
         x = 0.75,
         y = 0.25,
@@ -149,7 +142,7 @@ cyt_rf <- function(
         size = 5,
         color = "blue"
       ) +
-      theme_minimal()
+      ggplot2::theme_minimal()
     if (!is.null(progress)) progress$inc(0.05, detail = "Building ROC curve")
   }
 
@@ -158,13 +151,16 @@ cyt_rf <- function(
     Variable = rownames(randomForest::importance(rf_model)),
     Gini = randomForest::importance(rf_model)[, "MeanDecreaseGini"]
   )
-  vip_plot <- ggplot(imp_data, aes(x = reorder(Variable, Gini), y = Gini)) +
-    geom_bar(stat = "identity", fill = "red2") +
-    coord_flip() +
-    ggtitle("Variable Importance Plot (Mean Decrease in Gini)") +
-    xlab("Features") +
-    ylab("Importance (Gini Index)") +
-    theme_minimal()
+  vip_plot <- ggplot2::ggplot(
+    imp_data,
+    aes(x = stats::reorder(Variable, Gini), y = Gini)
+  ) +
+    ggplot2::geom_bar(stat = "identity", fill = "red2") +
+    ggplot2::coord_flip() +
+    ggplot2::ggtitle("Variable Importance Plot (Mean Decrease in Gini)") +
+    ggplot2::xlab("Features") +
+    ggplot2::ylab("Importance (Gini Index)") +
+    ggplot2::theme_minimal()
   if (!is.null(progress))
     progress$inc(0.05, detail = "Generating variable importance plot")
 
@@ -185,13 +181,13 @@ cyt_rf <- function(
       Variables = rfcv_result$n.var,
       Error = rfcv_result$error.cv
     )
-    rfcv_plot <- ggplot(rfcv_data, aes(x = Variables, y = Error)) +
-      geom_line(color = "blue") +
-      geom_point(color = "blue") +
-      ggtitle("Cross-Validation Error vs. Number of Variables") +
-      xlab("Number of Variables") +
-      ylab("Cross-Validation Error") +
-      theme_minimal()
+    rfcv_plot <- ggplot2::ggplot(rfcv_data, aes(x = Variables, y = Error)) +
+      ggplot2::geom_line(color = "blue") +
+      ggplot2::geom_point(color = "blue") +
+      ggplot2::ggtitle("Cross-Validation Error vs. Number of Variables") +
+      ggplot2::xlab("Number of Variables") +
+      ggplot2::ylab("Cross-Validation Error") +
+      ggplot2::theme_minimal()
     if (!is.null(progress))
       progress$inc(0.05, detail = "Performing Random Forest cross-validation")
   }
@@ -199,7 +195,7 @@ cyt_rf <- function(
   # Return interactive results or write PDF if output_file is provided
   if (is.null(output_file)) {
     # Build summary text
-    summary_text <- capture.output({
+    summary_text <- utils::capture.output({
       cat("### RANDOM FOREST RESULTS ###\n\n")
 
       cat("--- Training Set ---\n")
@@ -261,7 +257,7 @@ cyt_rf <- function(
     ))
   } else {
     # PDF mode: print outputs to PDF
-    pdf(file = output_file, width = 8, height = 8)
+    grDevices::pdf(file = output_file, width = 8, height = 8)
     cat("Training Confusion Matrix:\n")
     print(train_conf_mat$table)
     cat("\nTest Confusion Matrix:\n")
@@ -270,7 +266,7 @@ cyt_rf <- function(
     if (!is.null(roc_plot)) print(roc_plot)
     print(vip_plot)
     if (!is.null(rfcv_plot)) print(rfcv_plot)
-    dev.off()
+    grDevices::dev.off()
     return(invisible(NULL))
   }
 }

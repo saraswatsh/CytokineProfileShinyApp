@@ -40,13 +40,8 @@ If \code{output_file} is provided, the plots are saved to that PDF file; otherwi
 }
 \examples{
 # Loading data
-data_df <- ExampleData1[, -c(1, 4)]
-
-# To display the boxplots interactively:
-plots <- cyt_bp2(data_df, scale = "log2")
-print(plots[["IL6_vs_Group"]])
-
-# To save the boxplots to a PDF file:
-cyt_bp2(data_df, output_file = "boxplot2_output.pdf", scale = "log2")
+data_df <- ExampleData1[, -c(3, 5:28)]
+data_df <- dplyr::filter(data_df, Group == "T2D", Treatment == "Unstimulated")
+cyt_bp2(data_df, output_file = NULL, scale = "log2")
 
 }

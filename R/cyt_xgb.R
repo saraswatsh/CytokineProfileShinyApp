@@ -21,7 +21,6 @@
 #' @param subsample A numeric value specifying the subsample ratio of the training instances (default is 1).
 #' @param min_child_weight A numeric value specifying the minimum sum of instance weight needed in a child (default is 1).
 #' @param top_n_features An integer specifying the number of top features to display in the importance plot (default is 10).
-#' @param verbose An integer specifying the verbosity of the training process (default is 1).
 #' @param plot_roc A logical value indicating whether to plot the ROC curve and calculate the AUC for binary classification (default is FALSE).
 #' @param output_file Optional. A file path to save the outputs as a PDF file. If provided, outputs are written to the file and results are returned invisibly.
 #'
@@ -35,25 +34,18 @@
 #'   \item{plot}{A ggplot object showing the feature importance plot.}
 #'
 #' @examples
-#' data_df0 <- cytodata
-#' data_df <- data.frame(data_df0[, 1:4], log2(data_df0[, -c(1:4)]))
-#' data_df <- data_df[, -c(1, 3, 4)]
+#' # Example usage:
+#' data_df0 <- ExampleData1
+#' data_df <- data.frame(data_df0[, 1:3], log2(data_df0[, -c(1:3)]))
+#' data_df <- data_df[, -c(2,3)]
 #' data_df <- dplyr::filter(data_df, Group != "ND")
 #'
-#' # Interactive mode:
-#' results <- cyt_xgb(
-#'   data = data_df, group_col = "Group", nrounds = 500, max_depth = 4, eta = 0.05,
-#'   nfold = 5, cv = TRUE, eval_metric = "mlogloss",
-#'   early_stopping_rounds = NULL, top_n_features = 10, plot_roc = TRUE
-#' )
-#' print(results$plot)
-#'
-#' # To save outputs to a PDF file:
 #' cyt_xgb(
-#'   data = data_df, group_col = "Group", nrounds = 500, max_depth = 4, eta = 0.05,
-#'   nfold = 5, cv = TRUE, eval_metric = "mlogloss",
-#'   early_stopping_rounds = NULL, top_n_features = 10, plot_roc = TRUE,
-#'   output_file = "XGB_Analysis.pdf"
+#'   data = data_df, group_col = "Group",
+#'   nrounds = 500, max_depth = 4, eta = 0.05,
+#'   nfold = 5, cv = FALSE, eval_metric = "mlogloss",
+#'   early_stopping_rounds = NULL, top_n_features = 10,
+#'   plot_roc = TRUE
 #' )
 #'
 #' @importFrom xgboost xgb.DMatrix xgb.train xgb.importance xgb.ggplot.importance xgb.cv
@@ -93,7 +85,7 @@ cyt_xgb <- function(
 
   # Create mapping from group names to numeric labels
   class_labels <- levels(data[[group_col]])
-  class_mapping <- setNames(0:(length(class_labels) - 1), class_labels)
+  class_mapping <- stats::setNames(0:(length(class_labels) - 1), class_labels)
 
   # Convert grouping variable to numeric for xgboost
   data[[group_col]] <- as.numeric(data[[group_col]]) - 1
@@ -155,7 +147,7 @@ cyt_xgb <- function(
   # Predictions and confusion matrix
   if (!is.null(progress))
     progress$inc(0.05, detail = "Making predictions on test set...")
-  preds <- predict(xgb_model, X_test)
+  preds <- stats::predict(xgb_model, X_test)
   pred_matrix <- matrix(preds, ncol = length(unique(y_test)), byrow = TRUE)
   pred_labels <- max.col(pred_matrix) - 1
 
@@ -180,13 +172,13 @@ cyt_xgb <- function(
       linewidth = 1.5,
       legacy.axes = TRUE
     ) +
-      geom_abline(linetype = "dashed", color = "red", linewidth = 1) +
-      labs(
+      ggplot2::geom_abline(linetype = "dashed", color = "red", linewidth = 1) +
+      ggplot2::labs(
         title = "ROC Curve (Test Set)",
         x = "1 - Specificity",
         y = "Sensitivity"
       ) +
-      annotate(
+      ggplot2::annotate(
         "text",
         x = 0.75,
         y = 0.25,
@@ -194,7 +186,7 @@ cyt_xgb <- function(
         size = 5,
         color = "blue"
       ) +
-      theme_minimal()
+      ggplot2::theme_minimal()
   }
 
   # Feature importance
@@ -204,16 +196,16 @@ cyt_xgb <- function(
     feature_names = colnames(X),
     model = xgb_model
   )
-  top_features <- head(importance_matrix, top_n_features)
+  top_features <- utils::head(importance_matrix, top_n_features)
   vip_plot <- xgboost::xgb.ggplot.importance(
     importance_matrix = top_features,
     top_n = top_n_features
   ) +
-    geom_bar(stat = "identity", fill = "red2", show.legend = FALSE) +
-    ggtitle("Top Features by Gain") +
-    ylab("Importance (Gain)") +
-    xlab("Features") +
-    theme_minimal()
+    ggplot2::geom_bar(stat = "identity", fill = "red2", show.legend = FALSE) +
+    ggplot2::ggtitle("Top Features by Gain") +
+    ggplot2::ylab("Importance (Gain)") +
+    ggplot2::xlab("Features") +
+    ggplot2::theme_minimal()
 
   # Cross-validation (if requested)
   cv_results <- NULL
@@ -239,7 +231,7 @@ cyt_xgb <- function(
   if (is.null(output_file)) {
     if (!is.null(progress))
       progress$inc(0.05, detail = "Finalizing interactive results...")
-    summary_text <- capture.output({
+    summary_text <- utils::capture.output({
       cat("### XGBOOST RESULTS ###\n\n")
       cat("1) Group -> Numeric Label Mapping:\n")
       print(class_mapping)
@@ -283,7 +275,7 @@ cyt_xgb <- function(
     ))
   } else {
     # PDF mode: print outputs to PDF
-    pdf(file = output_file, width = 8, height = 8)
+    grDevices::pdf(file = output_file, width = 8, height = 8)
     cat("### XGBOOST RESULTS ###\n\n")
     cat("Group -> Numeric Label Mapping:\n")
     print(class_mapping)
@@ -298,7 +290,7 @@ cyt_xgb <- function(
       cat("\nCross-Validation Best Iteration:\n")
       print(cv_results$evaluation_log[best_cv_iter, ])
     }
-    dev.off()
+    grDevices::dev.off()
     return(invisible(NULL))
   }
 }

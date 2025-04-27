@@ -64,8 +64,6 @@ and the rest as numerical features.}
 \item{plot_roc}{A logical value indicating whether to plot the ROC curve and calculate the AUC for binary classification (default is FALSE).}
 
 \item{output_file}{Optional. A file path to save the outputs as a PDF file. If provided, outputs are written to the file and results are returned invisibly.}
-
-\item{verbose}{An integer specifying the verbosity of the training process (default is 1).}
 }
 \value{
 A list containing:
@@ -82,25 +80,18 @@ This function trains and evaluates an XGBoost classification model on cytokine d
 It allows for hyperparameter tuning, cross-validation, and visualizes feature importance.
 }
 \examples{
-data_df0 <- cytodata
-data_df <- data.frame(data_df0[, 1:4], log2(data_df0[, -c(1:4)]))
-data_df <- data_df[, -c(1, 3, 4)]
+# Example usage:
+data_df0 <- ExampleData1
+data_df <- data.frame(data_df0[, 1:3], log2(data_df0[, -c(1:3)]))
+data_df <- data_df[, -c(2,3)]
 data_df <- dplyr::filter(data_df, Group != "ND")
 
-# Interactive mode:
-results <- cyt_xgb(
-  data = data_df, group_col = "Group", nrounds = 500, max_depth = 4, eta = 0.05,
-  nfold = 5, cv = TRUE, eval_metric = "mlogloss",
-  early_stopping_rounds = NULL, top_n_features = 10, plot_roc = TRUE
-)
-print(results$plot)
-
-# To save outputs to a PDF file:
 cyt_xgb(
-  data = data_df, group_col = "Group", nrounds = 500, max_depth = 4, eta = 0.05,
-  nfold = 5, cv = TRUE, eval_metric = "mlogloss",
-  early_stopping_rounds = NULL, top_n_features = 10, plot_roc = TRUE,
-  output_file = "XGB_Analysis.pdf"
+  data = data_df, group_col = "Group",
+  nrounds = 500, max_depth = 4, eta = 0.05,
+  nfold = 5, cv = FALSE, eval_metric = "mlogloss",
+  early_stopping_rounds = NULL, top_n_features = 10,
+  plot_roc = TRUE
 )
 
 }

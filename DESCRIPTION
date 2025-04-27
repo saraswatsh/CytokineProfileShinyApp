@@ -6,18 +6,14 @@ Authors@R: c(
     comment = c(ORCID = "0009-0009-2359-1484")),
     person("Xiaohua Douglas", "Zhang", email = "douglas.zhang@uky.edu", role = "aut",
     comment = c(ORCID = "0000-0002-2486-7931")))
-Description: CytoProfileShinyApp is an interactive Shiny application for comprehensive cytokine profiling analysis.
-    It supports quality control by applying biologically meaningful cutoffs on raw cytokine measurements and 
-    employs tests for distributional symmetry to recommend suitable data transformations. The application 
-    provides a suite of exploratory and advanced analytical tools including summary statistics, enhanced boxplots,
-    barplots, univariate tests, multivariate techniques (e.g. PCA, sPLS-DA), Random Forest classification, and 
-    Extreme Gradient Boosting (XGBoost). These capabilities facilitate in-depth analysis and visualization of cytokine data.
+Description: An interactive Shiny application that provides comprehensive cytokine profiling analysis through quality control using biologically meaningful cutoffs on raw cytokine measurements and by testing for distributional symmetry to recommend appropriate transformations. Offers exploratory data analysis with summary statistics, enhanced boxplots, and barplots, along with univariate and multivariate analytical capabilities for in-depth cytokine profiling such as Principal Component Analysis based on Andrzej Maćkiewicz and Waldemar Ratajczak (1993) <doi:10.1016/0098-3004(93)90090-R>, Sparse Partial Least Squares Discriminant Analysis based on Lê Cao K-A, Boitard S, and Besse P (2011) <doi:10.1186/1471-2105-12-253>, Random Forest based on Breiman, L. (2001) <doi:10.1023/A:1010933404324>, and Extreme Gradient Boosting based on Tianqi Chen and Carlos Guestrin (2016) <doi:10.1145/2939672.2939785>.
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 URL: https://github.com/saraswatsh/CytoProfileShinyApp, https://saraswatsh.github.io/CytoProfileShinyApp/, https://ssa390.shinyapps.io/cytoprofile_shiny/
 Depends: 
-    R (>= 4.3),
+    R (>= 4.3)
+Imports: 
     shiny,
     shinyjs,
     base64enc,
@@ -26,10 +22,8 @@ Depends:
     shinyhelper,
     DT,
     shinyFeedback,
-    skimr 
-Imports: 
+    skimr, 
     mixOmics,
-    moments,
     dplyr,
     tidyr,
     pROC,
@@ -43,7 +37,8 @@ Imports:
     ggrepel, 
     gridExtra,
     reshape2
-Suggests: 
+Suggests:
+    spelling, 
     BiocManager,
     testthat,
     knitr,
@@ -53,4 +48,4 @@ Suggests:
 NeedsCompilation: no
 License: GPL (>= 2)
 LazyData: true
-VignetteBuilder: knitr
+Language: en-US

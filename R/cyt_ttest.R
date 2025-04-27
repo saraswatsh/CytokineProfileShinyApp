@@ -19,13 +19,10 @@
 #'   If TRUE, returns a data frame with columns "Outcome", "Categorical", "Comparison", and "P_value".
 #'
 #' @examples
-#' \dontrun{
-#' data_df <- ExampleData1[, -c(2: 4)]
-#' data_df <- dplyr::filter(data_df, Group != "ND")
+#' data_df <- ExampleData1[, -c(3)]
+#' data_df <- dplyr::filter(data_df, Group != "ND", Treatment != "Unstimulated")
 #'
-#' res <- cyt_ttest(data_df[, c(1,5:6)], scale = "log2", format_output = TRUE)
-#' head(res)
-#' }
+#' cyt_ttest(data_df[, c(1, 2, 5:6)], scale = "log2", format_output = TRUE)
 #' @export
 cyt_ttest <- function(
   data,
@@ -56,15 +53,18 @@ cyt_ttest <- function(
       if (length(g1) < 2 || length(g2) < 2) next
 
       # normality check
-      p1 <- tryCatch(shapiro.test(g1)$p.value, error = function(e) 0)
-      p2 <- tryCatch(shapiro.test(g2)$p.value, error = function(e) 0)
+      p1 <- tryCatch(stats::shapiro.test(g1)$p.value, error = function(e) 0)
+      p2 <- tryCatch(stats::shapiro.test(g2)$p.value, error = function(e) 0)
 
       # pick the test
       if (p1 > 0.05 && p2 > 0.05) {
-        tt <- t.test(as.formula(paste(outcome, "~", cat_var)), data = x1_df)
+        tt <- stats::t.test(
+          stats::as.formula(paste(outcome, "~", cat_var)),
+          data = x1_df
+        )
       } else {
-        tt <- wilcox.test(
-          as.formula(paste(outcome, "~", cat_var)),
+        tt <- stats::wilcox.test(
+          stats::as.formula(paste(outcome, "~", cat_var)),
           data = x1_df,
           conf.int = TRUE
         )

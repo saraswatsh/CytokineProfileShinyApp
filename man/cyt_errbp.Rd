@@ -12,7 +12,7 @@ cyt_errbp(
   class_symbol = TRUE,
   x_lab = "",
   y_lab = "",
-  title = "",
+  title = NULL,
   progress = NULL,
   log2 = FALSE,
   output_file = NULL
@@ -58,22 +58,10 @@ are computed for the overall data. The function then produces a ggplot2 bar plot
 if requested, overlays p-value and effect size annotations (displayed as symbols by default).
 }
 \examples{
-\dontrun{
-  # Example with grouping variable:
-  set.seed(123)
-  data <- data.frame(
-    Group = rep(c("Control", "Treatment1", "Treatment2"), each = 20),
-    cytokine_level = c(rnorm(20, 5, 1), rnorm(20, 6, 1), rnorm(20, 7, 1))
-  )
-  p <- cyt_errbp(data, group_col = "Group",
-                 p_lab = TRUE, es_lab = TRUE, class_symbol = TRUE,
-                 x_lab = "Group", y_lab = "Cytokine Level", title = "Error Bar Plot")
-  print(p)
+data <- ExampleData1
 
-  # Example without grouping variable:
-  data2 <- data.frame(cytokine_level = rnorm(60, 5, 1))
-  p2 <- cyt_errbp(data2)
-  print(p2)
-}
+cyt_errbp(data[,c("Group", "CCL.20.MIP.3A", "IL.10")], group_col = "Group",
+p_lab = TRUE, es_lab = TRUE, class_symbol = TRUE, x_lab = "Cytokines",
+y_lab = "Concentrations in log2 scale", log2 = TRUE)
 
 }

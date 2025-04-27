@@ -47,16 +47,15 @@ A dual flash plot is generated using ggplot2 where the x-axis represents the ave
 and the y-axis represents the SSMD.
 }
 \examples{
-\dontrun{
-# Interactive mode:
-p <- cyt_dualflashplot(cytodata, group_var = "Group", group1 = "T2D", group2 = "ND",
-                        ssmd_thresh = 1, log2fc_thresh = 1, top_labels = 15)
-print(p)
-
-# Download mode:
-cyt_dualflashplot(cytodata, group_var = "Group", group1 = "T2D", group2 = "ND",
-                   ssmd_thresh = 1, log2fc_thresh = 1, top_labels = 15,
-                   output_file = "dualflashplot.pdf")
-}
+data_df <- ExampleData1[, -c(2:3)]
+cyt_dualflashplot(
+  data_df,
+  group_var = "Group",
+  group1 = "T2D",
+  group2 = "ND",
+  ssmd_thresh = -0.2,
+  log2fc_thresh = 1,
+  top_labels = 10
+)
 
 }

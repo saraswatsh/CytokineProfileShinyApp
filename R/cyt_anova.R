@@ -19,14 +19,8 @@
 #'   If \code{format_output} is TRUE, a data frame with columns "Outcome", "Categorical", "Comparison", and "P_adj".
 #'
 #' @examples
-#' data("cytodata")
-#' # Return list output (default)
-#' anova_results <- cyt_anova(ExampleData1[, c(2:4, 5:6)])
-#' print(anova_results)
-#'
-#' # Return formatted output as a data frame
-#' anova_df <- cyt_anova(ExampleData1[, c(2:4, 5:6)], format_output = TRUE)
-#' head(anova_df)
+#' data("ExampleData1")
+#' cyt_anova(ExampleData1[, c(1:2, 5:6)], format_output = TRUE)
 #'
 #' @export
 
@@ -55,8 +49,11 @@ cyt_anova <- function(data, format_output = FALSE, progress = NULL) {
     if (num_levels == 1 || num_levels > 10) next
 
     for (outcome in names(x1_df)[cont_vars]) {
-      model <- aov(as.formula(paste(outcome, "~", cat_var)), data = x1_df)
-      tukey_result <- TukeyHSD(model)
+      model <- stats::aov(
+        stats::as.formula(paste(outcome, "~", cat_var)),
+        data = x1_df
+      )
+      tukey_result <- stats::TukeyHSD(model)
       p_vals <- tukey_result[[cat_var]][, "p adj"]
       result_key <- paste(outcome, cat_var, sep = "_")
       tukey_results[[result_key]] <- p_vals

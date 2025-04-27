@@ -29,6 +29,13 @@
 #' @importFrom dplyr arrange mutate desc row_number
 #' @importFrom ggrepel geom_text_repel
 #' @export
+#' @examples
+#' # Loading data
+#' data_df <- ExampleData1[,-c(2:3)]
+#'
+#' cyt_volc(data_df, "Group", cond1 = "T2D", cond2 = "ND",
+#' fold_change_thresh = 2.0, top_labels= 15)
+#'
 cyt_volc <- function(
   data,
   group_col,
@@ -51,7 +58,7 @@ cyt_volc <- function(
     if (!is.null(progress))
       progress$inc(0.05, detail = "Generating condition pairs")
     conditions <- unique(data[[group_col]])
-    condition_pairs <- combn(conditions, 2, simplify = FALSE)
+    condition_pairs <- utils::combn(conditions, 2, simplify = FALSE)
   }
 
   numeric_cols <- sapply(data, is.numeric)
@@ -92,7 +99,7 @@ cyt_volc <- function(
 
     p_values <- mapply(
       function(x, y) {
-        if (length(x) < 2 || length(y) < 2) NA else t.test(x, y)$p.value
+        if (length(x) < 2 || length(y) < 2) NA else stats::t.test(x, y)$p.value
       },
       as.list(data_cond1[, numeric_cols, drop = FALSE]),
       as.list(data_cond2[, numeric_cols, drop = FALSE])
@@ -109,38 +116,42 @@ cyt_volc <- function(
     )
 
     plot_data <- plot_data %>%
-      mutate(
+      dplyr::mutate(
         significant = (abs(fc_log) >= log2(fold_change_thresh)) &
           (p_log >= -log10(p_value_thresh))
       ) %>%
-      arrange(desc(significant), desc(p_log)) %>%
-      mutate(label = ifelse(row_number() <= top_labels, variable, ""))
+      dplyr::arrange(desc(significant), desc(p_log)) %>%
+      dplyr::mutate(
+        label = ifelse(dplyr::row_number() <= top_labels, variable, "")
+      )
 
     if (!is.null(progress))
       progress$inc(
         0.05,
         detail = paste("Processed pair", pair_count, "of", total_pairs)
       )
-    p <- ggplot(plot_data, aes(x = fc_log, y = p_log, label = label)) +
-      geom_point(aes(color = significant), size = 2) +
-      geom_vline(
+    p <- ggplot2::ggplot(plot_data, aes(x = fc_log, y = p_log, label = label)) +
+      ggplot2::geom_point(aes(color = significant), size = 2) +
+      ggplot2::geom_vline(
         xintercept = c(log2(fold_change_thresh), -log2(fold_change_thresh)),
         linetype = "dashed",
         color = "blue"
       ) +
-      geom_hline(
+      ggplot2::geom_hline(
         yintercept = -log10(p_value_thresh),
         linetype = "dashed",
         color = "blue"
       ) +
       ggrepel::geom_text_repel(size = 3, max.overlaps = 50) +
-      scale_color_manual(values = c("FALSE" = "grey", "TRUE" = "red")) +
-      labs(
+      ggplot2::scale_color_manual(
+        values = c("FALSE" = "grey", "TRUE" = "red")
+      ) +
+      ggplot2::labs(
         title = paste("Volcano Plot:", current_cond1, "vs", current_cond2),
         x = "Log2 Fold Change",
         y = "-Log10 P-Value"
       ) +
-      theme_minimal()
+      ggplot2::theme_minimal()
 
     plot_list[[paste(current_cond1, "vs", current_cond2)]] <- p
   }
@@ -149,15 +160,15 @@ cyt_volc <- function(
     if (!is.null(progress)) progress$inc(0.05, detail = "Saving plots to file")
     ext <- tools::file_ext(output_file)
     if (tolower(ext) == "pdf") {
-      pdf(file = output_file, width = 7, height = 5)
+      grDevices::pdf(file = output_file, width = 7, height = 5)
       for (p in plot_list) {
         print(p)
       }
-      dev.off()
+      grDevices::dev.off()
       if (!is.null(progress)) progress$inc(0.05, detail = "File saved")
       return(invisible(NULL))
     } else if (tolower(ext) %in% c("png", "jpg", "jpeg")) {
-      png(
+      grDevices::png(
         filename = output_file,
         res = 300,
         width = 2100,
@@ -165,7 +176,7 @@ cyt_volc <- function(
         units = "px"
       )
       print(plot_list[[1]])
-      dev.off()
+      grDevices::dev.off()
       return(invisible(NULL))
     } else {
       stop("Output file must have extension .pdf, .png, .jpg, or .jpeg")

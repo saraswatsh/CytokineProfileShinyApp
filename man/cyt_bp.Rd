@@ -18,33 +18,29 @@ cyt_bp(
 \item{data}{A matrix or data frame containing the raw data to be plotted.}
 
 \item{output_file}{Optional. A file path to save the plots as a PDF file. If NULL, the function
-returns a list of ggplot objects.}
+returns a list of ggplot2 objects.}
 
 \item{bin_size}{An integer specifying the maximum number of box plots to display per chunk.}
 
 \item{mf_row}{A numeric vector of length two specifying the layout (rows and columns) in the PDF
-output. (Not used when returning ggplot objects.)}
+output. (Not used when returning ggplot2 objects.)}
 
 \item{y_lim}{An optional numeric vector defining the y-axis limits for the plots.}
 
 \item{scale}{An optional character string. If set to "log2", numeric columns are log2-transformed.}
 }
 \value{
-If \code{output_file} is NULL, a list of ggplot objects; otherwise, writes a PDF and returns NULL.
+If \code{output_file} is NULL, a list of ggplot2 objects; otherwise, writes a PDF and returns NULL.
 }
 \description{
 This function creates boxplots for the continuous variables in the provided data.
 If the number of columns in \code{data} exceeds \code{bin_size}, the plots are split across multiple
 chunks. If an \code{output_file} is provided, the function writes the plots to that PDF file;
-otherwise, it returns a list of ggplot objects.
+otherwise, it returns a list of ggplot2 objects.
 }
 \examples{
-data.df <- cytodata
-# To display the boxplots natively:
-plots <- cyt_bp(data.df, bin_size = 10, scale = "log2")
-print(plots[[1]])
+data_df <- ExampleData1
 
-# To save the boxplots to a PDF file:
-cyt_bp(data.df, output_file = "boxplot_output.pdf", scale = "log2")
+cyt_bp(data_df[,-c(1:3)], output_file = NULL, scale = "log2")
 
 }

@@ -24,33 +24,56 @@
 #' @importFrom gridExtra grid.arrange
 #' @import dplyr
 #' @export
-cyt_skku <- function(data, group_cols = NULL, output_file = NULL,
-                     print_res_raw = FALSE, print_res_log = FALSE, progress = NULL) {
-  if (!is.null(progress)) progress$inc(0.05, detail = "Loading libraries and data")
-  library(e1071)
-  library(ggplot2)
-  library(dplyr)
-  library(gridExtra)
-  
-  if (!is.null(progress)) progress$inc(0.05, detail = "Determining grouping and measurement columns")
+#' @examples
+#' # Example with grouping columns (e.g., "Group" and "Treatment")
+#' data(ExampleData1)
+#' cyt_skku(ExampleData1[, -c(2:3)], output_file = NULL,
+#'   group_cols = c("Group")
+#' )
+#'
+#' # Example without grouping columns (analyzes the entire data set)
+#' cyt_skku(ExampleData1[, -c(1:3)], output_file = NULL)
+#'
+cyt_skku <- function(
+  data,
+  group_cols = NULL,
+  output_file = NULL,
+  print_res_raw = FALSE,
+  print_res_log = FALSE,
+  progress = NULL
+) {
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Loading libraries and data")
+
+  if (!is.null(progress))
+    progress$inc(0.05, detail = "Determining grouping and measurement columns")
   if (!is.null(group_cols)) {
     measure_cols <- setdiff(names(data), group_cols)
-    grouping <- apply(data[, group_cols, drop = FALSE], 1, paste, collapse = "_")
+    grouping <- apply(
+      data[, group_cols, drop = FALSE],
+      1,
+      paste,
+      collapse = "_"
+    )
   } else {
     measure_cols <- names(data)
     grouping <- rep("overall", nrow(data))
   }
-  
+
   measure_mat <- data[, measure_cols, drop = FALSE]
   condt <- !is.na(measure_mat) & (measure_mat > 0)
   cutoff <- min(measure_mat[condt], na.rm = TRUE) / 10
-  
+
   compute_metrics <- function(Y, groups) {
     n <- tapply(Y, groups, function(x) sum(!is.na(x)))
     center <- tapply(Y, groups, mean, na.rm = TRUE)
-    spread <- tapply(Y, groups, function(x) sd(x, na.rm = TRUE) / sqrt(sum(!is.na(x))))
-    skew <- tapply(Y, groups, skewness, na.rm = TRUE)
-    kurt <- tapply(Y, groups, kurtosis, na.rm = TRUE)
+    spread <- tapply(
+      Y,
+      groups,
+      function(x) stats::sd(x, na.rm = TRUE) / sqrt(sum(!is.na(x)))
+    )
+    skew <- tapply(Y, groups, e1071::skewness, na.rm = TRUE)
+    kurt <- tapply(Y, groups, e1071::kurtosis, na.rm = TRUE)
     data.frame(
       group = names(n),
       n = as.numeric(n),
@@ -61,8 +84,9 @@ cyt_skku <- function(data, group_cols = NULL, output_file = NULL,
       stringsAsFactors = FALSE
     )
   }
-  
-  if (!is.null(progress)) progress$inc(0.1, detail = "Computing metrics for raw and log2 data")
+
+  if (!is.null(progress))
+    progress$inc(0.1, detail = "Computing metrics for raw and log2 data")
   raw_list <- list()
   log_list <- list()
   for (col in measure_cols) {
@@ -70,48 +94,62 @@ cyt_skku <- function(data, group_cols = NULL, output_file = NULL,
     df_raw <- compute_metrics(Y_raw, grouping)
     df_raw$measurement <- col
     raw_list[[col]] <- df_raw
-    
+
     Y_log <- log2(Y_raw + cutoff)
     df_log <- compute_metrics(Y_log, grouping)
     df_log$measurement <- col
     log_list[[col]] <- df_log
     if (!is.null(progress)) progress$inc(0.01, detail = paste("Processed", col))
   }
-  
+
   raw_results <- do.call(rbind, raw_list)
   log_results <- do.call(rbind, log_list)
-  
-  df_skew <- data.frame(value = c(raw_results$skewness, log_results$skewness),
-                        Transformation = rep(c("Raw", "Log2"),
-                                             times = c(nrow(raw_results), nrow(log_results))))
-  df_kurt <- data.frame(value = c(raw_results$kurtosis, log_results$kurtosis),
-                        Transformation = rep(c("Raw", "Log2"),
-                                             times = c(nrow(raw_results), nrow(log_results))))
-  
+
+  df_skew <- data.frame(
+    value = c(raw_results$skewness, log_results$skewness),
+    Transformation = rep(
+      c("Raw", "Log2"),
+      times = c(nrow(raw_results), nrow(log_results))
+    )
+  )
+  df_kurt <- data.frame(
+    value = c(raw_results$kurtosis, log_results$kurtosis),
+    Transformation = rep(
+      c("Raw", "Log2"),
+      times = c(nrow(raw_results), nrow(log_results))
+    )
+  )
+
   if (!is.null(progress)) progress$inc(0.1, detail = "Generating histograms")
-  p_skew <- ggplot(df_skew, aes(x = value, fill = Transformation)) +
-    geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
-    labs(x = "Skewness", title = "Distribution of Skewness") +
-    theme_minimal()
-  
-  p_kurt <- ggplot(df_kurt, aes(x = value, fill = Transformation)) +
-    geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
-    labs(x = "Kurtosis", title = "Distribution of Kurtosis") +
-    theme_minimal()
-  
+  p_skew <- ggplot2::ggplot(df_skew, aes(x = value, fill = Transformation)) +
+    ggplot2::geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
+    ggplot2::labs(x = "Skewness", title = "Distribution of Skewness") +
+    ggplot2::theme_minimal()
+
+  p_kurt <- ggplot2::ggplot(df_kurt, aes(x = value, fill = Transformation)) +
+    ggplot2::geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
+    ggplot2::labs(x = "Kurtosis", title = "Distribution of Kurtosis") +
+    ggplot2::theme_minimal()
+
   if (print_res_raw) print(raw_results)
   if (print_res_log) print(log_results)
-  
+
   if (!is.null(output_file)) {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Saving histograms to PDF")
-    pdf(file = output_file, width = 10, height = 5)
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Saving histograms to PDF")
+    grDevices::pdf(file = output_file, width = 10, height = 5)
     gridExtra::grid.arrange(p_skew, p_kurt, ncol = 2)
-    dev.off()
+    grDevices::dev.off()
     if (!is.null(progress)) progress$inc(0.05, detail = "PDF saved")
     return(invisible(NULL))
   } else {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Returning histogram plots")
-    return(list(p_skew = p_skew, p_kurt = p_kurt, raw_results = raw_results, log_results = log_results))
+    if (!is.null(progress))
+      progress$inc(0.05, detail = "Returning histogram plots")
+    return(list(
+      p_skew = p_skew,
+      p_kurt = p_kurt,
+      raw_results = raw_results,
+      log_results = log_results
+    ))
   }
 }
-

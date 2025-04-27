@@ -8,3 +8,6 @@
 ^\.github$
 ^manifest\.json$
 ^cytoprofile_logo2\.png$
+^WWW$
+^rsconnect$
+^README\.rmd$
