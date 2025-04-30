@@ -267,7 +267,7 @@ server <- function(input, output, session) {
     DT::dataTableOutput("data_preview")
   })
   # Preview first 10 rows
-  output$data_preview <- shiny::renderDataTable(
+  output$data_preview <- DT::renderDT(
     {
       userData()
     },
@@ -3699,8 +3699,7 @@ server <- function(input, output, session) {
                 plotOutput(paste0("dynamicPlot_", i), height = "400px"),
                 type = 8
               )
-            }),
-            verbatimTextOutput("textResults")
+            })
           )
         } else {
           tagList(
@@ -3709,6 +3708,22 @@ server <- function(input, output, session) {
         }
       }
     )
+  })
+
+  output$textResults <- shiny::renderPrint({
+    res <- analysisResult()
+    # Add a check here:
+    if (
+      !(is.list(res) &&
+        length(res) > 0 &&
+        all(sapply(res, function(x) inherits(x, "ggplot"))))
+    ) {
+      # Only print if the result is NOT a list of ggplot objects
+      print(res)
+    } else {
+      # Optionally print a message or nothing if it's a plot list
+      cat("Plot results displayed below.")
+    }
   })
 
   shiny::observe({

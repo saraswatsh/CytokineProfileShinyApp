@@ -94,8 +94,7 @@ install.packages(c(
   "shinyFeedback",
   "skimr",
   "shinycssloaders",
-  "BiocManager",
-  "mixOmics"
+  "BiocManager"
 ))
 
 # Install mixOmics from Bioconductor

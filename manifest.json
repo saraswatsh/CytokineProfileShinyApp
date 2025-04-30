@@ -5202,13 +5202,16 @@
       "checksum": "d5f960a2ff001b61309d14683ce23ab4"
     },
     ".Rbuildignore": {
-      "checksum": "404375aac885490352f9b450ae435d7b"
+      "checksum": "b33f6d8ccd0519fde009d9057e855b02"
     },
     "_pkgdown.yml": {
       "checksum": "2ce9dd288546e6a01b92eabe852bf17d"
     },
     "app.R": {
       "checksum": "95f7e887a1cd7599af11527a3acd4a26"
+    },
+    "CODE_OF_CONDUCT.md": {
+      "checksum": "64687988253c6bd89ce17a9730d37841"
     },
     "cytoprofile_logo2.png": {
       "checksum": "83a8a76d775edb40aeb62cf3008c5633"
@@ -5655,7 +5658,7 @@
       "checksum": "d95934e4e4a27eef3b8a166ef2ac4f8a"
     },
     "server.R": {
-      "checksum": "6a5528f660468dde4f253212639f253a"
+      "checksum": "1d10ecadae09a7eee60a0f9061314ab3"
     },
     "tests/spelling.R": {
       "checksum": "332173f20d20942c02019350ea4dcadc"
