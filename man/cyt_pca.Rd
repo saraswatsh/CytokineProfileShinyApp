@@ -38,7 +38,7 @@ If one is missing, the provided column is used for both.}
 
 \item{style}{Character. If "3d" (case insensitive) and comp_num equals 3, a 3D scatter plot is generated.}
 
-\item{output_file}{Optional. A file name for output (PDF mode); if provided, this overrides output_file.}
+\item{output_file}{Optional. A file name for the PDF output. If NULL, interactive mode is assumed.}
 
 \item{progress}{Optional. A progress object (e.g., from shiny::Progress) to report progress.}
 }

@@ -5252,6 +5252,9 @@
     "docs/authors.html": {
       "checksum": "56cf12361c3817919c2ab8f3cae6f826"
     },
+    "docs/CODE_OF_CONDUCT.html": {
+      "checksum": "ef8aa4391a9da310c8d85eaf513662e5"
+    },
     "docs/deps/bootstrap-5.3.1/bootstrap.bundle.min.js": {
       "checksum": "e2b09c06f0e714b6144a6788a28e3950"
     },
@@ -5340,7 +5343,7 @@
       "checksum": "b54f484a38e96b33a7e4b1baec4edf5f"
     },
     "docs/index.html": {
-      "checksum": "414555c37e3906ad62b9e4438d1f8b84"
+      "checksum": "739f84ba3d33e656cd719c4f4bcbcfdd"
     },
     "docs/katex-auto.js": {
       "checksum": "b6babfc10247cf9190b9fa172dde62b8"
@@ -5361,7 +5364,7 @@
       "checksum": "dca708c90eee1f2352a32f4754901a6a"
     },
     "docs/pkgdown.yml": {
-      "checksum": "6c1e21bc66b20bf091f05b8bb9a29323"
+      "checksum": "8a6a97b5b86746d8015503ce23e429c3"
     },
     "docs/reference/boxplot2_output.pdf": {
       "checksum": "7fbd0ea790a54bc2f184cd9d6d50b25c"
@@ -5397,10 +5400,10 @@
       "checksum": "14e9e3a35f24976cee1c484c43a85d07"
     },
     "docs/reference/cyt_heatmap.html": {
-      "checksum": "bbb1952552f682d003244c034dc1acae"
+      "checksum": "03ef9df7a323515ad889e5e3bdf6b421"
     },
     "docs/reference/cyt_pca-1.png": {
-      "checksum": "900dce810808eafd5cb7b0fe2edcc203"
+      "checksum": "b36cbf79504cdf0dd75bb93c392a15f5"
     },
     "docs/reference/cyt_pca-2.png": {
       "checksum": "d7becdd527c77e8a8216b001bb36867b"
@@ -5415,7 +5418,7 @@
       "checksum": "207ae984c18b03a794d53382445b2ba7"
     },
     "docs/reference/cyt_pca.html": {
-      "checksum": "59618dca0e5f32cf60423827547ff8cc"
+      "checksum": "e7cd9d9e68958529ecf3bad5d35138d9"
     },
     "docs/reference/cyt_rf-1.png": {
       "checksum": "5d88efdbd250bbc0e6a996bd598803b6"
@@ -5445,19 +5448,19 @@
       "checksum": "658712e7b92a258bc07ee22cd25777a8"
     },
     "docs/reference/cyt_splsda-1.png": {
-      "checksum": "e0c57d2b526e5f0d38453352895c986f"
+      "checksum": "fa1754f749e7f2b746aec2048eed14ed"
     },
     "docs/reference/cyt_splsda-2.png": {
-      "checksum": "9043a694ea6cca5c7d22eeb3032d74eb"
-    },
-    "docs/reference/cyt_splsda-3.png": {
-      "checksum": "b3067cfe4af534a847442ce3fea902fd"
-    },
-    "docs/reference/cyt_splsda-4.png": {
       "checksum": "2b196a735ab735a9bbba857f0291cf40"
     },
+    "docs/reference/cyt_splsda-3.png": {
+      "checksum": "479ddde90542ebcf408450b02c28123b"
+    },
+    "docs/reference/cyt_splsda-4.png": {
+      "checksum": "b264888a0f51d387ed29a4627e2d5e4f"
+    },
     "docs/reference/cyt_splsda-5.png": {
-      "checksum": "2df660c017ac9e95e091e0c75951b921"
+      "checksum": "afd5a62618277467ba08f3e1696854b7"
     },
     "docs/reference/cyt_splsda-6.png": {
       "checksum": "b264888a0f51d387ed29a4627e2d5e4f"
@@ -5466,7 +5469,7 @@
       "checksum": "9043a694ea6cca5c7d22eeb3032d74eb"
     },
     "docs/reference/cyt_splsda.html": {
-      "checksum": "ca58df6478d793eb80be0b90de9d73c5"
+      "checksum": "1ac65636c0793b6960fa0ac9cdd60679"
     },
     "docs/reference/cyt_ttest.html": {
       "checksum": "c32950bdba9344bacbf133ac739f758f"
@@ -5505,13 +5508,13 @@
       "checksum": "b9bc2d323b61fe65f8bde11440559d75"
     },
     "docs/search.json": {
-      "checksum": "7fa828bfb1f00ad874ad91f5bc41b1bb"
+      "checksum": "51ec19c141544c2914a1162514f7add9"
     },
     "docs/site.webmanifest": {
       "checksum": "aa2a240255534cbd81d92a24956916f5"
     },
     "docs/sitemap.xml": {
-      "checksum": "937b1f6dedd1817f3fe9fff1979560d9"
+      "checksum": "40453f4c3acc747cc73804294ecad4a9"
     },
     "docs/web-app-manifest-192x192.png": {
       "checksum": "f75ce77e03a2e746326726ab2698b1b3"
@@ -5547,7 +5550,7 @@
       "checksum": "3a9afc3a647edd5e2377d8ff1fc834a9"
     },
     "man/cyt_pca.Rd": {
-      "checksum": "6ce553e3a0badba4c149597499e8a787"
+      "checksum": "4e4a79fef53eb611999b28bac61bb673"
     },
     "man/cyt_rf.Rd": {
       "checksum": "dc8e5139bc2cbc9b97fa5cb370ca70c9"
@@ -5625,7 +5628,7 @@
       "checksum": "cddb9c266dad4fb9106daf9b8e77cb05"
     },
     "R/cyt_pca.R": {
-      "checksum": "76bea55bd54ea619d0623b3766b87306"
+      "checksum": "e75c65e78250329c1eef981bf72f8384"
     },
     "R/cyt_rf.R": {
       "checksum": "770941bb0aa642e87a5c69cb359d4d8b"
@@ -5634,7 +5637,7 @@
       "checksum": "e1bbc8a299a31fb3b4c7390dafeca2bf"
     },
     "R/cyt_splsda.R": {
-      "checksum": "a3d2b7f7c52e380b24cfdb5c86929d7c"
+      "checksum": "9074b133c60c69517ef7b60fd5e4994a"
     },
     "R/cyt_ttest.R": {
       "checksum": "e88eb81554088207d5f6596c06ef420f"
@@ -5652,13 +5655,13 @@
       "checksum": "1e750872d61f2dc6256c4a02ef385571"
     },
     "README.md": {
-      "checksum": "c846e2e79f5a4ed112b502c438a71598"
+      "checksum": "f0478ac239f25aca076aac2b1904c285"
     },
     "README.Rmd": {
-      "checksum": "d95934e4e4a27eef3b8a166ef2ac4f8a"
+      "checksum": "a1d96050a37343fa60791c4547057892"
     },
     "server.R": {
-      "checksum": "1d10ecadae09a7eee60a0f9061314ab3"
+      "checksum": "b63e4bdcc7aba6ec8dbd8a9daa71220e"
     },
     "tests/spelling.R": {
       "checksum": "332173f20d20942c02019350ea4dcadc"

@@ -958,11 +958,30 @@ cyt_splsda <- function(
       progress$set(message = "Starting sPLS-DA analysis...", value = 0)
     }
     # Helper to record a base-graphics plot.
+    # Helper to record a base-graphics plot.
     record_base_plot <- function(expr) {
       if (grDevices::dev.cur() > 1)
         grDevices::dev.control(displaylist = "enable")
       expr
       grDevices::recordPlot()
+    }
+    pdf_mode <- !is.null(output_file)
+    if (pdf_mode) {
+      # real PDF export
+      grDevices::pdf(file = output_file, width = 8.5, height = 8)
+    } else {
+      # interactive mode: open one throw-away PNG device *up front*
+      tmp_png <- tempfile(fileext = ".png")
+      grDevices::png(tmp_png, width = 800, height = 600, res = 96)
+      result_list <- list()
+      # when the function exits, close & delete that temp PNG
+      on.exit(
+        {
+          grDevices::dev.off()
+          if (file.exists(tmp_png)) unlink(tmp_png)
+        },
+        add = TRUE
+      )
     }
 
     conf_text <- NULL

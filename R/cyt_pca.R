@@ -20,7 +20,6 @@
 #' @param scale Character. If "log2", a log2 transformation is applied (excluding factor columns).
 #' @param pch_values A vector of plotting symbols.
 #' @param style Character. If "3d" (case insensitive) and comp_num equals 3, a 3D scatter plot is generated.
-#' @param output_file Optional. A file name for output (PDF mode); if provided, this overrides output_file.
 #' @param progress Optional. A progress object (e.g., from shiny::Progress) to report progress.
 #'
 #' @return In PDF mode, a PDF is created and the function returns NULL (invisibly).
@@ -110,19 +109,29 @@ cyt_pca <- function(
     pca_colors <- rep(pca_colors, length.out = num_groups)
   }
 
-  # Decide on mode: PDF if output_file is provided; interactive otherwise.
-  pdf_mode <- !is.null(output_file)
-  if (pdf_mode) {
-    grDevices::pdf(file = output_file, width = 8.5, height = 8)
-  } else {
-    result_list <- list()
-  }
-
   # Helper to record a base-graphics plot.
   record_base_plot <- function(expr) {
     if (grDevices::dev.cur() > 1) grDevices::dev.control(displaylist = "enable")
     expr
     grDevices::recordPlot()
+  }
+  pdf_mode <- !is.null(output_file)
+  if (pdf_mode) {
+    # real PDF export
+    grDevices::pdf(file = output_file, width = 8.5, height = 8)
+  } else {
+    # interactive mode: open one throw-away PNG device *up front*
+    tmp_png <- tempfile(fileext = ".png")
+    grDevices::png(tmp_png, width = 800, height = 600, res = 96)
+    result_list <- list()
+    # when the function exits, close & delete that temp PNG
+    on.exit(
+      {
+        grDevices::dev.off()
+        if (file.exists(tmp_png)) unlink(tmp_png)
+      },
+      add = TRUE
+    )
   }
 
   # CASE 1: Single-level analysis (when group_col equals group_col2)
