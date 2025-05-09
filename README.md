@@ -1,9 +1,9 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# CytoProfile Shiny Application <a href="https://saraswatsh.github.io/CytoProfileShinyApp/"><img src="man/figures/logo.png" align="right" height="134" alt="CytoProfileShinyApp website" /></a>
+# CytokineProfile Shiny Application <a href="https://saraswatsh.github.io/CytoProfileShinyApp/"><img src="man/figures/logo.png" align="right" height="134" alt="CytoProfileShinyApp website" /></a>
 
-The goal of CytoProfile Shiny is to conduct quality control using
+The goal of CytokineProfile Shiny is to conduct quality control using
 biological meaningful cutoff on raw measured values of cytokines.
 Specifically, test on distributional symmetry to suggest the adopt of
 transformation. Conduct exploratory analysis including summary
@@ -15,8 +15,8 @@ package is available on
 [Github](https://github.com/saraswatsh/CytoProfile) and at
 [CRAN](https://cran.r-project.org/package=CytoProfile).
 
-The Shiny application is available at [CytoProfile Shiny
-App](https://saraswatsh-cytoprofileshinyapp.share.connect.posit.cloud).
+The Shiny application is available at [CytokineProfile Shiny
+App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
 
 ## Features
 

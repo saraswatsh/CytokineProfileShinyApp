@@ -5205,7 +5205,7 @@
       "checksum": "b33f6d8ccd0519fde009d9057e855b02"
     },
     "_pkgdown.yml": {
-      "checksum": "2ce9dd288546e6a01b92eabe852bf17d"
+      "checksum": "6d6c01aecfc71f89ed0af51e2e7c8f37"
     },
     "app.R": {
       "checksum": "95f7e887a1cd7599af11527a3acd4a26"
@@ -5241,19 +5241,19 @@
       "checksum": "b77f12d98bb00a973f6d6a2b22d9a7b3"
     },
     "DESCRIPTION": {
-      "checksum": "600b817aaa1b8754f2d0227e8e739ec7"
+      "checksum": "54bd3273e44f9c72b26c275c1faa4c16"
     },
     "docs/404.html": {
-      "checksum": "f7927fab9c16fe87329839f772f08f58"
+      "checksum": "15bd4527fb71145201bbe254ab516907"
     },
     "docs/apple-touch-icon.png": {
       "checksum": "0fd3e69a41725945729ef3a92b3fb5c5"
     },
     "docs/authors.html": {
-      "checksum": "56cf12361c3817919c2ab8f3cae6f826"
+      "checksum": "e5c58740470f86d3b5f183d29ce653ec"
     },
     "docs/CODE_OF_CONDUCT.html": {
-      "checksum": "ef8aa4391a9da310c8d85eaf513662e5"
+      "checksum": "ef9b495a8b14b67baf0c37378cb17278"
     },
     "docs/deps/bootstrap-5.3.1/bootstrap.bundle.min.js": {
       "checksum": "e2b09c06f0e714b6144a6788a28e3950"
@@ -5343,13 +5343,13 @@
       "checksum": "b54f484a38e96b33a7e4b1baec4edf5f"
     },
     "docs/index.html": {
-      "checksum": "739f84ba3d33e656cd719c4f4bcbcfdd"
+      "checksum": "6f1820b441385a08248e49095bb7dec6"
     },
     "docs/katex-auto.js": {
       "checksum": "b6babfc10247cf9190b9fa172dde62b8"
     },
     "docs/LICENSE.html": {
-      "checksum": "3b6ed997892dfc2d9051e09b26b51461"
+      "checksum": "b7598239af98288da7a7156ab2c05ff9"
     },
     "docs/lightswitch.js": {
       "checksum": "5806fcea81ccc70e1ffc453a7d9e12b5"
@@ -5364,19 +5364,19 @@
       "checksum": "dca708c90eee1f2352a32f4754901a6a"
     },
     "docs/pkgdown.yml": {
-      "checksum": "8a6a97b5b86746d8015503ce23e429c3"
+      "checksum": "ccd4b51f0bf2142f7a19452fe55d8125"
     },
     "docs/reference/boxplot2_output.pdf": {
       "checksum": "7fbd0ea790a54bc2f184cd9d6d50b25c"
     },
     "docs/reference/cyt_anova.html": {
-      "checksum": "1c6bd3912da44a1747d89672568e9597"
+      "checksum": "419390d3955c4accaaf25d82eace4dae"
     },
     "docs/reference/cyt_bp-1.png": {
       "checksum": "4dd2db0a7b210e2c42bd76f0440a6fb1"
     },
     "docs/reference/cyt_bp.html": {
-      "checksum": "531103de3c3861a6d4df41ede326b2c0"
+      "checksum": "eeaa9ddb12f672417b144b60b952e7ea"
     },
     "docs/reference/cyt_bp2-1.png": {
       "checksum": "fd9686c555ee6b349b7c3aed98ececa5"
@@ -5385,22 +5385,22 @@
       "checksum": "ec8c473d934cfe4b4124aa04073a7637"
     },
     "docs/reference/cyt_bp2.html": {
-      "checksum": "9360124ce04383a2d62d04ecf0a8cbd6"
+      "checksum": "b1f889dd3d4240f59c28c7a2b4dd68b6"
     },
     "docs/reference/cyt_dualflashplot-1.png": {
       "checksum": "de9f8d34668089bfa023fbc3c7c5657d"
     },
     "docs/reference/cyt_dualflashplot.html": {
-      "checksum": "7b8387d0739acc5196df7a3109f9fb3f"
+      "checksum": "ac178130ac816bcce3f78b1cf7712ce9"
     },
     "docs/reference/cyt_errbp-1.png": {
       "checksum": "aca806a03721c25bd467393c5345baf5"
     },
     "docs/reference/cyt_errbp.html": {
-      "checksum": "14e9e3a35f24976cee1c484c43a85d07"
+      "checksum": "1eee5e54d0e1cd131fc40d5e36379a13"
     },
     "docs/reference/cyt_heatmap.html": {
-      "checksum": "03ef9df7a323515ad889e5e3bdf6b421"
+      "checksum": "497a00d965217aefdf08331f84eb62f1"
     },
     "docs/reference/cyt_pca-1.png": {
       "checksum": "b36cbf79504cdf0dd75bb93c392a15f5"
@@ -5418,7 +5418,7 @@
       "checksum": "207ae984c18b03a794d53382445b2ba7"
     },
     "docs/reference/cyt_pca.html": {
-      "checksum": "e7cd9d9e68958529ecf3bad5d35138d9"
+      "checksum": "d409318e32af6c6da5cc6c606ee22007"
     },
     "docs/reference/cyt_rf-1.png": {
       "checksum": "5d88efdbd250bbc0e6a996bd598803b6"
@@ -5430,7 +5430,7 @@
       "checksum": "cb8832a430afd3347f8b6f0b150c39e3"
     },
     "docs/reference/cyt_rf.html": {
-      "checksum": "7c1899e4580cda79ddb85bf7f504cd79"
+      "checksum": "1c5de1ae54547eb8a12fb193e1347cfe"
     },
     "docs/reference/cyt_skku-1.png": {
       "checksum": "c9fe1b01d82eee0cf607605f53e103ec"
@@ -5445,7 +5445,7 @@
       "checksum": "da059a7b477f2b63e0e33f37517bed47"
     },
     "docs/reference/cyt_skku.html": {
-      "checksum": "658712e7b92a258bc07ee22cd25777a8"
+      "checksum": "f4ef968ebdc17c47b266ed6ce51abc70"
     },
     "docs/reference/cyt_splsda-1.png": {
       "checksum": "fa1754f749e7f2b746aec2048eed14ed"
@@ -5469,16 +5469,16 @@
       "checksum": "9043a694ea6cca5c7d22eeb3032d74eb"
     },
     "docs/reference/cyt_splsda.html": {
-      "checksum": "1ac65636c0793b6960fa0ac9cdd60679"
+      "checksum": "9369108037c27e23a2090b52e4d2aaeb"
     },
     "docs/reference/cyt_ttest.html": {
-      "checksum": "c32950bdba9344bacbf133ac739f758f"
+      "checksum": "cbc2d4d5d2b8261d83dce3c27ccfa578"
     },
     "docs/reference/cyt_volc-1.png": {
       "checksum": "2c3c770ab8814ffb328cfec040a2c411"
     },
     "docs/reference/cyt_volc.html": {
-      "checksum": "f78572be365f326d8762212a955df40a"
+      "checksum": "c433046dca014b4ffe8f416f26a1cae5"
     },
     "docs/reference/cyt_xgb-1.png": {
       "checksum": "0abc8dba74bf72b4707444345d80a653"
@@ -5487,34 +5487,34 @@
       "checksum": "f12cb94ca1b30cd265a4e96532439acc"
     },
     "docs/reference/cyt_xgb.html": {
-      "checksum": "a5038d988306533af409c0c018e6bc57"
+      "checksum": "4ea5f30d5912b85b053fe3c706f04f37"
     },
     "docs/reference/ExampleData1.html": {
-      "checksum": "40a769a0704cda4d7526e29cc9cb130f"
+      "checksum": "a0a35380f315746bcab17aaf7e83abcb"
     },
     "docs/reference/ExampleData2.html": {
-      "checksum": "131adaf02c195f3b17b28d1e0597aaaf"
+      "checksum": "361d8c3a950aa530a706fc7021682508"
     },
     "docs/reference/ExampleData3.html": {
-      "checksum": "b1ef0626ed5a3ff132969e95a87039f7"
+      "checksum": "55426ed1c37e7650275bbf2345c0a099"
     },
     "docs/reference/ExampleData4.html": {
-      "checksum": "9fdc87f19ae5198a3b757e07d4367419"
+      "checksum": "a6f4eccc115aa16e7f705bdd45ac1829"
     },
     "docs/reference/figures/logo.png": {
       "checksum": "c248dd2a9681d73f52211a72a131aae5"
     },
     "docs/reference/index.html": {
-      "checksum": "b9bc2d323b61fe65f8bde11440559d75"
+      "checksum": "79c3e7face66d3b42086d4739362230e"
     },
     "docs/search.json": {
-      "checksum": "51ec19c141544c2914a1162514f7add9"
+      "checksum": "21c2b4b335db4c7368ba6a25fef9c5b4"
     },
     "docs/site.webmanifest": {
       "checksum": "aa2a240255534cbd81d92a24956916f5"
     },
     "docs/sitemap.xml": {
-      "checksum": "40453f4c3acc747cc73804294ecad4a9"
+      "checksum": "1ad235e94345da846392489b33953211"
     },
     "docs/web-app-manifest-192x192.png": {
       "checksum": "f75ce77e03a2e746326726ab2698b1b3"
@@ -5526,7 +5526,7 @@
       "checksum": "286cd9ae51e0d35e9df99c00d101c41e"
     },
     "inst/WORDLIST": {
-      "checksum": "a81b034f3e75bf847a8c1beb910373d6"
+      "checksum": "a5507b01c61d7d27f75e5140d74ba842"
     },
     "LICENSE.md": {
       "checksum": "8e37d7de575b4c556aaed64b86dc8b49"
@@ -5655,10 +5655,10 @@
       "checksum": "1e750872d61f2dc6256c4a02ef385571"
     },
     "README.md": {
-      "checksum": "f0478ac239f25aca076aac2b1904c285"
+      "checksum": "1387693292ce4f40599fb2c38c944279"
     },
     "README.Rmd": {
-      "checksum": "a1d96050a37343fa60791c4547057892"
+      "checksum": "07d51b6592123b86015d97a9b25425f8"
     },
     "server.R": {
       "checksum": "b63e4bdcc7aba6ec8dbd8a9daa71220e"
@@ -5667,7 +5667,7 @@
       "checksum": "332173f20d20942c02019350ea4dcadc"
     },
     "ui.R": {
-      "checksum": "d9bbb414809530b83923c318f25628c5"
+      "checksum": "4b856f339213f71c9b25596862c11f95"
     },
     "WWW/logo.png": {
       "checksum": "c248dd2a9681d73f52211a72a131aae5"

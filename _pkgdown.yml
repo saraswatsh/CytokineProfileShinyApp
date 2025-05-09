@@ -1,15 +1,15 @@
-url: https://saraswatsh.github.io/CytoProfileShinyApp/
+url: https://shinyinfo.cytoprofile.info/
 template:
   bootstrap: 5
   light-switch: yes
 home:
-  title: Welcome to CytoProfile Shiny Application
+  title: Welcome to CytokineProfile Shiny Application
   tagline: An Interactive Web Application for Comprehensive Cytokine Data Analysis
   links:
   - text: App Link
-    href: https://ssa390.shinyapps.io/cytoprofile_shiny/
+    href: https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud
   - text: Report a bug
-    href: https://github.com/saraswatsh/CytoProfileShinyApp/issues
+    href: https://github.com/saraswatsh/CytokineProfileShinyApp/issues
 navbar:
   title: CytoProfile Shiny App
   left:

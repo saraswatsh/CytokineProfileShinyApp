@@ -100,13 +100,13 @@ ui <- shiny::fluidPage(
     div(
       style = "text-align: center; margin-bottom: 20px;",
       tags$a(
-        href = "https://github.com/saraswatsh/CytoProfileShinyApp",
+        href = "https://github.com/saraswatsh/CytokineProfileShinyApp",
         "GitHub Repository",
         target = "_blank"
       ),
       " | ",
       tags$a(
-        href = "https://saraswatsh.github.io/CytoProfileShinyApp/",
+        href = "https://saraswatsh.github.io/CytokineProfileShinyApp/",
         "Project Website",
         target = "_blank"
       )
@@ -117,12 +117,12 @@ ui <- shiny::fluidPage(
       div(
         class = "hero-text",
         h1(
-          "Welcome to CytoProfile",
+          "Welcome to CytokineProfile",
           style = "font-weight:300; font-size:2.5rem;"
         ),
         tags$p(
           HTML(paste0(
-            "CytoProfile is an R Shiny Application based on the CytoProfile R package available at ",
+            "CytokineProfile is an R Shiny Application based on the CytoProfile R package available at ",
             "<a href='https://cran.r-project.org/web/packages/CytoProfile/index.html'>CRAN</a>. ",
             "This application is designed for advanced cytokine data analysis. ",
             "It provides a comprehensive suite of functions for exploratory, univariate, ",
@@ -140,7 +140,7 @@ ui <- shiny::fluidPage(
   div(
     shiny::conditionalPanel(
       h1(
-        "CytoProfile",
+        "CytokineProfile",
         style = "font-weight:300; font-size:2.5rem;"
       ),
       class = "sticky-progress",
