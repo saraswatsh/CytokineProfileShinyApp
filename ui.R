@@ -123,7 +123,7 @@ ui <- shiny::fluidPage(
         tags$p(
           HTML(paste0(
             "CytokineProfile is an R Shiny Application based on the CytoProfile R package available at ",
-            "<a href='https://cran.r-project.org/web/packages/CytoProfile/index.html'>CRAN</a>. ",
+            "<a href='https://cran.r-project.org/package=CytoProfile'>CRAN</a>. ",
             "This application is designed for advanced cytokine data analysis. ",
             "It provides a comprehensive suite of functions for exploratory, univariate, ",
             "and multivariate analysis as well as machine learning methods tailored to your data."

@@ -1,4 +1,4 @@
-url: https://shinyinfo.cytoprofile.info/
+url: https://shinyinfo.cytokineprofile.org/
 template:
   bootstrap: 5
   light-switch: yes
@@ -11,7 +11,7 @@ home:
   - text: Report a bug
     href: https://github.com/saraswatsh/CytokineProfileShinyApp/issues
 navbar:
-  title: CytoProfile Shiny App
+  title: CytokineProfile Shiny App
   left:
   - text: Reference
     href: reference/index.html
