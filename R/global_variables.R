@@ -32,6 +32,10 @@ if (getRversion() >= "4.3") {
     "Outcome",
     "sd",
     "score",
-    "variable"
+    "variable",
+    "es_label",
+    "es_text_y",
+    "p_label",
+    "p_text_y"
   ))
 }

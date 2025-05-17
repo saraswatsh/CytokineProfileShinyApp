@@ -3671,11 +3671,17 @@ server <- function(input, output, session) {
             ),
             conditionalPanel(
               condition = "input.skku_print_raw == true",
-              verbatimTextOutput("skku_raw_results")
+              shinycssloaders::withSpinner(
+                tableOutput("skku_raw_results")
+              ),
+              type = 8
             ),
             conditionalPanel(
               condition = "input.skku_print_log == true",
-              verbatimTextOutput("skku_log_results")
+              shinycssloaders::withSpinner(
+                tableOutput("skku_log_results")
+              ),
+              type = 8
             )
           )
         } else if (func_name == "Dual-Flashlight Plot") {
@@ -4142,13 +4148,15 @@ server <- function(input, output, session) {
     print(res$plot)
   })
 
-  output$volcStats <- shiny::renderTable({
-    req(analysisResult())
-    res <- analysisResult()
-    req(res$stats)
-    res$stats
-  })
-
+  output$volcStats <- shiny::renderTable(
+    {
+      req(analysisResult())
+      res <- analysisResult()
+      req(res$stats)
+      res$stats
+    },
+    rownames = FALSE
+  )
   output$statResults <- DT::renderDT(
     {
       res <- analysisResult()
@@ -4265,22 +4273,24 @@ server <- function(input, output, session) {
       print(res$p_kurt)
     }
   })
-  output$skku_raw_results <- shiny::renderPrint({
-    req(analysisResult())
-
-    if (input$skku_print_raw) {
-      raw_results <- analysisResult()$raw_results
-      print(raw_results)
-    }
-  })
-  output$skku_log_results <- shiny::renderPrint({
-    req(analysisResult())
-    if (input$skku_print_log) {
-      log_results <- analysisResult()$log_results
-      print(log_results)
-    }
-  })
-
+  output$skku_raw_results <- shiny::renderTable(
+    {
+      req(analysisResult())
+      res <- analysisResult()
+      req(res$raw_results)
+      res$raw_results
+    },
+    rownames = FALSE
+  )
+  output$skku_log_results <- shiny::renderTable(
+    {
+      req(analysisResult())
+      res <- analysisResult()
+      req(res$log_results)
+      res$log_results
+    },
+    rownames = FALSE
+  )
   output$errorBarPlotOutput <- shiny::renderPlot({
     req(analysisResult())
     res <- analysisResult()

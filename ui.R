@@ -106,7 +106,7 @@ ui <- shiny::fluidPage(
       ),
       " | ",
       tags$a(
-        href = "https://saraswatsh.github.io/CytokineProfileShinyApp/",
+        href = "https://shinyinfo.cytokineprofile.org/",
         "Project Website",
         target = "_blank"
       )

@@ -72,7 +72,7 @@ cyt_dualflashplot <- function(
       .groups = "drop"
     ) %>%
     tidyr::pivot_wider(
-      names_from = .data[[group_var]],
+      names_from = all_of(group_var),
       values_from = c(mean, variance)
     ) %>%
     dplyr::mutate(

@@ -148,8 +148,8 @@ cyt_skku <- function(
     return(list(
       p_skew = p_skew,
       p_kurt = p_kurt,
-      raw_results = raw_results,
-      log_results = log_results
+      raw_results = as.matrix(raw_results),
+      log_results = as.matrix(log_results)
     ))
   }
 }

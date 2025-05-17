@@ -232,7 +232,7 @@ cyt_errbp <- function(
     progress$inc(0.1, detail = "Generating plot...")
   }
   # Build the faceted ggplot (one facet per numeric measure).
-  p <- ggplot2::ggplot(metrics, aes_string(x = group_col, y = "center")) +
+  p <- ggplot2::ggplot(metrics, aes(x = .data[[group_col]], y = center)) +
     ggplot2::geom_bar(stat = "identity", fill = "gray", width = 0.7) +
     ggplot2::geom_errorbar(
       aes(ymin = center - spread, ymax = center + spread),
@@ -248,7 +248,7 @@ cyt_errbp <- function(
     p <- p +
       ggplot2::geom_text(
         data = metrics %>% filter(.data[[group_col]] != baseline),
-        ggplot2::aes_string(x = group_col, y = "p_text_y", label = "p_label"),
+        ggplot2::aes(x = .data[[group_col]], y = p_text_y, label = p_label),
         size = 4,
         vjust = 0
       )
@@ -257,7 +257,11 @@ cyt_errbp <- function(
     p <- p +
       ggplot2::geom_text(
         data = metrics %>% filter(.data[[group_col]] != baseline),
-        ggplot2::aes_string(x = group_col, y = "es_text_y", label = "es_label"),
+        ggplot2::aes(
+          x = .data[[group_col]],
+          y = es_text_y,
+          label = es_label
+        ),
         size = 4,
         vjust = 0
       )
