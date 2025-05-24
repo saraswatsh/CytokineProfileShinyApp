@@ -7,6 +7,7 @@
 ^pkgdown$
 ^\.github$
 ^manifest\.json$
+^cytoprofile_logo\.png$
 ^cytoprofile_logo2\.png$
 ^WWW$
 ^rsconnect$
