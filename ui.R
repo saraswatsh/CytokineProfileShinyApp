@@ -9,9 +9,7 @@ library(shinyWidgets)
 # Vector for different themes
 available_themes <- c(
   "flatly",
-  "spacelab",
-  "slate",
-  "cyborg"
+  "darkly"
 )
 ## Define UI for application (wizard style)
 ui <- shiny::fluidPage(
@@ -47,14 +45,12 @@ ui <- shiny::fluidPage(
     }
     .hexagon {
       flex: none;             /* don’t flex/shrink */
-      width: 120px;
-      height:104px;
-      background-size: cover;
+      width: 280px;
+      height:266px;
+      background-size: 80%;
       background-position: center;
-      clip-path: polygon(
-        25% 6.7%,  75% 6.7%, 100% 50%,
-        75% 93.3%, 25% 93.3%,   0% 50%
-      );
+      background-repeat: no-repeat;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     @media (max-width: 768px) {
@@ -90,7 +86,7 @@ ui <- shiny::fluidPage(
       inputId = "theme_choice",
       label = "Theme:",
       choices = setNames(available_themes, toupper(available_themes)),
-      selected = "cyborg"
+      selected = "darkly"
     )
   ),
 
@@ -154,10 +150,15 @@ ui <- shiny::fluidPage(
       div(
         class = "hexagon",
         style = "
-          background-image: url('logo.png');
-          margin-left: 1rem;
-          margin-right: 1rem;
-          flex: none;       /* keep it its own size */
+            background-image: url('logo.png');
+            flex: none;             /* don’t flex/shrink */
+            width: 280px;
+            height:266px;
+            background-size: 80%;
+            background-position: center;
+            background-repeat: no-repeat;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);     
         "
       )
     )

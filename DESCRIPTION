@@ -49,3 +49,4 @@ NeedsCompilation: no
 License: GPL (>= 2)
 LazyData: true
 Language: en-US
+VignetteBuilder: knitr

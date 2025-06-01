@@ -547,7 +547,7 @@ server <- function(input, output, session) {
               content = "Apply a log2 transformation to the data before performing the ANOVA test.
                                This transformation can help manage data that span a wide range of values.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -573,7 +573,7 @@ server <- function(input, output, session) {
                         For example, a bin size of 25 will display box plots for up to 25 columns (variables) at a time. 
                         If there are more columns, multiple sets of box plots will be generated.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -596,7 +596,7 @@ server <- function(input, output, session) {
               content = "The number of rows and columns for the boxplots. 
                         For example, '2,2' will display 4 boxplots in a 2x2 grid.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -618,7 +618,7 @@ server <- function(input, output, session) {
               content = "The minimum and maximum values for the y-axis. Leave blank to automatically determine the limits.
                                                     This controls the vertical scale of the plot.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -640,7 +640,7 @@ server <- function(input, output, session) {
               content = "Apply a log2 transformation to the data before generating the boxplots. This transformation can
                                                     help manage data that span a wide range of values.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -665,7 +665,7 @@ server <- function(input, output, session) {
               content = "The number of rows and columns for the boxplots. 
                                         For example, '2,2' will display 4 boxplots in a 2x2 grid.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -686,7 +686,7 @@ server <- function(input, output, session) {
               content = "The minimum and maximum values for the y-axis. Leave blank to automatically determine the limits.
                                         This controls the vertical scale of the plot.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -707,7 +707,7 @@ server <- function(input, output, session) {
               content = "Apply a log2 transformation to the data before generating the boxplots.
                                              This transformation can help manage data that span a wide range of values.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -743,7 +743,7 @@ server <- function(input, output, session) {
                 content = "The column to use for grouping the data. For example, a column that
                         specifies categories such as 'Control' or 'Treatment'.",
                 if (
-                  input$theme_choice == "slate" ||
+                  input$theme_choice == "darkly" ||
                     input$theme_choice == "cyborg"
                 ) {
                   colour = "red"
@@ -767,7 +767,7 @@ server <- function(input, output, session) {
               ),
               content = "Transform numeric variables using log2 transformation.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -788,7 +788,7 @@ server <- function(input, output, session) {
               content = "Display P-value labels above the bar plots to indicate whether results are
                 significant or not.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -809,7 +809,7 @@ server <- function(input, output, session) {
               content = "Display effect size labels above the bar plots to indicate the effect observed by strictly
                 standardized mean differences (SSMD).",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -829,7 +829,7 @@ server <- function(input, output, session) {
               ),
               content = "P-values and effect sizes are shown as symbols otherwise numeric values are displayed.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -849,7 +849,7 @@ server <- function(input, output, session) {
               ),
               content = "The X-axis label you would like to have in the plot.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -869,7 +869,7 @@ server <- function(input, output, session) {
               ),
               content = "The X-axis label you would like to have in the plot.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -889,7 +889,7 @@ server <- function(input, output, session) {
               ),
               content = "Title of the plot.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -917,7 +917,7 @@ server <- function(input, output, session) {
               content = "The column to use for grouping the data. For example, a column that
                                           specifies categories such as 'Control' or 'Treatment'.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -942,7 +942,7 @@ server <- function(input, output, session) {
                                            SSMD is a measure of how different two groups are. A higher threshold means that 
                                            only larger differences are considered significant.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -965,7 +965,7 @@ server <- function(input, output, session) {
                                            Fold change shows the ratio of difference between groups on a logarithmic scale; 
                                            for example, a value of 1 represents a doubling or halving.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -987,7 +987,7 @@ server <- function(input, output, session) {
               content = "The number of top labels to display on the plot. Usually, the top labels are 
                                            the most significant points.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1019,7 +1019,7 @@ server <- function(input, output, session) {
               content = "Apply a log2 transformation to the data before generating the heatmap.
                                This transformation can help manage data that span a wide range of values.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1040,7 +1040,7 @@ server <- function(input, output, session) {
               content = "The column to use for annotating the heatmap.
                              This column will add color coding to help differentiate groups",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1069,7 +1069,7 @@ server <- function(input, output, session) {
               ),
               content = "The first column to use for grouping the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1090,7 +1090,7 @@ server <- function(input, output, session) {
               ),
               content = "The second column to use for grouping the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1111,7 +1111,7 @@ server <- function(input, output, session) {
               ),
               content = "The number of components to use for the PCA analysis. Must be at least 2.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1132,7 +1132,7 @@ server <- function(input, output, session) {
               ),
               content = "The color palette to use for the PCA plot. Select the number of colors to match the number of categories in grouping column 1.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1158,7 +1158,7 @@ server <- function(input, output, session) {
               content = "Apply a log2 transformation to the data before generating the PCA plot.
                                This transformation can help manage data that span a wide range of values.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1178,7 +1178,7 @@ server <- function(input, output, session) {
               ),
               content = "Draw an ellipse around the data points on the PCA plot. (Draws an ellipse covering 95% of the data points.)",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1198,7 +1198,7 @@ server <- function(input, output, session) {
               ),
               content = "The style of the PCA plot. Choose between 2D and 3D. Requires at least 3 components for 3D.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1219,7 +1219,7 @@ server <- function(input, output, session) {
               ),
               content = "The plotting character (PCH) symbols to use for plotting the data points. Must be the same number as the number of grouping column 1 categories.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1253,7 +1253,7 @@ server <- function(input, output, session) {
               ),
               content = "The column to use for grouping the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1275,7 +1275,7 @@ server <- function(input, output, session) {
               content = "The number of trees to grow in the random forest model.
                               Each tree is a simple model; more trees can improve predictions but take longer to compute.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1297,7 +1297,7 @@ server <- function(input, output, session) {
               content = "The number of variables to randomly select at each split.
                               At each decision point, the model randomly considers this number of variables, which helps improve model accuracy.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1319,7 +1319,7 @@ server <- function(input, output, session) {
               content = "The fraction of the data to use for training the random forest model.
                               The remainder is used for testing the model.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1344,7 +1344,7 @@ server <- function(input, output, session) {
                                Requires comparison to be a binary comparison (at most 2 groups). The ROC curve helps evaluate 
                                the model’s performance in distinguishing between two groups.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1366,7 +1366,7 @@ server <- function(input, output, session) {
                                the optimal number of variables to include in the model.This process automatically tests 
                                different combinations of variables to find the ones that best predict the outcome.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1389,7 +1389,7 @@ server <- function(input, output, session) {
                 content = "The number of folds to use for cross-validation in the RFCV process.
                                 Folds are subsets of the data used to train and test the model. More folds can improve accuracy but take longer to compute.",
                 if (
-                  input$theme_choice == "slate" ||
+                  input$theme_choice == "darkly" ||
                     input$theme_choice == "cyborg"
                 ) {
                   colour = "red"
@@ -1412,7 +1412,7 @@ server <- function(input, output, session) {
                 content = "The step size to use for the RFCV process. Must be between 0.1 and 0.9.
                                 The value controls how quickly the model eliminates variables. A smaller step size can help find the best variables.",
                 if (
-                  input$theme_choice == "slate" ||
+                  input$theme_choice == "darkly" ||
                     input$theme_choice == "cyborg"
                 ) {
                   colour = "red"
@@ -1443,7 +1443,7 @@ server <- function(input, output, session) {
               ),
               content = "The columns to use for grouping the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1466,7 +1466,7 @@ server <- function(input, output, session) {
               ),
               content = "Print the raw skewness and kurtosis values for each column in the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1487,7 +1487,7 @@ server <- function(input, output, session) {
               ),
               content = "Print the skewness and kurtosis values for each column after applying a log2 transformation.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1521,7 +1521,7 @@ server <- function(input, output, session) {
               ),
               content = "The first column to use for grouping the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1542,7 +1542,7 @@ server <- function(input, output, session) {
               ),
               content = "The second column to use for grouping the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1564,7 +1564,7 @@ server <- function(input, output, session) {
               content = "The number of variables to use for the sPLS-DA analysis. It should match
                               the number of variables selected for the analysis.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1585,7 +1585,7 @@ server <- function(input, output, session) {
               ),
               content = "The color palette to use for the sPLS-DA plot. Select the number of colors to match the number of categories in grouping column 1.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1613,7 +1613,7 @@ server <- function(input, output, session) {
                              LOOCV = Leave-One-Out Cross-Validation (LOOCV) which works by training the model on all data except one sample and then testing on the left-out sample.
                              Mfold = M-Fold Cross-Validation which works by splitting the data into M groups and training the model on M-1 groups and testing on the left-out group. This process is repeated 1000 times.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1637,7 +1637,7 @@ server <- function(input, output, session) {
                 content = "The number of folds to use for the M-Fold Cross-Validation process. More folds can improve 
                                 accuracy but take longer to compute.",
                 if (
-                  input$theme_choice == "slate" ||
+                  input$theme_choice == "darkly" ||
                     input$theme_choice == "cyborg"
                 ) {
                   colour = "red"
@@ -1661,7 +1661,7 @@ server <- function(input, output, session) {
               content = "Apply a log2 transformation to the data before generating the sPLS-DA plot.
                                This transformation can help manage data that span a wide range of values.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1681,7 +1681,7 @@ server <- function(input, output, session) {
               ),
               content = "The number of components to use for the sPLS-DA analysis. Must be at least 2.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1702,7 +1702,7 @@ server <- function(input, output, session) {
               ),
               content = "The plotting character (PCH) symbols to use for plotting the data points. Must be the same number as the number of grouping column 1 categories.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1729,7 +1729,7 @@ server <- function(input, output, session) {
               ),
               content = "The style of the sPLS-DA plot. Choose between 2D and 3D. Requires at least 3 components for 3D.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1751,7 +1751,7 @@ server <- function(input, output, session) {
               content = "Plot the Recieving Operating Characteristic (ROC) curve for the sPLS-DA model. This curve shows
                                how well the model distinguishes between classes.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1771,7 +1771,7 @@ server <- function(input, output, session) {
               ),
               content = "Draw an ellipse around the data points on the sPLS-DA plot. (Draws an ellipse covering 95% of the data points.)",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1792,7 +1792,7 @@ server <- function(input, output, session) {
               content = "Draws a shaded background prediction on the sPLS-DA plot. 
                                This shading indicates the model’s predicted classification regions",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1813,7 +1813,7 @@ server <- function(input, output, session) {
               content = "Display the confusion matrix for the sPLS-DA model. This table shows how many
                                predictions were correct and provides key performance measures.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1838,7 +1838,7 @@ server <- function(input, output, session) {
               content = "Apply a log2 transformation to the data before performing the two-sample t-test.
                                This transformation can help manage data that span a wide range of values.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1865,7 +1865,7 @@ server <- function(input, output, session) {
               ),
               content = "The column to use for grouping the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1889,7 +1889,7 @@ server <- function(input, output, session) {
                               Fold change indicates the ratio of differences between groups; 
                               values above this threshold are considered significant.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1911,7 +1911,7 @@ server <- function(input, output, session) {
               content = "The threshold for the p-value. P-values indicate the probability that the 
                               observed difference is due to chance; lower values suggest more significant differences.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1933,7 +1933,7 @@ server <- function(input, output, session) {
               ),
               content = "The number of top labels to display on the plot.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1961,7 +1961,7 @@ server <- function(input, output, session) {
               ),
               content = "The column to use for grouping the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -1983,7 +1983,7 @@ server <- function(input, output, session) {
               content = "The fraction of the data to use for training the XGBoost model.
                               Remainder is used for testing the model.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -2007,7 +2007,7 @@ server <- function(input, output, session) {
               content = "The number of rounds to grow the trees in the XGBoost model.
                               Each round adds a new tree to improve the model’s predictions.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -2029,7 +2029,7 @@ server <- function(input, output, session) {
               content = "The maximum depth of the trees in the XGBoost model.
                               Deeper trees can capture more complex relationships but may risk overfitting.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -2052,7 +2052,7 @@ server <- function(input, output, session) {
                               This controls how much each new tree influences the model; 
                               lower rates make the model learn more slowly but can improve accuracy.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -2075,7 +2075,7 @@ server <- function(input, output, session) {
               content = "The evaluation metric to use for the XGBoost model.
                              Choose 'mlogloss' to measure classification error or 'auc' for the area under the ROC curve.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -2096,7 +2096,7 @@ server <- function(input, output, session) {
               ),
               content = "The number of top features to display on the plot.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -2119,7 +2119,7 @@ server <- function(input, output, session) {
                                Requires comparison to be a binary comparison (at most 2 groups). The ROC curve 
                                helps evaluate how well the model distinguishes between two groups.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -2140,7 +2140,7 @@ server <- function(input, output, session) {
               content = "Perform cross-validation on the XGBoost model.
                                Cross-validation helps evaluate the model’s performance on different subsets of the data.",
               if (
-                input$theme_choice == "slate" || input$theme_choice == "cyborg"
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
                 colour = "red"
               } else {
@@ -2163,7 +2163,7 @@ server <- function(input, output, session) {
                 content = "The number of folds to use for cross-validation in the XGBoost model.
                                 The folds are used to train and test the model. More folds can improve accuracy but take longer to compute.",
                 if (
-                  input$theme_choice == "slate" ||
+                  input$theme_choice == "darkly" ||
                     input$theme_choice == "cyborg"
                 ) {
                   colour = "red"
@@ -2213,7 +2213,9 @@ server <- function(input, output, session) {
             "<span style='margin-right: 15px;'>Condition 1</span>"
           ),
           content = "The first condition to compare.",
-          if (input$theme_choice == "slate" || input$theme_choice == "cyborg") {
+          if (
+            input$theme_choice == "darkly" || input$theme_choice == "cyborg"
+          ) {
             colour = "red"
           } else {
             colour = "blue"
@@ -2232,7 +2234,9 @@ server <- function(input, output, session) {
             "<span style='margin-right: 15px;'>Condition 2</span>"
           ),
           content = "The second condition to compare.",
-          if (input$theme_choice == "slate" || input$theme_choice == "cyborg") {
+          if (
+            input$theme_choice == "darkly" || input$theme_choice == "cyborg"
+          ) {
             colour = "red"
           } else {
             colour = "blue"
@@ -2262,7 +2266,7 @@ server <- function(input, output, session) {
             ),
             content = "The first condition to compare.",
             if (
-              input$theme_choice == "slate" || input$theme_choice == "cyborg"
+              input$theme_choice == "darkly" || input$theme_choice == "cyborg"
             ) {
               colour = "red"
             } else {
@@ -2283,7 +2287,7 @@ server <- function(input, output, session) {
             ),
             content = "The second condition to compare.",
             if (
-              input$theme_choice == "slate" || input$theme_choice == "cyborg"
+              input$theme_choice == "darkly" || input$theme_choice == "cyborg"
             ) {
               colour = "red"
             } else {

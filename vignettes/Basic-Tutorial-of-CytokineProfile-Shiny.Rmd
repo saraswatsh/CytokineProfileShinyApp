@@ -1,0 +1,46 @@
+---
+title: "Basic Tutorial of CytokineProfile Shiny"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Basic Tutorial of CytokineProfile Shiny}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.show = "hold",
+  fig.pos = "center",
+  out.width = "42%",
+  fig.retina = 2
+)
+```
+
+This guide will provide the basic steps to use CytokineProfile Shiny. 
+
+## Uploading and Viewing Data
+
+The app alows users to upload their own data and supports various formats such as CSV, XLS/X, and TXT. There is also built-in datasets for testing and understanding the app. Additionally, the app offers the option to view the data set and also view summary statistics which may provide useful information about the data prior to conducting analysis.
+
+![](../man/figures/Shiny_Step1.gif)
+
+
+## Selecting Columns and Applying Filters
+
+In step 2 of the app, the user is provided with a list of columns available within the uploaded data to select or deselect variables of choice and also filter categorical variables.
+
+![](../man/figures/Shiny_Step2.gif)
+
+## Selecting Analysis Types
+
+In step 3 of the app, the user is given selection of different analyses to choose from each with its special parameters to configure in order to obtain specific statistical metrics or visualizations. 
+
+![](../man/figures/Shiny_Step3.gif)
+
+## Producing Results
+
+After selecting the analysis type, the results are produced and displayed within the app. There is an option to download the results in PDF format as well with a file name that is provided by the user.
+
+![](../man/figures/Shiny_Step4.gif)
