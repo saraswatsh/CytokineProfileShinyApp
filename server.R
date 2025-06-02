@@ -593,8 +593,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Graphs per Row and Columns</span><br>(rows, cols; comma-separated)"
               ),
-              content = "The number of rows and columns for the boxplots. 
-                        For example, '2,2' will display 4 boxplots in a 2x2 grid.",
+              content = "Specify the layout of multiple box plots on the plotting area, defined as (rows, cols). For example, '2,2' will arrange up to 4 box plots in a 2x2 grid.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -615,8 +614,9 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Y-axis Limits</span><br>(min, max; comma-separated; leave blank for auto)"
               ),
-              content = "The minimum and maximum values for the y-axis. Leave blank to automatically determine the limits.
-                                                    This controls the vertical scale of the plot.",
+              content = "Set the minimum and maximum values for the Y-axis, entered as (min, max) e.g., '0,100'. 
+              Leave blank for automatic scaling based on data range. 
+              This controls the vertical range displayed on the plot.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -662,8 +662,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Graphs per Row and Columns</span><br>(rows, cols; comma-separated)"
               ),
-              content = "The number of rows and columns for the boxplots. 
-                                        For example, '2,2' will display 4 boxplots in a 2x2 grid.",
+              content = "Specify the layout of multiple box plots on the plotting area, defined as (rows, cols). For example, '2,2' will arrange up to 4 box plots in a 2x2 grid.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -683,8 +682,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Y-axis Limits</span><br>(min, max; comma-separated; leave blank for auto)"
               ),
-              content = "The minimum and maximum values for the y-axis. Leave blank to automatically determine the limits.
-                                        This controls the vertical scale of the plot.",
+              content = "Set the minimum and maximum values for the Y-axis, entered as (min, max) e.g., '0,100'. Leave blank for automatic scaling based on data range. This controls the vertical range displayed on the plot.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -765,7 +763,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
               ),
-              content = "Transform numeric variables using log2 transformation.",
+              content = "Apply a log2 transformation to the numeric data before generating the error-bar plot. This can be useful for data with wide ranges or skewed distributions, helping to stabilize variances and make patterns more visible.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -806,8 +804,12 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Display Effect Size Labels</span>"
               ),
-              content = "Display effect size labels above the bar plots to indicate the effect observed by strictly
-                standardized mean differences (SSMD).",
+              content = HTML(paste0(
+                "Display effect size labels above the bar plots to indicate the effect observed by strictly
+                standardized mean differences (SSMD).
+                Learn more about SSMD at <a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
+                <a href='https://doi.org/10.1198/sbr.2009.0074' target='_blank' rel='noopener noreferrer'>link 2</a>"
+              )),
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -827,7 +829,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Display Class Symbol</span>"
               ),
-              content = "P-values and effect sizes are shown as symbols otherwise numeric values are displayed.",
+              content = "If checked, P-values and effect sizes (if displayed) will be represented by symbols (e.g., asterisks for significance levels) instead of their numeric values.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -867,7 +869,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Y-Axis Label</span>"
               ),
-              content = "The X-axis label you would like to have in the plot.",
+              content = "The Y-axis label you would like to have in the plot.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -940,7 +942,9 @@ server <- function(input, output, session) {
               ),
               content = "The threshold for the SSMD (strictly standardized mean difference) value. 
                                            SSMD is a measure of how different two groups are. A higher threshold means that 
-                                           only larger differences are considered significant.",
+                                           only larger differences are considered significant.
+                                           Learn more about SSMD at <a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
+                <a href='https://doi.org/10.1198/sbr.2009.0074' target='_blank' rel='noopener noreferrer'>link 2</a>",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -963,7 +967,9 @@ server <- function(input, output, session) {
               ),
               content = "The threshold for the log2 fold change value.
                                            Fold change shows the ratio of difference between groups on a logarithmic scale; 
-                                           for example, a value of 1 represents a doubling or halving.",
+                                           for example, a value of 1 represents a doubling or halving.
+                                           Learn more about fold change at <a href='https://doi.org/10.1177/1087057110381919' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
+                <a href='https://doi.org/10.1177/1087057110381783' target='_blank' rel='noopener noreferrer'>link 2</a>",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1088,7 +1094,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Grouping Column 2</span>"
               ),
-              content = "The second column to use for grouping the data.",
+              content = "An optional second column to use for grouping the data.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1109,7 +1115,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Number of Components</span>"
               ),
-              content = "The number of components to use for the PCA analysis. Must be at least 2.",
+              content = "Specify the number of principal components to calculate and potentially visualize. For 2D plots, the first two components are used. For 3D plots, at least 3 components are required.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1217,7 +1223,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Plotting Symbols</span>"
               ),
-              content = "The plotting character (PCH) symbols to use for plotting the data points. Must be the same number as the number of grouping column 1 categories.",
+              content = "Select plotting character (PCH) symbols for data points. If using a second grouping column (Grouping Column 2), the number of symbols should match the number of categories in that column to assign unique shapes. If not, it can correspond to Grouping Column 1.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1251,7 +1257,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Grouping Column</span>"
               ),
-              content = "The column to use for grouping the data.",
+              content = "Select the column that contains the outcome or class labels you want the Random Forest model to predict.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1342,7 +1348,8 @@ server <- function(input, output, session) {
               ),
               content = "Plot the Recieving Operating Characteristic (ROC) curve for the random forest model.
                                Requires comparison to be a binary comparison (at most 2 groups). The ROC curve helps evaluate 
-                               the model’s performance in distinguishing between two groups.",
+                               the model’s performance in distinguishing between two groups. 
+                               Learn more about ROC at <a href='https://doi.org/10.4097/kja.21209' target='_blank' rel='noopener noreferrer'> this link</a>.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1362,9 +1369,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Run RFCV</span>"
               ),
-              content = "Run Recursive Feature Elimination (RFE) with Cross-Validation (CV) to determine 
-                               the optimal number of variables to include in the model.This process automatically tests 
-                               different combinations of variables to find the ones that best predict the outcome.",
+              content = "Perform cross-validation to evaluate model performance with a decreasing number of predictors (variables). This helps identify a smaller set of important variables without significant loss of predictive accuracy.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1436,12 +1441,12 @@ server <- function(input, output, session) {
             "skku_group_cols",
             label = helper(
               type = "inline",
-              title = "Grouping Columns",
+              title = "Grouping Columns (Optional)",
               icon = "fas fa-question-circle",
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Grouping Columns</span>"
               ),
-              content = "The columns to use for grouping the data.",
+              content = "Select one or more categorical columns to group the data by. Skewness and kurtosis will be calculated for numeric variables separately for each group.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1464,7 +1469,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Print Raw Results</span>"
               ),
-              content = "Print the raw skewness and kurtosis values for each column in the data.",
+              content = "Display the calculated skewness and kurtosis values for the original numeric data.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1485,7 +1490,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Print Log-Transformed Results</span>"
               ),
-              content = "Print the skewness and kurtosis values for each column after applying a log2 transformation.",
+              content = "Display the calculated skewness and kurtosis values after applying a log2 transformation to the numeric data. This can show how transformation affects these distribution shape measures.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1519,7 +1524,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Grouping Column 1</span>"
               ),
-              content = "The first column to use for grouping the data.",
+              content = "Select the column containing the class labels or groups that you want to discriminate between using sPLS-DA.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1540,7 +1545,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Grouping Column 2</span>"
               ),
-              content = "The second column to use for grouping the data.",
+              content = "Optional: Select a second column for visualizing additional grouping information on the sPLS-DA plots distinct from the primary grouping column used for discrimination.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1561,8 +1566,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Number of Variables</span>"
               ),
-              content = "The number of variables to use for the sPLS-DA analysis. It should match
-                              the number of variables selected for the analysis.",
+              content = "Specify the number of variables to select/retain on each component during the sPLS-DA model building. This is a key parameter for achieving sparsity.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1611,7 +1615,7 @@ server <- function(input, output, session) {
               content = "The cross-validation option to use for the sPLS-DA analysis.
                              Cross-validation helps evaluate the model's performance. Choose between None, LOOCV, and Mfold.
                              LOOCV = Leave-One-Out Cross-Validation (LOOCV) which works by training the model on all data except one sample and then testing on the left-out sample.
-                             Mfold = M-Fold Cross-Validation which works by splitting the data into M groups and training the model on M-1 groups and testing on the left-out group. This process is repeated 1000 times.",
+                              M-Fold Cross-Validation which works by splitting the data into M groups (folds), training the model on M-1 folds, and testing on the held-out fold. This is repeated M times until every fold has served as a test set. The overall performance can be averaged across multiple such M-fold procedures (repeats) for stability.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1679,7 +1683,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Number of Components</span>"
               ),
-              content = "The number of components to use for the sPLS-DA analysis. Must be at least 2.",
+              content = "Specify the number of components (latent variables) to compute in the sPLS-DA model. Typically 1 to (number of groups - 1), or more if exploring data structure. For 2D plots, 2 components are used.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1700,7 +1704,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Plotting Symbols</span>"
               ),
-              content = "The plotting character (PCH) symbols to use for plotting the data points. Must be the same number as the number of grouping column 1 categories.",
+              content = "Select plotting character (PCH) symbols for data points. If using Grouping Column 2, match the number of symbols to its categories. Otherwise, it can correspond to Grouping Column 1.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1748,8 +1752,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Plot ROC</span>"
               ),
-              content = "Plot the Recieving Operating Characteristic (ROC) curve for the sPLS-DA model. This curve shows
-                               how well the model distinguishes between classes.",
+              content = "Plot Receiver Operating Characteristic (ROC) curves to evaluate the classification performance of the sPLS-DA model.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1863,7 +1866,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Grouping Column</span>"
               ),
-              content = "The column to use for grouping the data.",
+              content = "Select the column that defines the two groups for comparison in the volcano plot (e.g., 'Control' vs 'Treatment').",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1885,9 +1888,9 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Fold Change Threshold</span>"
               ),
-              content = "The threshold for the fold change value.
-                              Fold change indicates the ratio of differences between groups; 
-                              values above this threshold are considered significant.",
+              content = "Set the threshold for fold change. Points exceeding this fold change (and the p-value threshold) are typically will be shown as significant or not significant.
+              Learn more about fold change at <a href='https://doi.org/10.1177/1087057110381919' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
+                <a href='https://doi.org/10.1177/1087057110381783' target='_blank' rel='noopener noreferrer'>link 2</a>",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1908,8 +1911,9 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>P-Value Threshold</span>"
               ),
-              content = "The threshold for the p-value. P-values indicate the probability that the 
-                              observed difference is due to chance; lower values suggest more significant differences.",
+              content = "Set the threshold for statistical significance (p-value). Points with p-values below this threshold (and exceeding the fold change threshold) are highlighted as significant.
+              Learn more about fold change at <a href='https://doi.org/10.1142/S0219720012310038' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
+                <a href='https://doi.org/10.1038/s41467-024-45834-7' target='_blank' rel='noopener noreferrer'>link 2</a>",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1931,7 +1935,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Top Labels</span>"
               ),
-              content = "The number of top labels to display on the plot.",
+              content = "Specify the number of significant points to label on the volcano plot.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -1959,7 +1963,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Grouping Column</span>"
               ),
-              content = "The column to use for grouping the data.",
+              content = "Select the column that contains the outcome or class labels you want the XGBoost model to predict (the target variable).",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -2094,7 +2098,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Top Number of Features</span>"
               ),
-              content = "The number of top features to display on the plot.",
+              content = "Specify the number of top features (based on importance scores from the XGBoost model) to display in a feature importance plot.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {

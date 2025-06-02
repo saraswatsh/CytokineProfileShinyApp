@@ -55,64 +55,6 @@ App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
 - Inline Help & Tooltips: Detailed helper text accompanies each input
   field to assist with configuration and interpretation.
 
-## R Package Requirements
-
-- base64enc
-- shiny
-- shinyjs
-- dplyr
-- ggplot2
-- readxl
-- bslib
-- jsonlite
-- fontawesome
-- shinyWidgets
-- shinyhelper
-- DT
-- shinyFeedback
-- skimr
-- shinycssloaders
-- BiocManager
-- mixOmics
-
-Install the required packages using the following code:
-
-``` r
-install.packages(c(
-  "base64enc",
-  "shiny",
-  "shinyjs",
-  "dplyr",
-  "ggplot2",
-  "readxl",
-  "bslib",
-  "jsonlite",
-  "fontawesome",
-  "shinyWidgets",
-  "shinyhelper",
-  "DT",
-  "shinyFeedback",
-  "skimr",
-  "shinycssloaders",
-  "BiocManager"
-))
-
-# Install mixOmics from Bioconductor
-BiocManager::install("mixOmics")
-```
-
-## Setup and Installation
-
-1.  Clone the repository from GitHub: Clone this repository or download
-    the source code to your local machine.
-2.  Open RStudio: Open the project in RStudio or your preffered IDE.
-3.  Install Dependencies: Ensure all packages are installed.
-4.  Run the Application: Launch the app by executing
-
-``` r
-shiny::runApp("app.R")
-```
-
 ## Application Workflow
 
 The app is structured as a multi-step wizard:
@@ -143,6 +85,11 @@ The app is structured as a multi-step wizard:
 - Download Option: If the download mode is selected, the output file
   (PDF) is generated and made available for download after re-running
   the analysis.
+
+## RStudio Installation
+
+A quick [installation guide](articles/R_installation.html) is available
+to use this app locally.
 
 ## License
 

@@ -22,7 +22,7 @@ This guide will provide the basic steps to use CytokineProfile Shiny.
 
 ## Uploading and Viewing Data
 
-The app alows users to upload their own data and supports various formats such as CSV, XLS/X, and TXT. There is also built-in datasets for testing and understanding the app. Additionally, the app offers the option to view the data set and also view summary statistics which may provide useful information about the data prior to conducting analysis.
+The app allows users to upload their own data and supports various formats such as CSV, XLS/X, and TXT. There is also built-in datasets for testing and understanding the app. Additionally, the app offers the option to view the data set and also view summary statistics which may provide useful information about the data prior to conducting analysis.
 
 ![](../man/figures/Shiny_Step1.gif)
 

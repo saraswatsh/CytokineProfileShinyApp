@@ -5209,10 +5209,10 @@
       "checksum": "d5f960a2ff001b61309d14683ce23ab4"
     },
     ".Rbuildignore": {
-      "checksum": "b33f6d8ccd0519fde009d9057e855b02"
+      "checksum": "2339a34496379fd2274ab3974bfc72ac"
     },
     "_pkgdown.yml": {
-      "checksum": "a038a6e48649ee49ef7b12043df1bc59"
+      "checksum": "dd02a9065bd7f7f9e3678f2d3b389a7c"
     },
     "app.R": {
       "checksum": "95f7e887a1cd7599af11527a3acd4a26"
@@ -5220,8 +5220,8 @@
     "CODE_OF_CONDUCT.md": {
       "checksum": "64687988253c6bd89ce17a9730d37841"
     },
-    "cytoprofile_logo2.png": {
-      "checksum": "83a8a76d775edb40aeb62cf3008c5633"
+    "cytoprofile_logo.png": {
+      "checksum": "05ef887159d169d2bed7c2a037dc95d1"
     },
     "data-raw/ExampleData1.csv": {
       "checksum": "e4319e440f4603b6b058cbe400d41a42"
@@ -5248,19 +5248,46 @@
       "checksum": "b77f12d98bb00a973f6d6a2b22d9a7b3"
     },
     "DESCRIPTION": {
-      "checksum": "6db61293afa098ed1863b7a5d22ea1a9"
+      "checksum": "bed8849ce3eee560359dcaaa8624cd60"
+    },
+    "doc/Basic-Tutorial-of-CytokineProfile-Shiny.html": {
+      "checksum": "6bde536e41b125d392ebc37f415c7a0a"
+    },
+    "doc/Basic-Tutorial-of-CytokineProfile-Shiny.R": {
+      "checksum": "3fe2d0ef44b57656524b8528e61dc8f9"
+    },
+    "doc/Basic-Tutorial-of-CytokineProfile-Shiny.Rmd": {
+      "checksum": "efe6b96a4654eaf6920a1fa9b71de1ef"
+    },
+    "doc/R_installation.html": {
+      "checksum": "c9ae1f7963835e9ab2c97f9f8d3e6248"
+    },
+    "doc/R_installation.R": {
+      "checksum": "f4649645f07be947447e4ed91fbf5928"
+    },
+    "doc/R_installation.Rmd": {
+      "checksum": "30ab14f44363f48a3935b0823a268aee"
     },
     "docs/404.html": {
-      "checksum": "1ccbe1d564bd329d8eaa549fc122f0d3"
+      "checksum": "8bbda0f1368930105969dc51eda9fccf"
     },
     "docs/apple-touch-icon.png": {
-      "checksum": "0fd3e69a41725945729ef3a92b3fb5c5"
+      "checksum": "d38c3f0c1f6de044e2d5ecdbdcb15435"
+    },
+    "docs/articles/Basic-Tutorial-of-CytokineProfile-Shiny.html": {
+      "checksum": "9a16579a7a6a8fdeac30d93e1157d339"
+    },
+    "docs/articles/index.html": {
+      "checksum": "96fcf56efc2356ab10deba5ffd37e066"
+    },
+    "docs/articles/R_installation.html": {
+      "checksum": "320eb27138126de0fee2176dd127ede4"
     },
     "docs/authors.html": {
-      "checksum": "248d291127d6f9f5c689f536148b47af"
+      "checksum": "deecf6177a42cce15e93379792168491"
     },
     "docs/CODE_OF_CONDUCT.html": {
-      "checksum": "82080beb0a14726a64ad586c32ccd25a"
+      "checksum": "168d1a8f28b4fb808408f4240aa5f5f0"
     },
     "docs/deps/bootstrap-5.3.1/bootstrap.bundle.min.js": {
       "checksum": "e2b09c06f0e714b6144a6788a28e3950"
@@ -5341,22 +5368,22 @@
       "checksum": "d0c5399929d81f67cd6d7687880498a6"
     },
     "docs/favicon-96x96.png": {
-      "checksum": "0a9eeb93663488c0c1ce95ff2b6690ee"
+      "checksum": "8d9d0f6b8312de878034385eb7152dde"
     },
     "docs/favicon.ico": {
-      "checksum": "d37d58d2c2778f8ce5be813e9079d39d"
+      "checksum": "250aeb7e24363c4e437d9b0ed758e1e1"
     },
     "docs/favicon.svg": {
-      "checksum": "b54f484a38e96b33a7e4b1baec4edf5f"
+      "checksum": "e31a5fdcd7c161b4393d714d8f7e14bb"
     },
     "docs/index.html": {
-      "checksum": "569137c7b0a340a8847454be9fc72b59"
+      "checksum": "626d41656313c64ad16fe726b1974c71"
     },
     "docs/katex-auto.js": {
       "checksum": "b6babfc10247cf9190b9fa172dde62b8"
     },
     "docs/LICENSE.html": {
-      "checksum": "9a2eb8276b7d112a98ad83e25d559693"
+      "checksum": "1b24d6ba0a2033df01c558caa5923ff6"
     },
     "docs/lightswitch.js": {
       "checksum": "5806fcea81ccc70e1ffc453a7d9e12b5"
@@ -5365,25 +5392,25 @@
       "checksum": "4759f31f8a585e9af173fc579d730265"
     },
     "docs/logo.png": {
-      "checksum": "c248dd2a9681d73f52211a72a131aae5"
+      "checksum": "3d968826327814265c06b8853caca17d"
     },
     "docs/pkgdown.js": {
       "checksum": "dca708c90eee1f2352a32f4754901a6a"
     },
     "docs/pkgdown.yml": {
-      "checksum": "dc5dadfcb871afc3eed4a64d4978a54f"
+      "checksum": "48976b28df594303db23c2a70f44d394"
     },
     "docs/reference/boxplot2_output.pdf": {
       "checksum": "7fbd0ea790a54bc2f184cd9d6d50b25c"
     },
     "docs/reference/cyt_anova.html": {
-      "checksum": "e60a5b25e303bf8a0dfca653748da852"
+      "checksum": "b5d19519644cbd4c94a0c01e3d46ae57"
     },
     "docs/reference/cyt_bp-1.png": {
       "checksum": "4dd2db0a7b210e2c42bd76f0440a6fb1"
     },
     "docs/reference/cyt_bp.html": {
-      "checksum": "2e029b0afbee6958a7fdf59f5ecb3348"
+      "checksum": "1d9fa839ce7e04e5cf7b2fdc96093cf0"
     },
     "docs/reference/cyt_bp2-1.png": {
       "checksum": "fd9686c555ee6b349b7c3aed98ececa5"
@@ -5392,22 +5419,22 @@
       "checksum": "ec8c473d934cfe4b4124aa04073a7637"
     },
     "docs/reference/cyt_bp2.html": {
-      "checksum": "8d8b97d319c33894d33b89bb17998d2d"
+      "checksum": "e1db01e4e8ed5c922f732faa28eb83e7"
     },
     "docs/reference/cyt_dualflashplot-1.png": {
       "checksum": "de9f8d34668089bfa023fbc3c7c5657d"
     },
     "docs/reference/cyt_dualflashplot.html": {
-      "checksum": "0fa4f88ea09f7cb10f73bd71629d35ca"
+      "checksum": "91d2049981fc2fa79c488eaec224c920"
     },
     "docs/reference/cyt_errbp-1.png": {
       "checksum": "aca806a03721c25bd467393c5345baf5"
     },
     "docs/reference/cyt_errbp.html": {
-      "checksum": "486cf607025114b0942e8370381950cb"
+      "checksum": "cc05c5e5ae13789111d50db50c0249d0"
     },
     "docs/reference/cyt_heatmap.html": {
-      "checksum": "0fb0eaccc291c752edcfeb2231126e9e"
+      "checksum": "66ce5b5c48d5b40acfe7300171164752"
     },
     "docs/reference/cyt_pca-1.png": {
       "checksum": "b36cbf79504cdf0dd75bb93c392a15f5"
@@ -5425,7 +5452,7 @@
       "checksum": "207ae984c18b03a794d53382445b2ba7"
     },
     "docs/reference/cyt_pca.html": {
-      "checksum": "16ba0f3a7e65840f817b327d2c74a493"
+      "checksum": "fa7cd02d64116e2ad8da61bcb4df8e45"
     },
     "docs/reference/cyt_rf-1.png": {
       "checksum": "5d88efdbd250bbc0e6a996bd598803b6"
@@ -5437,7 +5464,7 @@
       "checksum": "cb8832a430afd3347f8b6f0b150c39e3"
     },
     "docs/reference/cyt_rf.html": {
-      "checksum": "7f3be96533da8b3e62cb398b43135535"
+      "checksum": "688a006b9002fb3f7b540a321fbd8d84"
     },
     "docs/reference/cyt_skku-1.png": {
       "checksum": "c9fe1b01d82eee0cf607605f53e103ec"
@@ -5452,7 +5479,7 @@
       "checksum": "da059a7b477f2b63e0e33f37517bed47"
     },
     "docs/reference/cyt_skku.html": {
-      "checksum": "5bca815452688333454f6039570f092f"
+      "checksum": "7c3fb114c9b3d84360b8f1591e574b4c"
     },
     "docs/reference/cyt_splsda-1.png": {
       "checksum": "fa1754f749e7f2b746aec2048eed14ed"
@@ -5476,16 +5503,16 @@
       "checksum": "9043a694ea6cca5c7d22eeb3032d74eb"
     },
     "docs/reference/cyt_splsda.html": {
-      "checksum": "84d3d249e70a1b183999a65fd1456e05"
+      "checksum": "b16b9eaa1c9c1911caafdc8e0dc97101"
     },
     "docs/reference/cyt_ttest.html": {
-      "checksum": "dcc48102619963d386f4808cff4c8cef"
+      "checksum": "156dcdcd0c7fa66f1a62bcd9fb99ed28"
     },
     "docs/reference/cyt_volc-1.png": {
       "checksum": "2c3c770ab8814ffb328cfec040a2c411"
     },
     "docs/reference/cyt_volc.html": {
-      "checksum": "5fdc915eaf69ea0cfd8f5814b17fd5a4"
+      "checksum": "dc5e26e695b6fb81b87f2179d8a64452"
     },
     "docs/reference/cyt_xgb-1.png": {
       "checksum": "0abc8dba74bf72b4707444345d80a653"
@@ -5494,40 +5521,52 @@
       "checksum": "f12cb94ca1b30cd265a4e96532439acc"
     },
     "docs/reference/cyt_xgb.html": {
-      "checksum": "a922b58acbe9f8dd4a93973190987d30"
+      "checksum": "8d9f02e0278300808c7259b9878f0952"
     },
     "docs/reference/ExampleData1.html": {
-      "checksum": "84d3ee8bdc982e3db2f1750252557dc5"
+      "checksum": "705ced4f06b32c992c00a371fce53d42"
     },
     "docs/reference/ExampleData2.html": {
-      "checksum": "314da3054d3527d630df64a29117bb42"
+      "checksum": "bd91a0b7cd5bd938cff45fd9e06bf79a"
     },
     "docs/reference/ExampleData3.html": {
-      "checksum": "6642ddcf4b10f8fd9ac00a282df96ba4"
+      "checksum": "82f31775d3cf3489649c9c1c60d68df2"
     },
     "docs/reference/ExampleData4.html": {
-      "checksum": "389a9d80772db5e63b1e7e3283d31f25"
+      "checksum": "8327d67037d92d3a035014d9a8e8f4b8"
     },
     "docs/reference/figures/logo.png": {
-      "checksum": "c248dd2a9681d73f52211a72a131aae5"
+      "checksum": "3d968826327814265c06b8853caca17d"
+    },
+    "docs/reference/figures/Shiny_Step1.gif": {
+      "checksum": "88d17a0323ce24b7a71c534201462d03"
+    },
+    "docs/reference/figures/Shiny_Step2.gif": {
+      "checksum": "850cad3bdb0af27c07b7d07196ae4806"
+    },
+    "docs/reference/figures/Shiny_Step3.gif": {
+      "checksum": "0d918a737be717614aa9e3dbde5fa787"
+    },
+    "docs/reference/figures/Shiny_Step4.gif": {
+      "checksum": "4815a8eb4b1dfc26f10a92fe948b44e9"
     },
     "docs/reference/index.html": {
-      "checksum": "14847ef64507a916b3460c70643d5cde"
+      "checksum": "f50f313dffb11b9e9c6a8425f45a7b6e"
     },
     "docs/search.json": {
-      "checksum": "479fbc50d8f7cba44e98d69e9f7dbb79"
+      "checksum": "7b0b89cf4f16730614c3463cc4892c99"
     },
     "docs/site.webmanifest": {
       "checksum": "aa2a240255534cbd81d92a24956916f5"
     },
     "docs/sitemap.xml": {
-      "checksum": "d7833ffa9a5ea2db9567e31be59689c1"
+      "checksum": "5c631a445ab9900c5cccca221d190668"
     },
     "docs/web-app-manifest-192x192.png": {
-      "checksum": "f75ce77e03a2e746326726ab2698b1b3"
+      "checksum": "50535ea301dec5d63e47d6eaaca27916"
     },
     "docs/web-app-manifest-512x512.png": {
-      "checksum": "59fcce46b358130bcdcd1abb186cc357"
+      "checksum": "79c4b882664c8c594519fd9fa4bc6837"
     },
     "global.R": {
       "checksum": "286cd9ae51e0d35e9df99c00d101c41e"
@@ -5590,31 +5629,46 @@
       "checksum": "00d1a18e0fe69077bd2c6f11a9dc9e02"
     },
     "man/figures/logo.png": {
-      "checksum": "c248dd2a9681d73f52211a72a131aae5"
+      "checksum": "3d968826327814265c06b8853caca17d"
+    },
+    "man/figures/Shiny_Step1.gif": {
+      "checksum": "88d17a0323ce24b7a71c534201462d03"
+    },
+    "man/figures/Shiny_Step2.gif": {
+      "checksum": "850cad3bdb0af27c07b7d07196ae4806"
+    },
+    "man/figures/Shiny_Step3.gif": {
+      "checksum": "0d918a737be717614aa9e3dbde5fa787"
+    },
+    "man/figures/Shiny_Step4.gif": {
+      "checksum": "4815a8eb4b1dfc26f10a92fe948b44e9"
+    },
+    "Meta/vignette.rds": {
+      "checksum": "54da6eb5199bbce1481a58af25f0790d"
     },
     "NAMESPACE": {
       "checksum": "43a84dd55e836fd3caef59f2c2bac1f6"
     },
     "pkgdown/favicon/apple-touch-icon.png": {
-      "checksum": "0fd3e69a41725945729ef3a92b3fb5c5"
+      "checksum": "d38c3f0c1f6de044e2d5ecdbdcb15435"
     },
     "pkgdown/favicon/favicon-96x96.png": {
-      "checksum": "0a9eeb93663488c0c1ce95ff2b6690ee"
+      "checksum": "8d9d0f6b8312de878034385eb7152dde"
     },
     "pkgdown/favicon/favicon.ico": {
-      "checksum": "d37d58d2c2778f8ce5be813e9079d39d"
+      "checksum": "250aeb7e24363c4e437d9b0ed758e1e1"
     },
     "pkgdown/favicon/favicon.svg": {
-      "checksum": "b54f484a38e96b33a7e4b1baec4edf5f"
+      "checksum": "e31a5fdcd7c161b4393d714d8f7e14bb"
     },
     "pkgdown/favicon/site.webmanifest": {
       "checksum": "aa2a240255534cbd81d92a24956916f5"
     },
     "pkgdown/favicon/web-app-manifest-192x192.png": {
-      "checksum": "f75ce77e03a2e746326726ab2698b1b3"
+      "checksum": "50535ea301dec5d63e47d6eaaca27916"
     },
     "pkgdown/favicon/web-app-manifest-512x512.png": {
-      "checksum": "59fcce46b358130bcdcd1abb186cc357"
+      "checksum": "79c4b882664c8c594519fd9fa4bc6837"
     },
     "R/cyt_anova.R": {
       "checksum": "1455d4d4026a7d803803e36287575f4d"
@@ -5662,22 +5716,28 @@
       "checksum": "86e5598f0b6b5cee6cec6e40d225d5cf"
     },
     "README.md": {
-      "checksum": "f2919425c2b8715adb14e2ae1b5ac4ca"
+      "checksum": "6fb6e94d91bfaa33c7ca09f2b95526aa"
     },
     "README.Rmd": {
-      "checksum": "9e6e7cd3bc4e67ac3351e70a245bfbe2"
+      "checksum": "e74846a93c40d34583f585b296bd1d29"
     },
     "server.R": {
-      "checksum": "bcbf3b0543c22825e2d52908cefcf375"
+      "checksum": "1efcaa81b7b6ec059b5b2278b1f0df5a"
     },
     "tests/spelling.R": {
       "checksum": "332173f20d20942c02019350ea4dcadc"
     },
     "ui.R": {
-      "checksum": "baad88a07431cff3169d6f881c8cafb0"
+      "checksum": "dd4a28261fd057469936a3616435636f"
+    },
+    "vignettes/Basic-Tutorial-of-CytokineProfile-Shiny.Rmd": {
+      "checksum": "efe6b96a4654eaf6920a1fa9b71de1ef"
+    },
+    "vignettes/R_installation.Rmd": {
+      "checksum": "30ab14f44363f48a3935b0823a268aee"
     },
     "WWW/logo.png": {
-      "checksum": "c248dd2a9681d73f52211a72a131aae5"
+      "checksum": "3d968826327814265c06b8853caca17d"
     }
   },
   "users": null

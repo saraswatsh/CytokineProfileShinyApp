@@ -17,6 +17,11 @@ navbar:
     href: reference/index.html
   - text: Articles
     href: articles/index.html
+articles: 
+- title: Installation for RStudio
+  contents: R_installation
+- title: Basic Tutorial of CytokineProfile Shiny
+  contents: Basic-Tutorial-of-CytokineProfile-Shiny
 reference:
 - title: Exploratory Analysis
   description: |
