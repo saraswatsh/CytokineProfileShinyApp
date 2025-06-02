@@ -102,64 +102,6 @@
 </ul>
 </div>
 <div class="section level2">
-<h2 id="r-package-requirements">R Package Requirements<a class="anchor" aria-label="anchor" href="#r-package-requirements"></a>
-</h2>
-<ul>
-<li>base64enc</li>
-<li>shiny</li>
-<li>shinyjs</li>
-<li>dplyr</li>
-<li>ggplot2</li>
-<li>readxl</li>
-<li>bslib</li>
-<li>jsonlite</li>
-<li>fontawesome</li>
-<li>shinyWidgets</li>
-<li>shinyhelper</li>
-<li>DT</li>
-<li>shinyFeedback</li>
-<li>skimr</li>
-<li>shinycssloaders</li>
-<li>BiocManager</li>
-<li>mixOmics</li>
-</ul>
-<p>Install the required packages using the following code:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="st">"base64enc"</span>,</span>
-<span>  <span class="st">"shiny"</span>,</span>
-<span>  <span class="st">"shinyjs"</span>,</span>
-<span>  <span class="st">"dplyr"</span>,</span>
-<span>  <span class="st">"ggplot2"</span>,</span>
-<span>  <span class="st">"readxl"</span>,</span>
-<span>  <span class="st">"bslib"</span>,</span>
-<span>  <span class="st">"jsonlite"</span>,</span>
-<span>  <span class="st">"fontawesome"</span>,</span>
-<span>  <span class="st">"shinyWidgets"</span>,</span>
-<span>  <span class="st">"shinyhelper"</span>,</span>
-<span>  <span class="st">"DT"</span>,</span>
-<span>  <span class="st">"shinyFeedback"</span>,</span>
-<span>  <span class="st">"skimr"</span>,</span>
-<span>  <span class="st">"shinycssloaders"</span>,</span>
-<span>  <span class="st">"BiocManager"</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Install mixOmics from Bioconductor</span></span>
-<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"mixOmics"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="setup-and-installation">Setup and Installation<a class="anchor" aria-label="anchor" href="#setup-and-installation"></a>
-</h2>
-<ol style="list-style-type: decimal">
-<li>Clone the repository from GitHub: Clone this repository or download the source code to your local machine.</li>
-<li>Open RStudio: Open the project in RStudio or your preffered IDE.</li>
-<li>Install Dependencies: Ensure all packages are installed.</li>
-<li>Run the Application: Launch the app by executing</li>
-</ol>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/runApp.html" class="external-link">runApp</a></span><span class="op">(</span><span class="st">"app.R"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
 <h2 id="application-workflow">Application Workflow<a class="anchor" aria-label="anchor" href="#application-workflow"></a>
 </h2>
 <p>The app is structured as a multi-step wizard:</p>
@@ -200,6 +142,11 @@
 <li>Download Option: If the download mode is selected, the output file (PDF) is generated and made available for download after re-running the analysis.</li>
 </ul>
 </div>
+</div>
+<div class="section level2">
+<h2 id="rstudio-installation">RStudio Installation<a class="anchor" aria-label="anchor" href="#rstudio-installation"></a>
+</h2>
+<p>A quick <a href="articles/R_installation.html">installation guide</a> is available to use this app locally.</p>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
