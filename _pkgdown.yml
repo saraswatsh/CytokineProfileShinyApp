@@ -17,11 +17,15 @@ navbar:
     href: reference/index.html
   - text: Articles
     href: articles/index.html
-articles: 
+articles:
 - title: Installation for RStudio
   contents: R_installation
 - title: Basic Tutorial of CytokineProfile Shiny
   contents: Basic-Tutorial-of-CytokineProfile-Shiny
+- title: Exploratory Analysis Demonstrations
+  contents:
+  - Understanding-Dual-Flashlight-Plot
+  - Understanding-Volcano-Plot
 reference:
 - title: Exploratory Analysis
   description: |
