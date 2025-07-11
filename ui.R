@@ -25,6 +25,72 @@ ui <- shiny::fluidPage(
   tags$head(
     tags$style(HTML(
       "
+      .scrollable-checkbox-group {
+        max-height: 400px; /* Adjust height as needed */
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+      }
+    "
+    ))
+  ),
+  tags$head(
+    tags$style(HTML(
+      "
+      .card-header-tabs .nav-link {
+        color: var(--bs-body-color) !important;
+      }
+    "
+    ))
+  ),
+  tags$head(
+    tags$style(HTML(
+      "
+    .card-header-tabs .nav-link {
+      color: var(--bs-body-color) !important;
+    }
+    
+    /* ADD THIS CLASS */
+    .overflow-visible {
+      overflow: visible !important;
+    }
+    
+    .scrollable-checkbox-group {
+      max-height: 400px; 
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  "
+    ))
+  ),
+  tags$head(
+    tags$style(HTML(
+      "    
+    /* --- General styles --- */
+    .overflow-visible { overflow: visible !important; }
+    .scrollable-checkbox-group {
+      max-height: 400px; 
+      overflow-y: auto; 
+      border: 1px solid #ddd;
+      padding: 10px; 
+      border-radius: 5px;
+    }
+
+    /* --- Styles for the main navigation tabs --- */
+    .nav-tabs .nav-link { color: var(--bs-body-color) !important; }
+    .nav-tabs .nav-link.active {
+      background-color: #4E5D6C !important;
+      color: white !important;
+    }
+  "
+    ))
+  ),
+  tags$head(
+    tags$style(HTML(
+      "
      .hero-card {
       display:         flex;
       flex-wrap:       wrap;               /* allow wrapping */

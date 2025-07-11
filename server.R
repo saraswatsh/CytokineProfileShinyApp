@@ -140,6 +140,7 @@ server <- function(input, output, session) {
     splsda_bg = NULL,
     splsda_conf_mat = NULL,
     splsda_colors = NULL,
+    splsda_multilevel = NULL,
 
     # Two-Sample T-Test options
     ttest_log2 = NULL,
@@ -238,7 +239,9 @@ server <- function(input, output, session) {
     }
   })
   output$built_in_selector <- shiny::renderUI({
-    if (!isTRUE(input$use_builtin)) return(NULL)
+    if (!isTRUE(input$use_builtin)) {
+      return(NULL)
+    }
     selectInput(
       "built_in_choice",
       "Select Built-in Data:",
@@ -267,7 +270,6 @@ server <- function(input, output, session) {
     req(isTruthy(input$datafile) || input$use_builtin)
     DT::dataTableOutput("data_preview")
   })
-  # Preview first 10 rows
   output$data_preview <- DT::renderDT(
     {
       userData()
@@ -352,6 +354,15 @@ server <- function(input, output, session) {
   ## ---------------------------
   ## Data Filtering and Column Selection
   ## ---------------------------
+
+  # Reactive values to store the selection from our new custom buttons
+  selected_stat_func <- reactiveVal("ANOVA")
+  selected_exploratory_func <- reactiveVal("Boxplots")
+  selected_multivariate_func <- reactiveVal(
+    "Principle Component Analysis (PCA)"
+  )
+  selected_ml_func <- reactiveVal("Random Forest")
+
   filteredData <- shiny::reactive({
     df <- userData()
     req(df)
@@ -380,18 +391,21 @@ server <- function(input, output, session) {
   })
   selected_function <- shiny::reactive({
     cats <- input$analysis_categories
-    if (is.null(cats)) return(NULL)
-
-    if ("stat_tests" %in% cats) return(input$stat_function)
-    if ("exploratory" %in% cats) return(input$exploratory_function)
-    if ("multivariate" %in% cats) return(input$multivariate_function)
-    if ("machine" %in% cats) return(input$ml_function)
-
-    NULL
+    req(cats)
+    switch(
+      cats,
+      "stat_tests" = selected_stat_func(),
+      "exploratory" = selected_exploratory_func(),
+      "multivariate" = selected_multivariate_func(),
+      "machine" = selected_ml_func(),
+      NULL
+    )
   })
   output$column_selection_ui <- shiny::renderUI({
     df <- userData()
-    if (is.null(df)) return(NULL)
+    if (is.null(df)) {
+      return(NULL)
+    }
     checkboxGroupInput(
       "selected_columns",
       "Select Columns:",
@@ -406,7 +420,9 @@ server <- function(input, output, session) {
 
   output$select_buttons_ui <- shiny::renderUI({
     df <- userData()
-    if (is.null(df)) return(NULL)
+    if (is.null(df)) {
+      return(NULL)
+    }
     tagList(
       fluidRow(
         div(
@@ -424,7 +440,47 @@ server <- function(input, output, session) {
       br()
     )
   })
+  output$conditional_filter_ui <- renderUI({
+    df <- userData()
+    selected_cols <- input$selected_columns
 
+    # Return NULL if no columns are selected yet
+    if (is.null(selected_cols)) {
+      return(NULL)
+    }
+
+    # Check if any of the *selected* columns are categorical
+    sub_df <- df[, selected_cols, drop = FALSE]
+    is_categorical <- sapply(sub_df, function(x) {
+      is.character(x) || is.factor(x)
+    })
+
+    # Only if at least one categorical column is selected, show the filter UI
+    if (any(is_categorical)) {
+      column(
+        6,
+        card(
+          card_header(
+            class = "bg-primary",
+            "2. Apply Filters (Optional)"
+          ),
+          card_body(
+            bslib::accordion(
+              open = FALSE, # Start closed
+              bslib::accordion_panel(
+                "Filter by Categorical Values",
+                uiOutput("filter_ui"), # This is your existing filter UI output
+                icon = fontawesome::fa("filter")
+              )
+            )
+          )
+        )
+      )
+    } else {
+      # Otherwise, render nothing
+      NULL
+    }
+  })
   shiny::observeEvent(input$select_all, {
     df <- userData()
     if (!is.null(df)) {
@@ -446,12 +502,16 @@ server <- function(input, output, session) {
 
   output$filter_ui <- shiny::renderUI({
     df <- filteredData()
-    if (is.null(df)) return(NULL)
+    if (is.null(df)) {
+      return(NULL)
+    }
     factor_cols <- names(df)[sapply(
       df,
       function(x) is.factor(x) || is.character(x)
     )]
-    if (length(factor_cols) == 0) return(NULL)
+    if (length(factor_cols) == 0) {
+      return(NULL)
+    }
     ui_list <- lapply(factor_cols, function(col) {
       all_levels <- sort(unique(userData()[[col]]))
       selected_levels <- sort(unique(df[[col]]))
@@ -517,15 +577,12 @@ server <- function(input, output, session) {
 
   # Function Options UI
   output$function_options_ui <- shiny::renderUI({
-    cats <- input$analysis_categories
-    if (is.null(cats) || length(cats) == 0) return(NULL)
-
-    func <- NULL
-    if ("stat_tests" %in% cats) func <- input$stat_function
-    if ("exploratory" %in% cats) func <- input$exploratory_function
-    if ("multivariate" %in% cats) func <- input$multivariate_function
-    if ("machine" %in% cats) func <- input$ml_function
+    func <- selected_function()
     req(func)
+
+    userState$selected_function <- func
+    func_name <- func
+    ui_list <- list()
 
     userState$selected_function <- func
     func_name <- func
@@ -719,7 +776,9 @@ server <- function(input, output, session) {
       "Error-BarPlot" = {
         df <- filteredData()
         df <- filteredData()
-        if (is.null(df)) return(NULL)
+        if (is.null(df)) {
+          return(NULL)
+        }
         cols <- names(df)
         # Identify candidate grouping columns (categorical variables)
         cat_vars <- names(df)[sapply(
@@ -904,7 +963,9 @@ server <- function(input, output, session) {
       },
       "Dual-Flashlight Plot" = {
         df <- filteredData()
-        if (is.null(df)) return(NULL)
+        if (is.null(df)) {
+          return(NULL)
+        }
         cols <- names(df)
         ui_list <- tagList(
           selectInput(
@@ -1007,7 +1068,9 @@ server <- function(input, output, session) {
       },
       "Heatmap" = {
         df <- filteredData()
-        if (is.null(df)) return(NULL)
+        if (is.null(df)) {
+          return(NULL)
+        }
         ann_choices <- names(df)[sapply(
           df,
           function(x) is.factor(x) || is.character(x)
@@ -1061,7 +1124,9 @@ server <- function(input, output, session) {
       },
       "Principle Component Analysis (PCA)" = {
         df <- filteredData()
-        if (is.null(df)) return(NULL)
+        if (is.null(df)) {
+          return(NULL)
+        }
         cols <- names(df)
         ui_list <- tagList(
           selectInput(
@@ -1245,7 +1310,9 @@ server <- function(input, output, session) {
       },
       "Random Forest" = {
         df <- filteredData()
-        if (is.null(df)) return(NULL)
+        if (is.null(df)) {
+          return(NULL)
+        }
         cols <- names(df)
         ui_list <- tagList(
           selectInput(
@@ -1435,7 +1502,9 @@ server <- function(input, output, session) {
       },
       "Skewness/Kurtosis" = {
         df <- filteredData()
-        if (is.null(df)) return(NULL)
+        if (is.null(df)) {
+          return(NULL)
+        }
         ui_list <- tagList(
           selectInput(
             "skku_group_cols",
@@ -1505,7 +1574,9 @@ server <- function(input, output, session) {
       },
       "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
         df <- filteredData()
-        if (is.null(df)) return(NULL)
+        if (is.null(df)) {
+          return(NULL)
+        }
         default_num_vars <- sum(sapply(df, is.numeric))
 
         # If the user hasn't manually changed the value, update it.
@@ -1556,6 +1627,27 @@ server <- function(input, output, session) {
             ),
             choices = cols,
             selected = isolate(userState$splsda_group_col2) %||% cols[1]
+          ),
+          selectInput(
+            "splsda_multilevel",
+            label = helper(
+              type = "inline",
+              title = "Multilevel Column",
+              icon = "fas fa-question-circle",
+              shiny_tag = HTML(
+                "<span style='margin-right: 15px;'>Multilevel Column</span>"
+              ),
+              content = "Optional: Select a column that describes the categorizations of repeated measurements to be used for multilevel analysis.",
+              if (
+                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
+              ) {
+                colour = "red"
+              } else {
+                colour = "blue"
+              }
+            ),
+            choices = cols,
+            selected = isolate(userState$splsda_multilevel) %||% cols[1]
           ),
           numericInput(
             "splsda_var_num",
@@ -1854,7 +1946,9 @@ server <- function(input, output, session) {
       },
       "Volcano Plot" = {
         df <- filteredData()
-        if (is.null(df)) return(NULL)
+        if (is.null(df)) {
+          return(NULL)
+        }
         cols <- names(df)
         ui_list <- tagList(
           selectInput(
@@ -1951,7 +2045,9 @@ server <- function(input, output, session) {
       },
       "Extreme Gradient Boosting (XGBoost)" = {
         df <- filteredData()
-        if (is.null(df)) return(NULL)
+        if (is.null(df)) {
+          return(NULL)
+        }
         cols <- names(df)
         ui_list <- tagList(
           selectInput(
@@ -2379,111 +2475,184 @@ server <- function(input, output, session) {
         actionButton("next1", "Next")
       ),
 
-      # STEP 2 ----
-      "2" = tagList(
-        stepHeader,
-        uiOutput("column_selection_ui"),
-        uiOutput("select_buttons_ui"),
-        uiOutput("filter_ui"),
-        fluidRow(
-          div(
-            style = "text-align: left;",
-            div(
-              style = "display: inline-block; margin-right: 10px;",
-              actionButton("back2", "Back")
+      "2" = {
+        # First, identify column types from the user's data
+        df <- userData()
+        is_numeric_col <- sapply(df, is.numeric)
+        all_cols <- names(df)
+        numeric_cols <- all_cols[is_numeric_col]
+        categorical_cols <- all_cols[!is_numeric_col]
+
+        tagList(
+          stepHeader,
+          fluidRow(
+            # -- Column for Selections (now contains TWO cards) --
+            column(
+              6,
+              # Card 1: Categorical Columns
+              card(
+                card_header(class = "bg-info", "1. Select Categorical Columns"),
+                card_body(
+                  div(
+                    style = "margin-bottom: 10px;",
+                    actionButton(
+                      "select_all_cat",
+                      "Select All",
+                      class = "btn-sm"
+                    ),
+                    actionButton(
+                      "deselect_all_cat",
+                      "Deselect All",
+                      class = "btn-sm"
+                    )
+                  ),
+                  div(
+                    class = "scrollable-checkbox-group",
+                    checkboxGroupInput(
+                      "selected_categorical_cols",
+                      label = NULL,
+                      choices = categorical_cols,
+                      selected = intersect(
+                        userState$selected_columns,
+                        categorical_cols
+                      ) %||%
+                        categorical_cols
+                    )
+                  )
+                )
+              ),
+
+              # Card 2: Numerical Columns
+              card(
+                card_header(class = "bg-info", "2. Select Numerical Columns"),
+                card_body(
+                  div(
+                    style = "margin-bottom: 10px;",
+                    actionButton(
+                      "select_all_num",
+                      "Select All",
+                      class = "btn-sm"
+                    ),
+                    actionButton(
+                      "deselect_all_num",
+                      "Deselect All",
+                      class = "btn-sm"
+                    )
+                  ),
+                  div(
+                    class = "scrollable-checkbox-group",
+                    checkboxGroupInput(
+                      "selected_numerical_cols",
+                      label = NULL,
+                      choices = numeric_cols,
+                      selected = intersect(
+                        userState$selected_columns,
+                        numeric_cols
+                      ) %||%
+                        numeric_cols
+                    )
+                  )
+                )
+              )
             ),
-            div(style = "display: inline-block;", actionButton("next2", "Next"))
+
+            # -- UI output for the CONDITIONAL filter panel --
+            uiOutput("conditional_filter_ui")
+          ),
+          # -- Navigation --
+          br(),
+          fluidRow(
+            column(
+              12,
+              div(
+                style = "text-align: left;",
+                actionButton("back2", "Back", icon = icon("arrow-left")),
+                actionButton(
+                  "next2",
+                  "Next",
+                  icon = icon("arrow-right"),
+                  class = "btn-primary"
+                )
+              )
+            )
           )
         )
-      ),
-
-      # STEP 3 ----
+      },
       "3" = tagList(
         stepHeader,
-        radioButtons(
-          "analysis_categories",
-          "Select Analysis Categories:",
-          choices = list(
-            "Statistical Tests" = "stat_tests",
-            "Exploratory Visualization" = "exploratory",
-            "Multivariate Analysis" = "multivariate",
-            "Machine Learning" = "machine"
+        bslib::navset_card_tab(
+          id = "analysis_categories",
+          title = "Select Analysis Type",
+          bslib::nav_panel(
+            "Statistical Tests",
+            value = "stat_tests",
+            icon = fontawesome::fa("calculator"),
+            helpText("Choose Statistical Test:"),
+            uiOutput("stat_function_ui")
+          ),
+          bslib::nav_panel(
+            "Exploratory Analysis",
+            value = "exploratory",
+            icon = fontawesome::fa("chart-bar"),
+            helpText("Choose Exploratory Function:"),
+            uiOutput("exploratory_function_ui")
+          ),
+          bslib::nav_panel(
+            "Multivariate",
+            value = "multivariate",
+            icon = fontawesome::fa("sitemap"),
+            helpText("Choose Multivariate Function:"),
+            uiOutput("multivariate_function_ui")
+          ),
+          bslib::nav_panel(
+            "Machine Learning",
+            value = "machine",
+            icon = fontawesome::fa("robot"),
+            helpText("Choose Machine Learning Function:"),
+            uiOutput("ml_function_ui")
           )
         ),
-
-        # conditional pickers…
-        conditionalPanel(
-          condition = "input.analysis_categories && input.analysis_categories.indexOf('stat_tests') > -1",
-          selectInput(
-            "stat_function",
-            "Choose Statistical Test:",
-            choices = c("ANOVA", "Two-Sample T-Test"),
-            selected = "ANOVA"
+        br(),
+        div(
+          class = "overflow-visible",
+          fluidRow(
+            column(12, h4("Analysis Options"), uiOutput("function_options_ui"))
           )
         ),
-        conditionalPanel(
-          condition = "input.analysis_categories && input.analysis_categories.indexOf('exploratory') > -1",
-          selectInput(
-            "exploratory_function",
-            "Choose Exploratory Function:",
-            choices = c(
-              "Boxplots",
-              "Enhanced Boxplots",
-              "Error-BarPlot",
-              "Dual-Flashlight Plot",
-              "Heatmap",
-              "Skewness/Kurtosis",
-              "Volcano Plot"
-            ),
-            selected = "Boxplots"
-          )
-        ),
-        conditionalPanel(
-          condition = "input.analysis_categories && input.analysis_categories.indexOf('multivariate') > -1",
-          selectInput(
-            "multivariate_function",
-            "Choose Multivariate Function:",
-            choices = c(
-              "Principle Component Analysis (PCA)",
-              "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
-            ),
-            selected = "Principle Component Analysis (PCA)"
-          )
-        ),
-        conditionalPanel(
-          condition = "input.analysis_categories && input.analysis_categories.indexOf('machine') > -1",
-          selectInput(
-            "ml_function",
-            "Choose Machine Learning Function:",
-            choices = c("Random Forest", "Extreme Gradient Boosting (XGBoost)"),
-            selected = "Random Forest"
-          )
-        ),
-
-        uiOutput("function_options_ui"),
-
-        radioButtons(
-          "output_mode",
-          "Output Mode:",
-          choices = c("Interactive", "Download"),
-          selected = "Interactive"
-        ),
-        conditionalPanel(
-          condition = "input.output_mode == 'Download'",
-          textInput("output_file_name", "Output File Name (no extension)", "")
-        ),
-
         fluidRow(
-          div(
-            style = "text-align: left;",
-            div(
-              style = "display:inline-block; margin-right:10px;",
-              actionButton("back3", "Back")
-            ),
-            div(
-              style = "display: inline-block;",
-              actionButton("next3", "Run Analysis")
+          column(
+            2.5,
+            card(
+              card_header("Output Options"),
+              card_body(
+                radioButtons(
+                  "output_mode",
+                  "Output Mode:",
+                  choices = c("Interactive", "Download"),
+                  selected = "Interactive",
+                  inline = TRUE
+                ),
+                conditionalPanel(
+                  condition = "input.output_mode == 'Download'",
+                  textInput(
+                    "output_file_name",
+                    "Output File Name (no extension)",
+                    ""
+                  )
+                )
+              )
             )
+          )
+        ),
+        br(),
+        div(
+          style = "text-align: left;",
+          actionButton("back3", "Back", icon = icon("arrow-left")),
+          actionButton(
+            "next3",
+            "Run Analysis",
+            icon = icon("play"),
+            class = "btn-success"
           )
         )
       ),
@@ -2505,7 +2674,100 @@ server <- function(input, output, session) {
       checkboxInput("show_summary", "Show summary statistics", FALSE)
     )
   })
+  # --- Logic for Custom Button Group: Statistical Tests ---
+  stat_choices <- c("ANOVA", "Two-Sample T-Test")
+  output$stat_function_ui <- renderUI({
+    lapply(stat_choices, function(choice) {
+      actionButton(
+        inputId = paste0("stat_func_", gsub("\\s|\\-", "_", choice)),
+        label = choice,
+        class = if (choice == selected_stat_func()) {
+          "btn-primary"
+        } else {
+          "btn-secondary"
+        }
+      )
+    })
+  })
+  lapply(stat_choices, function(choice) {
+    observeEvent(input[[paste0("stat_func_", gsub("\\s|\\-", "_", choice))]], {
+      selected_stat_func(choice)
+    })
+  })
 
+  # --- Logic for Custom Button Group: Exploratory Vis ---
+  exploratory_choices <- c(
+    "Boxplots",
+    "Enhanced Boxplots",
+    "Error-BarPlot",
+    "Dual-Flashlight Plot",
+    "Heatmap",
+    "Skewness/Kurtosis",
+    "Volcano Plot"
+  )
+  output$exploratory_function_ui <- renderUI({
+    lapply(exploratory_choices, function(choice) {
+      actionButton(
+        inputId = paste0("exp_func_", gsub("\\s|\\-", "_", choice)),
+        label = choice,
+        class = if (choice == selected_exploratory_func()) {
+          "btn-primary"
+        } else {
+          "btn-secondary"
+        }
+      )
+    })
+  })
+  lapply(exploratory_choices, function(choice) {
+    observeEvent(input[[paste0("exp_func_", gsub("\\s|\\-", "_", choice))]], {
+      selected_exploratory_func(choice)
+    })
+  })
+
+  # --- Logic for Custom Button Group: Multivariate ---
+  multivariate_choices <- c(
+    "Principle Component Analysis (PCA)",
+    "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
+  )
+  output$multivariate_function_ui <- renderUI({
+    lapply(multivariate_choices, function(choice) {
+      actionButton(
+        inputId = paste0("multi_func_", gsub("\\s|\\-", "_", choice)),
+        label = choice,
+        class = if (choice == selected_multivariate_func()) {
+          "btn-primary"
+        } else {
+          "btn-secondary"
+        }
+      )
+    })
+  })
+  lapply(multivariate_choices, function(choice) {
+    observeEvent(input[[paste0("multi_func_", gsub("\\s|\\-", "_", choice))]], {
+      selected_multivariate_func(choice)
+    })
+  })
+
+  # --- Logic for Custom Button Group: Machine Learning ---
+  ml_choices <- c("Random Forest", "Extreme Gradient Boosting (XGBoost)")
+  output$ml_function_ui <- renderUI({
+    lapply(ml_choices, function(choice) {
+      actionButton(
+        inputId = paste0("ml_func_", gsub("\\s|\\-", "_", choice)),
+        label = choice,
+        class = if (choice == selected_ml_func()) {
+          "btn-primary"
+        } else {
+          "btn-secondary"
+        }
+      )
+    })
+  })
+  lapply(ml_choices, function(choice) {
+    observeEvent(input[[paste0("ml_func_", gsub("\\s|\\-", "_", choice))]], {
+      selected_ml_func(choice)
+    })
+  })
   # Calculating percentage for progress bar
   totalSteps <- 4
   shiny::observeEvent(currentStep(), {
@@ -2549,6 +2811,120 @@ server <- function(input, output, session) {
     currentStep(2)
   })
 
+  # A. Create a new reactive to combine the selected columns
+  selected_columns_combined <- reactive({
+    # Use req() to ensure the inputs are available before combining
+    req(input$selected_categorical_cols, input$selected_numerical_cols)
+    c(input$selected_categorical_cols, input$selected_numerical_cols)
+  })
+
+  # B. Update the logic for the "Select/Deselect All" buttons
+  #    (Remove the old observeEvents for "select_all" and "deselect_all")
+  observeEvent(input$select_all_cat, {
+    df <- userData()
+    categorical_cols <- names(df)[!sapply(df, is.numeric)]
+    updateCheckboxGroupInput(
+      session,
+      "selected_categorical_cols",
+      selected = categorical_cols
+    )
+  })
+  observeEvent(input$deselect_all_cat, {
+    updateCheckboxGroupInput(
+      session,
+      "selected_categorical_cols",
+      selected = character(0)
+    )
+  })
+  observeEvent(input$select_all_num, {
+    df <- userData()
+    numeric_cols <- names(df)[sapply(df, is.numeric)]
+    updateCheckboxGroupInput(
+      session,
+      "selected_numerical_cols",
+      selected = numeric_cols
+    )
+  })
+  observeEvent(input$deselect_all_num, {
+    updateCheckboxGroupInput(
+      session,
+      "selected_numerical_cols",
+      selected = character(0)
+    )
+  })
+
+  # C. Update the 'filteredData' reactive to use the combined list
+  filteredData <- shiny::reactive({
+    df <- userData()
+    req(df)
+
+    # *** CHANGE THIS PART ***
+    # Use the new combined reactive instead of input$selected_columns
+    currentCols <- if (!is.null(userState$selected_columns)) {
+      intersect(userState$selected_columns, names(df))
+    } else {
+      intersect(selected_columns_combined(), names(df)) # Use the reactive here
+    }
+    # ***********************
+
+    if (!is.null(currentCols) && length(currentCols) > 0) {
+      df <- df[, currentCols, drop = FALSE]
+    }
+    factor_cols <- names(df)[sapply(df, function(x) {
+      is.factor(x) || is.character(x)
+    })]
+    if (length(factor_cols) > 0) {
+      for (col in factor_cols) {
+        filter_vals <- input[[paste0("filter_", col)]]
+        if (!is.null(filter_vals)) {
+          df <- df[df[[col]] %in% filter_vals, ]
+        }
+      }
+    }
+    df
+  })
+
+  # D. Update the logic for saving state when clicking "Next"
+  shiny::observeEvent(input$next2, {
+    # *** CHANGE THIS PART ***
+    if (
+      !is.null(selected_columns_combined()) &&
+        length(selected_columns_combined()) > 0
+    ) {
+      userState$selected_columns <- selected_columns_combined()
+    }
+    # ***********************
+    currentStep(3)
+  })
+
+  # E. Update the conditional_filter_ui to use the new categorical input
+  output$conditional_filter_ui <- renderUI({
+    # *** SIMPLIFIED LOGIC ***
+    # The filter UI now depends only on the selection of categorical columns.
+    if (
+      !is.null(input$selected_categorical_cols) &&
+        length(input$selected_categorical_cols) > 0
+    ) {
+      column(
+        6,
+        card(
+          card_header(class = "bg-primary", "3. Apply Filters (Optional)"),
+          card_body(
+            bslib::accordion(
+              open = FALSE,
+              bslib::accordion_panel(
+                "Filter by Categorical Values",
+                uiOutput("filter_ui"),
+                icon = fontawesome::fa("filter")
+              )
+            )
+          )
+        )
+      )
+    } else {
+      NULL
+    }
+  })
   # On moving from Step 3 to Step 4, save the selected function and function options
   shiny::observeEvent(input$next3, {
     userState$selected_function <- selected_function()
@@ -2616,6 +2992,7 @@ server <- function(input, output, session) {
     ) {
       userState$splsda_group_col <- input$splsda_group_col
       userState$splsda_group_col2 <- input$splsda_group_col2
+      userState$splsda_multilevel <- input$splsda_multilevel
       userState$splsda_var_num <- input$splsda_var_num
       userState$splsda_cv_opt <- input$splsda_cv_opt
       userState$splsda_fold_num <- input$splsda_fold_num
@@ -2897,6 +3274,11 @@ server <- function(input, output, session) {
           "splsda_group_col2",
           selected = userState$splsda_group_col2
         )
+        updateSelectInput(
+          session,
+          "splsda_multilevel",
+          selected = userState$splsda_multilevel
+        )
         updateNumericInput(
           session,
           "splsda_var_num",
@@ -3053,6 +3435,7 @@ server <- function(input, output, session) {
     req(filteredData())
     prog <- shiny::Progress$new()
     on.exit(prog$close())
+
     tryCatch(
       {
         withCallingHandlers(
@@ -3067,266 +3450,222 @@ server <- function(input, output, session) {
               NULL
             }
 
-            results <- list()
-            cats <- input$analysis_categories
+            # Get the function to run from our corrected reactive
+            func_to_run <- selected_function()
+            req(func_to_run)
 
-            # ——————————————
-            # Statistical Tests
-            # ——————————————
-            if ("stat_tests" %in% cats) {
-              switch(
-                input$stat_function,
-                "ANOVA" = {
-                  results$anova <- cyt_anova(
-                    data = df,
-                    progress = prog,
-                    format_output = TRUE
-                  )
+            # A single, consolidated switch statement drives all analysis
+            results <- switch(
+              func_to_run,
+
+              # -- Statistical Tests --
+              "ANOVA" = cyt_anova(
+                data = df,
+                progress = prog,
+                format_output = TRUE
+              ),
+              "Two-Sample T-Test" = cyt_ttest(
+                data = df,
+                progress = prog,
+                scale = if (input$ttest_log2) "log2" else NULL,
+                format_output = TRUE
+              ),
+
+              # -- Exploratory Visualization --
+              "Boxplots" = cyt_bp(
+                data = df,
+                output_file = if (mode == "Download") out_file else NULL,
+                progress = prog,
+                bin_size = input$bp_bin_size,
+                mf_row = if (nzchar(input$bp_mf_row)) {
+                  as.numeric(strsplit(input$bp_mf_row, ",")[[1]])
+                } else {
+                  NULL
                 },
-                "Two-Sample T-Test" = {
-                  results$ttest <- cyt_ttest(
-                    data = df,
-                    progress = prog,
-                    scale = if (input$ttest_log2) "log2" else NULL,
-                    format_output = TRUE
-                  )
+                y_lim = if (nzchar(input$bp_y_lim)) {
+                  as.numeric(strsplit(input$bp_y_lim, ",")[[1]])
+                } else {
+                  NULL
+                },
+                scale = if (input$bp_log2) "log2" else NULL
+              ),
+              "Enhanced Boxplots" = cyt_bp2(
+                data = df,
+                output_file = if (mode == "Download") out_file else NULL,
+                progress = prog,
+                mf_row = if (nzchar(input$bp2_mf_row)) {
+                  as.numeric(strsplit(input$bp2_mf_row, ",")[[1]])
+                } else {
+                  NULL
+                },
+                y_lim = if (nzchar(input$bp2_y_lim)) {
+                  as.numeric(strsplit(input$bp2_y_lim, ",")[[1]])
+                } else {
+                  NULL
+                },
+                scale = if (input$bp2_log2) "log2" else NULL
+              ),
+              "Error-BarPlot" = cyt_errbp(
+                data = df,
+                output_file = if (mode == "Download") out_file else NULL,
+                progress = prog,
+                group_col = input$eb_group_col,
+                p_lab = input$eb_p_lab,
+                es_lab = input$eb_es_lab,
+                class_symbol = input$eb_class_symbol,
+                x_lab = input$eb_x_lab,
+                y_lab = input$eb_y_lab,
+                title = input$eb_title,
+                log2 = input$eb_log2
+              ),
+              "Dual-Flashlight Plot" = cyt_dualflashplot(
+                data = df,
+                group_var = input$df_group_var,
+                group1 = input$df_cond1,
+                group2 = input$df_cond2,
+                output_file = if (mode == "Download") out_file else NULL,
+                progress = prog,
+                ssmd_thresh = input$df_ssmd_thresh,
+                log2fc_thresh = input$df_log2fc_thresh,
+                top_labels = input$df_top_labels
+              ),
+              "Heatmap" = cyt_heatmap(
+                data = df,
+                output_file = if (mode == "Download") out_file else NULL,
+                progress = prog,
+                scale = if (input$hm_log2) "log2" else NULL,
+                annotation_col_name = input$hm_annotation
+              ),
+              "Skewness/Kurtosis" = cyt_skku(
+                data = df,
+                output_file = if (mode == "Download") out_file else NULL,
+                progress = prog,
+                group_cols = input$skku_group_cols,
+                print_res_raw = input$skku_print_raw,
+                print_res_log = input$skku_print_log
+              ),
+              "Volcano Plot" = cyt_volc(
+                data = df,
+                output_file = if (mode == "Download") out_file else NULL,
+                progress = prog,
+                group_col = input$volc_group_col,
+                cond1 = input$volc_cond1,
+                cond2 = input$volc_cond2,
+                fold_change_thresh = input$volc_fold_change_thresh,
+                p_value_thresh = input$volc_p_value_thresh,
+                top_labels = input$volc_top_labels
+              ),
+
+              # -- Multivariate Analysis --
+              "Principle Component Analysis (PCA)" = {
+                pch_vals <- as.numeric(input$pca_pch)
+                grp <- df[[input$pca_group_col]]
+                uniq <- unique(grp)
+                if (length(pch_vals) < length(uniq)) {
+                  pch_vals <- rep(pch_vals, length.out = length(uniq))
                 }
-              )
-            }
-
-            # ——————————————
-            # Exploratory Visualization
-            # ——————————————
-            if ("exploratory" %in% cats) {
-              switch(
-                input$exploratory_function,
-
-                "Boxplots" = {
-                  results$boxplots <- cyt_bp(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    bin_size = input$bp_bin_size,
-                    mf_row = if (nzchar(input$bp_mf_row))
-                      as.numeric(strsplit(input$bp_mf_row, ",")[[1]]) else NULL,
-                    y_lim = if (nzchar(input$bp_y_lim))
-                      as.numeric(strsplit(input$bp_y_lim, ",")[[1]]) else NULL,
-                    scale = if (input$bp_log2) "log2" else NULL
-                  )
-                },
-
-                "Enhanced Boxplots" = {
-                  results$bp2 <- cyt_bp2(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    mf_row = if (nzchar(input$bp2_mf_row))
-                      as.numeric(strsplit(input$bp2_mf_row, ",")[[1]]) else
-                      NULL,
-                    y_lim = if (nzchar(input$bp2_y_lim))
-                      as.numeric(strsplit(input$bp2_y_lim, ",")[[1]]) else NULL,
-                    scale = if (input$bp2_log2) "log2" else NULL
-                  )
-                },
-
-                "Error-BarPlot" = {
-                  results$errbp <- cyt_errbp(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    group_col = input$eb_group_col,
-                    p_lab = input$eb_p_lab,
-                    es_lab = input$eb_es_lab,
-                    class_symbol = input$eb_class_symbol,
-                    x_lab = input$eb_x_lab,
-                    y_lab = input$eb_y_lab,
-                    title = input$eb_title,
-                    log2 = input$eb_log2
-                  )
-                },
-
-                "Dual-Flashlight Plot" = {
-                  results$dualflash <- cyt_dualflashplot(
-                    data = df,
-                    group_var = input$df_group_var,
-                    group1 = input$df_cond1,
-                    group2 = input$df_cond2,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    ssmd_thresh = input$df_ssmd_thresh,
-                    log2fc_thresh = input$df_log2fc_thresh,
-                    top_labels = input$df_top_labels
-                  )
-                },
-
-                "Heatmap" = {
-                  results$heatmap <- cyt_heatmap(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    scale = if (input$hm_log2) "log2" else NULL,
-                    annotation_col_name = input$hm_annotation
-                  )
-                },
-
-                "Skewness/Kurtosis" = {
-                  results$skku <- cyt_skku(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    group_cols = input$skku_group_cols,
-                    print_res_raw = input$skku_print_raw,
-                    print_res_log = input$skku_print_log
-                  )
-                },
-
-                "Volcano Plot" = {
-                  results$volc <- cyt_volc(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    group_col = input$volc_group_col,
-                    cond1 = input$volc_cond1,
-                    cond2 = input$volc_cond2,
-                    fold_change_thresh = input$volc_fold_change_thresh,
-                    p_value_thresh = input$volc_p_value_thresh,
-                    top_labels = input$volc_top_labels
-                  )
+                cols <- if (length(input$pca_colors)) {
+                  input$pca_colors
+                } else {
+                  rainbow(length(uniq))
                 }
-              )
-            }
-
-            # ——————————————
-            # Multivariate Analysis
-            # ——————————————
-            if ("multivariate" %in% cats) {
-              switch(
-                input$multivariate_function,
-
-                "Principle Component Analysis (PCA)" = {
-                  # build pch + colors
-                  pch_vals <- as.numeric(input$pca_pch)
-                  grp <- df[[input$pca_group_col]]
-                  uniq <- unique(grp)
-                  if (length(pch_vals) < length(uniq))
-                    pch_vals <- rep(pch_vals, length.out = length(uniq))
-                  cols <- if (length(input$pca_colors)) input$pca_colors else
-                    rainbow(length(uniq))
-
-                  results$pca <- cyt_pca(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    group_col = input$pca_group_col,
-                    group_col2 = input$pca_group_col2,
-                    comp_num = input$pca_comp_num,
-                    scale = if (input$pca_log2) "log2" else NULL,
-                    ellipse = input$pca_ellipse,
-                    style = if (input$pca_style == "3D") "3d" else NULL,
-                    pch_values = pch_vals,
-                    pca_colors = cols
-                  )
-                },
-
-                "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
-                  pch_vals <- as.numeric(input$splsda_pch)
-                  grp <- df[[input$splsda_group_col]]
-                  uniq <- unique(grp)
-                  if (length(pch_vals) < length(uniq))
-                    pch_vals <- rep(pch_vals, length.out = length(uniq))
-                  cols <- if (length(input$splsda_colors))
-                    input$splsda_colors else rainbow(length(uniq))
-
-                  results$splsda <- cyt_splsda(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    group_col = input$splsda_group_col,
-                    group_col2 = input$splsda_group_col2,
-                    var_num = input$splsda_var_num,
-                    cv_opt = if (input$splsda_cv_opt == "None") NULL else
-                      input$splsda_cv_opt,
-                    fold_num = input$splsda_fold_num,
-                    scale = if (input$splsda_log2) "log2" else NULL,
-                    comp_num = input$splsda_comp_num,
-                    style = if (input$splsda_style == "3D") "3d" else NULL,
-                    pch_values = pch_vals,
-                    splsda_colors = cols,
-                    roc = input$splsda_roc,
-                    ellipse = input$splsda_ellipse,
-                    bg = input$splsda_bg,
-                    conf_mat = input$splsda_conf_mat
-                  )
+                cyt_pca(
+                  data = df,
+                  output_file = if (mode == "Download") out_file else NULL,
+                  progress = prog,
+                  group_col = input$pca_group_col,
+                  group_col2 = input$pca_group_col2,
+                  comp_num = input$pca_comp_num,
+                  scale = if (input$pca_log2) "log2" else NULL,
+                  ellipse = input$pca_ellipse,
+                  style = if (input$pca_style == "3D") "3d" else NULL,
+                  pch_values = pch_vals,
+                  pca_colors = cols
+                )
+              },
+              "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
+                pch_vals <- as.numeric(input$splsda_pch)
+                grp <- df[[input$splsda_group_col]]
+                uniq <- unique(grp)
+                if (length(pch_vals) < length(uniq)) {
+                  pch_vals <- rep(pch_vals, length.out = length(uniq))
                 }
-              )
-            }
-
-            # ——————————————
-            # Machine Learning
-            # ——————————————
-            if ("machine" %in% cats) {
-              switch(
-                input$ml_function,
-
-                "Random Forest" = {
-                  results$rf <- cyt_rf(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    group_col = input$rf_group_col,
-                    ntree = input$rf_ntree,
-                    mtry = input$rf_mtry,
-                    train_fraction = input$rf_train_fraction,
-                    plot_roc = input$rf_plot_roc,
-                    run_rfcv = input$rf_run_rfcv,
-                    k_folds = input$rf_k_folds,
-                    step = input$rf_step
-                  )
-                },
-
-                "Extreme Gradient Boosting (XGBoost)" = {
-                  results$xgb <- cyt_xgb(
-                    data = df,
-                    output_file = if (mode == "Download") out_file else NULL,
-                    progress = prog,
-                    group_col = input$xgb_group_col,
-                    train_fraction = input$xgb_train_fraction,
-                    nrounds = input$xgb_nrounds,
-                    max_depth = input$xgb_max_depth,
-                    eta = input$xgb_eta,
-                    nfold = input$xgb_nfold,
-                    cv = input$xgb_cv,
-                    eval_metric = input$xgb_eval_metric,
-                    top_n_features = input$xgb_top_n_features,
-                    plot_roc = input$xgb_plot_roc
-                  )
+                cols <- if (length(input$splsda_colors)) {
+                  input$splsda_colors
+                } else {
+                  rainbow(length(uniq))
                 }
-              )
-            }
+                cyt_splsda(
+                  data = df,
+                  output_file = if (mode == "Download") out_file else NULL,
+                  progress = prog,
+                  group_col = input$splsda_group_col,
+                  group_col2 = input$splsda_group_col2,
+                  multilevel = input$splsda_multilevel,
+                  var_num = input$splsda_var_num,
+                  cv_opt = if (input$splsda_cv_opt == "None") {
+                    NULL
+                  } else {
+                    input$splsda_cv_opt
+                  },
+                  fold_num = input$splsda_fold_num,
+                  scale = if (input$splsda_log2) "log2" else NULL,
+                  comp_num = input$splsda_comp_num,
+                  style = if (input$splsda_style == "3D") "3d" else NULL,
+                  pch_values = pch_vals,
+                  splsda_colors = cols,
+                  roc = input$splsda_roc,
+                  ellipse = input$splsda_ellipse,
+                  bg = input$splsda_bg,
+                  conf_mat = input$splsda_conf_mat
+                )
+              },
 
-            # ——————————————
-            # If Download mode, return file path
-            # ——————————————
+              # -- Machine Learning --
+              "Random Forest" = cyt_rf(
+                data = df,
+                output_file = if (mode == "Download") out_file else NULL,
+                progress = prog,
+                group_col = input$rf_group_col,
+                ntree = input$rf_ntree,
+                mtry = input$rf_mtry,
+                train_fraction = input$rf_train_fraction,
+                plot_roc = input$rf_plot_roc,
+                run_rfcv = input$rf_run_rfcv,
+                k_folds = input$rf_k_folds,
+                step = input$rf_step
+              ),
+              "Extreme Gradient Boosting (XGBoost)" = cyt_xgb(
+                data = df,
+                output_file = if (mode == "Download") out_file else NULL,
+                progress = prog,
+                group_col = input$xgb_group_col,
+                train_fraction = input$xgb_train_fraction,
+                nrounds = input$xgb_nrounds,
+                max_depth = input$xgb_max_depth,
+                eta = input$xgb_eta,
+                nfold = input$xgb_nfold,
+                cv = input$xgb_cv,
+                eval_metric = input$xgb_eval_metric,
+                top_n_features = input$xgb_top_n_features,
+                plot_roc = input$xgb_plot_roc
+              )
+            )
+
             if (mode == "Download" && nzchar(input$output_file_name)) {
               downloadPath(normalizePath(out_file))
               return(paste("Output file generated:", out_file))
             }
 
-            if (length(results) == 1) {
-              results <- results[[1]]
-            }
             return(results)
           },
           warning = function(w) {
-            # record the warning
             warningMessage(conditionMessage(w))
-            # then prevent it from printing
             invokeRestart("muffleWarning")
           }
         )
       },
       error = function(e) {
-        # record the error so we can show it in the UI
         errorMessage(conditionMessage(e))
         NULL
       }
@@ -3377,66 +3716,102 @@ server <- function(input, output, session) {
         ) {
           if ("overall_indiv_plot" %in% names(res)) {
             tagList(
-              if (!is.null(res$overall_indiv_plot))
+              if (!is.null(res$overall_indiv_plot)) {
                 shinycssloaders::withSpinner(
                   plotOutput("splsda_overallIndivPlot", height = "400px"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$overall_3D))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$overall_3D)) {
                 shinycssloaders::withSpinner(
                   plotOutput("splsda_overall3DPlot", height = "400px"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$overall_ROC))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$overall_ROC)) {
                 shinycssloaders::withSpinner(
                   plotOutput("splsda_overallRocPlot", height = "400px"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$overall_CV))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$overall_CV)) {
                 shinycssloaders::withSpinner(
                   plotOutput("splsda_overallCvPlot", height = "400px"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$loadings))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$loadings)) {
                 shinycssloaders::withSpinner(
                   uiOutput("splsda_loadingsUI"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$vip_scores))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$vip_scores)) {
                 shinycssloaders::withSpinner(
                   uiOutput("splsda_vipScoresUI"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$vip_indiv_plot))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$vip_indiv_plot)) {
                 shinycssloaders::withSpinner(
                   plotOutput("splsda_vipIndivPlot", height = "400px"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$vip_loadings))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$vip_loadings)) {
                 shinycssloaders::withSpinner(
                   uiOutput("splsda_vipLoadingsUI"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$vip_3D))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$vip_3D)) {
                 shinycssloaders::withSpinner(
                   plotOutput("splsda_vip3DPlot", height = "400px"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$vip_ROC))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$vip_ROC)) {
                 shinycssloaders::withSpinner(
                   plotOutput("splsda_vipRocPlot", height = "400px"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$vip_CV))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$vip_CV)) {
                 shinycssloaders::withSpinner(
                   plotOutput("splsda_vipCvPlot", height = "400px"),
                   type = 8
-                ) else NULL,
-              if (!is.null(res$conf_matrix))
+                )
+              } else {
+                NULL
+              },
+              if (!is.null(res$conf_matrix)) {
                 shinycssloaders::withSpinner(
                   verbatimTextOutput("splsda_confMatrix"),
                   type = 8
-                ) else NULL
+                )
+              } else {
+                NULL
+              }
             )
           } else {
             do.call(
@@ -3445,90 +3820,126 @@ server <- function(input, output, session) {
                 tabPanel(
                   title = trt,
                   tagList(
-                    if (!is.null(res[[trt]]$overall_indiv_plot))
+                    if (!is.null(res[[trt]]$overall_indiv_plot)) {
                       shinycssloaders::withSpinner(
                         plotOutput(
                           paste0("splsda_overallIndivPlot_", trt),
                           height = "400px"
                         ),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$overall_3D))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$overall_3D)) {
                       shinycssloaders::withSpinner(
                         plotOutput(
                           paste0("splsda_overall3DPlot_", trt),
                           height = "400px"
                         ),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$overall_ROC))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$overall_ROC)) {
                       shinycssloaders::withSpinner(
                         plotOutput(
                           paste0("splsda_overallRocPlot_", trt),
                           height = "400px"
                         ),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$overall_CV))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$overall_CV)) {
                       shinycssloaders::withSpinner(
                         plotOutput(
                           paste0("splsda_overallCvPlot_", trt),
                           height = "400px"
                         ),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$loadings))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$loadings)) {
                       shinycssloaders::withSpinner(
                         uiOutput(paste0("splsda_loadingsUI_", trt)),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$vip_scores))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$vip_scores)) {
                       shinycssloaders::withSpinner(
                         uiOutput(paste0("splsda_vipScoresUI_", trt)),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$vip_indiv_plot))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$vip_indiv_plot)) {
                       shinycssloaders::withSpinner(
                         plotOutput(
                           paste0("splsda_vipIndivPlot_", trt),
                           height = "400px"
                         ),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$vip_loadings))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$vip_loadings)) {
                       shinycssloaders::withSpinner(
                         uiOutput(paste0("splsda_vipLoadingsUI_", trt)),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$vip_3D))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$vip_3D)) {
                       shinycssloaders::withSpinner(
                         plotOutput(
                           paste0("splsda_vip3DPlot_", trt),
                           height = "400px"
                         ),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$vip_ROC))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$vip_ROC)) {
                       shinycssloaders::withSpinner(
                         plotOutput(
                           paste0("splsda_vipRocPlot_", trt),
                           height = "400px"
                         ),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$vip_CV))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$vip_CV)) {
                       shinycssloaders::withSpinner(
                         plotOutput(
                           paste0("splsda_vipCvPlot_", trt),
                           height = "400px"
                         ),
                         type = 8
-                      ) else NULL,
-                    if (!is.null(res[[trt]]$conf_matrix))
+                      )
+                    } else {
+                      NULL
+                    },
+                    if (!is.null(res[[trt]]$conf_matrix)) {
                       shinycssloaders::withSpinner(
                         verbatimTextOutput(paste0("splsda_confMatrix_", trt)),
                         type = 8
-                      ) else NULL
+                      )
+                    } else {
+                      NULL
+                    }
                   )
                 )
               })
@@ -3563,11 +3974,12 @@ server <- function(input, output, session) {
                 plotOutput("pca_indivPlot", height = "400px"),
                 type = 8
               ),
-              if (!is.null(res$overall_3D))
+              if (!is.null(res$overall_3D)) {
                 shinycssloaders::withSpinner(
                   plotOutput("pca_3DPlot", height = "400px"),
                   type = 8
-                ),
+                )
+              },
               shinycssloaders::withSpinner(
                 plotOutput("pca_screePlot", height = "400px"),
                 type = 8
@@ -3595,11 +4007,14 @@ server <- function(input, output, session) {
                     plotOutput(paste0("pca_indivPlot_", lvl), height = "400px"),
                     type = 8
                   ),
-                  if (!is.null(res[[lvl]]$overall_3D))
+                  if (!is.null(res[[lvl]]$overall_3D)) {
                     shinycssloaders::withSpinner(
                       plotOutput(paste0("pca_3DPlot_", lvl), height = "400px"),
                       type = 8
-                    ) else NULL,
+                    )
+                  } else {
+                    NULL
+                  },
                   shinycssloaders::withSpinner(
                     plotOutput(paste0("pca_screePlot_", lvl), height = "400px"),
                     type = 8
@@ -3761,7 +4176,9 @@ server <- function(input, output, session) {
 
   shiny::observeEvent(analysisResult(), {
     req(selected_function())
-    if (input$output_mode != "Interactive") return(NULL)
+    if (input$output_mode != "Interactive") {
+      return(NULL)
+    }
     res <- analysisResult()
     func_name <- selected_function()
 
@@ -3861,8 +4278,9 @@ server <- function(input, output, session) {
           if (!is.null(res$vip_CV)) print(res$vip_CV)
         })
         output$splsda_confMatrix <- renderPrint({
-          if (!is.null(res$conf_matrix))
+          if (!is.null(res$conf_matrix)) {
             cat(paste(res$conf_matrix, collapse = "\n"))
+          }
         })
       } else {
         for (grp in names(res)) {
@@ -3873,29 +4291,33 @@ server <- function(input, output, session) {
               "splsda_overallIndivPlot_",
               currentGroup
             )]] <- renderPlot({
-              if (!is.null(currentSubres$overall_indiv_plot))
+              if (!is.null(currentSubres$overall_indiv_plot)) {
                 replayPlot(currentSubres$overall_indiv_plot)
+              }
             })
             output[[paste0(
               "splsda_overall3DPlot_",
               currentGroup
             )]] <- renderPlot({
-              if (!is.null(currentSubres$overall_3D))
+              if (!is.null(currentSubres$overall_3D)) {
                 replayPlot(currentSubres$overall_3D)
+              }
             })
             output[[paste0(
               "splsda_overallRocPlot_",
               currentGroup
             )]] <- renderPlot({
-              if (!is.null(currentSubres$overall_ROC))
+              if (!is.null(currentSubres$overall_ROC)) {
                 replayPlot(currentSubres$overall_ROC)
+              }
             })
             output[[paste0(
               "splsda_overallCvPlot_",
               currentGroup
             )]] <- renderPlot({
-              if (!is.null(currentSubres$overall_CV))
+              if (!is.null(currentSubres$overall_CV)) {
                 print(currentSubres$overall_CV)
+              }
             })
             if (!is.null(currentSubres$loadings)) {
               output[[paste0(
@@ -3958,8 +4380,9 @@ server <- function(input, output, session) {
               "splsda_vipIndivPlot_",
               currentGroup
             )]] <- renderPlot({
-              if (!is.null(currentSubres$vip_indiv_plot))
+              if (!is.null(currentSubres$vip_indiv_plot)) {
                 replayPlot(currentSubres$vip_indiv_plot)
+              }
             })
             if (!is.null(currentSubres$vip_loadings)) {
               output[[paste0(
@@ -3991,20 +4414,23 @@ server <- function(input, output, session) {
               }
             }
             output[[paste0("splsda_vip3DPlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(currentSubres$vip_3D))
+              if (!is.null(currentSubres$vip_3D)) {
                 replayPlot(currentSubres$vip_3D)
+              }
             })
             output[[paste0("splsda_vipRocPlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(currentSubres$vip_ROC))
+              if (!is.null(currentSubres$vip_ROC)) {
                 replayPlot(currentSubres$vip_ROC)
+              }
             })
             output[[paste0("splsda_vipCvPlot_", currentGroup)]] <- renderPlot({
               if (!is.null(currentSubres$vip_CV)) print(currentSubres$vip_CV)
             })
             output[[paste0("splsda_confMatrix_", currentGroup)]] <- renderPrint(
               {
-                if (!is.null(currentSubres$conf_matrix))
+                if (!is.null(currentSubres$conf_matrix)) {
                   cat(paste(currentSubres$conf_matrix, collapse = "\n"))
+                }
               }
             )
           })
@@ -4059,15 +4485,17 @@ server <- function(input, output, session) {
           if (!is.null(res$overall_3D)) replayPlot(res$overall_3D)
         })
         output$pca_screePlot <- renderPlot({
-          if (!is.null(res$overall_scree_plot))
+          if (!is.null(res$overall_scree_plot)) {
             replayPlot(res$overall_scree_plot)
+          }
         })
         output$pca_biplot <- renderPlot({
           if (!is.null(res$biplot)) replayPlot(res$biplot)
         })
         output$pca_corrCircle <- renderPlot({
-          if (!is.null(res$correlation_circle))
+          if (!is.null(res$correlation_circle)) {
             replayPlot(res$correlation_circle)
+          }
         })
 
         output$pca_loadingsUI <- shiny::renderUI({
@@ -4094,22 +4522,25 @@ server <- function(input, output, session) {
             currentGroup <- lvl
             subres <- res[[currentGroup]]
             output[[paste0("pca_indivPlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(subres$overall_indiv_plot))
+              if (!is.null(subres$overall_indiv_plot)) {
                 replayPlot(subres$overall_indiv_plot)
+              }
             })
             output[[paste0("pca_3DPlot_", currentGroup)]] <- renderPlot({
               if (!is.null(subres$overall_3D)) replayPlot(subres$overall_3D)
             })
             output[[paste0("pca_screePlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(subres$overall_scree_plot))
+              if (!is.null(subres$overall_scree_plot)) {
                 replayPlot(subres$overall_scree_plot)
+              }
             })
             output[[paste0("pca_biplot_", currentGroup)]] <- renderPlot({
               if (!is.null(subres$biplot)) replayPlot(subres$biplot)
             })
             output[[paste0("pca_corrCircle_", currentGroup)]] <- renderPlot({
-              if (!is.null(subres$correlation_circle))
+              if (!is.null(subres$correlation_circle)) {
                 replayPlot(subres$correlation_circle)
+              }
             })
 
             output[[paste0(
@@ -4150,7 +4581,9 @@ server <- function(input, output, session) {
 
   output$volcPlotOutput <- shiny::renderPlot({
     req(analysisResult())
-    if (input$output_mode != "Interactive") return(NULL)
+    if (input$output_mode != "Interactive") {
+      return(NULL)
+    }
     res <- analysisResult()
     req(res$plot)
     print(res$plot)
@@ -4208,8 +4641,11 @@ server <- function(input, output, session) {
                 Categorical = parts[2],
                 Comparison = paste(lvl[1], "vs", lvl[2]),
                 Test = tt$method,
-                Estimate = if ("estimate" %in% names(tt))
-                  unname(tt$estimate)[1] else NA_real_,
+                Estimate = if ("estimate" %in% names(tt)) {
+                  unname(tt$estimate)[1]
+                } else {
+                  NA_real_
+                },
                 Statistic = unname(tt$statistic)[1],
                 P_value = tt$p.value
               )
@@ -4219,8 +4655,11 @@ server <- function(input, output, session) {
           df <- tibble::tibble(Message = as.character(res))
         }
       } else {
-        df <- if (is.data.frame(res)) res else
+        df <- if (is.data.frame(res)) {
+          res
+        } else {
           tibble::tibble(Result = as.character(res))
+        }
       }
 
       df
@@ -4230,7 +4669,9 @@ server <- function(input, output, session) {
   )
   output$dualflashPlotOutput <- shiny::renderPlot({
     req(analysisResult())
-    if (input$output_mode != "Interactive") return(NULL)
+    if (input$output_mode != "Interactive") {
+      return(NULL)
+    }
     res <- analysisResult()
     req(res$plot)
     print(res$plot)
@@ -4267,7 +4708,9 @@ server <- function(input, output, session) {
 
   output$skku_skewPlot <- shiny::renderPlot({
     req(analysisResult())
-    if (input$output_mode != "Interactive") return(NULL)
+    if (input$output_mode != "Interactive") {
+      return(NULL)
+    }
     res <- analysisResult()
     if (is.list(res) && !is.null(res$p_skew)) {
       print(res$p_skew)
@@ -4275,7 +4718,9 @@ server <- function(input, output, session) {
   })
   output$skku_kurtPlot <- shiny::renderPlot({
     req(analysisResult())
-    if (input$output_mode != "Interactive") return(NULL)
+    if (input$output_mode != "Interactive") {
+      return(NULL)
+    }
     res <- analysisResult()
     if (is.list(res) && !is.null(res$p_kurt)) {
       print(res$p_kurt)
@@ -4307,8 +4752,11 @@ server <- function(input, output, session) {
 
   output$download_output <- shiny::downloadHandler(
     filename = function() {
-      if (nzchar(input$output_file_name))
-        paste0(input$output_file_name, ".pdf") else "output.pdf"
+      if (nzchar(input$output_file_name)) {
+        paste0(input$output_file_name, ".pdf")
+      } else {
+        "output.pdf"
+      }
     },
     content = function(file) {
       req(input$output_mode == "Download")
@@ -4475,6 +4923,9 @@ server <- function(input, output, session) {
   })
   shiny::observeEvent(input$splsda_group_col2, {
     userState$splsda_group_col2 <- input$splsda_group_col2
+  })
+  shiny::observeEvent(input$splsda_multilevel, {
+    userState$splsda_multilevel <- input$splsda_multilevel
   })
   shiny::observeEvent(input$splsda_var_num, {
     df <- filteredData()
