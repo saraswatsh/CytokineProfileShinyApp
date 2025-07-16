@@ -219,7 +219,7 @@ cyt_splsda <- function(
       prediction1 <- cbind(original = the_groups, splsda_predict$class$max.dist)
       acc1 <- 100 *
         signif(
-          sum(prediction1[, 1] == prediction1[, 2]) / length(prediction1[, 1]),
+          sum(prediction1[, 1] == prediction1[, 3]) / length(prediction1[, 1]),
           digits = 2
         )
 
@@ -403,7 +403,7 @@ cyt_splsda <- function(
         prediction2 <- cbind(original = the_groups, vip_pred$class$max.dist)
         acc2 <- 100 *
           signif(
-            sum(prediction2[, 1] == prediction2[, 2]) /
+            sum(prediction2[, 1] == prediction2[, 3]) /
               length(prediction2[, 1]),
             digits = 2
           )
@@ -547,7 +547,7 @@ cyt_splsda <- function(
             model$predict$class$max.dist
           )
           cm <- caret::confusionMatrix(
-            data = as.factor(prediction1[, 2]),
+            data = as.factor(prediction1[, 3]),
             reference = as.factor(prediction1[, 1])
           )
           print(cm$table)
@@ -568,7 +568,7 @@ cyt_splsda <- function(
           )
           prediction2 <- cbind(original = the_groups, vip_pred$class$max.dist)
           cm_vip <- caret::confusionMatrix(
-            data = as.factor(prediction2[, 2]),
+            data = as.factor(prediction2[, 3]),
             reference = as.factor(prediction2[, 1])
           )
           print(cm_vip$table)
@@ -675,7 +675,7 @@ cyt_splsda <- function(
         )
         acc1 <- 100 *
           signif(
-            sum(prediction1[, 1] == prediction1[, 2]) /
+            sum(prediction1[, 1] == prediction1[, 3]) /
               length(prediction1[, 1]),
             digits = 2
           )
@@ -877,7 +877,7 @@ cyt_splsda <- function(
           prediction2 <- cbind(original = the_groups, vip_pred$class$max.dist)
           acc2 <- 100 *
             signif(
-              sum(prediction2[, 1] == prediction2[, 2]) /
+              sum(prediction2[, 1] == prediction2[, 3]) /
                 length(prediction2[, 1]),
               digits = 2
             )
@@ -1025,7 +1025,7 @@ cyt_splsda <- function(
               model$predict$class$max.dist
             )
             cm <- caret::confusionMatrix(
-              data = as.factor(prediction1[, 2]),
+              data = as.factor(prediction1[, 3]),
               reference = as.factor(prediction1[, 1])
             )
             print(cm$table)
@@ -1046,7 +1046,7 @@ cyt_splsda <- function(
             )
             prediction2 <- cbind(original = the_groups, vip_pred$class$max.dist)
             cm_vip <- caret::confusionMatrix(
-              data = as.factor(prediction2[, 2]),
+              data = as.factor(prediction2[, 3]),
               reference = as.factor(prediction2[, 1])
             )
             print(cm_vip$table)
@@ -1163,7 +1163,7 @@ cyt_splsda <- function(
     prediction1 <- cbind(original = groups, overall_pred$class$max.dist)
     acc1 <- 100 *
       signif(
-        sum(prediction1[, 1] == prediction1[, 2]) /
+        sum(prediction1[, 1] == prediction1[, 3]) /
           length(prediction1[, 1]),
         digits = 2
       )
@@ -1377,7 +1377,7 @@ cyt_splsda <- function(
       prediction2 <- cbind(original = groups, vip_pred$class$max.dist)
       acc2 <- 100 *
         signif(
-          sum(prediction2[, 1] == prediction2[, 2]) /
+          sum(prediction2[, 1] == prediction2[, 3]) /
             length(prediction2[, 1]),
           digits = 2
         )

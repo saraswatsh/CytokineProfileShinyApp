@@ -159,23 +159,12 @@ ui <- shiny::fluidPage(
   # Only show the header links on the first page (wizard step 1)
   shiny::conditionalPanel(
     condition = "output.currentStep == 1",
-    div(
-      style = "text-align: center; margin-bottom: 20px;",
-      tags$a(
-        href = "https://github.com/saraswatsh/CytokineProfileShinyApp",
-        "GitHub Repository",
-        target = "_blank"
-      ),
-      " | ",
-      tags$a(
-        href = "https://shinyinfo.cytokineprofile.org/",
-        "Project Website",
-        target = "_blank"
-      )
-    ),
+
+    # The hero-card now elegantly contains the welcome text, links, and logo
     div(
       class = "hero-card",
-      # 2/3 width text
+
+      # Column for the text and new buttons
       div(
         class = "hero-text",
         h1(
@@ -190,9 +179,29 @@ ui <- shiny::fluidPage(
             "It provides a comprehensive suite of functions for exploratory, univariate, ",
             "and multivariate analysis as well as machine learning methods tailored to your data."
           ))
+        ),
+
+        # --- NEW INTEGRATED LINKS ---
+        br(), # Adds a little space
+        # --- The new code with high-contrast buttons ---
+        tags$a(
+          href = "https://github.com/saraswatsh/CytokineProfileShinyApp",
+          target = "_blank",
+          class = "btn btn-outline-primary", # Changed to -primary for better visibility
+          icon("github"),
+          " GitHub Repository"
+        ),
+        tags$a(
+          href = "https://shinyinfo.cytokineprofile.org/",
+          target = "_blank",
+          class = "btn btn-outline-primary", # Changed to -primary for better visibility
+          icon("globe"),
+          " Project Website"
         )
+        # --- END NEW SECTION ---
       ),
-      # 1/3 width hexagon logo
+
+      # Column for the hexagon logo (this part remains unchanged)
       div(
         class = "hexagon",
         style = "background-image: url('logo.png');"

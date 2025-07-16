@@ -142,6 +142,20 @@ server <- function(input, output, session) {
     splsda_colors = NULL,
     splsda_multilevel = NULL,
 
+    # MINT sPLS-DA options
+    mint_splsda_group_col = NULL,
+    mint_splsda_group_col2 = NULL,
+    mint_splsda_batch_col = NULL,
+    mint_splsda_var_num = NULL,
+    mint_splsda_var_num_manual = FALSE,
+    mint_splsda_comp_num = NULL,
+    mint_splsda_log2 = NULL,
+    mint_splsda_ellipse = NULL,
+    mint_splsda_bg = NULL,
+    mint_splsda_roc = NULL,
+    mint_splsda_colors = NULL,
+    mint_splsda_pch = NULL,
+
     # Two-Sample T-Test options
     ttest_log2 = NULL,
 
@@ -165,7 +179,13 @@ server <- function(input, output, session) {
     xgb_top_n_features = NULL,
     xgb_plot_roc = NULL
   )
-
+  # Reactive values to store the selection from our new custom buttons
+  selected_stat_func <- reactiveVal("ANOVA")
+  selected_exploratory_func <- reactiveVal("Boxplots")
+  selected_multivariate_func <- reactiveVal(
+    "Principle Component Analysis (PCA)"
+  )
+  selected_ml_func <- reactiveVal("Random Forest")
   ## ---------------------------
   ## Data Upload and Built-in Data Option
   ## ---------------------------
@@ -242,10 +262,12 @@ server <- function(input, output, session) {
     if (!isTRUE(input$use_builtin)) {
       return(NULL)
     }
-    selectInput(
-      "built_in_choice",
-      "Select Built-in Data:",
-      choices = builtInList,
+
+    # Use radioButtons to display all options inside the card
+    radioButtons(
+      inputId = "built_in_choice",
+      label = "Select a built-in dataset:",
+      choices = builtInList, # Assumes builtInList is your list of choices
       selected = isolate(userState$built_in_choice) %||% builtInList[[1]]
     )
   })
@@ -354,152 +376,6 @@ server <- function(input, output, session) {
   ## ---------------------------
   ## Data Filtering and Column Selection
   ## ---------------------------
-
-  # Reactive values to store the selection from our new custom buttons
-  selected_stat_func <- reactiveVal("ANOVA")
-  selected_exploratory_func <- reactiveVal("Boxplots")
-  selected_multivariate_func <- reactiveVal(
-    "Principle Component Analysis (PCA)"
-  )
-  selected_ml_func <- reactiveVal("Random Forest")
-
-  filteredData <- shiny::reactive({
-    df <- userData()
-    req(df)
-    currentCols <- if (!is.null(userState$selected_columns)) {
-      intersect(userState$selected_columns, names(df))
-    } else {
-      intersect(input$selected_columns, names(df))
-    }
-
-    if (!is.null(currentCols) && length(currentCols) > 0) {
-      df <- df[, currentCols, drop = FALSE]
-    }
-    factor_cols <- names(df)[sapply(
-      df,
-      function(x) is.factor(x) || is.character(x)
-    )]
-    if (length(factor_cols) > 0) {
-      for (col in factor_cols) {
-        filter_vals <- input[[paste0("filter_", col)]]
-        if (!is.null(filter_vals)) {
-          df <- df[df[[col]] %in% filter_vals, ]
-        }
-      }
-    }
-    df
-  })
-  selected_function <- shiny::reactive({
-    cats <- input$analysis_categories
-    req(cats)
-    switch(
-      cats,
-      "stat_tests" = selected_stat_func(),
-      "exploratory" = selected_exploratory_func(),
-      "multivariate" = selected_multivariate_func(),
-      "machine" = selected_ml_func(),
-      NULL
-    )
-  })
-  output$column_selection_ui <- shiny::renderUI({
-    df <- userData()
-    if (is.null(df)) {
-      return(NULL)
-    }
-    checkboxGroupInput(
-      "selected_columns",
-      "Select Columns:",
-      choices = names(df),
-      selected = if (!is.null(userState$selected_columns)) {
-        userState$selected_columns
-      } else {
-        names(df)
-      }
-    )
-  })
-
-  output$select_buttons_ui <- shiny::renderUI({
-    df <- userData()
-    if (is.null(df)) {
-      return(NULL)
-    }
-    tagList(
-      fluidRow(
-        div(
-          style = "text-align: left;",
-          div(
-            style = "display: inline-block; margin-right: 10px;",
-            actionButton("select_all", "Select All")
-          ),
-          div(
-            style = "display: inline-block;",
-            actionButton("deselect_all", "Deselect All")
-          )
-        )
-      ),
-      br()
-    )
-  })
-  output$conditional_filter_ui <- renderUI({
-    df <- userData()
-    selected_cols <- input$selected_columns
-
-    # Return NULL if no columns are selected yet
-    if (is.null(selected_cols)) {
-      return(NULL)
-    }
-
-    # Check if any of the *selected* columns are categorical
-    sub_df <- df[, selected_cols, drop = FALSE]
-    is_categorical <- sapply(sub_df, function(x) {
-      is.character(x) || is.factor(x)
-    })
-
-    # Only if at least one categorical column is selected, show the filter UI
-    if (any(is_categorical)) {
-      column(
-        6,
-        card(
-          card_header(
-            class = "bg-primary",
-            "2. Apply Filters (Optional)"
-          ),
-          card_body(
-            bslib::accordion(
-              open = FALSE, # Start closed
-              bslib::accordion_panel(
-                "Filter by Categorical Values",
-                uiOutput("filter_ui"), # This is your existing filter UI output
-                icon = fontawesome::fa("filter")
-              )
-            )
-          )
-        )
-      )
-    } else {
-      # Otherwise, render nothing
-      NULL
-    }
-  })
-  shiny::observeEvent(input$select_all, {
-    df <- userData()
-    if (!is.null(df)) {
-      updateCheckboxGroupInput(
-        session,
-        "selected_columns",
-        choices = names(df),
-        selected = names(df)
-      )
-    }
-  })
-  shiny::observeEvent(input$deselect_all, {
-    updateCheckboxGroupInput(
-      session,
-      "selected_columns",
-      selected = character(0)
-    )
-  })
-
   output$filter_ui <- shiny::renderUI({
     df <- filteredData()
     if (is.null(df)) {
@@ -615,513 +491,548 @@ server <- function(input, output, session) {
           )
         )
       },
+      # ------------------------
+      # Boxplots
+      # ------------------------
       "Boxplots" = {
         ui_list <- tagList(
-          numericInput(
-            "bp_bin_size",
-            label = helper(
-              type = "inline",
-              title = "Bin size for boxplots",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Bin Size</span>"
-              ),
-              content = "Determines the number of columns (variables) to group together in each set of box plots. 
-                        For example, a bin size of 25 will display box plots for up to 25 columns (variables) at a time. 
-                        If there are more columns, multiple sets of box plots will be generated.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          # first row: Bin size + Graphs per row/col
+          fluidRow(
+            column(
+              width = 6,
+              numericInput(
+                "bp_bin_size",
+                label = helper(
+                  type = "inline",
+                  title = "Bin size for boxplots",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Bin Size</span>"
+                  ),
+                  content = "Determines the number of columns (variables) to group together in each set of box plots. 
+                         For example, a bin size of 25 will display box plots for up to 25 columns (variables) at a time. 
+                         If there are more columns, multiple sets of box plots will be generated.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$bp_bin_size) %||% 25,
+                min = 1
+              )
             ),
-            value = isolate(userState$bp_bin_size) %||% 25,
-            min = 1
+            column(
+              width = 6,
+              textInput(
+                "bp_mf_row",
+                label = helper(
+                  type = "inline",
+                  title = "Graphs per Row and Column",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Graphs per Row and Columns</span><br>(rows, cols; comma-separated)"
+                  ),
+                  content = "Specify the layout of multiple box plots on the plotting area, defined as (rows, cols). 
+                         For example, '2,2' will arrange up to 4 box plots in a 2x2 grid.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$bp_mf_row) %||% "1,1"
+              )
+            )
           ),
 
-          textInput(
-            "bp_mf_row",
-            label = helper(
-              type = "inline",
-              title = "Graphs per Row and Column",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Graphs per Row and Columns</span><br>(rows, cols; comma-separated)"
-              ),
-              content = "Specify the layout of multiple box plots on the plotting area, defined as (rows, cols). For example, '2,2' will arrange up to 4 box plots in a 2x2 grid.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          # second row: Y-axis limits + log2 checkbox
+          fluidRow(
+            column(
+              width = 6,
+              textInput(
+                "bp_y_lim",
+                label = helper(
+                  type = "inline",
+                  title = "Y-axis Limits",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Y-axis Limits</span><br>(min, max; comma-separated; leave blank for auto)"
+                  ),
+                  content = "Set the minimum and maximum values for the Y-axis, entered as (min, max) e.g., '0,100'. 
+                         Leave blank for automatic scaling based on data range. 
+                         This controls the vertical range displayed on the plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$bp_y_lim) %||% ""
+              )
             ),
-            value = isolate(userState$bp_mf_row) %||% "1,1"
-          ),
-
-          textInput(
-            "bp_y_lim",
-            label = helper(
-              type = "inline",
-              title = "Y-axis Limits",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Y-axis Limits</span><br>(min, max; comma-separated; leave blank for auto)"
-              ),
-              content = "Set the minimum and maximum values for the Y-axis, entered as (min, max) e.g., '0,100'. 
-              Leave blank for automatic scaling based on data range. 
-              This controls the vertical range displayed on the plot.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$bp_y_lim) %||% ""
-          ),
-
-          checkboxInput(
-            "bp_log2",
-            label = helper(
-              type = "inline",
-              title = "Apply log2 transformation",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-              ),
-              content = "Apply a log2 transformation to the data before generating the boxplots. This transformation can
-                                                    help manage data that span a wide range of values.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$bp_log2) %||% FALSE
+            column(
+              width = 6,
+              checkboxInput(
+                "bp_log2",
+                label = helper(
+                  type = "inline",
+                  title = "Apply log2 transformation",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
+                  ),
+                  content = "Apply a log2 transformation to the data before generating the boxplots. This transformation can
+                         help manage data that span a wide range of values.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$bp_log2) %||% FALSE
+              )
+            )
           )
         )
       },
+      # ------------------------
+      # Enhanced Boxplots
+      # ------------------------
       "Enhanced Boxplots" = {
         ui_list <- tagList(
-          textInput(
-            "bp2_mf_row",
-            label = helper(
-              type = "inline",
-              title = "Graphs per Row and Column",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Graphs per Row and Columns</span><br>(rows, cols; comma-separated)"
-              ),
-              content = "Specify the layout of multiple box plots on the plotting area, defined as (rows, cols). For example, '2,2' will arrange up to 4 box plots in a 2x2 grid.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              textInput(
+                "bp2_mf_row",
+                label = helper(
+                  type = "inline",
+                  title = "Graphs per Row and Column",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Graphs per Row & Columns</span><br>(rows, cols; comma-separated)"
+                  ),
+                  content = "Specify the layout of multiple enhanced box plots on the plotting area, defined as (rows, cols).",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$bp2_mf_row) %||% "1,1"
+              )
             ),
-            value = isolate(userState$bp2_mf_row) %||% "1,1"
+            column(
+              6,
+              textInput(
+                "bp2_y_lim",
+                label = helper(
+                  type = "inline",
+                  title = "Y-axis Limits",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Y-axis Limits</span><br>(min, max; leave blank for auto)"
+                  ),
+                  content = "Set the vertical bounds for the plot as (min, max).",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$bp2_y_lim) %||% ""
+              )
+            )
           ),
-          textInput(
-            "bp2_y_lim",
-            label = helper(
-              type = "inline",
-              title = "Y-axis Limits",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Y-axis Limits</span><br>(min, max; comma-separated; leave blank for auto)"
-              ),
-              content = "Set the minimum and maximum values for the Y-axis, entered as (min, max) e.g., '0,100'. Leave blank for automatic scaling based on data range. This controls the vertical range displayed on the plot.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "bp2_log2",
+                label = helper(
+                  type = "inline",
+                  title = "Apply log2 transformation",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Apply log2 transformation</span>"
+                  ),
+                  content = "Transform data by log2 before plotting enhanced boxplots.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$bp2_log2) %||% FALSE
+              )
             ),
-            value = isolate(userState$bp2_y_lim) %||% ""
-          ),
-          checkboxInput(
-            "bp2_log2",
-            label = helper(
-              type = "inline",
-              title = "Apply log2 transformation",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-              ),
-              content = "Apply a log2 transformation to the data before generating the boxplots.
-                                             This transformation can help manage data that span a wide range of values.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$bp2_log2) %||% FALSE
+            column(6) # placeholder to balance the grid
           )
         )
       },
+      # ------------------------
+      # Error-BarPlot
+      # ------------------------
       "Error-BarPlot" = {
-        df <- filteredData()
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
         }
-        cols <- names(df)
-        # Identify candidate grouping columns (categorical variables)
-        cat_vars <- names(df)[sapply(
-          df,
-          function(x) is.factor(x) || is.character(x)
-        )]
+        cat_vars <- names(df)[sapply(df, function(x) {
+          is.factor(x) || is.character(x)
+        })]
 
         ui_list <- tagList(
-          if (length(cat_vars) > 0) {
-            selectInput(
-              "eb_group_col",
-              label = helper(
-                type = "inline",
-                title = "Grouping Variable",
-                icon = "fas fa-question-circle",
-                shiny_tag = HTML(
-                  "<span style='margin-right: 15px;'>Grouping Variable</span>"
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "eb_group_col",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Variable",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Grouping Variable</span>"
+                  ),
+                  content = "The column to use for grouping the data (e.g. 'Control' vs 'Treatment').",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
                 ),
-                content = "The column to use for grouping the data. For example, a column that
-                        specifies categories such as 'Control' or 'Treatment'.",
-                if (
-                  input$theme_choice == "darkly" ||
-                    input$theme_choice == "cyborg"
-                ) {
-                  colour = "red"
-                } else {
-                  colour = "blue"
-                }
-              ),
-              ,
-              choices = cols,
-              selected = isolate(userState$eb_group_col) %||% cols[0]
+                choices = cat_vars,
+                selected = isolate(userState$eb_group_col) %||% cat_vars[1]
+              )
+            ),
+            column(
+              6,
+              checkboxInput(
+                "eb_log2",
+                label = helper(
+                  type = "inline",
+                  title = "Apply log2 transformation",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Apply log2 transformation</span>"
+                  ),
+                  content = "Apply log2 transformation to the data before plotting.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$eb_log2) %||% FALSE
+              )
             )
-          },
-          checkboxInput(
-            "eb_log2",
-            label = helper(
-              type = "inline",
-              title = "Apply log2 transformation",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-              ),
-              content = "Apply a log2 transformation to the numeric data before generating the error-bar plot. This can be useful for data with wide ranges or skewed distributions, helping to stabilize variances and make patterns more visible.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$eb_log2) %||% FALSE
           ),
-          checkboxInput(
-            "eb_p_lab",
-            label = helper(
-              type = "inline",
-              title = "Display P-value Labels",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Display P-value Labels</span>"
-              ),
-              content = "Display P-value labels above the bar plots to indicate whether results are
-                significant or not.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "eb_p_lab",
+                label = helper(
+                  type = "inline",
+                  title = "P-Value Label",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>P-Value Label</span>"
+                  ),
+                  content = "Label for the p-value annotation on the plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$eb_p_lab) %||% FALSE
+              )
             ),
-            value = isolate(userState$eb_p_lab) %||% FALSE
+            column(
+              6,
+              checkboxInput(
+                "eb_es_lab",
+                label = helper(
+                  type = "inline",
+                  title = "Effect-Size Label",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Effect-Size Label</span>"
+                  ),
+                  content = "Label for the effect-size annotation on the plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$eb_es_lab) %||% FALSE
+              )
+            )
           ),
-          checkboxInput(
-            "eb_es_lab",
-            label = helper(
-              type = "inline",
-              title = "Display Effect Size Labels",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Display Effect Size Labels</span>"
-              ),
-              content = HTML(paste0(
-                "Display effect size labels above the bar plots to indicate the effect observed by strictly
-                standardized mean differences (SSMD).
-                Learn more about SSMD at <a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
-                <a href='https://doi.org/10.1198/sbr.2009.0074' target='_blank' rel='noopener noreferrer'>link 2</a>"
-              )),
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "eb_class_symbol",
+                label = helper(
+                  type = "inline",
+                  title = "Class Symbol",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Class Symbol</span>"
+                  ),
+                  content = "Use class symbols for the plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$eb_class_symbol) %||% FALSE
+              )
             ),
-            value = isolate(userState$eb_es_lab) %||% FALSE
+            column(
+              6,
+              textInput(
+                "eb_x_lab",
+                label = helper(
+                  type = "inline",
+                  title = "X-Axis Label",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>X-Axis Label</span>"
+                  ),
+                  content = "The label to use on the X axis (e.g., 'Cytokine').",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$eb_x_lab) %||% "Cytokines"
+              )
+            )
           ),
-          checkboxInput(
-            "eb_class_symbol",
-            label = helper(
-              type = "inline",
-              title = "Display Class Symbol",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Display Class Symbol</span>"
-              ),
-              content = "If checked, P-values and effect sizes (if displayed) will be represented by symbols (e.g., asterisks for significance levels) instead of their numeric values.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              textInput(
+                "eb_y_lab",
+                label = helper(
+                  type = "inline",
+                  title = "Y-Axis Label",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Y-Axis Label</span>"
+                  ),
+                  content = "The label to use on the Y axis (e.g., 'Value').",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$eb_y_lab) %||% "Concentrations"
+              )
             ),
-            value = isolate(userState$eb_class_symbol) %||% FALSE
-          ),
-          textInput(
-            "eb_x_lab",
-            label = helper(
-              type = "inline",
-              title = "X-Axis Label",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>X-Axis Label</span>"
-              ),
-              content = "The X-axis label you would like to have in the plot.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$eb_x_lab) %||% "Cytokine"
-          ),
-          textInput(
-            "eb_y_lab",
-            label = helper(
-              type = "inline",
-              title = "Y-Axis Label",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Y-Axis Label</span>"
-              ),
-              content = "The Y-axis label you would like to have in the plot.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$eb_y_lab) %||% "Concentration"
-          ),
-          textInput(
-            "eb_title",
-            label = helper(
-              type = "inline",
-              title = "Title",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Title</span>"
-              ),
-              content = "Title of the plot.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$eb_title) %||% "Error-BarPlot"
+            column(
+              6,
+              textInput(
+                "eb_title",
+                label = helper(
+                  type = "inline",
+                  title = "Plot Title",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Plot Title</span>"
+                  ),
+                  content = "The title to use for the plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$eb_title) %||% "Error-Bar Plot"
+              )
+            )
           )
         )
       },
+
+      # ------------------------
+      # Dual-Flashlight Plot
+      # ------------------------
       "Dual-Flashlight Plot" = {
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
         }
         cols <- names(df)
+
         ui_list <- tagList(
-          selectInput(
-            "df_group_var",
-            label = helper(
-              type = "inline",
-              title = "Grouping Variable",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Grouping Variable</span>"
-              ),
-              content = "The column to use for grouping the data. For example, a column that
-                                          specifies categories such as 'Control' or 'Treatment'.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              4,
+              selectInput(
+                "df_group_var",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Variable",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Grouping Variable</span>"
+                  ),
+                  content = "Column that contains the group labels (e.g. 'Control', 'Treated').",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = cols,
+                selected = isolate(userState$df_group_var) %||% cols[1]
+              )
             ),
-            ,
-            choices = cols,
-            selected = isolate(userState$df_group_var) %||% cols[1]
+            column(
+              4,
+              uiOutput("df_conditions_ui")
+            )
           ),
-          uiOutput("df_conditions_ui"),
-          numericInput(
-            "df_ssmd_thresh",
-            label = helper(
-              type = "inline",
-              title = "SSMD Threshold",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>SSMD Threshold</span>"
-              ),
-              content = "The threshold for the SSMD (strictly standardized mean difference) value. 
-                                           SSMD is a measure of how different two groups are. A higher threshold means that 
-                                           only larger differences are considered significant.
-                                           Learn more about SSMD at <a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
-                <a href='https://doi.org/10.1198/sbr.2009.0074' target='_blank' rel='noopener noreferrer'>link 2</a>",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              4,
+              numericInput(
+                "df_ssmd_thresh",
+                label = helper(
+                  type = "inline",
+                  title = "SSMD Threshold",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>SSMD Threshold</span>"
+                  ),
+                  content = "Threshold for Strictly Standardized Mean Difference.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$df_ssmd_thresh) %||% 1
+              )
             ),
-            value = isolate(userState$df_ssmd_thresh) %||% 1,
-            min = 0
-          ),
-          numericInput(
-            "df_log2fc_thresh",
-            label = helper(
-              type = "inline",
-              title = "Log2 Fold Change Threshold",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Log2 Fold Change Threshold</span>"
-              ),
-              content = "The threshold for the log2 fold change value.
-                                           Fold change shows the ratio of difference between groups on a logarithmic scale; 
-                                           for example, a value of 1 represents a doubling or halving.
-                                           Learn more about fold change at <a href='https://doi.org/10.1177/1087057110381919' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
-                <a href='https://doi.org/10.1177/1087057110381783' target='_blank' rel='noopener noreferrer'>link 2</a>",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+            column(
+              4,
+              numericInput(
+                "df_log2fc_thresh",
+                label = helper(
+                  type = "inline",
+                  title = "Log2 FC Threshold",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Log2 Fold Change Threshold</span>"
+                  ),
+                  content = "Threshold for log2 fold change.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$df_log2fc_thresh) %||% 1
+              )
             ),
-            value = isolate(userState$df_log2fc_thresh) %||% 1,
-            min = 0
-          ),
-          numericInput(
-            "df_top_labels",
-            label = helper(
-              type = "inline",
-              title = "Top Labels",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Top Labels</span>"
-              ),
-              content = "The number of top labels to display on the plot. Usually, the top labels are 
-                                           the most significant points.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$df_top_labels) %||% 15,
-            min = 1
+            column(
+              4,
+              numericInput(
+                "df_top_labels",
+                label = helper(
+                  type = "inline",
+                  title = "Top Labels",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Top Labels</span>"
+                  ),
+                  content = "Number of top features to label on the plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$df_top_labels) %||% 15
+              )
+            )
           )
         )
       },
+      # ------------------------
+      # Heatmap
+      # ------------------------
       "Heatmap" = {
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
         }
-        ann_choices <- names(df)[sapply(
-          df,
-          function(x) is.factor(x) || is.character(x)
-        )]
+        ann_choices <- names(df)[sapply(df, function(x) {
+          is.factor(x) || is.character(x)
+        })]
+
         ui_list <- tagList(
-          checkboxInput(
-            "hm_log2",
-            label = helper(
-              type = "inline",
-              title = "Apply log2 transformation",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-              ),
-              content = "Apply a log2 transformation to the data before generating the heatmap.
-                               This transformation can help manage data that span a wide range of values.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "hm_log2",
+                label = helper(
+                  type = "inline",
+                  title = "Apply log2 transformation",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Apply log2 transformation</span>"
+                  ),
+                  content = "Apply log2 to the data before drawing the heatmap.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$hm_log2) %||% FALSE
+              )
             ),
-            value = isolate(userState$hm_log2) %||% FALSE
-          ),
-          selectInput(
-            "hm_annotation",
-            label = helper(
-              type = "inline",
-              title = "Annotation Column",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Annotation Column</span>"
-              ),
-              content = "The column to use for annotating the heatmap.
-                             This column will add color coding to help differentiate groups",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = ann_choices,
-            selected = isolate(userState$hm_annotation) %||%
-              (if (length(ann_choices) > 0) ann_choices[1] else NULL)
+            column(
+              6,
+              selectInput(
+                "hm_annotation",
+                label = helper(
+                  type = "inline",
+                  title = "Annotation Column",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Annotation Column</span>"
+                  ),
+                  content = "Categorical column to use for annotating rows/columns.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = ann_choices,
+                selected = isolate(userState$hm_annotation) %||% ann_choices[1]
+              )
+            )
           )
         )
       },
+      # ————————————————————
+      # PCA
+      # ————————————————————
       "Principle Component Analysis (PCA)" = {
         df <- filteredData()
         if (is.null(df)) {
@@ -1129,793 +1040,1194 @@ server <- function(input, output, session) {
         }
         cols <- names(df)
         ui_list <- tagList(
-          selectInput(
-            "pca_group_col",
-            label = helper(
-              type = "inline",
-              title = "Grouping Column 1",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Grouping Column 1</span>"
-              ),
-              content = "The first column to use for grouping the data.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          # Row 1: grouping columns
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "pca_group_col",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Column 1",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Grouping Column 1</span>"
+                  ),
+                  content = "The first column to use for grouping the data.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = cols,
+                selected = isolate(userState$pca_group_col) %||% cols[1]
+              )
             ),
-            choices = cols,
-            selected = isolate(userState$pca_group_col) %||% cols[1]
-          ),
-          selectInput(
-            "pca_group_col2",
-            label = helper(
-              type = "inline",
-              title = "Grouping Column 2",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Grouping Column 2</span>"
-              ),
-              content = "An optional second column to use for grouping the data.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = cols,
-            selected = isolate(userState$pca_group_col2) %||% cols[1]
-          ),
-          numericInput(
-            "pca_comp_num",
-            label = helper(
-              type = "inline",
-              title = "Number of Components",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Number of Components</span>"
-              ),
-              content = "Specify the number of principal components to calculate and potentially visualize. For 2D plots, the first two components are used. For 3D plots, at least 3 components are required.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$pca_comp_num) %||% 2,
-            min = 2
-          ),
-          selectizeInput(
-            "pca_colors",
-            label = helper(
-              type = "inline",
-              title = "Select Colors for PCA Plot (Optional)",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Select Colors for PCA Plot (Optional)</span>"
-              ),
-              content = "The color palette to use for the PCA plot. Select the number of colors to match the number of categories in grouping column 1.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = allowed_colors,
-            multiple = TRUE,
-            options = list(
-              placeholder = "Select Colors (Optional)",
-              plugins = c("remove_button", "restore_on_backspace")
+            column(
+              6,
+              selectInput(
+                "pca_group_col2",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Column 2",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Grouping Column 2</span>"
+                  ),
+                  content = "An optional second column to use for grouping the data.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = cols,
+                selected = isolate(userState$pca_group_col2) %||% cols[1]
+              )
             )
           ),
-          checkboxInput(
-            "pca_log2",
-            label = helper(
-              type = "inline",
-              title = "Apply log2 transformation",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-              ),
-              content = "Apply a log2 transformation to the data before generating the PCA plot.
-                               This transformation can help manage data that span a wide range of values.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 2: components & colors
+          fluidRow(
+            column(
+              6,
+              numericInput(
+                "pca_comp_num",
+                label = helper(
+                  type = "inline",
+                  title = "Number of Components",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Number of Components</span>"
+                  ),
+                  content = "Specify the number of principal components to calculate and potentially visualize. For 2D plots, the first two components are used. For 3D plots, at least 3 components are required.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$pca_comp_num) %||% 2,
+                min = 2
+              )
             ),
-            value = isolate(userState$pca_log2) %||% FALSE
+            column(
+              6,
+              selectizeInput(
+                "pca_colors",
+                label = helper(
+                  type = "inline",
+                  title = "Select Colors for PCA Plot (Optional)",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Select Colors for PCA Plot (Optional)</span>"
+                  ),
+                  content = "The color palette to use for the PCA plot. Select the number of colors to match the number of categories in grouping column 1.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = allowed_colors,
+                multiple = TRUE,
+                options = list(
+                  placeholder = "Select Colors (Optional)",
+                  plugins = c("remove_button", "restore_on_backspace")
+                )
+              )
+            )
           ),
-          checkboxInput(
-            "pca_ellipse",
-            label = helper(
-              type = "inline",
-              title = "Draw Ellipse",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Draw Ellipse</span>"
-              ),
-              content = "Draw an ellipse around the data points on the PCA plot. (Draws an ellipse covering 95% of the data points.)",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 3: transformations & ellipse
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "pca_log2",
+                label = helper(
+                  type = "inline",
+                  title = "Apply log2 transformation",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
+                  ),
+                  content = "Apply a log2 transformation to the data before generating the PCA plot. This transformation can help manage data that span a wide range of values.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$pca_log2) %||% FALSE
+              )
             ),
-            value = isolate(userState$pca_ellipse) %||% FALSE
+            column(
+              6,
+              checkboxInput(
+                "pca_ellipse",
+                label = helper(
+                  type = "inline",
+                  title = "Draw Ellipse",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Draw Ellipse</span>"
+                  ),
+                  content = "Draw an ellipse around the data points on the PCA plot. (Draws an ellipse covering 95% of the data points.)",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$pca_ellipse) %||% FALSE
+              )
+            )
           ),
-          selectInput(
-            "pca_style",
-            label = helper(
-              type = "inline",
-              title = "Plot Style",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Plot Style</span>"
-              ),
-              content = "The style of the PCA plot. Choose between 2D and 3D. Requires at least 3 components for 3D.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 4: style & symbols
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "pca_style",
+                label = helper(
+                  type = "inline",
+                  title = "Plot Style",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Plot Style</span>"
+                  ),
+                  content = "The style of the PCA plot. Choose between 2D and 3D. Requires at least 3 components for 3D.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c("2D", "3D"),
+                selected = isolate(userState$pca_style) %||% "2D"
+              )
             ),
-            choices = c("2D", "3D"),
-            selected = isolate(userState$pca_style) %||% "2D"
-          ),
-          selectizeInput(
-            "pca_pch",
-            label = helper(
-              type = "inline",
-              title = "Plotting Symbols",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Plotting Symbols</span>"
-              ),
-              content = "Select plotting character (PCH) symbols for data points. If using a second grouping column (Grouping Column 2), the number of symbols should match the number of categories in that column to assign unique shapes. If not, it can correspond to Grouping Column 1.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = pch_choices,
-            selected = pch_choices[c(17, 5)],
-            multiple = TRUE,
-            options = list(
-              placeholder = "Select Symbols",
-              plugins = c("remove_button", "restore_on_backspace"),
-              create = TRUE
+            column(
+              6,
+              selectizeInput(
+                "pca_pch",
+                label = helper(
+                  type = "inline",
+                  title = "Plotting Symbols",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Plotting Symbols</span>"
+                  ),
+                  content = "Select plotting character (PCH) symbols for data points. If using a second grouping column, match the number of symbols to its categories.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = pch_choices,
+                selected = pch_choices[c(17, 5)],
+                multiple = TRUE,
+                options = list(
+                  placeholder = "Select Symbols",
+                  plugins = c("remove_button", "restore_on_backspace"),
+                  create = TRUE
+                )
+              )
             )
           )
         )
       },
+      # ——————————————————————————————
+      # Random Forest
+      # ——————————————————————————————
       "Random Forest" = {
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
         }
         cols <- names(df)
+
         ui_list <- tagList(
-          selectInput(
-            "rf_group_col",
-            label = helper(
-              type = "inline",
-              title = "Grouping Column",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Grouping Column</span>"
-              ),
-              content = "Select the column that contains the outcome or class labels you want the Random Forest model to predict.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          # Row 1: grouping & ntrees
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "rf_group_col",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Column",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Grouping Column</span>"
+                  ),
+                  content = "Select the column that contains the outcome or class labels you want the Random Forest model to predict.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = cols,
+                selected = isolate(userState$rf_group_col) %||% cols[1]
+              )
             ),
-            choices = cols,
-            selected = isolate(userState$rf_group_col) %||% cols[1]
+            column(
+              6,
+              numericInput(
+                "rf_ntree",
+                label = helper(
+                  type = "inline",
+                  title = "Number of Trees",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Number of Trees</span>"
+                  ),
+                  content = "The number of trees to grow in the random forest model.
+                         Each tree is a simple model; more trees can improve predictions but take longer to compute.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$rf_ntree) %||% 500,
+                min = 1
+              )
+            )
           ),
-          numericInput(
-            "rf_ntree",
-            label = helper(
-              type = "inline",
-              title = "Number of Trees",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Number of Trees</span>"
-              ),
-              content = "The number of trees to grow in the random forest model.
-                              Each tree is a simple model; more trees can improve predictions but take longer to compute.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 2: mtry & train fraction
+          fluidRow(
+            column(
+              6,
+              numericInput(
+                "rf_mtry",
+                label = helper(
+                  type = "inline",
+                  title = "Number of Variables to Split",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Number of Variables to Split</span>"
+                  ),
+                  content = "The number of variables to randomly select at each split.
+                         At each decision point, the model randomly considers this number of variables, which helps improve model accuracy.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$rf_mtry) %||% 5,
+                min = 1
+              )
             ),
-            value = isolate(userState$rf_ntree) %||% 500,
-            min = 1
+            column(
+              6,
+              numericInput(
+                "rf_train_fraction",
+                label = helper(
+                  type = "inline",
+                  title = "Train Fraction",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Train Fraction</span>"
+                  ),
+                  content = "The fraction of the data to use for training the random forest model.
+                         The remainder is used for testing the model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$rf_train_fraction) %||% 0.7,
+                min = 0.1,
+                max = 0.9,
+                step = 0.1
+              )
+            )
           ),
-          numericInput(
-            "rf_mtry",
-            label = helper(
-              type = "inline",
-              title = "Number of Variables to Split",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Number of Variables to Split</span>"
-              ),
-              content = "The number of variables to randomly select at each split.
-                              At each decision point, the model randomly considers this number of variables, which helps improve model accuracy.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 3: ROC & RFCV toggle
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "rf_plot_roc",
+                label = helper(
+                  type = "inline",
+                  title = "Plot ROC",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Plot ROC (Binary Comparison Only)</span>"
+                  ),
+                  content = "Plot the Receiving Operating Characteristic (ROC) curve for the random forest model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$rf_plot_roc) %||% FALSE
+              )
             ),
-            value = isolate(userState$rf_mtry) %||% 5,
-            min = 1
+            column(
+              6,
+              checkboxInput(
+                "rf_run_rfcv",
+                label = helper(
+                  type = "inline",
+                  title = "Run RFCV?",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Run RFCV</span>"
+                  ),
+                  content = "Perform cross-validation to evaluate model performance with a decreasing number of predictors.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$rf_run_rfcv) %||% FALSE
+              )
+            )
           ),
-          numericInput(
-            "rf_train_fraction",
-            label = helper(
-              type = "inline",
-              title = "Train Fraction",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Train Fraction</span>"
-              ),
-              content = "The fraction of the data to use for training the random forest model.
-                              The remainder is used for testing the model.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$rf_train_fraction) %||% 0.7,
-            min = 0.1,
-            max = 0.9,
-            step = 0.1
-          ),
-          checkboxInput(
-            "rf_plot_roc",
-            label = helper(
-              type = "inline",
-              title = "Plot ROC",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Plot ROC (Binary Comparison Only)</span>"
-              ),
-              content = "Plot the Recieving Operating Characteristic (ROC) curve for the random forest model.
-                               Requires comparison to be a binary comparison (at most 2 groups). The ROC curve helps evaluate 
-                               the model’s performance in distinguishing between two groups. 
-                               Learn more about ROC at <a href='https://doi.org/10.4097/kja.21209' target='_blank' rel='noopener noreferrer'> this link</a>.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$rf_plot_roc) %||% FALSE
-          ),
-          checkboxInput(
-            "rf_run_rfcv",
-            label = helper(
-              type = "inline",
-              title = "Run RFCV?",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Run RFCV</span>"
-              ),
-              content = "Perform cross-validation to evaluate model performance with a decreasing number of predictors (variables). This helps identify a smaller set of important variables without significant loss of predictive accuracy.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$rf_run_rfcv) %||% TRUE
-          ),
+
+          # Row 4: RFCV parameters (conditional)
           conditionalPanel(
             condition = "input.rf_run_rfcv == true",
-            numericInput(
-              "rf_k_folds",
-              label = helper(
-                type = "inline",
-                title = "Number of Folds",
-                icon = "fas fa-question-circle",
-                shiny_tag = HTML(
-                  "<span style='margin-right: 15px;'>Number of Folds</span>"
-                ),
-                content = "The number of folds to use for cross-validation in the RFCV process.
-                                Folds are subsets of the data used to train and test the model. More folds can improve accuracy but take longer to compute.",
-                if (
-                  input$theme_choice == "darkly" ||
-                    input$theme_choice == "cyborg"
-                ) {
-                  colour = "red"
-                } else {
-                  colour = "blue"
-                }
+            fluidRow(
+              column(
+                6,
+                numericInput(
+                  "rf_k_folds",
+                  label = helper(
+                    type = "inline",
+                    title = "Number of Folds",
+                    icon = "fas fa-question-circle",
+                    shiny_tag = HTML(
+                      "<span style='margin-right:15px;'>Number of Folds</span>"
+                    ),
+                    content = "The number of folds to use for cross-validation in the RFCV process.",
+                    colour = if (
+                      input$theme_choice %in% c("darkly", "cyborg")
+                    ) {
+                      "red"
+                    } else {
+                      "blue"
+                    }
+                  ),
+                  value = isolate(userState$rf_k_folds) %||% 5,
+                  min = 2
+                )
               ),
-              value = isolate(userState$rf_k_folds) %||% 5,
-              min = 2
-            ),
-            numericInput(
-              "rf_step",
-              label = helper(
-                type = "inline",
-                title = "Step Size",
-                icon = "fas fa-question-circle",
-                shiny_tag = HTML(
-                  "<span style='margin-right: 15px;'>Step Size</span>"
-                ),
-                content = "The step size to use for the RFCV process. Must be between 0.1 and 0.9.
-                                The value controls how quickly the model eliminates variables. A smaller step size can help find the best variables.",
-                if (
-                  input$theme_choice == "darkly" ||
-                    input$theme_choice == "cyborg"
-                ) {
-                  colour = "red"
-                } else {
-                  colour = "blue"
-                }
-              ),
-              value = isolate(userState$rf_step) %||% 0.5,
-              min = 0.1,
-              max = 0.9,
-              step = 0.1
+              column(
+                6,
+                numericInput(
+                  "rf_step",
+                  label = helper(
+                    type = "inline",
+                    title = "Step Size",
+                    icon = "fas fa-question-circle",
+                    shiny_tag = HTML(
+                      "<span style='margin-right:15px;'>Step Size</span>"
+                    ),
+                    content = "The step size to use for the RFCV process (0.1–0.9).",
+                    colour = if (
+                      input$theme_choice %in% c("darkly", "cyborg")
+                    ) {
+                      "red"
+                    } else {
+                      "blue"
+                    }
+                  ),
+                  value = isolate(userState$rf_step) %||% 0.5,
+                  min = 0.1,
+                  max = 0.9,
+                  step = 0.1
+                )
+              )
             )
           )
         )
       },
+      # ------------------------
+      # Skewness/Kurtosis
+      # ------------------------
       "Skewness/Kurtosis" = {
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
         }
+        cols <- names(df)
+
         ui_list <- tagList(
-          selectInput(
-            "skku_group_cols",
-            label = helper(
-              type = "inline",
-              title = "Grouping Columns (Optional)",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Grouping Columns</span>"
-              ),
-              content = "Select one or more categorical columns to group the data by. Skewness and kurtosis will be calculated for numeric variables separately for each group.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "skku_group_cols",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Columns",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Grouping Columns</span>"
+                  ),
+                  content = "Select one or more categorical columns to stratify the skewness/kurtosis.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = cols,
+                selected = isolate(userState$skku_group_cols),
+                multiple = TRUE
+              )
             ),
-            choices = names(df),
-            multiple = TRUE,
-            selected = isolate(userState$skku_group_cols)
+            column(
+              6,
+              checkboxInput(
+                "skku_print_raw",
+                label = helper(
+                  type = "inline",
+                  title = "Print Raw Results",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Print Raw Results</span>"
+                  ),
+                  content = "Show the un-transformed skewness/kurtosis values.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$skku_print_raw) %||% FALSE
+              )
+            )
           ),
-          # Checkbox for printing raw results
-          checkboxInput(
-            "skku_print_raw",
-            label = helper(
-              type = "inline",
-              title = "Print Raw Results",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Print Raw Results</span>"
-              ),
-              content = "Display the calculated skewness and kurtosis values for the original numeric data.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "skku_print_log",
+                label = helper(
+                  type = "inline",
+                  title = "Print Log-Transformed Results",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Print Log-Transformed Results</span>"
+                  ),
+                  content = "Show skewness/kurtosis after log transformation.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$skku_print_log) %||% FALSE
+              )
             ),
-            value = isolate(userState$skku_print_raw) %||% FALSE
-          ),
-          # Checkbox for printing log transformed results
-          checkboxInput(
-            "skku_print_log",
-            label = helper(
-              type = "inline",
-              title = "Print Log-Transformed Results",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Print Log-Transformed Results</span>"
-              ),
-              content = "Display the calculated skewness and kurtosis values after applying a log2 transformation to the numeric data. This can show how transformation affects these distribution shape measures.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$skku_print_log) %||% FALSE
+            column(6) # placeholder
           )
         )
       },
+      # ------------------------
+      # sPLS-DA
+      # ------------------------
       "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
         }
         default_num_vars <- sum(sapply(df, is.numeric))
-
-        # If the user hasn't manually changed the value, update it.
         if (!isTRUE(userState$splsda_var_num_manual)) {
           userState$splsda_var_num <- default_num_vars
         }
-
         cols <- names(df)
         ui_list <- tagList(
-          selectInput(
-            "splsda_group_col",
-            label = helper(
-              type = "inline",
-              title = "Grouping Column 1",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Grouping Column 1</span>"
-              ),
-              content = "Select the column containing the class labels or groups that you want to discriminate between using sPLS-DA.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = cols,
-            selected = isolate(userState$splsda_group_col) %||% cols[1]
-          ),
-          selectInput(
-            "splsda_group_col2",
-            label = helper(
-              type = "inline",
-              title = "Grouping Column 2",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Grouping Column 2</span>"
-              ),
-              content = "Optional: Select a second column for visualizing additional grouping information on the sPLS-DA plots distinct from the primary grouping column used for discrimination.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = cols,
-            selected = isolate(userState$splsda_group_col2) %||% cols[1]
-          ),
-          selectInput(
-            "splsda_multilevel",
-            label = helper(
-              type = "inline",
-              title = "Multilevel Column",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Multilevel Column</span>"
-              ),
-              content = "Optional: Select a column that describes the categorizations of repeated measurements to be used for multilevel analysis.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = cols,
-            selected = isolate(userState$splsda_multilevel) %||% cols[1]
-          ),
-          numericInput(
-            "splsda_var_num",
-            label = helper(
-              type = "inline",
-              title = "Number of Variables",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Number of Variables</span>"
-              ),
-              content = "Specify the number of variables to select/retain on each component during the sPLS-DA model building. This is a key parameter for achieving sparsity.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = userState$splsda_var_num,
-            min = 1
-          ),
-          selectizeInput(
-            "splsda_colors",
-            label = helper(
-              type = "inline",
-              title = "Select Colors for sPLS-DA Plot (Optional)",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Select Colors for sPLS-DA Plot (Optional)</span>"
-              ),
-              content = "The color palette to use for the sPLS-DA plot. Select the number of colors to match the number of categories in grouping column 1.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = allowed_colors,
-            multiple = TRUE,
-            options = list(
-              placeholder = "Select Colors (Optional)",
-              plugins = c("remove_button", "restore_on_backspace")
-            )
-          ),
-          selectInput(
-            "splsda_cv_opt",
-            label = helper(
-              type = "inline",
-              title = "Cross-Validation Option",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Cross-Validation Option</span>"
-              ),
-              content = "The cross-validation option to use for the sPLS-DA analysis.
-                             Cross-validation helps evaluate the model's performance. Choose between None, LOOCV, and Mfold.
-                             LOOCV = Leave-One-Out Cross-Validation (LOOCV) which works by training the model on all data except one sample and then testing on the left-out sample.
-                              M-Fold Cross-Validation which works by splitting the data into M groups (folds), training the model on M-1 folds, and testing on the held-out fold. This is repeated M times until every fold has served as a test set. The overall performance can be averaged across multiple such M-fold procedures (repeats) for stability.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = c("None", "LOOCV", "Mfold"),
-            selected = isolate(userState$splsda_cv_opt) %||% "None"
-          ),
-          conditionalPanel(
-            condition = "input.splsda_cv_opt == 'Mfold'",
-            numericInput(
-              "splsda_fold_num",
-              label = helper(
-                type = "inline",
-                title = "Number of Folds",
-                icon = "fas fa-question-circle",
-                shiny_tag = HTML(
-                  "<span style='margin-right: 15px;'>Number of Folds</span>"
+          # Row 1: grouping columns
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "splsda_group_col",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Column 1",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Grouping Column 1</span>"
+                  ),
+                  content = "Select the column containing the class labels or groups to discriminate between using sPLS-DA.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
                 ),
-                content = "The number of folds to use for the M-Fold Cross-Validation process. More folds can improve 
-                                accuracy but take longer to compute.",
-                if (
-                  input$theme_choice == "darkly" ||
-                    input$theme_choice == "cyborg"
-                ) {
-                  colour = "red"
-                } else {
-                  colour = "blue"
-                }
-              ),
-              value = isolate(userState$splsda_fold_num) %||% 5,
-              min = 2
+                choices = cols,
+                selected = isolate(userState$splsda_group_col) %||% cols[1]
+              )
+            ),
+            column(
+              6,
+              selectInput(
+                "splsda_group_col2",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Column 2",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Grouping Column 2</span>"
+                  ),
+                  content = "Optional: Select a second column for additional grouping information on the plots.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = cols,
+                selected = isolate(userState$splsda_group_col2) %||% cols[1]
+              )
             )
           ),
-          checkboxInput(
-            "splsda_log2",
-            label = helper(
-              type = "inline",
-              title = "Apply log2 transformation",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-              ),
-              content = "Apply a log2 transformation to the data before generating the sPLS-DA plot.
-                               This transformation can help manage data that span a wide range of values.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 2: multilevel toggle + selector
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "splsda_use_multilevel",
+                label = helper(
+                  type = "inline",
+                  title = "Perform Multilevel Analysis?",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Perform Multilevel Analysis?</span>"
+                  ),
+                  content = "Check if your data has repeated measures and you want to account for that variation.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$splsda_use_multilevel) %||% FALSE
+              )
             ),
-            value = isolate(userState$splsda_log2) %||% FALSE
-          ),
-          numericInput(
-            "splsda_comp_num",
-            label = helper(
-              type = "inline",
-              title = "Number of Components",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Number of Components</span>"
-              ),
-              content = "Specify the number of components (latent variables) to compute in the sPLS-DA model. Typically 1 to (number of groups - 1), or more if exploring data structure. For 2D plots, 2 components are used.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$splsda_comp_num) %||% 2,
-            min = 2
-          ),
-          selectizeInput(
-            "splsda_pch",
-            label = helper(
-              type = "inline",
-              title = "Plotting Symbols",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Plotting Symbols</span>"
-              ),
-              content = "Select plotting character (PCH) symbols for data points. If using Grouping Column 2, match the number of symbols to its categories. Otherwise, it can correspond to Grouping Column 1.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = pch_choices,
-            selected = pch_choices[c(17, 5)],
-            multiple = TRUE,
-            options = list(
-              placeholder = "Select PCH Values",
-              plugins = c("remove_button", "restore_on_backspace"),
-              create = TRUE
+            column(
+              6,
+              conditionalPanel(
+                condition = "input.splsda_use_multilevel == true",
+                selectInput(
+                  "splsda_multilevel",
+                  label = helper(
+                    type = "inline",
+                    title = "Multilevel Column",
+                    icon = "fas fa-question-circle",
+                    shiny_tag = HTML(
+                      "<span style='margin-right: 15px;'>Select Repeated Measures Column</span>"
+                    ),
+                    content = "Select the column that identifies repeated measurements (e.g. Patient ID).",
+                    colour = if (
+                      input$theme_choice %in% c("darkly", "cyborg")
+                    ) {
+                      "red"
+                    } else {
+                      "blue"
+                    }
+                  ),
+                  choices = cols,
+                  selected = isolate(userState$splsda_multilevel) %||% cols[1]
+                )
+              )
             )
           ),
-          selectInput(
-            "splsda_style",
-            label = helper(
-              type = "inline",
-              title = "Plot Style",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Plot Style</span>"
-              ),
-              content = "The style of the sPLS-DA plot. Choose between 2D and 3D. Requires at least 3 components for 3D.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 3: sparsity & colors
+          fluidRow(
+            column(
+              6,
+              numericInput(
+                "splsda_var_num",
+                label = helper(
+                  type = "inline",
+                  title = "Number of Variables",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Number of Variables</span>"
+                  ),
+                  content = "Specify the number of variables to select/retain on each component.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$splsda_var_num),
+                min = 1
+              )
             ),
-            choices = c("2D", "3D"),
-            selected = isolate(userState$splsda_style) %||% "2D"
+            column(
+              6,
+              selectizeInput(
+                "splsda_colors",
+                label = helper(
+                  type = "inline",
+                  title = "Select Colors (Optional)",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Select Colors for sPLS-DA Plot (Optional)</span>"
+                  ),
+                  content = "The color palette to use for the sPLS-DA plot. Match the number of colors to the number of groups.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = allowed_colors,
+                multiple = TRUE,
+                options = list(
+                  placeholder = "Select Colors (Optional)",
+                  plugins = c("remove_button", "restore_on_backspace")
+                )
+              )
+            )
           ),
-          checkboxInput(
-            "splsda_roc",
-            label = helper(
-              type = "inline",
-              title = "Plot ROC",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Plot ROC</span>"
-              ),
-              content = "Plot Receiver Operating Characteristic (ROC) curves to evaluate the classification performance of the sPLS-DA model.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 4: CV options & fold number
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "splsda_cv_opt",
+                label = helper(
+                  type = "inline",
+                  title = "Cross-Validation Option",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Cross-Validation Option</span>"
+                  ),
+                  content = "Choose None, LOOCV, or Mfold for model evaluation stability.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c("None", "LOOCV", "Mfold"),
+                selected = isolate(userState$splsda_cv_opt) %||% "None"
+              )
             ),
-            value = isolate(userState$splsda_roc) %||% FALSE
+            column(
+              6,
+              conditionalPanel(
+                condition = "input.splsda_cv_opt == 'Mfold'",
+                numericInput(
+                  "splsda_fold_num",
+                  label = helper(
+                    type = "inline",
+                    title = "Number of Folds",
+                    icon = "fas fa-question-circle",
+                    shiny_tag = HTML(
+                      "<span style='margin-right: 15px;'>Number of Folds</span>"
+                    ),
+                    content = "The number of folds for M-Fold cross-validation.",
+                    colour = if (
+                      input$theme_choice %in% c("darkly", "cyborg")
+                    ) {
+                      "red"
+                    } else {
+                      "blue"
+                    }
+                  ),
+                  value = isolate(userState$splsda_fold_num) %||% 5,
+                  min = 2
+                )
+              )
+            )
           ),
-          checkboxInput(
-            "splsda_ellipse",
-            label = helper(
-              type = "inline",
-              title = "Draw Ellipse",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Draw Ellipse</span>"
-              ),
-              content = "Draw an ellipse around the data points on the sPLS-DA plot. (Draws an ellipse covering 95% of the data points.)",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 5: log2 & components
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "splsda_log2",
+                label = helper(
+                  type = "inline",
+                  title = "Apply log2 transformation",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
+                  ),
+                  content = "Apply log2 to the data before generating the sPLS-DA plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$splsda_log2) %||% FALSE
+              )
             ),
-            value = isolate(userState$splsda_ellipse) %||% FALSE
+            column(
+              6,
+              numericInput(
+                "splsda_comp_num",
+                label = helper(
+                  type = "inline",
+                  title = "Number of Components",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Number of Components</span>"
+                  ),
+                  content = "Specify how many latent variables to compute in the model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$splsda_comp_num) %||% 2,
+                min = 2
+              )
+            )
           ),
-          checkboxInput(
-            "splsda_bg",
-            label = helper(
-              type = "inline",
-              title = "Background Color",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Shaded Background Prediction</span>"
-              ),
-              content = "Draws a shaded background prediction on the sPLS-DA plot. 
-                               This shading indicates the model’s predicted classification regions",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 6: symbols & plot style
+          fluidRow(
+            column(
+              6,
+              selectizeInput(
+                "splsda_pch",
+                label = helper(
+                  type = "inline",
+                  title = "Plotting Symbols",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Plotting Symbols</span>"
+                  ),
+                  content = "Select PCH symbols for data points. Match to your grouping columns.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = pch_choices,
+                selected = pch_choices[c(17, 5)],
+                multiple = TRUE,
+                options = list(
+                  placeholder = "Select PCH Values",
+                  plugins = c("remove_button", "restore_on_backspace"),
+                  create = TRUE
+                )
+              )
             ),
-            value = isolate(userState$splsda_bg) %||% FALSE
+            column(
+              6,
+              selectInput(
+                "splsda_style",
+                label = helper(
+                  type = "inline",
+                  title = "Plot Style",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Plot Style</span>"
+                  ),
+                  content = "Choose 2D or 3D style for the sPLS-DA plot (3D needs ≥3 components).",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c("2D", "3D"),
+                selected = isolate(userState$splsda_style) %||% "2D"
+              )
+            )
           ),
-          checkboxInput(
-            "splsda_conf_mat",
-            label = helper(
-              type = "inline",
-              title = "Confusion Matrix",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Confusion Matrix</span>"
-              ),
-              content = "Display the confusion matrix for the sPLS-DA model. This table shows how many
-                               predictions were correct and provides key performance measures.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+
+          # Row 7: ROC & ellipse
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "splsda_roc",
+                label = helper(
+                  type = "inline",
+                  title = "Plot ROC",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Plot ROC</span>"
+                  ),
+                  content = "Plot ROC curves to evaluate classification performance.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$splsda_roc) %||% FALSE
+              )
             ),
-            value = isolate(userState$splsda_conf_mat) %||% FALSE
+            column(
+              6,
+              checkboxInput(
+                "splsda_ellipse",
+                label = helper(
+                  type = "inline",
+                  title = "Draw Ellipse",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Draw Ellipse</span>"
+                  ),
+                  content = "Draw a 95% ellipse around the data points on the sPLS-DA plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$splsda_ellipse) %||% FALSE
+              )
+            )
+          ),
+
+          # Row 8: background & confusion matrix
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "splsda_bg",
+                label = helper(
+                  type = "inline",
+                  title = "Shaded Background",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Shaded Background Prediction</span>"
+                  ),
+                  content = "Draw shaded prediction regions on the sPLS-DA plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$splsda_bg) %||% FALSE
+              )
+            ),
+            column(
+              6,
+              checkboxInput(
+                "splsda_conf_mat",
+                label = helper(
+                  type = "inline",
+                  title = "Confusion Matrix",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Confusion Matrix</span>"
+                  ),
+                  content = "Display the confusion matrix for the sPLS-DA model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$splsda_conf_mat) %||% FALSE
+              )
+            )
+          )
+        )
+      },
+      "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
+        df <- filteredData()
+        if (is.null(df)) {
+          return(NULL)
+        }
+        cols <- names(df)
+
+        default_num_vars <- sum(sapply(df, is.numeric))
+        if (!isTRUE(userState$mint_splsda_var_num_manual)) {
+          userState$mint_splsda_var_num <- default_num_vars
+        }
+
+        ui_list <- tagList(
+          # Row 1: Grouping Columns
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "mint_splsda_group_col",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Column (Outcome)",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Grouping Column</span>"
+                  ),
+                  content = "Select the column containing the class labels you want to discriminate (e.g., Treatment, Condition).",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = cols,
+                selected = isolate(userState$mint_splsda_group_col) %||% cols[1]
+              )
+            ),
+            column(
+              6,
+              selectInput(
+                "mint_splsda_group_col2",
+                label = helper(
+                  type = "inline",
+                  title = "Second Grouping Column (Optional)",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Second Grouping Column</span>"
+                  ),
+                  content = "Optional. If specified, the MINT sPLS-DA analysis will be run separately for each level of this column.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c("None" = NULL, cols),
+                selected = isolate(userState$mint_splsda_group_col2) %||% NULL
+              )
+            )
+          ),
+          # Row 2: Batch and Variable Number
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "mint_splsda_batch_col",
+                label = helper(
+                  type = "inline",
+                  title = "Batch Column (Study)",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Batch Column</span>"
+                  ),
+                  content = "Select the column that identifies the different batches or studies. This is crucial for the batch correction model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = cols,
+                selected = isolate(userState$mint_splsda_batch_col) %||% cols[2]
+              )
+            ),
+            column(
+              6,
+              numericInput(
+                "mint_splsda_var_num",
+                label = helper(
+                  type = "inline",
+                  title = "Number of Variables",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Number of Variables to Select</span>"
+                  ),
+                  content = "Specify the number of variables (e.g., cytokines) to select on each component.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$mint_splsda_var_num),
+                min = 1
+              )
+            )
+          ),
+          # Row 3: Components and Colors
+          fluidRow(
+            column(
+              6,
+              numericInput(
+                "mint_splsda_comp_num",
+                label = helper(
+                  type = "inline",
+                  title = "Number of Components",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Number of Components</span>"
+                  ),
+                  content = "Specify how many latent variables (components) to compute in the model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$mint_splsda_comp_num) %||% 2,
+                min = 2
+              )
+            ),
+            column(
+              6,
+              selectizeInput(
+                "mint_splsda_colors",
+                label = helper(
+                  type = "inline",
+                  title = "Select Colors (Optional)",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Select Colors for Groups</span>"
+                  ),
+                  content = "The color palette to use for the different groups in the plots.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = allowed_colors,
+                multiple = TRUE,
+                options = list(
+                  placeholder = "Select Colors (Optional)",
+                  plugins = c("remove_button", "restore_on_backspace")
+                )
+              )
+            )
+          ),
+          # Row 4: PCH and log2
+          fluidRow(
+            column(
+              6,
+              selectizeInput(
+                "mint_splsda_pch",
+                label = helper(
+                  type = "inline",
+                  title = "Plotting Symbols for Batches",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Plotting Symbols</span>"
+                  ),
+                  content = "Select PCH symbols to represent the different batches on the sample plots.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = pch_choices,
+                selected = pch_choices[c(17, 5)],
+                multiple = TRUE,
+                options = list(
+                  placeholder = "Select PCH Values",
+                  plugins = c("remove_button", "restore_on_backspace"),
+                  create = TRUE
+                )
+              )
+            ),
+            column(
+              6,
+              checkboxInput(
+                "mint_splsda_log2",
+                label = helper(
+                  type = "inline",
+                  title = "Apply log2 transformation",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
+                  ),
+                  content = "Apply log2 to the data before analysis.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$mint_splsda_log2) %||% FALSE
+              )
+            )
+          ),
+          # Row 5: Final Toggles
+          fluidRow(
+            column(
+              4,
+              checkboxInput(
+                "mint_splsda_ellipse",
+                label = helper(
+                  type = "inline",
+                  title = "Draw Ellipse",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Draw Ellipse</span>"
+                  ),
+                  content = "Draw a 95% confidence ellipse around the groups on the sample plots.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$mint_splsda_ellipse) %||% FALSE
+              )
+            ),
+            column(
+              4,
+              checkboxInput(
+                "mint_splsda_roc",
+                label = helper(
+                  type = "inline",
+                  title = "Plot ROC",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Plot ROC Curve</span>"
+                  ),
+                  content = "Plot ROC curves to evaluate classification performance.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$mint_splsda_roc) %||% FALSE
+              )
+            ),
+            column(
+              4,
+              checkboxInput(
+                "mint_splsda_bg",
+                label = helper(
+                  type = "inline",
+                  title = "Draw Prediction Background",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Draw Background</span>"
+                  ),
+                  content = "Draws a shaded background to visualize the prediction areas on the global sample plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$mint_splsda_bg) %||% FALSE
+              )
+            )
           )
         )
       },
@@ -1944,335 +2256,364 @@ server <- function(input, output, session) {
           )
         )
       },
+      # ------------------------
+      # Volcano Plot
+      # ------------------------
       "Volcano Plot" = {
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
         }
         cols <- names(df)
+
         ui_list <- tagList(
-          selectInput(
-            "volc_group_col",
-            label = helper(
-              type = "inline",
-              title = "Grouping Column",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Grouping Column</span>"
-              ),
-              content = "Select the column that defines the two groups for comparison in the volcano plot (e.g., 'Control' vs 'Treatment').",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "volc_group_col",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Variable",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Grouping Variable</span>"
+                  ),
+                  content = "Column to color points by (e.g. 'Treatment').",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = cols,
+                selected = isolate(userState$volc_group_col) %||% cols[1]
+              )
             ),
-            choices = cols,
-            selected = isolate(userState$volc_group_col) %||% cols[1]
+            column(
+              6,
+              uiOutput(
+                "volc_conditions_ui"
+              )
+            ),
+            column(
+              6,
+              numericInput(
+                "volc_fold_change_thresh",
+                label = helper(
+                  type = "inline",
+                  title = "Log2 FC Threshold",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Log2 Fold Change Threshold</span>"
+                  ),
+                  content = "Absolute log2 fold-change cutoff for significance.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$volc_fold_change_thresh) %||% 1
+              )
+            )
           ),
-          uiOutput("volc_conditions_ui"),
-          numericInput(
-            "volc_fold_change_thresh",
-            label = helper(
-              type = "inline",
-              title = "Fold Change Threshold",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Fold Change Threshold</span>"
-              ),
-              content = "Set the threshold for fold change. Points exceeding this fold change (and the p-value threshold) are typically will be shown as significant or not significant.
-              Learn more about fold change at <a href='https://doi.org/10.1177/1087057110381919' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
-                <a href='https://doi.org/10.1177/1087057110381783' target='_blank' rel='noopener noreferrer'>link 2</a>",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
+          fluidRow(
+            column(
+              6,
+              numericInput(
+                "volc_p_value_thresh",
+                label = helper(
+                  type = "inline",
+                  title = "P-Value Threshold",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>P-Value Threshold</span>"
+                  ),
+                  content = "Cutoff for adjusted p-value for significance.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$volc_p_value_thresh) %||% 0.05
+              )
             ),
-            value = isolate(userState$volc_fold_change_thresh) %||% 2,
-            min = 0
-          ),
-          numericInput(
-            "volc_p_value_thresh",
-            label = helper(
-              type = "inline",
-              title = "P-Value Threshold",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>P-Value Threshold</span>"
-              ),
-              content = "Set the threshold for statistical significance (p-value). Points with p-values below this threshold (and exceeding the fold change threshold) are highlighted as significant.
-              Learn more about fold change at <a href='https://doi.org/10.1142/S0219720012310038' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
-                <a href='https://doi.org/10.1038/s41467-024-45834-7' target='_blank' rel='noopener noreferrer'>link 2</a>",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$volc_p_value_thresh) %||% 0.05,
-            min = 0,
-            step = 0.01
-          ),
-          numericInput(
-            "volc_top_labels",
-            label = helper(
-              type = "inline",
-              title = "Top Labels",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Top Labels</span>"
-              ),
-              content = "Specify the number of significant points to label on the volcano plot.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$volc_top_labels) %||% 10,
-            min = 1
+            column(
+              6,
+              numericInput(
+                "volc_top_labels",
+                label = helper(
+                  type = "inline",
+                  title = "Top Labels",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Top Labels</span>"
+                  ),
+                  content = "Number of top genes/features to annotate on the volcano plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$volc_top_labels) %||% 15
+              )
+            )
           )
         )
       },
+      # ——————————————————————————————
+      # Extreme Gradient Boosting (XGBoost)
+      # ——————————————————————————————
       "Extreme Gradient Boosting (XGBoost)" = {
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
         }
         cols <- names(df)
+
         ui_list <- tagList(
-          selectInput(
-            "xgb_group_col",
-            label = helper(
-              type = "inline",
-              title = "Grouping Column",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Grouping Column</span>"
-              ),
-              content = "Select the column that contains the outcome or class labels you want the XGBoost model to predict (the target variable).",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = cols,
-            selected = isolate(userState$xgb_group_col) %||% cols[1]
-          ),
-          numericInput(
-            "xgb_train_fraction",
-            label = helper(
-              type = "inline",
-              title = "Train Fraction",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Train Fraction</span>"
-              ),
-              content = "The fraction of the data to use for training the XGBoost model.
-                              Remainder is used for testing the model.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$xgb_train_fraction) %||% 0.7,
-            min = 0.1,
-            max = 0.9,
-            step = 0.1
-          ),
-          numericInput(
-            "xgb_nrounds",
-            label = helper(
-              type = "inline",
-              title = "Number of Rounds",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Number of Rounds</span>"
-              ),
-              content = "The number of rounds to grow the trees in the XGBoost model.
-                              Each round adds a new tree to improve the model’s predictions.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$xgb_nrounds) %||% 500,
-            min = 100
-          ),
-          numericInput(
-            "xgb_max_depth",
-            label = helper(
-              type = "inline",
-              title = "Maximum Depth",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Maximum Depth</span>"
-              ),
-              content = "The maximum depth of the trees in the XGBoost model.
-                              Deeper trees can capture more complex relationships but may risk overfitting.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$xgb_max_depth) %||% 6,
-            min = 1
-          ),
-          numericInput(
-            "xgb_eta",
-            label = helper(
-              type = "inline",
-              title = "Learning Rate",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Learning Rate</span>"
-              ),
-              content = "The learning rate of the XGBoost model.
-                              This controls how much each new tree influences the model; 
-                              lower rates make the model learn more slowly but can improve accuracy.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$xgb_eta) %||% 0.1,
-            min = 0,
-            step = 0.01
-          ),
-          selectInput(
-            "xgb_eval_metric",
-            label = helper(
-              type = "inline",
-              title = "Evaluation Metric",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Evaluation Metric</span>"
-              ),
-              content = "The evaluation metric to use for the XGBoost model.
-                             Choose 'mlogloss' to measure classification error or 'auc' for the area under the ROC curve.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            choices = c("mlogloss", "auc"),
-            selected = isolate(userState$xgb_eval_metric) %||% "mlogloss"
-          ),
-          numericInput(
-            "xgb_top_n_features",
-            label = helper(
-              type = "inline",
-              title = "Top Number of Features",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Top Number of Features</span>"
-              ),
-              content = "Specify the number of top features (based on importance scores from the XGBoost model) to display in a feature importance plot.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$xgb_top_n_features) %||% 10,
-            min = 1
-          ),
-          checkboxInput(
-            "xgb_plot_roc",
-            label = helper(
-              type = "inline",
-              title = "Plot ROC",
-              icon = "fas fa-question-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Plot ROC (Binary Comparison Only)</span>"
-              ),
-              content = "Plot the Recieving Operating Characteristic (ROC) curve for the XGBoost model.
-                               Requires comparison to be a binary comparison (at most 2 groups). The ROC curve 
-                               helps evaluate how well the model distinguishes between two groups.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$xgb_plot_roc) %||% FALSE
-          ),
-          checkboxInput(
-            "xgb_cv",
-            label = helper(
-              type = "inline",
-              title = "Cross-Validation",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Cross-Validation</span>"
-              ),
-              content = "Perform cross-validation on the XGBoost model.
-                               Cross-validation helps evaluate the model’s performance on different subsets of the data.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$xgb_cv) %||% FALSE
-          ),
-          conditionalPanel(
-            condition = "input.xgb_cv == true",
-            numericInput(
-              "xgb_nfold",
-              label = helper(
-                type = "inline",
-                title = "Number of Folds",
-                icon = "fas fa-question-circle",
-                shiny_tag = HTML(
-                  "<span style='margin-right: 15px;'>Number of Folds</span>"
+          # Row 1: grouping & train frac
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "xgb_group_col",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Column",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Grouping Column</span>"
+                  ),
+                  content = "Select the column that contains the outcome or class labels you want the XGBoost model to predict.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
                 ),
-                content = "The number of folds to use for cross-validation in the XGBoost model.
-                                The folds are used to train and test the model. More folds can improve accuracy but take longer to compute.",
-                if (
-                  input$theme_choice == "darkly" ||
-                    input$theme_choice == "cyborg"
-                ) {
-                  colour = "red"
-                } else {
-                  colour = "blue"
-                }
-              ),
-              value = isolate(userState$xgb_nfold) %||% 5,
-              min = 2
+                choices = cols,
+                selected = isolate(userState$xgb_group_col) %||% cols[1]
+              )
+            ),
+            column(
+              6,
+              numericInput(
+                "xgb_train_fraction",
+                label = helper(
+                  type = "inline",
+                  title = "Train Fraction",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Train Fraction</span>"
+                  ),
+                  content = "The fraction of the data to use for training the XGBoost model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$xgb_train_fraction) %||% 0.7,
+                min = 0.1,
+                max = 0.9,
+                step = 0.1
+              )
+            )
+          ),
+          # Row 2: rounds & max_depth
+          fluidRow(
+            column(
+              6,
+              numericInput(
+                "xgb_nrounds",
+                label = helper(
+                  type = "inline",
+                  title = "Number of Rounds",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Number of Rounds</span>"
+                  ),
+                  content = "The number of rounds (trees) to grow in the XGBoost model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$xgb_nrounds) %||% 500,
+                min = 100
+              )
+            ),
+            column(
+              6,
+              numericInput(
+                "xgb_max_depth",
+                label = helper(
+                  type = "inline",
+                  title = "Maximum Depth",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Maximum Depth</span>"
+                  ),
+                  content = "The maximum depth of the trees in the XGBoost model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$xgb_max_depth) %||% 6,
+                min = 1
+              )
+            )
+          ),
+          # Row 3: eta & eval metric
+          fluidRow(
+            column(
+              6,
+              numericInput(
+                "xgb_eta",
+                label = helper(
+                  type = "inline",
+                  title = "Learning Rate",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Learning Rate</span>"
+                  ),
+                  content = "The learning rate of the XGBoost model (step size shrinkage).",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$xgb_eta) %||% 0.1,
+                min = 0,
+                step = 0.01
+              )
+            ),
+            column(
+              6,
+              selectInput(
+                "xgb_eval_metric",
+                label = helper(
+                  type = "inline",
+                  title = "Evaluation Metric",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Evaluation Metric</span>"
+                  ),
+                  content = "Choose 'mlogloss' or 'auc' to evaluate model performance.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c("mlogloss", "auc"),
+                selected = isolate(userState$xgb_eval_metric) %||% "mlogloss"
+              )
+            )
+          ),
+          # Row 4: top features & ROC plot
+          fluidRow(
+            column(
+              6,
+              numericInput(
+                "xgb_top_n_features",
+                label = helper(
+                  type = "inline",
+                  title = "Top Number of Features",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Top Number of Features</span>"
+                  ),
+                  content = "Number of top features (by importance) to display.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$xgb_top_n_features) %||% 10,
+                min = 1
+              )
+            ),
+            column(
+              6,
+              checkboxInput(
+                "xgb_plot_roc",
+                label = helper(
+                  type = "inline",
+                  title = "Plot ROC",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Plot ROC (Binary Only)</span>"
+                  ),
+                  content = "Plot the ROC curve for the XGBoost model (binary outcome).",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$xgb_plot_roc) %||% FALSE
+              )
+            )
+          ),
+          # Row 5: CV toggle & folds (conditional)
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "xgb_cv",
+                label = helper(
+                  type = "inline",
+                  title = "Cross-Validation",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right:15px;'>Cross-Validation</span>"
+                  ),
+                  content = "Perform cross-validation on the XGBoost model.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$xgb_cv) %||% FALSE
+              )
+            ),
+            column(
+              6,
+              conditionalPanel(
+                condition = "input.xgb_cv == true",
+                numericInput(
+                  "xgb_nfold",
+                  label = helper(
+                    type = "inline",
+                    title = "Number of Folds",
+                    icon = "fas fa-question-circle",
+                    shiny_tag = HTML(
+                      "<span style='margin-right:15px;'>Number of Folds</span>"
+                    ),
+                    content = "The number of folds to use for cross-validation.",
+                    colour = if (
+                      input$theme_choice %in% c("darkly", "cyborg")
+                    ) {
+                      "red"
+                    } else {
+                      "blue"
+                    }
+                  ),
+                  value = isolate(userState$xgb_nfold) %||% 5,
+                  min = 2
+                )
+              )
             )
           )
         )
@@ -2291,7 +2632,19 @@ server <- function(input, output, session) {
     default_num_vars <- sum(numeric_cols)
 
     # Always update the input with the new default value
-    updateNumericInput(session, "splsda_var_num", value = default_num_vars)
+    if (!isTRUE(userState$splsda_var_num_manual)) {
+      default_num_vars <- sum(sapply(df, is.numeric))
+      updateNumericInput(session, "splsda_var_num", value = default_num_vars)
+    }
+
+    if (!isTRUE(userState$mint_splsda_var_num_manual)) {
+      default_num_vars <- sum(sapply(df, is.numeric))
+      updateNumericInput(
+        session,
+        "mint_splsda_var_num",
+        value = default_num_vars
+      )
+    }
   })
 
   output$df_conditions_ui <- shiny::renderUI({
@@ -2302,48 +2655,49 @@ server <- function(input, output, session) {
     if (length(choices) < 2) {
       return(helpText("Not enough unique levels in grouping column"))
     }
-    tagList(
-      selectInput(
-        "df_cond1",
-        label = helper(
-          type = "inline",
-          title = "Condition 1",
-          icon = "fas fa-question-circle",
-          shiny_tag = HTML(
-            "<span style='margin-right: 15px;'>Condition 1</span>"
+
+    # Use fluidRow and column to place inputs side-by-side
+    fluidRow(
+      column(
+        12,
+        selectInput(
+          "df_cond1",
+          label = helper(
+            type = "inline",
+            title = "Condition 1",
+            icon = "fas fa-question-circle",
+            shiny_tag = HTML(
+              "<span style='margin-right: 15px;'>Condition 1</span>"
+            ),
+            content = "The first condition to compare.",
+            colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+              "red"
+            } else {
+              "blue"
+            }
           ),
-          content = "The first condition to compare.",
-          if (
-            input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-          ) {
-            colour = "red"
-          } else {
-            colour = "blue"
-          }
+          choices = choices,
+          selected = isolate(userState$df_cond1) %||% choices[1]
         ),
-        choices = choices,
-        selected = isolate(userState$df_cond1) %||% choices[1]
-      ),
-      selectInput(
-        "df_cond2",
-        label = helper(
-          type = "inline",
-          title = "Condition 2",
-          icon = "fas fa-question-circle",
-          shiny_tag = HTML(
-            "<span style='margin-right: 15px;'>Condition 2</span>"
+        selectInput(
+          "df_cond2",
+          label = helper(
+            type = "inline",
+            title = "Condition 2",
+            icon = "fas fa-question-circle",
+            shiny_tag = HTML(
+              "<span style='margin-right: 15px;'>Condition 2</span>"
+            ),
+            content = "The second condition to compare.",
+            colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+              "red"
+            } else {
+              "blue"
+            }
           ),
-          content = "The second condition to compare.",
-          if (
-            input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-          ) {
-            colour = "red"
-          } else {
-            colour = "blue"
-          }
-        ),
-        choices = choices,
-        selected = isolate(userState$df_cond2) %||% choices[2]
+          choices = choices,
+          selected = isolate(userState$df_cond2) %||% choices[2]
+        )
       )
     )
   })
@@ -2354,48 +2708,48 @@ server <- function(input, output, session) {
     df <- filteredData()
     choices <- unique(df[[input$volc_group_col]])
     if (length(choices) >= 2) {
-      tagList(
-        selectInput(
-          "volc_cond1",
-          label = helper(
-            type = "inline",
-            title = "Condition 1",
-            icon = "fas fa-question-circle",
-            shiny_tag = HTML(
-              "<span style='margin-right: 15px;'>Condition 1</span>"
+      # Use fluidRow and column to place inputs side-by-side
+      fluidRow(
+        column(
+          12,
+          selectInput(
+            "volc_cond1",
+            label = helper(
+              type = "inline",
+              title = "Condition 1",
+              icon = "fas fa-question-circle",
+              shiny_tag = HTML(
+                "<span style='margin-right: 15px;'>Condition 1</span>"
+              ),
+              content = "The first condition to compare.",
+              colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                "red"
+              } else {
+                "blue"
+              }
             ),
-            content = "The first condition to compare.",
-            if (
-              input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-            ) {
-              colour = "red"
-            } else {
-              colour = "blue"
-            }
+            choices = choices,
+            selected = isolate(userState$volc_cond1) %||% choices[1]
           ),
-          choices = choices,
-          selected = isolate(userState$volc_cond1) %||% choices[1]
-        ),
-        selectInput(
-          "volc_cond2",
-          label = helper(
-            type = "inline",
-            title = "Condition 2",
-            icon = "fas fa-question-circle",
-            shiny_tag = HTML(
-              "<span style='margin-right: 15px;'>Condition 2</span>"
+          selectInput(
+            "volc_cond2",
+            label = helper(
+              type = "inline",
+              title = "Condition 2",
+              icon = "fas fa-question-circle",
+              shiny_tag = HTML(
+                "<span style='margin-right: 15px;'>Condition 2</span>"
+              ),
+              content = "The second condition to compare.",
+              colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                "red"
+              } else {
+                "blue"
+              }
             ),
-            content = "The second condition to compare.",
-            if (
-              input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-            ) {
-              colour = "red"
-            } else {
-              colour = "blue"
-            }
-          ),
-          choices = choices,
-          selected = isolate(userState$volc_cond2) %||% choices[2]
+            choices = choices,
+            selected = isolate(userState$volc_cond2) %||% choices[2]
+          )
         )
       )
     } else {
@@ -2445,25 +2799,54 @@ server <- function(input, output, session) {
 
       # STEP 1 ----
       "1" = tagList(
-        stepHeader,
-        fileInput(
-          "datafile",
-          HTML(
-            "Upload Data File<br>Accepted Formats: ('.csv', '.txt', '.xls', '.xlsx')"
-          ),
-          accept = c(".csv", ".txt", ".xls", ".xlsx")
-        ),
-        checkboxInput("use_builtin", "Use built-in data?", FALSE),
-        uiOutput("built_in_selector"),
-        uiOutput("sheet_selector"),
-        uiOutput("viewSummaryCheckboxes"),
+        card(
+          # Use the card_header for a bold title
+          card_header(h4(icon("upload"), "Step 1: Provide Your Data")),
 
+          card_body(
+            # Use columns to neatly separate the two ways a user can provide data
+            fluidRow(
+              column(
+                width = 6,
+                tags$h5("Option A: Upload a File"),
+                fileInput(
+                  "datafile",
+                  label = NULL, # The h5 above acts as the label
+                  accept = c(".csv", ".txt", ".xls", ".xlsx")
+                ),
+                helpText("Accepted Formats: '.csv', '.txt', '.xls', '.xlsx'"),
+                uiOutput("sheet_selector") # Your existing UI for sheet selection
+              ),
+              column(
+                width = 6,
+                tags$h5("Option B: Use Built-in Data"),
+                checkboxInput("use_builtin", "Use a built-in dataset?", FALSE),
+                uiOutput("built_in_selector") # Your existing UI for built-in data
+              )
+            )
+          ),
+          card_footer(
+            # Place the "Next" button in the footer for a clear call to action
+            div(
+              style = "text-align: right;",
+              actionButton(
+                "next1",
+                "Next Step",
+                icon = icon("arrow-right"),
+                class = "btn-primary btn-lg"
+              )
+            )
+          )
+        ),
+
+        # Your conditional panels for viewing the data can remain outside the card
+        br(),
+        uiOutput("viewSummaryCheckboxes"),
         conditionalPanel(
           condition = "input.view_data",
           uiOutput("data_summary"),
           uiOutput("preview_ui")
         ),
-
         conditionalPanel(
           condition = "input.show_summary",
           h3("Summary Statistics"),
@@ -2471,8 +2854,7 @@ server <- function(input, output, session) {
             DT::DTOutput("summary_stats_table"),
             type = 8
           )
-        ),
-        actionButton("next1", "Next")
+        )
       ),
 
       "2" = {
@@ -2727,7 +3109,8 @@ server <- function(input, output, session) {
   # --- Logic for Custom Button Group: Multivariate ---
   multivariate_choices <- c(
     "Principle Component Analysis (PCA)",
-    "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
+    "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)",
+    "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
   )
   output$multivariate_function_ui <- renderUI({
     lapply(multivariate_choices, function(choice) {
@@ -2791,7 +3174,19 @@ server <- function(input, output, session) {
   ## Navigation: Next/Back Buttons & Save User State
   ## ---------------------------
   shiny::observeEvent(input$next1, {
-    currentStep(2)
+    # Check if a file has been uploaded OR if the "use built-in" box is checked
+    if (!isTruthy(input$datafile) && !isTruthy(input$use_builtin)) {
+      # If neither is true, show a pop-up modal warning
+      showModal(modalDialog(
+        title = "Data Source Required",
+        "Please either upload a data file or check the 'Use built-in data' option to continue.",
+        easyClose = TRUE,
+        footer = modalButton("OK")
+      ))
+    } else {
+      # Otherwise, if data is present, proceed to the next step
+      currentStep(2)
+    }
   })
   shiny::observeEvent(input$back2, {
     currentStep(1)
@@ -2799,11 +3194,7 @@ server <- function(input, output, session) {
 
   # On moving from Step 2 to Step 3, save the selected columns
   shiny::observeEvent(input$next2, {
-    if (
-      !is.null(input$selected_columns) && length(input$selected_columns) > 0
-    ) {
-      userState$selected_columns <- input$selected_columns
-    }
+    userState$selected_columns <- selected_columns_combined()
     currentStep(3)
   })
 
@@ -2813,13 +3204,10 @@ server <- function(input, output, session) {
 
   # A. Create a new reactive to combine the selected columns
   selected_columns_combined <- reactive({
-    # Use req() to ensure the inputs are available before combining
-    req(input$selected_categorical_cols, input$selected_numerical_cols)
     c(input$selected_categorical_cols, input$selected_numerical_cols)
   })
 
   # B. Update the logic for the "Select/Deselect All" buttons
-  #    (Remove the old observeEvents for "select_all" and "deselect_all")
   observeEvent(input$select_all_cat, {
     df <- userData()
     categorical_cols <- names(df)[!sapply(df, is.numeric)]
@@ -2858,14 +3246,15 @@ server <- function(input, output, session) {
     df <- userData()
     req(df)
 
-    # *** CHANGE THIS PART ***
-    # Use the new combined reactive instead of input$selected_columns
-    currentCols <- if (!is.null(userState$selected_columns)) {
-      intersect(userState$selected_columns, names(df))
+    currentCols <- if (currentStep() == 2) {
+      # On Step 2, ALWAYS use the live selections from the checkboxes.
+      req(selected_columns_combined())
+      intersect(selected_columns_combined(), names(df))
     } else {
-      intersect(selected_columns_combined(), names(df)) # Use the reactive here
+      # On all other steps (like Step 3 & 4 analysis), use the saved state.
+      req(userState$selected_columns)
+      intersect(userState$selected_columns, names(df))
     }
-    # ***********************
 
     if (!is.null(currentCols) && length(currentCols) > 0) {
       df <- df[, currentCols, drop = FALSE]
@@ -2883,17 +3272,22 @@ server <- function(input, output, session) {
     }
     df
   })
-
+  selected_function <- shiny::reactive({
+    cats <- input$analysis_categories
+    req(cats)
+    switch(
+      cats,
+      "stat_tests" = selected_stat_func(),
+      "exploratory" = selected_exploratory_func(),
+      "multivariate" = selected_multivariate_func(),
+      "machine" = selected_ml_func(),
+      NULL
+    )
+  })
   # D. Update the logic for saving state when clicking "Next"
   shiny::observeEvent(input$next2, {
-    # *** CHANGE THIS PART ***
-    if (
-      !is.null(selected_columns_combined()) &&
-        length(selected_columns_combined()) > 0
-    ) {
-      userState$selected_columns <- selected_columns_combined()
-    }
-    # ***********************
+    userState$selected_columns <- selected_columns_combined()
+
     currentStep(3)
   })
 
@@ -2911,7 +3305,8 @@ server <- function(input, output, session) {
           card_header(class = "bg-primary", "3. Apply Filters (Optional)"),
           card_body(
             bslib::accordion(
-              open = FALSE,
+              id = "filter_accordion",
+              open = isTruthy(input$filter_accordion),
               bslib::accordion_panel(
                 "Filter by Categorical Values",
                 uiOutput("filter_ui"),
@@ -3005,6 +3400,22 @@ server <- function(input, output, session) {
       userState$splsda_bg <- input$splsda_bg
       userState$splsda_conf_mat <- input$splsda_conf_mat
       userState$splsda_colors <- input$splsda_colors
+    }
+    if (
+      selected_function() ==
+        "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
+    ) {
+      userState$mint_splsda_group_col <- input$mint_splsda_group_col
+      userState$mint_splsda_group_col2 <- input$mint_splsda_group_col2
+      userState$mint_splsda_batch_col <- input$mint_splsda_batch_col
+      userState$mint_splsda_var_num <- input$mint_splsda_var_num
+      userState$mint_splsda_comp_num <- input$mint_splsda_comp_num
+      userState$mint_splsda_log2 <- input$mint_splsda_log2
+      userState$mint_splsda_ellipse <- input$mint_splsda_ellipse
+      userState$mint_splsda_bg <- input$mint_splsda_bg
+      userState$mint_splsda_roc <- input$mint_splsda_roc
+      userState$mint_splsda_colors <- input$mint_splsda_colors
+      userState$mint_splsda_pch <- as.numeric(input$mint_splsda_pch)
     }
     if (selected_function() == "Two-Sample T-Test") {
       userState$ttest_log2 <- input$ttest_log2
@@ -3574,7 +3985,11 @@ server <- function(input, output, session) {
                   output_file = if (mode == "Download") out_file else NULL,
                   progress = prog,
                   group_col = input$pca_group_col,
-                  group_col2 = input$pca_group_col2,
+                  group_col2 = if (nzchar(input$mint_splsda_group_col2)) {
+                    input$mint_splsda_group_col2
+                  } else {
+                    NULL
+                  },
                   comp_num = input$pca_comp_num,
                   scale = if (input$pca_log2) "log2" else NULL,
                   ellipse = input$pca_ellipse,
@@ -3595,13 +4010,20 @@ server <- function(input, output, session) {
                 } else {
                   rainbow(length(uniq))
                 }
+                multilevel_column_to_pass <- if (
+                  isTRUE(input$splsda_use_multilevel)
+                ) {
+                  input$splsda_multilevel
+                } else {
+                  NULL
+                }
                 cyt_splsda(
                   data = df,
                   output_file = if (mode == "Download") out_file else NULL,
                   progress = prog,
                   group_col = input$splsda_group_col,
                   group_col2 = input$splsda_group_col2,
-                  multilevel = input$splsda_multilevel,
+                  multilevel = multilevel_column_to_pass,
                   var_num = input$splsda_var_num,
                   cv_opt = if (input$splsda_cv_opt == "None") {
                     NULL
@@ -3620,7 +4042,37 @@ server <- function(input, output, session) {
                   conf_mat = input$splsda_conf_mat
                 )
               },
+              "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
+                # Ensure pch values are numeric
+                pch_vals <- as.numeric(input$mint_splsda_pch)
 
+                # Get number of unique groups to set colors
+                grp <- df[[input$mint_splsda_group_col]]
+                uniq_groups <- unique(grp)
+                cols <- if (length(input$mint_splsda_colors)) {
+                  input$mint_splsda_colors
+                } else {
+                  rainbow(length(uniq_groups))
+                }
+
+                # Call the new function
+                cyt_mint_splsda(
+                  data = df,
+                  output_file = if (mode == "Download") out_file else NULL,
+                  progress = prog,
+                  group_col = input$mint_splsda_group_col,
+                  group_col2 = input$mint_splsda_group_col2,
+                  batch_col = input$mint_splsda_batch_col,
+                  var_num = input$mint_splsda_var_num,
+                  comp_num = input$mint_splsda_comp_num,
+                  scale = if (input$mint_splsda_log2) "log2" else NULL,
+                  pch_values = pch_vals,
+                  colors = cols,
+                  roc = input$mint_splsda_roc,
+                  ellipse = input$mint_splsda_ellipse,
+                  bg = input$mint_splsda_bg
+                )
+              },
               # -- Machine Learning --
               "Random Forest" = cyt_rf(
                 data = df,
@@ -3703,439 +4155,528 @@ server <- function(input, output, session) {
     mode <- input$output_mode
     func_name <- selected_function()
     req(func_name)
+
+    # Main UI container
     tagList(
-      uiOutput("warningText"),
+      uiOutput("warningText"), # Display warnings if any
 
       if (mode == "Download") {
+        # Simple message for download mode
         h3(if (is.character(res)) res else as.character(res))
       } else {
-        if (
-          func_name ==
-            "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" &&
-            is.list(res)
-        ) {
-          if ("overall_indiv_plot" %in% names(res)) {
-            tagList(
-              if (!is.null(res$overall_indiv_plot)) {
-                shinycssloaders::withSpinner(
-                  plotOutput("splsda_overallIndivPlot", height = "400px"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$overall_3D)) {
-                shinycssloaders::withSpinner(
-                  plotOutput("splsda_overall3DPlot", height = "400px"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$overall_ROC)) {
-                shinycssloaders::withSpinner(
-                  plotOutput("splsda_overallRocPlot", height = "400px"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$overall_CV)) {
-                shinycssloaders::withSpinner(
-                  plotOutput("splsda_overallCvPlot", height = "400px"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$loadings)) {
-                shinycssloaders::withSpinner(
-                  uiOutput("splsda_loadingsUI"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$vip_scores)) {
-                shinycssloaders::withSpinner(
-                  uiOutput("splsda_vipScoresUI"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$vip_indiv_plot)) {
-                shinycssloaders::withSpinner(
-                  plotOutput("splsda_vipIndivPlot", height = "400px"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$vip_loadings)) {
-                shinycssloaders::withSpinner(
-                  uiOutput("splsda_vipLoadingsUI"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$vip_3D)) {
-                shinycssloaders::withSpinner(
-                  plotOutput("splsda_vip3DPlot", height = "400px"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$vip_ROC)) {
-                shinycssloaders::withSpinner(
-                  plotOutput("splsda_vipRocPlot", height = "400px"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$vip_CV)) {
-                shinycssloaders::withSpinner(
-                  plotOutput("splsda_vipCvPlot", height = "400px"),
-                  type = 8
-                )
-              } else {
-                NULL
-              },
-              if (!is.null(res$conf_matrix)) {
-                shinycssloaders::withSpinner(
-                  verbatimTextOutput("splsda_confMatrix"),
-                  type = 8
-                )
-              } else {
-                NULL
-              }
-            )
-          } else {
-            do.call(
-              tabsetPanel,
-              lapply(names(res), function(trt) {
-                tabPanel(
-                  title = trt,
-                  tagList(
-                    if (!is.null(res[[trt]]$overall_indiv_plot)) {
-                      shinycssloaders::withSpinner(
-                        plotOutput(
-                          paste0("splsda_overallIndivPlot_", trt),
-                          height = "400px"
-                        ),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$overall_3D)) {
-                      shinycssloaders::withSpinner(
-                        plotOutput(
-                          paste0("splsda_overall3DPlot_", trt),
-                          height = "400px"
-                        ),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$overall_ROC)) {
-                      shinycssloaders::withSpinner(
-                        plotOutput(
-                          paste0("splsda_overallRocPlot_", trt),
-                          height = "400px"
-                        ),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$overall_CV)) {
-                      shinycssloaders::withSpinner(
-                        plotOutput(
-                          paste0("splsda_overallCvPlot_", trt),
-                          height = "400px"
-                        ),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$loadings)) {
-                      shinycssloaders::withSpinner(
-                        uiOutput(paste0("splsda_loadingsUI_", trt)),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$vip_scores)) {
-                      shinycssloaders::withSpinner(
-                        uiOutput(paste0("splsda_vipScoresUI_", trt)),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$vip_indiv_plot)) {
-                      shinycssloaders::withSpinner(
-                        plotOutput(
-                          paste0("splsda_vipIndivPlot_", trt),
-                          height = "400px"
-                        ),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$vip_loadings)) {
-                      shinycssloaders::withSpinner(
-                        uiOutput(paste0("splsda_vipLoadingsUI_", trt)),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$vip_3D)) {
-                      shinycssloaders::withSpinner(
-                        plotOutput(
-                          paste0("splsda_vip3DPlot_", trt),
-                          height = "400px"
-                        ),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$vip_ROC)) {
-                      shinycssloaders::withSpinner(
-                        plotOutput(
-                          paste0("splsda_vipRocPlot_", trt),
-                          height = "400px"
-                        ),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$vip_CV)) {
-                      shinycssloaders::withSpinner(
-                        plotOutput(
-                          paste0("splsda_vipCvPlot_", trt),
-                          height = "400px"
-                        ),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    },
-                    if (!is.null(res[[trt]]$conf_matrix)) {
-                      shinycssloaders::withSpinner(
-                        verbatimTextOutput(paste0("splsda_confMatrix_", trt)),
-                        type = 8
-                      )
-                    } else {
-                      NULL
-                    }
-                  )
-                )
-              })
-            )
-          }
-        } else if (
-          func_name == "Heatmap" &&
-            is.character(res) &&
-            grepl("\\.png$", res, ignore.case = TRUE)
-        ) {
-          tagList(
-            shinycssloaders::withSpinner(
-              imageOutput("heatmapImage", height = "600px"),
-              type = 8
-            ),
-            verbatimTextOutput("textResults")
-          )
-        } else if (func_name == "Volcano Plot" && is.list(res)) {
-          tagList(
-            shinycssloaders::withSpinner(
-              plotOutput("volcPlotOutput", height = "400px"),
-              type = 8
-            ),
-            shinycssloaders::withSpinner(tableOutput("volcStats"), type = 8)
-          )
-        } else if (
-          func_name == "Principle Component Analysis (PCA)" && is.list(res)
-        ) {
-          if ("overall_indiv_plot" %in% names(res)) {
-            tagList(
-              shinycssloaders::withSpinner(
-                plotOutput("pca_indivPlot", height = "400px"),
-                type = 8
-              ),
-              if (!is.null(res$overall_3D)) {
-                shinycssloaders::withSpinner(
-                  plotOutput("pca_3DPlot", height = "400px"),
-                  type = 8
-                )
-              },
-              shinycssloaders::withSpinner(
-                plotOutput("pca_screePlot", height = "400px"),
-                type = 8
-              ),
-              shinycssloaders::withSpinner(
-                uiOutput("pca_loadingsUI"),
-                type = 8
-              ),
-              shinycssloaders::withSpinner(
-                plotOutput("pca_biplot", height = "400px"),
-                type = 8
-              ),
-              shinycssloaders::withSpinner(
-                plotOutput("pca_corrCircle", height = "400px"),
-                type = 8
-              )
-            )
-          } else {
-            do.call(
-              tabsetPanel,
-              lapply(names(res), function(lvl) {
-                tabPanel(
-                  title = lvl,
-                  shinycssloaders::withSpinner(
-                    plotOutput(paste0("pca_indivPlot_", lvl), height = "400px"),
-                    type = 8
-                  ),
-                  if (!is.null(res[[lvl]]$overall_3D)) {
+        # Interactive Mode: Use a switch to render the correct UI
+        switch(
+          func_name,
+
+          # --- sPLS-DA UI ---
+          "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
+            if ("overall_indiv_plot" %in% names(res)) {
+              # Single analysis UI
+              tagList(
+                h4("sPLS-DA Results"),
+                tabsetPanel(
+                  id = "splsda_tabs",
+                  type = "tabs",
+                  tabPanel(
+                    "sPLS-DA Plot",
                     shinycssloaders::withSpinner(
-                      plotOutput(paste0("pca_3DPlot_", lvl), height = "400px"),
+                      plotOutput("splsda_overallIndivPlot", height = "500px"),
                       type = 8
                     )
-                  } else {
-                    NULL
+                  ),
+                  tabPanel(
+                    "Loadings",
+                    shinycssloaders::withSpinner(
+                      uiOutput("splsda_loadingsUI"),
+                      type = 8
+                    )
+                  ),
+                  tabPanel(
+                    "VIP Scores",
+                    shinycssloaders::withSpinner(
+                      uiOutput("splsda_vipScoresUI"),
+                      type = 8
+                    )
+                  ),
+                  if (!is.null(res$vip_indiv_plot)) {
+                    tabPanel(
+                      "VIP Model Plot",
+                      shinycssloaders::withSpinner(
+                        plotOutput("splsda_vipIndivPlot", height = "500px"),
+                        type = 8
+                      )
+                    )
                   },
-                  shinycssloaders::withSpinner(
-                    plotOutput(paste0("pca_screePlot_", lvl), height = "400px"),
-                    type = 8
+                  if (!is.null(res$vip_loadings)) {
+                    tabPanel(
+                      "VIP Loadings",
+                      shinycssloaders::withSpinner(
+                        uiOutput("splsda_vipLoadingsUI"),
+                        type = 8
+                      )
+                    )
+                  },
+                  if (!is.null(res$overall_3D)) {
+                    tabPanel(
+                      "3D Plot",
+                      shinycssloaders::withSpinner(
+                        plotOutput("splsda_overall3DPlot", height = "500px"),
+                        type = 8
+                      )
+                    )
+                  },
+                  if (!is.null(res$overall_ROC) || !is.null(res$overall_CV)) {
+                    tabPanel(
+                      "Performance",
+                      if (!is.null(res$overall_ROC)) {
+                        shinycssloaders::withSpinner(
+                          plotOutput("splsda_overallRocPlot", height = "400px"),
+                          type = 8
+                        )
+                      },
+                      if (!is.null(res$overall_CV)) {
+                        shinycssloaders::withSpinner(
+                          plotOutput("splsda_overallCvPlot", height = "400px"),
+                          type = 8
+                        )
+                      }
+                    )
+                  },
+                  if (!is.null(res$conf_matrix)) {
+                    tabPanel(
+                      "Confusion Matrix",
+                      shinycssloaders::withSpinner(
+                        verbatimTextOutput("splsda_confMatrix"),
+                        type = 8
+                      )
+                    )
+                  }
+                )
+              )
+            } else {
+              # Multi-group analysis UI (tabs for each group)
+              do.call(
+                tabsetPanel,
+                c(
+                  list(id = "splsda_multigroup_tabs"),
+                  lapply(names(res), function(trt) {
+                    tabPanel(
+                      title = trt,
+                      tabsetPanel(
+                        type = "tabs",
+                        tabPanel(
+                          "sPLS-DA Plot",
+                          shinycssloaders::withSpinner(
+                            plotOutput(
+                              paste0("splsda_overallIndivPlot_", trt),
+                              height = "500px"
+                            ),
+                            type = 8
+                          )
+                        ),
+                        tabPanel(
+                          "Loadings",
+                          shinycssloaders::withSpinner(
+                            uiOutput(paste0("splsda_loadingsUI_", trt)),
+                            type = 8
+                          )
+                        ),
+                        tabPanel(
+                          "VIP Scores",
+                          shinycssloaders::withSpinner(
+                            uiOutput(paste0("splsda_vipScoresUI_", trt)),
+                            type = 8
+                          )
+                        ),
+                        if (!is.null(res[[trt]]$vip_indiv_plot)) {
+                          tabPanel(
+                            "VIP Model Plot",
+                            shinycssloaders::withSpinner(
+                              plotOutput(
+                                paste0("splsda_vipIndivPlot_", trt),
+                                height = "500px"
+                              ),
+                              type = 8
+                            )
+                          )
+                        },
+                        if (!is.null(res[[trt]]$vip_loadings)) {
+                          tabPanel(
+                            "VIP Loadings",
+                            shinycssloaders::withSpinner(
+                              uiOutput(paste0("splsda_vipLoadingsUI_", trt)),
+                              type = 8
+                            )
+                          )
+                        }
+                      )
+                    )
+                  })
+                )
+              )
+            }
+          },
+          # --- MINT sPLS-DA UI ---
+          "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
+            # Check if the result is for a single analysis or multiple (nested list)
+            is_nested <- is.list(res) &&
+              !is.null(names(res)) &&
+              is.list(res[[1]]) &&
+              "global_indiv_plot" %in% names(res[[1]])
+
+            if (!is_nested) {
+              # UI for a single analysis (original behavior)
+              tagList(
+                h4("MINT sPLS-DA Results"),
+                tabsetPanel(
+                  id = "mint_splsda_tabs",
+                  tabPanel(
+                    "Global Sample Plot",
+                    withSpinner(plotOutput("mint_splsda_global_plot"))
                   ),
-                  shinycssloaders::withSpinner(
-                    uiOutput(paste0("pca_loadingsUI_", lvl)),
-                    type = 8
+                  tabPanel(
+                    "Partial Sample Plots",
+                    withSpinner(plotOutput("mint_splsda_partial_plot"))
                   ),
-                  shinycssloaders::withSpinner(
-                    plotOutput(paste0("pca_biplot_", lvl), height = "400px"),
-                    type = 8
+                  tabPanel(
+                    "Variable Loadings",
+                    withSpinner(uiOutput("mint_splsda_loadings_ui")) # Changed to uiOutput
                   ),
+                  tabPanel(
+                    "Correlation Circle",
+                    withSpinner(plotOutput("mint_splsda_corr_circle_plot"))
+                  ),
+                  tabPanel(
+                    "Heatmap (CIM)",
+                    withSpinner(plotOutput(
+                      "mint_splsda_cim_plot",
+                      height = "600px"
+                    ))
+                  ),
+                  if (!is.null(res$roc_plot)) {
+                    tabPanel(
+                      "ROC Curve",
+                      withSpinner(plotOutput("mint_splsda_roc_plot"))
+                    )
+                  }
+                )
+              )
+            } else {
+              # UI for multi-group analysis (nested tabs)
+              do.call(
+                tabsetPanel,
+                c(
+                  list(id = "mint_splsda_multigroup_tabs"),
+                  lapply(names(res), function(trt) {
+                    tabPanel(
+                      title = trt,
+                      tabsetPanel(
+                        type = "tabs",
+                        tabPanel(
+                          "Global Plot",
+                          withSpinner(plotOutput(paste0(
+                            "mint_splsda_global_",
+                            trt
+                          )))
+                        ),
+                        tabPanel(
+                          "Partial Plots",
+                          withSpinner(plotOutput(paste0(
+                            "mint_splsda_partial_",
+                            trt
+                          )))
+                        ),
+                        tabPanel(
+                          "Variable Loadings",
+                          withSpinner(uiOutput(paste0(
+                            "mint_splsda_loadings_",
+                            trt
+                          )))
+                        ),
+                        tabPanel(
+                          "Correlation",
+                          withSpinner(plotOutput(paste0(
+                            "mint_splsda_corr_",
+                            trt
+                          )))
+                        ),
+                        tabPanel(
+                          "CIM",
+                          withSpinner(plotOutput(
+                            paste0("mint_splsda_cim_", trt),
+                            height = "600px"
+                          ))
+                        ),
+                        if (!is.null(res[[trt]]$roc_plot)) {
+                          tabPanel(
+                            "ROC",
+                            withSpinner(plotOutput(paste0(
+                              "mint_splsda_roc_",
+                              trt
+                            )))
+                          )
+                        }
+                      )
+                    )
+                  })
+                )
+              )
+            }
+          },
+
+          # --- PCA UI ---
+          "Principle Component Analysis (PCA)" = {
+            tagList(
+              h4("PCA Results"),
+              tabsetPanel(
+                type = "tabs",
+                tabPanel(
+                  "PCA Plot",
                   shinycssloaders::withSpinner(
-                    plotOutput(
-                      paste0("pca_corrCircle_", lvl),
-                      height = "400px"
-                    ),
+                    plotOutput("pca_indivPlot", height = "400px"),
+                    type = 8
+                  )
+                ),
+                tabPanel(
+                  "Scree Plot",
+                  shinycssloaders::withSpinner(
+                    plotOutput("pca_screePlot", height = "400px"),
+                    type = 8
+                  )
+                ),
+                tabPanel(
+                  "Loadings Plots",
+                  shinycssloaders::withSpinner(
+                    uiOutput("pca_loadingsUI"),
+                    type = 8
+                  )
+                ),
+                tabPanel(
+                  "Biplot",
+                  shinycssloaders::withSpinner(
+                    plotOutput("pca_biplot", height = "400px"),
+                    type = 8
+                  )
+                ),
+                tabPanel(
+                  "Correlation Circle",
+                  shinycssloaders::withSpinner(
+                    plotOutput("pca_corrCircle", height = "400px"),
+                    type = 8
+                  )
+                ),
+                if (!is.null(res$overall_3D)) {
+                  tabPanel(
+                    "3D Plot",
+                    shinycssloaders::withSpinner(
+                      plotOutput("pca_3DPlot", height = "400px"),
+                      type = 8
+                    )
+                  )
+                }
+              )
+            )
+          },
+
+          # --- Random Forest UI ---
+          "Random Forest" = {
+            tagList(
+              h4("Random Forest Results"),
+              tabsetPanel(
+                type = "tabs",
+                tabPanel("Summary", verbatimTextOutput("rf_summary")),
+                tabPanel(
+                  "Variable Importance",
+                  shinycssloaders::withSpinner(
+                    plotOutput("rf_vipPlot", height = "400px"),
+                    type = 8
+                  )
+                ),
+                if (!is.null(res$roc_plot)) {
+                  tabPanel(
+                    "ROC Curve",
+                    shinycssloaders::withSpinner(
+                      plotOutput("rf_rocPlot", height = "400px"),
+                      type = 8
+                    )
+                  )
+                },
+                if (!is.null(res$rfcv_plot)) {
+                  tabPanel(
+                    "Cross-Validation",
+                    shinycssloaders::withSpinner(
+                      plotOutput("rf_rfcvPlot", height = "400px"),
+                      type = 8
+                    )
+                  )
+                }
+              )
+            )
+          },
+
+          # --- XGBoost UI ---
+          "Extreme Gradient Boosting (XGBoost)" = {
+            tagList(
+              h4("XGBoost Results"),
+              tabsetPanel(
+                type = "tabs",
+                tabPanel("Summary", verbatimTextOutput("xgb_summary")),
+                tabPanel(
+                  "Variable Importance",
+                  shinycssloaders::withSpinner(
+                    plotOutput("xgb_vipPlot", height = "400px"),
+                    type = 8
+                  )
+                ),
+                if (!is.null(res$roc_plot)) {
+                  tabPanel(
+                    "ROC Curve",
+                    shinycssloaders::withSpinner(
+                      plotOutput("xgb_rocPlot", height = "400px"),
+                      type = 8
+                    )
+                  )
+                }
+              )
+            )
+          },
+
+          # --- Volcano Plot UI ---
+          "Volcano Plot" = {
+            tagList(
+              h4("Volcano Plot Results"),
+              tabsetPanel(
+                type = "tabs",
+                tabPanel(
+                  "Plot",
+                  shinycssloaders::withSpinner(
+                    plotOutput("volcPlotOutput", height = "400px"),
+                    type = 8
+                  )
+                ),
+                tabPanel(
+                  "Statistics Table",
+                  shinycssloaders::withSpinner(
+                    DT::dataTableOutput("volcStats"),
                     type = 8
                   )
                 )
-              })
+              )
             )
-          }
-        } else if (func_name == "Error-BarPlot" && inherits(res, "ggplot")) {
-          tagList(
-            shinycssloaders::withSpinner(
-              plotOutput("errorBarPlotOutput", height = "400px"),
-              type = 8
-            )
-          )
-        } else if (func_name == "Random Forest" && is.list(res)) {
-          tagList(
-            verbatimTextOutput("rf_summary"),
-            shinycssloaders::withSpinner(
-              plotOutput("rf_vipPlot", height = "400px"),
-              type = 8
-            ),
-            if (!is.null(res$roc_plot)) {
+          },
+
+          # --- Heatmap UI ---
+          "Heatmap" = {
+            tagList(
+              h4("Heatmap"),
               shinycssloaders::withSpinner(
-                plotOutput("rf_rocPlot", height = "400px"),
+                imageOutput("heatmapImage", height = "400px"),
+                type = 8
+              ),
+              verbatimTextOutput("textResults")
+            )
+          },
+
+          # --- Dual-Flashlight Plot UI ---
+          "Dual-Flashlight Plot" = {
+            tagList(
+              h4("Dual-Flashlight Plot Results"),
+              tabsetPanel(
+                type = "tabs",
+                tabPanel(
+                  "Plot",
+                  shinycssloaders::withSpinner(
+                    plotOutput("dualflashPlotOutput", height = "400px"),
+                    type = 8
+                  )
+                ),
+                tabPanel(
+                  "Statistics Table",
+                  shinycssloaders::withSpinner(
+                    DT::dataTableOutput("dualflashStats"),
+                    type = 8
+                  )
+                )
+              )
+            )
+          },
+          "Skewness/Kurtosis" = {
+            tagList(
+              h4("Skewness and Kurtosis Results"),
+              tabsetPanel(
+                type = "tabs",
+                tabPanel(
+                  "Skewness Plot",
+                  shinycssloaders::withSpinner(
+                    plotOutput("skku_skewPlot", height = "400px"),
+                    type = 8
+                  )
+                ),
+                tabPanel(
+                  "Kurtosis Plot",
+                  shinycssloaders::withSpinner(
+                    plotOutput("skku_kurtPlot", height = "400px"),
+                    type = 8
+                  )
+                ),
+                if (input$skku_print_raw) {
+                  tabPanel(
+                    "Raw Data",
+                    shinycssloaders::withSpinner(
+                      DT::dataTableOutput("skku_raw_results"),
+                      type = 8
+                    )
+                  )
+                },
+                if (input$skku_print_log) {
+                  tabPanel(
+                    "Log-Transformed Data",
+                    shinycssloaders::withSpinner(
+                      DT::dataTableOutput("skku_log_results"),
+                      type = 8
+                    )
+                  )
+                }
+              )
+            )
+          },
+          "Error-BarPlot" = {
+            tagList(
+              h4("Error-Bar Plot Results"),
+              shinycssloaders::withSpinner(
+                plotOutput("errorBarPlotOutput", height = "400px"),
                 type = 8
               )
-            },
-            if (!is.null(res$rfcv_plot)) {
+            )
+          },
+
+          # --- Default UI for other functions (plots or tables) ---
+          # This will catch simpler functions that return one plot or one table
+          {
+            if (
+              is.list(res) &&
+                length(res) > 0 &&
+                all(sapply(res, function(x) inherits(x, "ggplot")))
+            ) {
+              # Handle functions that return a list of ggplot objects (like Boxplots)
+              do.call(
+                tagList,
+                lapply(seq_along(res), function(i) {
+                  shinycssloaders::withSpinner(
+                    plotOutput(paste0("dynamicPlot_", i), height = "400px"),
+                    type = 8
+                  )
+                })
+              )
+            } else {
+              # Handle functions that return a data frame for a table
               shinycssloaders::withSpinner(
-                plotOutput("rf_rfcvPlot", height = "400px"),
+                DT::dataTableOutput("statResults"),
                 type = 8
               )
             }
-          )
-        } else if (
-          func_name == "Extreme Gradient Boosting (XGBoost)" && is.list(res)
-        ) {
-          tagList(
-            verbatimTextOutput("xgb_summary"),
-            shinycssloaders::withSpinner(
-              plotOutput("xgb_vipPlot", height = "400px"),
-              type = 8
-            ),
-            conditionalPanel(
-              condition = "output.xgb_hasROC == true",
-              shinycssloaders::withSpinner(
-                plotOutput("xgb_rocPlot", height = "400px"),
-                type = 8
-              )
-            )
-          )
-        } else if (func_name == "Skewness/Kurtosis") {
-          tagList(
-            shinycssloaders::withSpinner(
-              plotOutput("skku_skewPlot", height = "400px"),
-              type = 8
-            ),
-            shinycssloaders::withSpinner(
-              plotOutput("skku_kurtPlot", height = "400px"),
-              type = 8
-            ),
-            conditionalPanel(
-              condition = "input.skku_print_raw == true",
-              shinycssloaders::withSpinner(
-                tableOutput("skku_raw_results")
-              ),
-              type = 8
-            ),
-            conditionalPanel(
-              condition = "input.skku_print_log == true",
-              shinycssloaders::withSpinner(
-                tableOutput("skku_log_results")
-              ),
-              type = 8
-            )
-          )
-        } else if (func_name == "Dual-Flashlight Plot") {
-          tagList(
-            shinycssloaders::withSpinner(
-              plotOutput("dualflashPlotOutput", height = "400px"),
-              type = 8
-            ),
-            shinycssloaders::withSpinner(
-              tableOutput("dualflashStats"),
-              type = 8
-            )
-          )
-        } else if (
-          is.list(res) &&
-            length(res) > 0 &&
-            all(sapply(res, function(x) inherits(x, "ggplot")))
-        ) {
-          tagList(
-            lapply(seq_along(res), function(i) {
-              shinycssloaders::withSpinner(
-                plotOutput(paste0("dynamicPlot_", i), height = "400px"),
-                type = 8
-              )
-            })
-          )
-        } else {
-          tagList(
-            DT::dataTableOutput("statResults")
-          )
-        }
+          }
+        )
       }
     )
   })
@@ -4175,19 +4716,23 @@ server <- function(input, output, session) {
   })
 
   shiny::observeEvent(analysisResult(), {
-    req(selected_function())
+    # Ensure this runs only in interactive mode
     if (input$output_mode != "Interactive") {
       return(NULL)
     }
+
+    # Get results and function name
     res <- analysisResult()
     func_name <- selected_function()
+    req(res, func_name)
 
+    # --- sPLS-DA Rendering Logic ---
     if (
-      selected_function() ==
-        "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" &&
-        is.list(res)
+      func_name ==
+        "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
     ) {
       if ("overall_indiv_plot" %in% names(res)) {
+        # --- Single Analysis Rendering ---
         output$splsda_overallIndivPlot <- renderPlot({
           replayPlot(res$overall_indiv_plot)
         })
@@ -4200,382 +4745,344 @@ server <- function(input, output, session) {
         output$splsda_overallCvPlot <- renderPlot({
           if (!is.null(res$overall_CV)) print(res$overall_CV)
         })
-        output$splsda_loadingsUI <- shiny::renderUI({
-          if (!is.null(res$loadings)) {
-            tagList(lapply(seq_along(res$loadings), function(i) {
-              plotOutput(
-                paste0("splsda_loadings_overall_", i),
-                height = "300px"
-              )
-            }))
-          }
-        })
-        if (!is.null(res$loadings)) {
-          for (i in seq_along(res$loadings)) {
-            local({
-              ii <- i
-              output[[paste0("splsda_loadings_overall_", ii)]] <- renderPlot({
-                replayPlot(res$loadings[[ii]])
-              })
-            })
-          }
-        }
-
-        output$splsda_vipScoresUI <- shiny::renderUI({
-          if (!is.null(res$vip_scores)) {
-            tagList(lapply(seq_along(res$vip_scores), function(i) {
-              plotOutput(
-                paste0("splsda_vipScore_overall_", i),
-                height = "300px"
-              )
-            }))
-          }
-        })
-        if (!is.null(res$vip_scores)) {
-          for (i in seq_along(res$vip_scores)) {
-            local({
-              ii <- i
-              output[[paste0("splsda_vipScore_overall_", ii)]] <- renderPlot({
-                print(res$vip_scores[[ii]])
-              })
-            })
-          }
-        }
-        output$splsda_vipLoadingsUI <- shiny::renderUI({
-          if (!is.null(res$vip_loadings)) {
-            tagList(lapply(seq_along(res$vip_loadings), function(i) {
-              plotOutput(
-                paste0("splsda_vipLoadings_overall_", i),
-                height = "300px"
-              )
-            }))
-          }
-        })
-
-        if (!is.null(res$vip_loadings)) {
-          for (i in seq_along(res$vip_loadings)) {
-            local({
-              ii <- i
-              output[[paste0("splsda_vipLoadings_overall_", ii)]] <- renderPlot(
-                {
-                  replayPlot(res$vip_loadings[[ii]])
-                }
-              )
-            })
-          }
-        }
-
         output$splsda_vipIndivPlot <- renderPlot({
           if (!is.null(res$vip_indiv_plot)) replayPlot(res$vip_indiv_plot)
-        })
-        output$splsda_vip3DPlot <- renderPlot({
-          if (!is.null(res$vip_3D)) replayPlot(res$vip_3D)
-        })
-        output$splsda_vipRocPlot <- renderPlot({
-          if (!is.null(res$vip_ROC)) replayPlot(res$vip_ROC)
-        })
-        output$splsda_vipCvPlot <- renderPlot({
-          if (!is.null(res$vip_CV)) print(res$vip_CV)
         })
         output$splsda_confMatrix <- renderPrint({
           if (!is.null(res$conf_matrix)) {
             cat(paste(res$conf_matrix, collapse = "\n"))
           }
         })
+
+        output$splsda_loadingsUI <- renderUI({
+          req(res$loadings)
+          lapply(seq_along(res$loadings), function(i) {
+            plotOutput(paste0("splsda_loading_plot_", i), height = "400px")
+          })
+        })
+        lapply(seq_along(res$loadings), function(i) {
+          output[[paste0("splsda_loading_plot_", i)]] <- renderPlot({
+            replayPlot(res$loadings[[i]])
+          })
+        })
+
+        output$splsda_vipScoresUI <- renderUI({
+          req(res$vip_scores)
+          lapply(seq_along(res$vip_scores), function(i) {
+            plotOutput(paste0("splsda_vip_plot_", i), height = "400px")
+          })
+        })
+        lapply(seq_along(res$vip_scores), function(i) {
+          output[[paste0("splsda_vip_plot_", i)]] <- renderPlot({
+            print(res$vip_scores[[i]])
+          })
+        })
+
+        output$splsda_vipLoadingsUI <- renderUI({
+          req(res$vip_loadings)
+          lapply(seq_along(res$vip_loadings), function(i) {
+            plotOutput(paste0("splsda_vip_loading_plot_", i), height = "400px")
+          })
+        })
+        lapply(seq_along(res$vip_loadings), function(i) {
+          output[[paste0("splsda_vip_loading_plot_", i)]] <- renderPlot({
+            replayPlot(res$vip_loadings[[i]])
+          })
+        })
       } else {
-        for (grp in names(res)) {
+        # --- Multi-Group Analysis Rendering (FULLY IMPLEMENTED) ---
+        for (trt in names(res)) {
           local({
-            currentGroup <- grp
-            currentSubres <- res[[currentGroup]]
+            current_trt <- trt
+            sub_res <- res[[current_trt]]
+
             output[[paste0(
               "splsda_overallIndivPlot_",
-              currentGroup
+              current_trt
             )]] <- renderPlot({
-              if (!is.null(currentSubres$overall_indiv_plot)) {
-                replayPlot(currentSubres$overall_indiv_plot)
-              }
+              replayPlot(sub_res$overall_indiv_plot)
             })
-            output[[paste0(
-              "splsda_overall3DPlot_",
-              currentGroup
-            )]] <- renderPlot({
-              if (!is.null(currentSubres$overall_3D)) {
-                replayPlot(currentSubres$overall_3D)
-              }
-            })
-            output[[paste0(
-              "splsda_overallRocPlot_",
-              currentGroup
-            )]] <- renderPlot({
-              if (!is.null(currentSubres$overall_ROC)) {
-                replayPlot(currentSubres$overall_ROC)
-              }
-            })
-            output[[paste0(
-              "splsda_overallCvPlot_",
-              currentGroup
-            )]] <- renderPlot({
-              if (!is.null(currentSubres$overall_CV)) {
-                print(currentSubres$overall_CV)
-              }
-            })
-            if (!is.null(currentSubres$loadings)) {
-              output[[paste0(
-                "splsda_loadingsUI_",
-                currentGroup
-              )]] <- shiny::renderUI({
-                tagList(lapply(seq_along(currentSubres$loadings), function(i) {
-                  plotOutput(
-                    paste0("splsda_loadings_", currentGroup, "_", i),
-                    height = "300px"
-                  )
-                }))
-              })
-              for (i in seq_along(currentSubres$loadings)) {
-                local({
-                  ii <- i
-                  output[[paste0(
-                    "splsda_loadings_",
-                    currentGroup,
-                    "_",
-                    ii
-                  )]] <- renderPlot({
-                    replayPlot(currentSubres$loadings[[ii]])
-                  })
-                })
-              }
-            }
-            if (!is.null(currentSubres$vip_scores)) {
-              output[[paste0(
-                "splsda_vipScoresUI_",
-                currentGroup
-              )]] <- shiny::renderUI(
-                {
-                  tagList(lapply(
-                    seq_along(currentSubres$vip_scores),
-                    function(i) {
-                      plotOutput(
-                        paste0("splsda_vipScore_", currentGroup, "_", i),
-                        height = "300px"
-                      )
-                    }
-                  ))
-                }
-              )
-              for (i in seq_along(currentSubres$vip_scores)) {
-                local({
-                  ii <- i
-                  output[[paste0(
-                    "splsda_vipScore_",
-                    currentGroup,
-                    "_",
-                    ii
-                  )]] <- renderPlot({
-                    print(currentSubres$vip_scores[[ii]])
-                  })
-                })
-              }
-            }
-            output[[paste0(
-              "splsda_vipIndivPlot_",
-              currentGroup
-            )]] <- renderPlot({
-              if (!is.null(currentSubres$vip_indiv_plot)) {
-                replayPlot(currentSubres$vip_indiv_plot)
-              }
-            })
-            if (!is.null(currentSubres$vip_loadings)) {
-              output[[paste0(
-                "splsda_vipLoadingsUI_",
-                currentGroup
-              )]] <- shiny::renderUI({
-                tagList(lapply(
-                  seq_along(currentSubres$vip_loadings),
-                  function(i) {
-                    plotOutput(
-                      paste0("splsda_vipLoadings_", currentGroup, "_", i),
-                      height = "300px"
-                    )
-                  }
-                ))
-              })
-              for (i in seq_along(currentSubres$vip_loadings)) {
-                local({
-                  ii <- i
-                  output[[paste0(
-                    "splsda_vipLoadings_",
-                    currentGroup,
-                    "_",
-                    ii
-                  )]] <- renderPlot({
-                    replayPlot(currentSubres$vip_loadings[[ii]])
-                  })
-                })
-              }
-            }
-            output[[paste0("splsda_vip3DPlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(currentSubres$vip_3D)) {
-                replayPlot(currentSubres$vip_3D)
-              }
-            })
-            output[[paste0("splsda_vipRocPlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(currentSubres$vip_ROC)) {
-                replayPlot(currentSubres$vip_ROC)
-              }
-            })
-            output[[paste0("splsda_vipCvPlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(currentSubres$vip_CV)) print(currentSubres$vip_CV)
-            })
-            output[[paste0("splsda_confMatrix_", currentGroup)]] <- renderPrint(
+            output[[paste0("splsda_vipIndivPlot_", current_trt)]] <- renderPlot(
               {
-                if (!is.null(currentSubres$conf_matrix)) {
-                  cat(paste(currentSubres$conf_matrix, collapse = "\n"))
+                if (!is.null(sub_res$vip_indiv_plot)) {
+                  replayPlot(sub_res$vip_indiv_plot)
                 }
               }
             )
+
+            output[[paste0("splsda_loadingsUI_", current_trt)]] <- renderUI({
+              req(sub_res$loadings)
+              lapply(seq_along(sub_res$loadings), function(i) {
+                plotOutput(
+                  paste0("splsda_loading_plot_", current_trt, "_", i),
+                  height = "400px"
+                )
+              })
+            })
+            lapply(seq_along(sub_res$loadings), function(i) {
+              output[[paste0(
+                "splsda_loading_plot_",
+                current_trt,
+                "_",
+                i
+              )]] <- renderPlot({
+                replayPlot(sub_res$loadings[[i]])
+              })
+            })
+
+            output[[paste0("splsda_vipScoresUI_", current_trt)]] <- renderUI({
+              req(sub_res$vip_scores)
+              lapply(seq_along(sub_res$vip_scores), function(i) {
+                plotOutput(
+                  paste0("splsda_vip_plot_", current_trt, "_", i),
+                  height = "400px"
+                )
+              })
+            })
+            lapply(seq_along(sub_res$vip_scores), function(i) {
+              output[[paste0(
+                "splsda_vip_plot_",
+                current_trt,
+                "_",
+                i
+              )]] <- renderPlot({
+                print(sub_res$vip_scores[[i]])
+              })
+            })
+
+            output[[paste0("splsda_vipLoadingsUI_", current_trt)]] <- renderUI({
+              req(sub_res$vip_loadings)
+              lapply(seq_along(sub_res$vip_loadings), function(i) {
+                plotOutput(
+                  paste0("splsda_vip_loading_plot_", current_trt, "_", i),
+                  height = "400px"
+                )
+              })
+            })
+            lapply(seq_along(sub_res$vip_loadings), function(i) {
+              output[[paste0(
+                "splsda_vip_loading_plot_",
+                current_trt,
+                "_",
+                i
+              )]] <- renderPlot({
+                replayPlot(sub_res$vip_loadings[[i]])
+              })
+            })
+          })
+        }
+      }
+    }
+    # --- MINT sPLS-DA Rendering Logic ---
+    if (
+      func_name ==
+        "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
+    ) {
+      req(res)
+      is_nested <- is.list(res) &&
+        !is.null(names(res)) &&
+        is.list(res[[1]]) &&
+        "global_indiv_plot" %in% names(res[[1]])
+
+      if (!is_nested) {
+        # --- Single Analysis Rendering ---
+        output$mint_splsda_global_plot <- renderPlot({
+          replayPlot(res$global_indiv_plot)
+        })
+        output$mint_splsda_partial_plot <- renderPlot({
+          replayPlot(res$partial_indiv_plot)
+        })
+        output$mint_splsda_loadings_ui <- renderUI({
+          req(res$partial_loadings_plots)
+          lapply(seq_along(res$partial_loadings_plots), function(i) {
+            plotOutput(paste0("mint_splsda_loading_plot_", i), height = "400px")
+          })
+        })
+        lapply(seq_along(res$partial_loadings_plots), function(i) {
+          output[[paste0("mint_splsda_loading_plot_", i)]] <- renderPlot({
+            replayPlot(res$partial_loadings_plots[[i]])
+          })
+        })
+        output$mint_splsda_corr_circle_plot <- renderPlot({
+          replayPlot(res$correlation_circle_plot)
+        })
+        output$mint_splsda_cim_plot <- renderPlot(
+          {
+            replayPlot(res$cim_plot)
+          },
+          height = 600
+        )
+        output$mint_splsda_roc_plot <- renderPlot({
+          if (!is.null(res$roc_plot)) replayPlot(res$roc_plot)
+        })
+      } else {
+        # --- Multi-Group Analysis Rendering ---
+        for (trt in names(res)) {
+          local({
+            current_trt <- trt
+            sub_res <- res[[current_trt]]
+            if (!is.null(sub_res)) {
+              output[[paste0(
+                "mint_splsda_global_",
+                current_trt
+              )]] <- renderPlot({
+                replayPlot(sub_res$global_indiv_plot)
+              })
+              output[[paste0(
+                "mint_splsda_partial_",
+                current_trt
+              )]] <- renderPlot({
+                replayPlot(sub_res$partial_indiv_plot)
+              })
+              output[[paste0(
+                "mint_splsda_loadings_",
+                current_trt
+              )]] <- renderUI({
+                req(sub_res$partial_loadings_plots) # Use plural 'plots'
+                lapply(seq_along(sub_res$partial_loadings_plots), function(i) {
+                  plotOutput(
+                    paste0("mint_splsda_loading_", current_trt, "_", i),
+                    height = "400px"
+                  )
+                })
+              })
+
+              lapply(seq_along(sub_res$partial_loadings_plots), function(i) {
+                output[[paste0(
+                  "mint_splsda_loading_",
+                  current_trt,
+                  "_",
+                  i
+                )]] <- renderPlot({
+                  replayPlot(sub_res$partial_loadings_plots[[i]])
+                })
+              })
+              output[[paste0("mint_splsda_corr_", current_trt)]] <- renderPlot({
+                replayPlot(sub_res$correlation_circle_plot)
+              })
+              output[[paste0("mint_splsda_cim_", current_trt)]] <- renderPlot(
+                {
+                  replayPlot(sub_res$cim_plot)
+                },
+                height = 600
+              )
+              output[[paste0("mint_splsda_roc_", current_trt)]] <- renderPlot({
+                if (!is.null(sub_res$roc_plot)) replayPlot(sub_res$roc_plot)
+              })
+            }
           })
         }
       }
     }
 
-    if (func_name == "Extreme Gradient Boosting (XGBoost)" && is.list(res)) {
-      output$xgb_summary <- renderPrint({
-        cat(res$summary_text)
-      })
-      output$xgb_vipPlot <- renderPlot({
-        req(res$plot)
-        print(res$plot)
-      })
-      output$xgb_rocPlot <- renderPlot({
-        req(res$roc_plot)
-        print(res$roc_plot)
-      })
-      output$xgb_hasROC <- shiny::reactive({
-        !is.null(res$roc_plot)
-      })
-
-      outputOptions(output, "xgb_rocPlot", suspendWhenHidden = FALSE)
-      outputOptions(output, "xgb_hasROC", suspendWhenHidden = FALSE)
-    }
-
-    if (func_name == "Random Forest" && is.list(res)) {
+    # --- Random Forest Rendering Logic ---
+    if (func_name == "Random Forest") {
       output$rf_summary <- renderPrint({
         cat(res$summary_text)
       })
       output$rf_vipPlot <- renderPlot({
-        req(res$vip_plot)
         print(res$vip_plot)
       })
       output$rf_rocPlot <- renderPlot({
-        req(res$roc_plot)
-        print(res$roc_plot)
+        if (!is.null(res$roc_plot)) print(res$roc_plot)
       })
       output$rf_rfcvPlot <- renderPlot({
-        req(res$rfcv_plot)
-        print(res$rfcv_plot)
+        if (!is.null(res$rfcv_plot)) print(res$rfcv_plot)
       })
     }
 
-    if (func_name == "Principle Component Analysis (PCA)" && is.list(res)) {
-      if ("overall_indiv_plot" %in% names(res)) {
-        output$pca_indivPlot <- renderPlot({
-          replayPlot(res$overall_indiv_plot)
-        })
-        output$pca_3DPlot <- renderPlot({
-          if (!is.null(res$overall_3D)) replayPlot(res$overall_3D)
-        })
-        output$pca_screePlot <- renderPlot({
-          if (!is.null(res$overall_scree_plot)) {
-            replayPlot(res$overall_scree_plot)
-          }
-        })
-        output$pca_biplot <- renderPlot({
-          if (!is.null(res$biplot)) replayPlot(res$biplot)
-        })
-        output$pca_corrCircle <- renderPlot({
-          if (!is.null(res$correlation_circle)) {
-            replayPlot(res$correlation_circle)
-          }
-        })
+    # --- XGBoost Rendering Logic ---
+    if (func_name == "Extreme Gradient Boosting (XGBoost)") {
+      output$xgb_summary <- renderPrint({
+        cat(res$summary_text)
+      })
+      output$xgb_vipPlot <- renderPlot({
+        print(res$plot)
+      })
+      output$xgb_rocPlot <- renderPlot({
+        if (!is.null(res$roc_plot)) print(res$roc_plot)
+      })
+    }
 
-        output$pca_loadingsUI <- shiny::renderUI({
-          if (!is.null(res$loadings)) {
-            tagList(lapply(seq_along(res$loadings), function(i) {
-              plotOutput(paste0("pca_loadings_", i), height = "300px")
-            }))
-          }
-        })
+    # --- Volcano Plot Rendering Logic ---
+    if (func_name == "Volcano Plot") {
+      output$volcPlotOutput <- renderPlot({
+        print(res$plot)
+      })
+      output$volcStats <- DT::renderDataTable(
+        {
+          res$stats
+        },
+        options = list(pageLength = 10, scrollX = TRUE)
+      )
+    }
 
-        if (!is.null(res$loadings)) {
-          for (i in seq_along(res$loadings)) {
-            local({
-              local_i <- i
-              output[[paste0("pca_loadings_", local_i)]] <- renderPlot({
-                replayPlot(res$loadings[[local_i]])
-              })
-            })
-          }
-        }
-      } else {
-        for (lvl in names(res)) {
-          local({
-            currentGroup <- lvl
-            subres <- res[[currentGroup]]
-            output[[paste0("pca_indivPlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(subres$overall_indiv_plot)) {
-                replayPlot(subres$overall_indiv_plot)
-              }
-            })
-            output[[paste0("pca_3DPlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(subres$overall_3D)) replayPlot(subres$overall_3D)
-            })
-            output[[paste0("pca_screePlot_", currentGroup)]] <- renderPlot({
-              if (!is.null(subres$overall_scree_plot)) {
-                replayPlot(subres$overall_scree_plot)
-              }
-            })
-            output[[paste0("pca_biplot_", currentGroup)]] <- renderPlot({
-              if (!is.null(subres$biplot)) replayPlot(subres$biplot)
-            })
-            output[[paste0("pca_corrCircle_", currentGroup)]] <- renderPlot({
-              if (!is.null(subres$correlation_circle)) {
-                replayPlot(subres$correlation_circle)
-              }
-            })
+    # --- Heatmap Rendering Logic ---
+    if (func_name == "Heatmap") {
+      output$heatmapImage <- renderImage(
+        {
+          list(src = res, contentType = 'image/png', alt = "Heatmap")
+        },
+        deleteFile = FALSE
+      )
+    }
+    # --- Dual-Flashlight Plot Rendering ---
+    if (func_name == "Dual-Flashlight Plot") {
+      output$dualflashPlotOutput <- renderPlot({
+        print(res$plot)
+      })
+      output$dualflashStats <- DT::renderDataTable(
+        {
+          res$stats
+        },
+        options = list(pageLength = 10, scrollX = TRUE)
+      )
+    }
+    # --- Skewness/Kurtosis Rendering (FIXED) ---
+    if (func_name == "Skewness/Kurtosis") {
+      output$skku_skewPlot <- renderPlot({
+        print(res$p_skew)
+      })
+      output$skku_kurtPlot <- renderPlot({
+        print(res$p_kurt)
+      })
+      output$skku_raw_results <- DT::renderDataTable(
+        {
+          res$raw_results
+        },
+        options = list(pageLength = 10, scrollX = TRUE)
+      )
+      output$skku_log_results <- DT::renderDataTable(
+        {
+          res$log_results
+        },
+        options = list(pageLength = 10, scrollX = TRUE)
+      )
+    }
+    # --- Generic Table Rendering Logic (for ANOVA, T-Test, etc.) ---
+    if (func_name %in% c("ANOVA", "Two-Sample T-Test")) {
+      output$statResults <- DT::renderDataTable(
+        {
+          res
+        },
+        options = list(pageLength = 10, scrollX = TRUE)
+      )
+    }
 
-            output[[paste0(
-              "pca_loadingsUI_",
-              currentGroup
-            )]] <- shiny::renderUI({
-              if (!is.null(subres$loadings)) {
-                tagList(lapply(seq_along(subres$loadings), function(i) {
-                  safeGroup <- gsub("[^A-Za-z0-9_]+", "_", currentGroup)
-                  plotOutput(
-                    paste0("pca_loadings_", safeGroup, "_", i),
-                    height = "300px"
-                  )
-                }))
-              }
-            })
-            if (!is.null(subres$loadings)) {
-              for (i in seq_along(subres$loadings)) {
-                local({
-                  local_i <- i
-                  safeGroup <- gsub("[^A-Za-z0-9_]+", "_", currentGroup)
-                  output[[paste0(
-                    "pca_loadings_",
-                    safeGroup,
-                    "_",
-                    local_i
-                  )]] <- renderPlot({
-                    replayPlot(subres$loadings[[local_i]])
-                  })
-                })
-              }
-            }
+    # --- Generic Plot List Rendering Logic (for Boxplots, etc.) ---
+    if (
+      is.list(res) &&
+        length(res) > 0 &&
+        all(sapply(res, function(x) inherits(x, "ggplot")))
+    ) {
+      lapply(seq_along(res), function(i) {
+        local({
+          my_i <- i
+          output[[paste0("dynamicPlot_", my_i)]] <- renderPlot({
+            res[[my_i]]
           })
-        }
-      }
+        })
+      })
     }
   })
 
@@ -4767,7 +5274,7 @@ server <- function(input, output, session) {
   )
 
   ## ---------------------------
-  ## Save key inputs using shiny::reactiveValues (alternative approach)
+  ## Save key inputs using shiny::reactiveValues
   ## ---------------------------
   shiny::observeEvent(
     input$selected_columns,
@@ -4970,6 +5477,47 @@ server <- function(input, output, session) {
   })
   shiny::observeEvent(input$splsda_colors, {
     userState$splsda_colors <- input$splsda_colors
+  })
+  # For MINT sPLS-DA
+  shiny::observeEvent(input$mint_splsda_group_col, {
+    userState$mint_splsda_group_col <- input$mint_splsda_group_col
+  })
+  shiny::observeEvent(input$mint_splsda_group_col2, {
+    userState$mint_splsda_group_col2 <- input$mint_splsda_group_col2
+  })
+  shiny::observeEvent(input$mint_splsda_batch_col, {
+    userState$mint_splsda_batch_col <- input$mint_splsda_batch_col
+  })
+  shiny::observeEvent(input$mint_splsda_var_num, {
+    df <- filteredData()
+    req(df)
+    computed_default <- sum(sapply(df, is.numeric))
+    # Mark as manually changed if the input does not equal the computed default.
+    userState$mint_splsda_var_num_manual <- (input$mint_splsda_var_num !=
+      computed_default)
+    # Also, update the stored value so it’s available if the user has modified it.
+    userState$mint_splsda_var_num <- input$mint_splsda_var_num
+  })
+  shiny::observeEvent(input$mint_splsda_comp_num, {
+    userState$mint_splsda_comp_num <- input$mint_splsda_comp_num
+  })
+  shiny::observeEvent(input$mint_splsda_log2, {
+    userState$mint_splsda_log2 <- input$mint_splsda_log2
+  })
+  shiny::observeEvent(input$mint_splsda_ellipse, {
+    userState$mint_splsda_ellipse <- input$mint_splsda_ellipse
+  })
+  shiny::observeEvent(input$mint_splsda_bg, {
+    userState$mint_splsda_bg <- input$mint_splsda_bg
+  })
+  shiny::observeEvent(input$mint_splsda_roc, {
+    userState$mint_splsda_roc <- input$mint_splsda_roc
+  })
+  shiny::observeEvent(input$mint_splsda_colors, {
+    userState$mint_splsda_colors <- input$mint_splsda_colors
+  })
+  shiny::observeEvent(input$mint_splsda_pch, {
+    userState$mint_splsda_pch <- input$mint_splsda_pch
   })
   # For Two-Sample T-Test
   shiny::observeEvent(input$ttest_log2, {
