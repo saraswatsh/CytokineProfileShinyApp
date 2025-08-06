@@ -48,6 +48,7 @@
 <span>  <span class="va">data</span>,</span>
 <span>  group_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_col2 <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  batch_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  splsda_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ellipse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -61,6 +62,7 @@
 <span>  <span class="va">pch_values</span>,</span>
 <span>  style <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  roc <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  multilevel_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -71,7 +73,7 @@
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
 <dd><p>A matrix or data frame containing the variables. Columns not
-specified by <code>group_col</code> or <code>group_col2</code> are assumed to be continuous
+specified by <code>group_col</code>, <code>group_col2</code>, or <code>multilevel_col</code> are assumed to be continuous
 variables for analysis.</p></dd>
 
 
@@ -84,6 +86,10 @@ grouping and treatment.</p></dd>
 <dt id="arg-group-col-">group_col2<a class="anchor" aria-label="anchor" href="#arg-group-col-"></a></dt>
 <dd><p>A string specifying the second grouping column name. Default is
 <code>NULL</code>.</p></dd>
+
+
+<dt id="arg-batch-col">batch_col<a class="anchor" aria-label="anchor" href="#arg-batch-col"></a></dt>
+<dd><p>A string specifying the column that identifies the batch or study for each sample.</p></dd>
 
 
 <dt id="arg-splsda-colors">splsda_colors<a class="anchor" aria-label="anchor" href="#arg-splsda-colors"></a></dt>
@@ -149,6 +155,12 @@ a 3D plot is generated using the <code>plot3D</code> package. Default is <code>N
 <dd><p>Logical. Whether to compute and plot the ROC curve for the model.
 Default is <code>FALSE</code>.</p></dd>
 
+
+<dt id="arg-multilevel-col">multilevel_col<a class="anchor" aria-label="anchor" href="#arg-multilevel-col"></a></dt>
+<dd><p>A string specifying the column name that identifies
+repeated measurements (e.g., patient or sample IDs). If provided, a
+multilevel analysis will be performed. Default is <code>NULL</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -180,12 +192,8 @@ returned with the following elements (in this order):
 <span class="r-in"><span>group_col <span class="op">=</span> <span class="st">"Group"</span>, group_col2 <span class="op">=</span> <span class="st">"Treatment"</span>, roc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Results based on log2 transformation:</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>the standard deviation is zero</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'pch.levels' is deprecated, please use 'pch' to specify point types</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'pch.levels' is deprecated, please use 'pch' to specify point types</span>
 <span class="r-plt img"><img src="cyt_splsda-1.png" alt="" width="700" height="433"></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>the standard deviation is zero</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'pch.levels' is deprecated, please use 'pch' to specify point types</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'pch.levels' is deprecated, please use 'pch' to specify point types</span>
 <span class="r-plt img"><img src="cyt_splsda-2.png" alt="" width="700" height="433"></span>
 <span class="r-plt img"><img src="cyt_splsda-3.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`</span>
