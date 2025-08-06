@@ -111,7 +111,9 @@ cyt_pca <- function(
 
   # Helper to record a base-graphics plot.
   record_base_plot <- function(expr) {
-    if (grDevices::dev.cur() > 1) grDevices::dev.control(displaylist = "enable")
+    if (grDevices::dev.cur() > 1) {
+      grDevices::dev.control(displaylist = "enable")
+    }
     expr
     grDevices::recordPlot()
   }
@@ -157,7 +159,7 @@ cyt_pca <- function(
     if (!is.null(progress)) {
       progress$inc(0.2, detail = "PCA computation complete")
     }
-    group_factors <- sort(unique(the_groups))
+    group_factors <- seq_len(length(levels(factor(the_groups))))
 
     # Individuals plot.
     if (pdf_mode) {
@@ -169,8 +171,7 @@ cyt_pca <- function(
         col = pca_colors,
         title = paste("PCA:", overall_analysis),
         ellipse = ellipse,
-        pch = pch_values,
-        pch.levels = group_factors
+        pch = pch_values
       )
     } else {
       result_list$overall_indiv_plot <- record_base_plot(
@@ -182,8 +183,7 @@ cyt_pca <- function(
           col = pca_colors,
           title = paste("PCA:", overall_analysis),
           ellipse = ellipse,
-          pch = pch_values,
-          pch.levels = group_factors
+          pch = pch_values
         )
       )
     }
@@ -200,6 +200,7 @@ cyt_pca <- function(
           cytokine_scores[, 2],
           cytokine_scores[, 3],
           pch = pch_values,
+          ,
           col = pca_colors,
           xlab = "PC1",
           ylab = "PC2",
@@ -333,7 +334,9 @@ cyt_pca <- function(
         )
       }
     }
-    if (!pdf_mode) result_list$loadings <- loadings_plots
+    if (!pdf_mode) {
+      result_list$loadings <- loadings_plots
+    }
     if (!is.null(progress)) {
       progress$inc(0.1, detail = "Loadings plots generated")
     }
@@ -407,7 +410,7 @@ cyt_pca <- function(
         center = TRUE,
         scale = TRUE
       )
-      group_factors <- sort(unique(the_groups))
+      group_factors <- seq_len(length(levels(factor(the_groups))))
 
       # Create a sub-list for this treatment level.
       sublist <- list()
@@ -422,8 +425,7 @@ cyt_pca <- function(
           col = pca_colors,
           title = paste("PCA:", title_sub),
           ellipse = ellipse,
-          pch = pch_values,
-          pch.levels = group_factors
+          pch = pch_values
         )
       } else {
         sublist$overall_indiv_plot <- record_base_plot(
@@ -435,8 +437,7 @@ cyt_pca <- function(
             col = pca_colors,
             title = paste("PCA:", title_sub),
             ellipse = ellipse,
-            pch = pch_values,
-            pch.levels = group_factors
+            pch = pch_values
           )
         )
       }
@@ -618,7 +619,9 @@ cyt_pca <- function(
   }
 
   if (pdf_mode) {
-    if (grDevices::dev.cur() > 1) grDevices::dev.off()
+    if (grDevices::dev.cur() > 1) {
+      grDevices::dev.off()
+    }
     invisible(NULL)
   } else {
     return(result_list)

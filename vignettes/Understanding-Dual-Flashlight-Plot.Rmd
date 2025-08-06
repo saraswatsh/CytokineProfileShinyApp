@@ -29,7 +29,7 @@ Below is a plot generated for the comparison of subjects with Type 2 Diabetes (T
 ### The Axes
 
 * X-axis: Average log2 Fold Change (log2FC)
-This axis quanties how much the level of a specific variable has changed between the groups. It is used to represent up-regulation and down-regulation symmetrically. For interpretation, when looking at positive values (> 0), the cytokines are more abundant (up-regulated) in subjects. On the other hand, when looking at negative values (< 0), the cytokines are less abundant (down-regulated) in subjects.
+This axis quantifies how much the level of a specific variable has changed between the groups. It is used to represent up-regulation and down-regulation symmetrically. For interpretation, when looking at positive values (> 0), the cytokines are more abundant (up-regulated) in subjects. On the other hand, when looking at negative values (< 0), the cytokines are less abundant (down-regulated) in subjects.
 
 * Y-axis: Standardized Mean Difference (SSMD)
 SSMD is a measure of effect size. It indicates the magnitude of the difference between the two groups while taking into account the variability within each group. In our plot for T2D vs. ND subjects, there are categories for the effect and significance.
@@ -47,7 +47,7 @@ What determines significance is if the SSMD value is greater than the provided t
 * Data Points: Each circle represents a different variable or cytokine in this example.
 * Vertical Dashed Lines: These are set at log2FC = -2 and log2FC = 2. Any variable falling outside these lines has undergone at least a 4-fold change and is considered to have a large change in expression.
 * Horizontal dashed line at SSMD = 0 separates net positive from negative effects.
-* The signficant legend identies signficant cytokines that are statistically significant **AND** have a log2FC value greater than the threshold provided. 
+* The significant legend identifies significant cytokines that are statistically significant **AND** have a log2FC value greater than the threshold provided. 
 
 ### Interpretation
 

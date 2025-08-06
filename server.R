@@ -13,7 +13,7 @@ library(shinyFeedback)
 library(skimr)
 library(shinycssloaders)
 
-## Define server logic
+# Define server logic
 server <- function(input, output, session) {
   # Creating a temp dir for data uploads
   upload_dir <- file.path(tempdir(), "uploads")
@@ -29,10 +29,14 @@ server <- function(input, output, session) {
   ## ---------------------------
   # Set an initial theme
   session$setCurrentTheme(
-    bslib::bs_theme(bootswatch = "cyborg")
+    bslib::bs_theme(
+      bootswatch = "darkly",
+      base_font = font_google("Inter"),
+      code_font = font_google("Roboto Mono")
+    )
   )
 
-  # Rebuild the theme when the user picks a new skin
+  # Rebuild the theme when the user picks a new theme
   shiny::observeEvent(input$theme_choice, {
     session$setCurrentTheme(
       bslib::bs_theme(
@@ -54,11 +58,12 @@ server <- function(input, output, session) {
   ## ---------------------------
   ## Persistent State: Create a shiny::reactiveValues object
   ## ---------------------------
+  selected_function <- shiny::reactiveVal(NULL)
+  deleted_row_ids <- shiny::reactiveVal(character())
+
   userState <- shiny::reactiveValues(
     # General state
     selected_columns = NULL,
-    selected_function = NULL,
-
     # Built=in Data built‑in tracking:
     use_builtin = FALSE,
     built_in_choice = NULL,
@@ -77,7 +82,7 @@ server <- function(input, output, session) {
     bp2_log2 = NULL,
     bp2_y_lim = NULL,
 
-    # Error-BarPlot
+    # Error-Bar Plot
     eb_group_col = NULL,
     eb_p_lab = NULL,
     eb_es_lab = NULL,
@@ -127,6 +132,7 @@ server <- function(input, output, session) {
     # sPLS-DA options
     splsda_group_col = NULL,
     splsda_group_col2 = NULL,
+    spsda_batch_col = NULL,
     splsda_var_num = NULL,
     splsda_var_num_manual = FALSE,
     splsda_cv_opt = NULL,
@@ -149,6 +155,7 @@ server <- function(input, output, session) {
     mint_splsda_var_num = NULL,
     mint_splsda_var_num_manual = FALSE,
     mint_splsda_comp_num = NULL,
+    mint_splsda_cim = NULL,
     mint_splsda_log2 = NULL,
     mint_splsda_ellipse = NULL,
     mint_splsda_bg = NULL,
@@ -180,12 +187,12 @@ server <- function(input, output, session) {
     xgb_plot_roc = NULL
   )
   # Reactive values to store the selection from our new custom buttons
-  selected_stat_func <- reactiveVal("ANOVA")
-  selected_exploratory_func <- reactiveVal("Boxplots")
-  selected_multivariate_func <- reactiveVal(
-    "Principle Component Analysis (PCA)"
+  selected_stat_func <- shiny::reactiveVal("ANOVA")
+  selected_exploratory_func <- shiny::reactiveVal("Boxplots")
+  selected_multivariate_func <- shiny::reactiveVal(
+    "Principal Component Analysis (PCA)"
   )
-  selected_ml_func <- reactiveVal("Random Forest")
+  selected_ml_func <- shiny::reactiveVal("Random Forest")
   ## ---------------------------
   ## Data Upload and Built-in Data Option
   ## ---------------------------
@@ -217,32 +224,35 @@ server <- function(input, output, session) {
       if (!file.exists(dest)) {
         saveRDS(df, dest)
       }
-      return(df)
-    }
-    # user upload branch
-    req(input$datafile)
-    # copy into our session‐local tempdir
-    dest <- file.path(upload_dir, input$datafile$name)
-    if (!file.exists(dest)) {
-      file.copy(input$datafile$datapath, dest, overwrite = TRUE)
-    }
-    # read from dest (not from the app root!)
-    ext <- tolower(tools::file_ext(dest))
-    if (ext == "csv") {
-      df <- read.csv(dest, stringsAsFactors = FALSE)
-    } else if (ext == "txt") {
-      df <- read.table(
-        dest,
-        header = TRUE,
-        sep = "\t",
-        stringsAsFactors = FALSE
-      )
-    } else if (ext %in% c("xls", "xlsx")) {
-      sheet_num <- ifelse(is.null(input$sheet), 1, input$sheet)
-      df <- readxl::read_excel(dest, sheet = sheet_num) %>% as.data.frame()
     } else {
-      stop("Unsupported file type.")
+      # user upload branch
+      req(input$datafile)
+      # copy into our session‐local tempdir
+      dest <- file.path(upload_dir, input$datafile$name)
+      if (!file.exists(dest)) {
+        file.copy(input$datafile$datapath, dest, overwrite = TRUE)
+      }
+      # read from dest (not from the app root!)
+      ext <- tolower(tools::file_ext(dest))
+      if (ext == "csv") {
+        df <- read.csv(dest, stringsAsFactors = FALSE)
+      } else if (ext == "txt") {
+        df <- read.table(
+          dest,
+          header = TRUE,
+          sep = "\t",
+          stringsAsFactors = FALSE
+        )
+      } else if (ext %in% c("xls", "xlsx")) {
+        sheet_num <- ifelse(is.null(input$sheet), 1, input$sheet)
+        df <- readxl::read_excel(dest, sheet = sheet_num) %>% as.data.frame()
+      } else {
+        stop("Unsupported file type.")
+      }
     }
+
+    # Add a unique internal ID to each row for tracking deletions
+    df$..cyto_id.. <- 1:nrow(df)
     df
   })
 
@@ -267,10 +277,23 @@ server <- function(input, output, session) {
     radioButtons(
       inputId = "built_in_choice",
       label = "Select a built-in dataset:",
-      choices = builtInList, # Assumes builtInList is your list of choices
-      selected = isolate(userState$built_in_choice) %||% builtInList[[1]]
+      choices = c(
+        "ExampleData1",
+        "ExampleData2",
+        "ExampleData3",
+        "ExampleData4",
+        "ExampleData5"
+      ), # Using example names
+      selected = isolate(userState$built_in_choice) %||% "ExampleData1"
     )
   })
+
+  # REACTIVE & OUTPUT to track if data is loaded
+  output$data_is_loaded <- shiny::reactive({
+    isTruthy(userData())
+  })
+  shiny::outputOptions(output, "data_is_loaded", suspendWhenHidden = FALSE)
+
   # Summary stats
   output$data_summary <- shiny::renderUI({
     req(userData())
@@ -294,14 +317,14 @@ server <- function(input, output, session) {
   })
   output$data_preview <- DT::renderDT(
     {
-      userData()
+      # Hide the internal ID column from the user
+      df <- userData()
+      df$..cyto_id.. <- NULL
+      df
     },
     options = list(
       pageLength = 5, # initial page size
-      lengthMenu = list(
-        c(5, 10, 25, 50, 100), # values
-        c("5", "10", "25", "50", "100") # labels
-      ),
+      lengthMenu = c(5, 10, 25, 50, 100, nrow(df)),
       scrollX = TRUE,
       scrollY = TRUE
     )
@@ -309,6 +332,7 @@ server <- function(input, output, session) {
   output$summary_stats_table <- DT::renderDT({
     req(userData())
     df <- userData()
+    df$..cyto_id.. <- NULL # Hide internal ID
 
     # build a “wide” skim table
     wide <- skimr::skim(df) %>%
@@ -343,13 +367,16 @@ server <- function(input, output, session) {
       rownames = FALSE,
       options = list(
         pageLength = 5, # show 5 rows per page by default
-        lengthMenu = c(5, 10, 25, 50, 100),
+        lengthMenu = c(5, 10, 25, 50, 100, nrow(df)),
         scrollX = TRUE
       )
     )
   })
   # Simple validations & warnings
   shiny::observeEvent(userData(), {
+    # Reset deleted rows when new data is loaded
+    userState$deleted_row_ids <- NULL
+
     df <- userData()
     # Example: if no numeric column, warn
     if (all(!sapply(df, is.numeric))) {
@@ -376,38 +403,43 @@ server <- function(input, output, session) {
   ## ---------------------------
   ## Data Filtering and Column Selection
   ## ---------------------------
+
+  # Decoupled UI generation to prevent reactive loops
   output$filter_ui <- shiny::renderUI({
-    df <- filteredData()
-    if (is.null(df)) {
-      return(NULL)
-    }
-    factor_cols <- names(df)[sapply(
-      df,
-      function(x) is.factor(x) || is.character(x)
-    )]
+    df <- userData()
+    req(df, input$selected_categorical_cols)
+
+    # Only create filters for the categorical columns the user has selected
+    factor_cols <- intersect(
+      names(df)[sapply(df, function(x) is.factor(x) || is.character(x))],
+      input$selected_categorical_cols
+    )
+
     if (length(factor_cols) == 0) {
       return(NULL)
     }
-    ui_list <- lapply(factor_cols, function(col) {
-      all_levels <- sort(unique(userData()[[col]]))
-      selected_levels <- sort(unique(df[[col]]))
+
+    lapply(factor_cols, function(col) {
+      all_levels <- sort(unique(df[[col]]))
+
+      # Use isolate() to read the input value without creating a dependency
+      # On first load, default to all levels being selected
+      selected_now <- isolate(input[[paste0("filter_", col)]]) %||% all_levels
+
       selectizeInput(
         inputId = paste0("filter_", col),
         label = paste("Filter", col, "(select levels)"),
         choices = all_levels,
-        selected = selected_levels,
+        selected = selected_now,
         multiple = TRUE,
         options = list(plugins = c("remove_button", "restore_on_backspace"))
       )
     })
-    do.call(tagList, ui_list)
   })
 
   ## ---------------------------
   ## Function Options UI (Step 3)
   ## ---------------------------
-
-  # Colors vector for specific functions
   allowed_colors <- c(
     "red",
     "blue",
@@ -451,14 +483,9 @@ server <- function(input, output, session) {
     "Triangle Down w/ Border" = 25
   )
 
-  # Function Options UI
   output$function_options_ui <- shiny::renderUI({
     func <- selected_function()
     req(func)
-
-    userState$selected_function <- func
-    func_name <- func
-    ui_list <- list()
 
     userState$selected_function <- func
     func_name <- func
@@ -477,8 +504,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
               ),
-              content = "Apply a log2 transformation to the data before performing the ANOVA test.
-                               This transformation can help manage data that span a wide range of values.",
+              content = "Apply a log2 transformation to the data before performing the ANOVA test. This transformation can help manage data that span a wide range of values.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -509,9 +535,7 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right: 15px;'>Bin Size</span>"
                   ),
-                  content = "Determines the number of columns (variables) to group together in each set of box plots. 
-                         For example, a bin size of 25 will display box plots for up to 25 columns (variables) at a time. 
-                         If there are more columns, multiple sets of box plots will be generated.",
+                  content = "Determines the number of columns (variables) to group together in each set of box plots. For example, a bin size of 25 will display box plots for up to 25 columns (variables) at a time. If there are more columns, multiple sets of box plots will be generated.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -559,8 +583,7 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right: 15px;'>Y-axis Limits</span><br>(min, max; comma-separated; leave blank for auto)"
                   ),
-                  content = "Set the minimum and maximum values for the Y-axis, entered as (min, max) e.g., '0,100'. 
-                         Leave blank for automatic scaling based on data range. 
+                  content = "Set the minimum and maximum values for the Y-axis, entered as (min, max) e.g., '0,100'. Leave blank for automatic scaling based on data range. 
                          This controls the vertical range displayed on the plot.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
@@ -672,9 +695,9 @@ server <- function(input, output, session) {
         )
       },
       # ------------------------
-      # Error-BarPlot
+      # Error-Bar Plot
       # ------------------------
-      "Error-BarPlot" = {
+      "Error-Bar Plot" = {
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
@@ -1033,7 +1056,7 @@ server <- function(input, output, session) {
       # ————————————————————
       # PCA
       # ————————————————————
-      "Principle Component Analysis (PCA)" = {
+      "Principal Component Analysis (PCA)" = {
         df <- filteredData()
         if (is.null(df)) {
           return(NULL)
@@ -1229,7 +1252,9 @@ server <- function(input, output, session) {
                   }
                 ),
                 choices = pch_choices,
-                selected = pch_choices[c(17, 5)],
+                selected = isolate(
+                  userState$pca_pch %||% pch_choices[c(17, 5)]
+                ),
                 multiple = TRUE,
                 options = list(
                   placeholder = "Select Symbols",
@@ -1287,8 +1312,7 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right:15px;'>Number of Trees</span>"
                   ),
-                  content = "The number of trees to grow in the random forest model.
-                         Each tree is a simple model; more trees can improve predictions but take longer to compute.",
+                  content = "The number of trees to grow in the random forest model. Each tree is a simple model; more trees can improve predictions but take longer to compute.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1337,8 +1361,7 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right:15px;'>Train Fraction</span>"
                   ),
-                  content = "The fraction of the data to use for training the random forest model.
-                         The remainder is used for testing the model.",
+                  content = "The fraction of the data to use for training the random forest model. The remainder is used for testing the model.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1602,6 +1625,58 @@ server <- function(input, output, session) {
             )
           ),
 
+          # batch_col column based on a conditional check to do batch correction similar to multilevel
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "splsda_use_batch_corr",
+                label = helper(
+                  type = "inline",
+                  title = "Perform Batch Correction?",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Perform Batch Correction?</span>"
+                  ),
+                  content = "Performing batch correction using z-score normalization. This is useful when your data has multiple 
+                  batches or experimental runs that need to be corrected for.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$splsda_use_batch_corr) %||% FALSE
+              )
+            ),
+            column(
+              6,
+              conditionalPanel(
+                condition = "input.splsda_use_batch_corr == true",
+                selectInput(
+                  "splsda_batch_col",
+                  label = helper(
+                    type = "inline",
+                    title = "Multilevel Column",
+                    icon = "fas fa-question-circle",
+                    shiny_tag = HTML(
+                      "<span style='margin-right: 15px;'>Select Batch Column</span>"
+                    ),
+                    content = "Select the column that identifies batch categories.",
+                    colour = if (
+                      input$theme_choice %in% c("darkly", "cyborg")
+                    ) {
+                      "red"
+                    } else {
+                      "blue"
+                    }
+                  ),
+                  choices = cols,
+                  selected = isolate(userState$splsda_batch_col) %||% cols[1]
+                )
+              )
+            )
+          ),
           # Row 2: multilevel toggle + selector
           fluidRow(
             column(
@@ -1827,7 +1902,9 @@ server <- function(input, output, session) {
                   }
                 ),
                 choices = pch_choices,
-                selected = pch_choices[c(17, 5)],
+                selected = isolate(
+                  userState$splsda_pch %||% pch_choices[c(17, 5)]
+                ),
                 multiple = TRUE,
                 options = list(
                   placeholder = "Select PCH Values",
@@ -2132,7 +2209,9 @@ server <- function(input, output, session) {
                   }
                 ),
                 choices = pch_choices,
-                selected = pch_choices[c(17, 5)],
+                selected = isolate(
+                  userState$mint_splsda_pch %||% pch_choices[c(17, 5)]
+                ),
                 multiple = TRUE,
                 options = list(
                   placeholder = "Select PCH Values",
@@ -2160,6 +2239,27 @@ server <- function(input, output, session) {
                   }
                 ),
                 value = isolate(userState$mint_splsda_log2) %||% FALSE
+              )
+            ),
+            column(
+              6,
+              checkboxInput(
+                "mint_splsda_cim",
+                label = helper(
+                  type = "inline",
+                  title = "Draw a Clustered Image Map (CIM)?",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
+                  ),
+                  content = "Draw a Clustered Image Map (CIM) to visualize the data. This provides a heatmap-like view of the data with clustering.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$mint_splsda_cim) %||% FALSE
               )
             )
           ),
@@ -2242,8 +2342,7 @@ server <- function(input, output, session) {
               shiny_tag = HTML(
                 "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
               ),
-              content = "Apply a log2 transformation to the data before performing the two-sample t-test.
-                               This transformation can help manage data that span a wide range of values.",
+              content = "Apply a log2 transformation to the data before performing the two-sample t-test. This transformation can help manage data that span a wide range of values.",
               if (
                 input$theme_choice == "darkly" || input$theme_choice == "cyborg"
               ) {
@@ -2622,23 +2721,21 @@ server <- function(input, output, session) {
     do.call(tagList, ui_list)
   })
 
+  # 2) Auto‑sync in Step 3/4 based purely on what was checked in Step 2
   shiny::observe({
-    # Get the filtered data reactively
-    df <- filteredData()
-    req(df) # ensure df is available
+    # Grab exactly what the user checked in Step 2
+    cols_checked <- input$selected_numerical_cols %||% character(0)
+    default_num_vars <- length(cols_checked)
 
-    # Count numeric columns in the dataset
-    numeric_cols <- sapply(df, is.numeric)
-    default_num_vars <- sum(numeric_cols)
-
-    # Always update the input with the new default value
+    # If they haven't manually typed a value, update it
     if (!isTRUE(userState$splsda_var_num_manual)) {
-      default_num_vars <- sum(sapply(df, is.numeric))
-      updateNumericInput(session, "splsda_var_num", value = default_num_vars)
+      updateNumericInput(
+        session,
+        "splsda_var_num",
+        value = default_num_vars
+      )
     }
-
     if (!isTRUE(userState$mint_splsda_var_num_manual)) {
-      default_num_vars <- sum(sapply(df, is.numeric))
       updateNumericInput(
         session,
         "mint_splsda_var_num",
@@ -2646,6 +2743,23 @@ server <- function(input, output, session) {
       )
     }
   })
+
+  # 3) As soon as they type their own number, stop auto‑syncing
+  shiny::observeEvent(
+    input$splsda_var_num,
+    {
+      userState$splsda_var_num_manual <- TRUE
+    },
+    ignoreInit = TRUE
+  )
+
+  shiny::observeEvent(
+    input$mint_splsda_var_num,
+    {
+      userState$mint_splsda_var_num_manual <- TRUE
+    },
+    ignoreInit = TRUE
+  )
 
   output$df_conditions_ui <- shiny::renderUI({
     req(filteredData())
@@ -2760,30 +2874,153 @@ server <- function(input, output, session) {
   })
 
   ## ---------------------------
-  ## Wizard Navigation UI
+  ## Sidebar Navigation
   ## ---------------------------
-  output$wizardUI <- shiny::renderUI({
-    step <- currentStep()
-    totalSteps <- 4
-    pct <- round((step - 1) / (totalSteps - 1) * 100)
+  # 1) A new reactiveVal to track which “page” we’re on
+  currentPage <- shiny::reactiveVal("home")
+  shiny::observe({
+    # clear all
+    for (id in c(
+      "nav_home",
+      "nav_tutorials",
+      "nav_start",
+      "nav_upload",
+      "nav_filter",
+      "nav_options",
+      "nav_args",
+      "nav_results",
+      "nav_news",
+      "nav_contact"
+    )) {
+      shinyjs::removeClass(id, "active")
+    }
+    # add to the one by name
+    page <- currentPage()
+    btn <- switch(
+      page,
+      "home" = "nav_home",
+      "tutorials" = "nav_tutorials",
+      "step1" = "nav_upload", # Upload Data
+      "step2" = "nav_filter", # Select & Filter
+      "step3" = "nav_options", # Analysis Options
+      "step4" = "nav_args", # Analysis Arguments
+      "step5" = "nav_results", # Results
+      "news" = "nav_news",
+      "contact" = "nav_contact",
+      NULL
+    )
+    if (!is.null(btn)) shinyjs::addClass(btn, "active")
+  })
+  # 2) Wire sidebar buttons into it:
+  shiny::observeEvent(input$nav_home, {
+    currentPage("home")
+  })
+  shiny::observeEvent(input$nav_tutorials, {
+    currentPage("tutorials")
+  })
 
-    # helper to inject title + bar
-    stepHeader <- tagList(
+  shiny::observeEvent(input$nav_start, {
+    currentPage("step1")
+    toggle("nav_submenu")
+  })
+  # then observe the real nav buttons as you already do
+  shiny::observeEvent(input$nav_upload, {
+    currentPage("step1")
+    currentStep(1)
+  })
+  shiny::observeEvent(input$nav_filter, {
+    currentPage("step2")
+    currentStep(2)
+  })
+  shiny::observeEvent(input$nav_options, {
+    currentPage("step3")
+    currentStep(3)
+  })
+  shiny::observeEvent(input$nav_args, {
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$nav_results, {
+    currentPage("step5")
+    currentStep(5)
+  })
+  shiny::observe({
+    if (currentPage() %in% paste0("step", 1:5)) {
+      show("nav_submenu")
+    } else {
+      hide("nav_submenu")
+    }
+  })
+
+  shiny::observeEvent(input$nav_news, {
+    currentPage("news")
+  })
+  shiny::observeEvent(input$nav_contact, {
+    currentPage("contact")
+  })
+
+  shiny::observeEvent(input$back2, {
+    currentPage("step1")
+    currentStep(1)
+  })
+  shiny::observeEvent(
+    input$next2,
+    {
+      currentPage("step3")
+      currentStep(3)
+      userState$selected_columns <- selected_columns_combined()
+    }
+  )
+  shiny::observeEvent(input$back3, {
+    currentPage("step2")
+    currentStep(2)
+  })
+
+  shiny::observeEvent(input$back4, {
+    currentPage("step3")
+    currentStep(3)
+  })
+  shiny::observeEvent(input$next4, {
+    currentPage("step5")
+    currentStep(5)
+  })
+  shiny::observeEvent(input$back5, {
+    currentPage("step4")
+    currentStep(4)
+  })
+
+  output$page_content <- shiny::renderUI({
+    switch(
+      currentPage(),
+      "home" = homeUI(), # Make a helper that shows big header & “Let’s get started!”
+      "tutorials" = tutorialUI(), # Simple link out to docs
+      "step1" = step1UI(), # existing upload‐data card + Next button
+      "step2" = step2UI(), # existing select‐cols/filters + Next/Back
+      "step3" = step3UI(), # existing analysis‐options grid + Back
+      "step4" = step4UI(), # existing function‐args form + Run/Back
+      "step5" = resultsUI(), # existing results page
+      "news" = newsUI(), # Simple news page
+      "contact" = contactUI(), # Simple contact page
+      homeUI() # Fallback
+    )
+  })
+  totalPages <- 5
+  stepHeader <- function(step) {
+    pct <- round((step - 1) / (totalPages - 1) * 100)
+    shiny::tagList(
       div(
         class = "step-title",
-        h3(
-          switch(
-            as.character(step),
-            "1" = "Step 1: Upload Data",
-            "2" = "Step 2: Select Columns & Apply Filters",
-            "3" = "Step 3: Analysis Options",
-            "4" = "Analysis Results: "
-          )
-        )
+        h3(switch(
+          as.character(step),
+          "1" = "Step 1: Upload Data",
+          "2" = "Step 2: Select Columns & Apply Filters",
+          "3" = "Step 3: Analysis Choices",
+          "4" = paste0("Step 4: Options for ", selected_function()),
+          "5" = "Analysis Results"
+        ))
       ),
       div(
         class = "progress-wrapper",
-        # this div will shrink-wrap itself and pick up our #wizard_pb CSS
         shinyWidgets::progressBar(
           id = "wizard_pb",
           value = pct,
@@ -2794,259 +3031,667 @@ server <- function(input, output, session) {
         )
       )
     )
-    switch(
-      as.character(step),
-
-      # STEP 1 ----
-      "1" = tagList(
-        card(
-          # Use the card_header for a bold title
-          card_header(h4(icon("upload"), "Step 1: Provide Your Data")),
-
-          card_body(
-            # Use columns to neatly separate the two ways a user can provide data
-            fluidRow(
-              column(
-                width = 6,
-                tags$h5("Option A: Upload a File"),
-                fileInput(
-                  "datafile",
-                  label = NULL, # The h5 above acts as the label
-                  accept = c(".csv", ".txt", ".xls", ".xlsx")
-                ),
-                helpText("Accepted Formats: '.csv', '.txt', '.xls', '.xlsx'"),
-                uiOutput("sheet_selector") # Your existing UI for sheet selection
-              ),
-              column(
-                width = 6,
-                tags$h5("Option B: Use Built-in Data"),
-                checkboxInput("use_builtin", "Use a built-in dataset?", FALSE),
-                uiOutput("built_in_selector") # Your existing UI for built-in data
-              )
-            )
-          ),
-          card_footer(
-            # Place the "Next" button in the footer for a clear call to action
+  }
+  homeUI <- function() {
+    shiny::tagList(
+      h1("Welcome to CytokineProfile", style = "font-weight:300;"),
+      p(HTML(paste0(
+        "CytokineProfile is an R Shiny Application based on the CytoProfile R package available at ",
+        "<a href='https://cran.r-project.org/package=CytoProfile'>CRAN</a>. ",
+        "This application is designed for advanced cytokine data analysis. ",
+        "It provides a comprehensive suite of functions for exploratory, univariate, ",
+        "and multivariate analysis as well as machine learning methods tailored to your data."
+      ))),
+      tags$h3("Features we offer:", style = "margin-top:2rem;"),
+      fluidRow(
+        column(
+          width = 3,
+          div(
+            class = "card h-100",
             div(
-              style = "text-align: right;",
-              actionButton(
-                "next1",
-                "Next Step",
-                icon = icon("arrow-right"),
-                class = "btn-primary btn-lg"
+              class = "card-header bg-primary text-white",
+              "Statistical Tests"
+            ),
+            div(
+              class = "card-body",
+              tags$ul(
+                tags$li("ANOVA"),
+                tags$li("Two-Sample T-Test")
               )
             )
           )
         ),
-
-        # Your conditional panels for viewing the data can remain outside the card
-        br(),
-        uiOutput("viewSummaryCheckboxes"),
-        conditionalPanel(
-          condition = "input.view_data",
-          uiOutput("data_summary"),
-          uiOutput("preview_ui")
+        column(
+          width = 3,
+          div(
+            class = "card h-100",
+            div(
+              class = "card-header bg-primary text-white",
+              "Exploratory Analysis"
+            ),
+            div(
+              class = "card-body",
+              tags$ul(
+                tags$li("Boxplots"),
+                tags$li("Enhanced Boxplots"),
+                tags$li("Error-Bar Plot"),
+                tags$li("Dual-Flashlight Plot"),
+                tags$li("Heatmap"),
+                tags$li("Skewness/Kurtosis Plots"),
+                tags$li("Volcano Plot")
+              )
+            )
+          )
         ),
-        conditionalPanel(
-          condition = "input.show_summary",
-          h3("Summary Statistics"),
-          shinycssloaders::withSpinner(
-            DT::DTOutput("summary_stats_table"),
-            type = 8
+        column(
+          width = 3,
+          div(
+            class = "card h-100",
+            div(
+              class = "card-header bg-primary text-white",
+              "Multivariate Analysis"
+            ),
+            div(
+              class = "card-body",
+              tags$ul(
+                tags$li("Principal Component Analysis (PCA)"),
+                tags$li(
+                  "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
+                ),
+                tags$li(
+                  "Multivariate INTegrative Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
+                )
+              )
+            )
+          )
+        ),
+        column(
+          width = 3,
+          div(
+            class = "card h-100",
+            div(
+              class = "card-header bg-primary text-white",
+              "Machine Learning Methods"
+            ),
+            div(
+              class = "card-body",
+              tags$ul(
+                tags$li("Random Forest"),
+                tags$li("Extreme Gradient Boosting (XGBoost)")
+              )
+            )
           )
         )
       ),
+      br(),
+      fluidRow(
+        column(
+          width = 12,
+          align = "center",
+          actionButton(
+            "nav_start",
+            "Let's get started!",
+            icon = icon("arrow-right"),
+            class = "btn-primary btn-lg"
+          )
+        )
+      )
+    )
+  }
 
-      "2" = {
-        # First, identify column types from the user's data
-        df <- userData()
-        is_numeric_col <- sapply(df, is.numeric)
-        all_cols <- names(df)
-        numeric_cols <- all_cols[is_numeric_col]
-        categorical_cols <- all_cols[!is_numeric_col]
+  tutorialUI <- function() {
+    shiny::tagList(
+      h2("Tutorials"),
+      p(
+        HTML(paste0(
+          "Find our full tutorials at <a href='https://shinyinfo.cytokineprofile.org/articles/index.html'>project website.</a>"
+        ))
+      )
+    )
+  }
+  newsUI <- function() {
+    shiny::tagList(
+      h2("News"),
+      p("Stay tuned for updates and new features!"),
+      p(HTML(paste0(
+        "Check out our <a href='https://github.com/saraswatsh/CytokineProfileShinyApp'>GitHub repository.</a>"
+      )))
+    )
+  }
+  contactUI <- function() {
+    shiny::fluidPage(
+      h1("About Us"),
+      fluidRow(
+        ## —— Column 1 —— ##
+        column(
+          width = 6,
+          h2("Shubh Saraswat"),
+          p(em("Creator and Author of CytokineProfile")),
+          p("PhD Student in Epidemiology & Biostatistics"),
+          p("University of Kentucky"),
+          tags$a(
+            href = "mailto:shubh.saraswat@uky.edu",
+            class = "btn btn-primary me-2",
+            icon("envelope"),
+            "Email"
+          ),
+          tags$a(
+            href = "https://www.linkedin.com/in/ssaraswat22",
+            class = "btn btn-info me-2",
+            icon("linkedin"),
+            "LinkedIn"
+          ),
+          tags$a(
+            href = "https://github.com/saraswatsh",
+            class = "btn btn-dark me-2",
+            icon("github"),
+            "GitHub"
+          ),
+          tags$a(
+            href = "https://orcid.org/0009-0009-2359-1484",
+            class = "btn btn-link",
+            icon("orcid"),
+            "ORCID"
+          )
+        ),
 
-        tagList(
-          stepHeader,
-          fluidRow(
-            # -- Column for Selections (now contains TWO cards) --
-            column(
-              6,
-              # Card 1: Categorical Columns
-              card(
-                card_header(class = "bg-info", "1. Select Categorical Columns"),
-                card_body(
-                  div(
-                    style = "margin-bottom: 10px;",
-                    actionButton(
-                      "select_all_cat",
-                      "Select All",
-                      class = "btn-sm"
-                    ),
-                    actionButton(
-                      "deselect_all_cat",
-                      "Deselect All",
-                      class = "btn-sm"
-                    )
-                  ),
-                  div(
-                    class = "scrollable-checkbox-group",
-                    checkboxGroupInput(
-                      "selected_categorical_cols",
-                      label = NULL,
-                      choices = categorical_cols,
-                      selected = intersect(
-                        userState$selected_columns,
-                        categorical_cols
-                      ) %||%
-                        categorical_cols
-                    )
+        ## —— Column 2 —— ##
+        column(
+          width = 6,
+          h2("Xiaohua Douglas Zhang"),
+          p(em("Author of CytokineProfile")),
+          p("Professor, Department of Biostatistics"),
+          p("University of Kentucky"),
+          tags$a(
+            href = "mailto:xiaohua.zhang@uky.edu",
+            class = "btn btn-primary me-2",
+            icon("envelope"),
+            "Email"
+          ),
+          tags$a(
+            href = "https://orcid.org/0000-0002-2486-7931",
+            class = "btn btn-link",
+            icon("orcid"),
+            "ORCID"
+          )
+        )
+      )
+    )
+  }
+
+  step1UI <- function() {
+    shiny::tagList(
+      stepHeader(currentStep()),
+
+      fluidRow(
+        # --- Left Column: Upload Controls ---
+        column(
+          width = 5,
+          card(
+            card_header(h4(icon("upload"), "Step 1: Provide Your Data")),
+            card_body(
+              tags$h5("Option A: Upload a File"),
+              fileInput(
+                "datafile",
+                label = NULL,
+                accept = c(".csv", ".txt", ".xls", ".xlsx")
+              ),
+              helpText("Accepted Formats: '.csv', '.txt', '.xls', '.xlsx'"),
+              uiOutput("sheet_selector"),
+              hr(),
+              tags$h5("Option B: Use Built-in Data"),
+              checkboxInput(
+                "use_builtin",
+                "Use a built-in dataset?",
+                value = isolate(userState$use_builtin) %||% FALSE
+              ),
+              uiOutput("built_in_selector"),
+              hr(),
+              uiOutput("viewSummaryCheckboxes")
+            ),
+            card_footer(
+              div(
+                style = "text-align: right;",
+                actionButton(
+                  "next1",
+                  "Next Step",
+                  icon = icon("arrow-right"),
+                  class = "btn-primary btn-lg"
+                )
+              )
+            )
+          )
+        ),
+
+        # --- Right Column: Data Preview & Summary ---
+        column(
+          width = 7,
+          conditionalPanel(
+            condition = "output.data_is_loaded == true",
+            navset_card_tab(
+              id = "step1_data_tabs",
+              nav_panel(
+                "Data Preview",
+                conditionalPanel(
+                  condition = "input.view_data",
+                  uiOutput("data_summary"),
+                  shinycssloaders::withSpinner(uiOutput("preview_ui"), type = 8)
+                ),
+                conditionalPanel(
+                  condition = "!input.view_data",
+                  p(
+                    style = "padding: 1rem;",
+                    "Check 'View Data Loaded?' to see a preview of your data here."
                   )
                 )
               ),
+              nav_panel(
+                "Summary Statistics",
+                conditionalPanel(
+                  condition = "input.show_summary",
+                  shinycssloaders::withSpinner(
+                    DT::DTOutput("summary_stats_table"),
+                    type = 8
+                  )
+                ),
+                conditionalPanel(
+                  condition = "!input.show_summary",
+                  p(
+                    style = "padding: 1rem;",
+                    "Check 'Show summary statistics' to see a summary here."
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  }
 
-              # Card 2: Numerical Columns
-              card(
-                card_header(class = "bg-info", "2. Select Numerical Columns"),
-                card_body(
-                  div(
-                    style = "margin-bottom: 10px;",
-                    actionButton(
-                      "select_all_num",
-                      "Select All",
-                      class = "btn-sm"
-                    ),
-                    actionButton(
-                      "deselect_all_num",
-                      "Deselect All",
-                      class = "btn-sm"
-                    )
+  step2UI <- function() {
+    {
+      df <- userData()
+      all_cols <- names(df)[names(df) != "..cyto_id.."]
+      is_numeric_col <- sapply(df[all_cols], is.numeric)
+      numeric_cols <- all_cols[is_numeric_col]
+      categorical_cols <- all_cols[!is_numeric_col]
+
+      shiny::tagList(
+        stepHeader(currentStep()),
+        fluidRow(
+          # -- Left Column: Selections & Filters --
+          column(
+            width = 5,
+            # 1) Categorical selector
+            card(
+              card_header(class = "bg-info", "1. Select Categorical Columns"),
+              card_body(
+                div(
+                  style = "margin-bottom: 10px;",
+                  actionButton(
+                    "select_all_cat",
+                    "Select All",
+                    class = "btn-sm"
                   ),
-                  div(
-                    class = "scrollable-checkbox-group",
-                    checkboxGroupInput(
-                      "selected_numerical_cols",
-                      label = NULL,
-                      choices = numeric_cols,
-                      selected = intersect(
+                  actionButton(
+                    "deselect_all_cat",
+                    "Deselect All",
+                    class = "btn-sm"
+                  )
+                ),
+                div(
+                  class = "scrollable-checkbox-group",
+                  checkboxGroupInput(
+                    inputId = "selected_categorical_cols",
+                    label = NULL,
+                    choices = categorical_cols,
+                    selected = {
+                      init_cat <- intersect(
                         userState$selected_columns,
-                        numeric_cols
-                      ) %||%
-                        numeric_cols
-                    )
+                        categorical_cols
+                      )
+                      if (length(init_cat) == 0) {
+                        categorical_cols
+                      } else {
+                        init_cat
+                      }
+                    },
+                    inline = TRUE
                   )
                 )
               )
             ),
 
-            # -- UI output for the CONDITIONAL filter panel --
-            uiOutput("conditional_filter_ui")
-          ),
-          # -- Navigation --
-          br(),
-          fluidRow(
-            column(
-              12,
-              div(
-                style = "text-align: left;",
-                actionButton("back2", "Back", icon = icon("arrow-left")),
-                actionButton(
-                  "next2",
-                  "Next",
-                  icon = icon("arrow-right"),
-                  class = "btn-primary"
-                )
-              )
-            )
-          )
-        )
-      },
-      "3" = tagList(
-        stepHeader,
-        bslib::navset_card_tab(
-          id = "analysis_categories",
-          title = "Select Analysis Type",
-          bslib::nav_panel(
-            "Statistical Tests",
-            value = "stat_tests",
-            icon = fontawesome::fa("calculator"),
-            helpText("Choose Statistical Test:"),
-            uiOutput("stat_function_ui")
-          ),
-          bslib::nav_panel(
-            "Exploratory Analysis",
-            value = "exploratory",
-            icon = fontawesome::fa("chart-bar"),
-            helpText("Choose Exploratory Function:"),
-            uiOutput("exploratory_function_ui")
-          ),
-          bslib::nav_panel(
-            "Multivariate",
-            value = "multivariate",
-            icon = fontawesome::fa("sitemap"),
-            helpText("Choose Multivariate Function:"),
-            uiOutput("multivariate_function_ui")
-          ),
-          bslib::nav_panel(
-            "Machine Learning",
-            value = "machine",
-            icon = fontawesome::fa("robot"),
-            helpText("Choose Machine Learning Function:"),
-            uiOutput("ml_function_ui")
-          )
-        ),
-        br(),
-        div(
-          class = "overflow-visible",
-          fluidRow(
-            column(12, h4("Analysis Options"), uiOutput("function_options_ui"))
-          )
-        ),
-        fluidRow(
-          column(
-            2.5,
+            # 2) Numerical selector
             card(
-              card_header("Output Options"),
+              card_header(class = "bg-info", "2. Select Numerical Columns"),
               card_body(
-                radioButtons(
-                  "output_mode",
-                  "Output Mode:",
-                  choices = c("Interactive", "Download"),
-                  selected = "Interactive",
-                  inline = TRUE
+                div(
+                  style = "margin-bottom: 6px;",
+                  actionButton(
+                    "select_all_num",
+                    "Select All",
+                    class = "btn-sm"
+                  ),
+                  actionButton(
+                    "deselect_all_num",
+                    "Deselect All",
+                    class = "btn-sm"
+                  )
                 ),
-                conditionalPanel(
-                  condition = "input.output_mode == 'Download'",
-                  textInput(
-                    "output_file_name",
-                    "Output File Name (no extension)",
-                    ""
+                div(
+                  class = "scrollable-checkbox-group",
+                  checkboxGroupInput(
+                    inputId = "selected_numerical_cols",
+                    label = NULL,
+                    choices = numeric_cols,
+                    selected = {
+                      init_num <- intersect(
+                        userState$selected_columns,
+                        numeric_cols
+                      )
+                      if (length(init_num) == 0) numeric_cols else init_num
+                    },
+                    inline = TRUE
                   )
                 )
               )
+            ),
+
+            # 3) Conditional filters UI
+            uiOutput("conditional_filter_ui")
+          ),
+
+          # -- Right Column: Data Preview & Deletion --
+          column(
+            width = 7,
+            card(
+              style = "height: 40vh; display: flex; flex-direction: column;",
+              card_header(h4(icon("table"), "Filtered Data Explorer")),
+              card_body(
+                style = "flex: 1 1 auto; overflow-y: auto; padding: 1rem;",
+                div(
+                  style = "max-height: 40vh; overflow-y: auto; padding: 1rem;",
+                  DT::DTOutput("filtered_data_preview")
+                )
+              ),
+              card_footer(
+                style = "
+                           display: flex;
+                          justify-content: center;
+                          padding: 0.75rem;
+                          border-top: 1px solid #444;
+                           background: inherit;
+                        ",
+                actionButton(
+                  "delete_selected_rows",
+                  "Delete Selected",
+                  icon = icon("trash"),
+                  class = "btn-danger me-2"
+                ),
+                actionButton(
+                  "restore_selected_rows",
+                  "Restore Selected",
+                  icon = icon("undo"),
+                  class = "btn-secondary me-2"
+                ),
+                actionButton(
+                  "restore_all_rows",
+                  "Restore All",
+                  icon = icon("undo"),
+                  class = "btn-secondary"
+                )
+              )
+            ),
+
+            # wrap deleted‐samples in a card too
+            card(
+              style = "display: flex; flex-direction: column;",
+              card_header(h4(icon("table"), "Deleted Samples")),
+              card_body(
+                style = "flex: 1 1 auto; overflow-y: auto; padding: 1rem;",
+                div(
+                  style = "max-height: 40vh; overflow-y: auto; padding: 1rem;",
+                  DT::DTOutput("deleted_data_preview")
+                )
+              )
             )
           )
         ),
+        # -- Navigation --
         br(),
-        div(
-          style = "text-align: left;",
-          actionButton("back3", "Back", icon = icon("arrow-left")),
-          actionButton(
-            "next3",
-            "Run Analysis",
-            icon = icon("play"),
-            class = "btn-success"
+        fluidRow(
+          column(
+            12,
+            div(
+              style = "margin-top:0.5rem;",
+              actionButton("back2", "Back", icon = icon("arrow-left")),
+              actionButton(
+                "next2",
+                "Next",
+                icon = icon("arrow-right"),
+                class = "btn-primary"
+              )
+            )
           )
         )
-      ),
+      )
+    }
+  }
 
-      # STEP 4 ----
-      "4" = tagList(
-        stepHeader,
-        uiOutput("result_display"),
-        actionButton("back4", "Back")
+  step3UI <- function() {
+    shiny::tagList(
+      stepHeader(currentStep()),
+      fluidRow(
+        # Statistical Tests
+        column(
+          width = 3,
+          card(
+            card_header("Statistical Tests", class = "bg-info"),
+            card_body(
+              actionButton("menu_ANOVA", "ANOVA", class = "menu-card"),
+              actionButton(
+                "menu_t_test",
+                "Two-Sample T‑Test",
+                class = "menu-card"
+              ),
+            )
+          )
+        ),
+        # Exploratory Analysis
+        column(
+          width = 3,
+          card(
+            card_header("Exploratory Analysis", class = "bg-info"),
+            card_body(
+              actionButton("menu_boxplots", "Boxplots", class = "menu-card"),
+              actionButton(
+                "menu_enhanced_boxplots",
+                "Enhanced Boxplots",
+                class = "menu-card"
+              ),
+              actionButton(
+                "menu_skewkurt",
+                "Skewness/Kurtosis",
+                class = "menu-card"
+              ),
+              actionButton(
+                "menu_errorbp",
+                "Error-Bar Plot",
+                class = "menu-card"
+              ),
+              actionButton(
+                "menu_dualflash",
+                "Dual-Flashlight Plot",
+                class = "menu-card"
+              ),
+              actionButton("menu_heatmap", "Heatmap", class = "menu-card"),
+              actionButton(
+                "menu_volcano",
+                "Volcano Plot",
+                class = "menu-card"
+              )
+            )
+          )
+        ),
+        # Multivariate
+        column(
+          width = 3,
+          card(
+            card_header("Multivariate Analysis", class = "bg-info"),
+            card_body(
+              actionButton(
+                "menu_PCA",
+                "Principal Component Analysis (PCA)",
+                class = "menu-card"
+              ),
+              actionButton(
+                "menu_splsda",
+                "Sparse Partial Least Squares - Discriminant Analysis (sPLS‑DA)",
+                class = "menu-card"
+              ),
+              actionButton(
+                "menu_mint_splsda",
+                "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS‑DA)",
+                class = "menu-card"
+              )
+            )
+          )
+        ),
+        # Machine Learning
+        column(
+          width = 3,
+          card(
+            card_header("Machine Learning Methods", class = "bg-info"),
+            card_body(
+              actionButton("menu_rf", "Random Forest", class = "menu-card"),
+              actionButton(
+                "menu_xgb",
+                "Extreme Gradient Boosting (XGBoost)",
+                class = "menu-card"
+              )
+            )
+          )
+        ),
+
+        # # Back/Next buttons for the wizard
+        fluidRow(
+          column(
+            12,
+            div(
+              style = "margin-top: 1rem; display: flex; justify-content: flex-start;",
+              actionButton(
+                "back3",
+                "Back",
+                icon = icon("arrow-left"),
+                class = "btn-secondary"
+              )
+            )
+          )
+        )
       )
     )
+  }
+
+  step4UI <- function() {
+    shiny::tagList(
+      stepHeader(currentStep()),
+      uiOutput("function_options_ui"),
+      div(
+        style = "display: flex; justify-content: space-between; margin-top: 1rem;",
+        actionButton(
+          "back4",
+          "Back",
+          icon = icon("arrow-left"),
+          class = "btn-secondary"
+        ),
+        actionButton(
+          "next4",
+          "Run Analysis",
+          icon = icon("play"),
+          class = "btn-success"
+        )
+      )
+    )
+  }
+
+  resultsUI <- function() {
+    shiny::tagList(
+      stepHeader(currentStep()),
+      fluidRow(
+        column(
+          12,
+          uiOutput("result_display")
+        )
+      ),
+      # Add the download UI output here
+      fluidRow(
+        column(
+          12,
+          uiOutput("download_ui") # Placeholder for download button
+        )
+      ),
+      fluidRow(
+        column(
+          12,
+          div(
+            style = "text-align: left; margin-top: 1rem;",
+            actionButton(
+              "back5",
+              "Back",
+              icon = icon("arrow-left"),
+              class = "btn-secondary"
+            )
+          )
+        )
+      )
+    )
+  }
+
+  # --- render the “deleted” table (read‐only, can select rows to restore)
+  output$deleted_data_preview <- DT::renderDT({
+    all <- userData()
+    deleted_ids <- userState$deleted_row_ids %||% integer(0)
+    df_del <- all[all$..cyto_id.. %in% deleted_ids, , drop = FALSE]
+    df_del$..cyto_id.. <- NULL # Remove the internal ID column for display
+    DT::datatable(
+      df_del,
+      selection = "multiple",
+      options = list(scrollX = TRUE, pageLength = 5)
+    )
   })
+
+  # --- Delete selected from the main table
+  shiny::observeEvent(input$delete_selected_rows, {
+    sel <- input$filtered_data_preview_rows_selected
+    if (length(sel)) {
+      to_kill <- filteredData()$..cyto_id..[sel]
+      userState$deleted_row_ids <- unique(c(
+        userState$deleted_row_ids %||% integer(0),
+        to_kill
+      ))
+    }
+  })
+
+  # --- Restore selected from the deleted table
+  shiny::observeEvent(input$restore_selected_rows, {
+    sel <- input$deleted_data_preview_rows_selected
+    if (length(sel)) {
+      # map row‐indices in deleted table back to IDs
+      all <- userData()
+      del <- userState$deleted_row_ids %||% integer(0)
+      df_del <- all[all$..cyto_id.. %in% del, , drop = FALSE]
+      to_restore <- df_del$..cyto_id..[sel]
+      userState$deleted_row_ids <- setdiff(del, to_restore)
+    }
+  })
+
+  # --- “Restore All” button
+  shiny::observeEvent(input$restore_all_rows, {
+    userState$deleted_row_ids <- integer(0)
+  })
+
   output$viewSummaryCheckboxes <- shiny::renderUI({
     # Require either built-in data is used OR a file has been successfully uploaded
     req(input$use_builtin || isTruthy(input$datafile))
@@ -3058,7 +3703,7 @@ server <- function(input, output, session) {
   })
   # --- Logic for Custom Button Group: Statistical Tests ---
   stat_choices <- c("ANOVA", "Two-Sample T-Test")
-  output$stat_function_ui <- renderUI({
+  output$stat_function_ui <- shiny::renderUI({
     lapply(stat_choices, function(choice) {
       actionButton(
         inputId = paste0("stat_func_", gsub("\\s|\\-", "_", choice)),
@@ -3072,22 +3717,25 @@ server <- function(input, output, session) {
     })
   })
   lapply(stat_choices, function(choice) {
-    observeEvent(input[[paste0("stat_func_", gsub("\\s|\\-", "_", choice))]], {
-      selected_stat_func(choice)
-    })
+    shiny::observeEvent(
+      input[[paste0("stat_func_", gsub("\\s|\\-", "_", choice))]],
+      {
+        selected_stat_func(choice)
+      }
+    )
   })
 
   # --- Logic for Custom Button Group: Exploratory Vis ---
   exploratory_choices <- c(
     "Boxplots",
     "Enhanced Boxplots",
-    "Error-BarPlot",
+    "Error-Bar Plot",
     "Dual-Flashlight Plot",
     "Heatmap",
     "Skewness/Kurtosis",
     "Volcano Plot"
   )
-  output$exploratory_function_ui <- renderUI({
+  output$exploratory_function_ui <- shiny::renderUI({
     lapply(exploratory_choices, function(choice) {
       actionButton(
         inputId = paste0("exp_func_", gsub("\\s|\\-", "_", choice)),
@@ -3101,18 +3749,21 @@ server <- function(input, output, session) {
     })
   })
   lapply(exploratory_choices, function(choice) {
-    observeEvent(input[[paste0("exp_func_", gsub("\\s|\\-", "_", choice))]], {
-      selected_exploratory_func(choice)
-    })
+    shiny::observeEvent(
+      input[[paste0("exp_func_", gsub("\\s|\\-", "_", choice))]],
+      {
+        selected_exploratory_func(choice)
+      }
+    )
   })
 
   # --- Logic for Custom Button Group: Multivariate ---
   multivariate_choices <- c(
-    "Principle Component Analysis (PCA)",
+    "Principal Component Analysis (PCA)",
     "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)",
     "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
   )
-  output$multivariate_function_ui <- renderUI({
+  output$multivariate_function_ui <- shiny::renderUI({
     lapply(multivariate_choices, function(choice) {
       actionButton(
         inputId = paste0("multi_func_", gsub("\\s|\\-", "_", choice)),
@@ -3126,14 +3777,17 @@ server <- function(input, output, session) {
     })
   })
   lapply(multivariate_choices, function(choice) {
-    observeEvent(input[[paste0("multi_func_", gsub("\\s|\\-", "_", choice))]], {
-      selected_multivariate_func(choice)
-    })
+    shiny::observeEvent(
+      input[[paste0("multi_func_", gsub("\\s|\\-", "_", choice))]],
+      {
+        selected_multivariate_func(choice)
+      }
+    )
   })
 
   # --- Logic for Custom Button Group: Machine Learning ---
   ml_choices <- c("Random Forest", "Extreme Gradient Boosting (XGBoost)")
-  output$ml_function_ui <- renderUI({
+  output$ml_function_ui <- shiny:::renderUI({
     lapply(ml_choices, function(choice) {
       actionButton(
         inputId = paste0("ml_func_", gsub("\\s|\\-", "_", choice)),
@@ -3147,12 +3801,15 @@ server <- function(input, output, session) {
     })
   })
   lapply(ml_choices, function(choice) {
-    observeEvent(input[[paste0("ml_func_", gsub("\\s|\\-", "_", choice))]], {
-      selected_ml_func(choice)
-    })
+    shiny::observeEvent(
+      input[[paste0("ml_func_", gsub("\\s|\\-", "_", choice))]],
+      {
+        selected_ml_func(choice)
+      }
+    )
   })
   # Calculating percentage for progress bar
-  totalSteps <- 4
+  totalSteps <- 5
   shiny::observeEvent(currentStep(), {
     step_i <- currentStep()
     if (step_i == totalSteps) {
@@ -3181,137 +3838,146 @@ server <- function(input, output, session) {
         title = "Data Source Required",
         "Please either upload a data file or check the 'Use built-in data' option to continue.",
         easyClose = TRUE,
-        footer = modalButton("OK")
+        footer = actionButton("ok_no_data", "OK")
       ))
     } else {
-      # Otherwise, if data is present, proceed to the next step
+      currentPage("step2")
       currentStep(2)
     }
   })
-  shiny::observeEvent(input$back2, {
-    currentStep(1)
+  shiny::observeEvent(input$ok_no_data, {
+    removeModal() # close the popup
+    currentPage("step1") # navigate back to Upload Data step
   })
 
-  # On moving from Step 2 to Step 3, save the selected columns
-  shiny::observeEvent(input$next2, {
-    userState$selected_columns <- selected_columns_combined()
-    currentStep(3)
-  })
-
-  shiny::observeEvent(input$back3, {
-    currentStep(2)
-  })
-
-  # A. Create a new reactive to combine the selected columns
-  selected_columns_combined <- reactive({
+  # A) Combine the two checkboxGroupInputs
+  selected_columns_combined <- shiny::reactive({
     c(input$selected_categorical_cols, input$selected_numerical_cols)
   })
 
-  # B. Update the logic for the "Select/Deselect All" buttons
-  observeEvent(input$select_all_cat, {
+  # B) “Select / Deselect All” observers
+  shiny::observeEvent(input$select_all_cat, {
     df <- userData()
-    categorical_cols <- names(df)[!sapply(df, is.numeric)]
+    all_cols <- setdiff(names(df), "..cyto_id..")
+    cat_cols <- all_cols[!sapply(df[all_cols], is.numeric)]
     updateCheckboxGroupInput(
       session,
       "selected_categorical_cols",
       selected = categorical_cols
     )
   })
-  observeEvent(input$deselect_all_cat, {
+  shiny::observeEvent(input$deselect_all_cat, {
+    df <- userData()
+    all_cols <- setdiff(names(df), "..cyto_id..")
+    cat_cols <- all_cols[!sapply(df[all_cols], is.numeric)]
     updateCheckboxGroupInput(
       session,
       "selected_categorical_cols",
       selected = character(0)
     )
   })
-  observeEvent(input$select_all_num, {
+  shiny::observeEvent(input$select_all_num, {
     df <- userData()
-    numeric_cols <- names(df)[sapply(df, is.numeric)]
+    all_cols <- setdiff(names(df), "..cyto_id..")
+    numeric_cols <- all_cols[sapply(df[all_cols], is.numeric)]
     updateCheckboxGroupInput(
       session,
       "selected_numerical_cols",
       selected = numeric_cols
     )
   })
-  observeEvent(input$deselect_all_num, {
+  shiny::observeEvent(input$deselect_all_num, {
+    df <- userData()
+    all_cols <- setdiff(names(df), "..cyto_id..")
+    numeric_cols <- all_cols[sapply(df[all_cols], is.numeric)]
     updateCheckboxGroupInput(
       session,
       "selected_numerical_cols",
       selected = character(0)
     )
   })
-
-  # C. Update the 'filteredData' reactive to use the combined list
-  filteredData <- shiny::reactive({
+  # C) Base reactive to apply row‐deletions and categorical filters
+  data_after_filters <- shiny::reactive({
     df <- userData()
     req(df)
-
-    currentCols <- if (currentStep() == 2) {
-      # On Step 2, ALWAYS use the live selections from the checkboxes.
-      req(selected_columns_combined())
-      intersect(selected_columns_combined(), names(df))
-    } else {
-      # On all other steps (like Step 3 & 4 analysis), use the saved state.
-      req(userState$selected_columns)
-      intersect(userState$selected_columns, names(df))
+    # (1) apply any row‐deletions…
+    if (!is.null(userState$deleted_row_ids)) {
+      df <- df[!df$..cyto_id.. %in% userState$deleted_row_ids, , drop = FALSE]
     }
-
-    if (!is.null(currentCols) && length(currentCols) > 0) {
-      df <- df[, currentCols, drop = FALSE]
-    }
-    factor_cols <- names(df)[sapply(df, function(x) {
-      is.factor(x) || is.character(x)
-    })]
-    if (length(factor_cols) > 0) {
-      for (col in factor_cols) {
-        filter_vals <- input[[paste0("filter_", col)]]
-        if (!is.null(filter_vals)) {
-          df <- df[df[[col]] %in% filter_vals, ]
+    # (2) only apply filters on Step 2
+    if (currentStep() == 2 && length(input$selected_categorical_cols)) {
+      for (col in input$selected_categorical_cols) {
+        fid <- paste0("filter_", col)
+        if (fid %in% names(input)) {
+          df <- df[df[[col]] %in% input[[fid]], , drop = FALSE]
         }
       }
     }
     df
   })
-  selected_function <- shiny::reactive({
-    cats <- input$analysis_categories
-    req(cats)
-    switch(
-      cats,
-      "stat_tests" = selected_stat_func(),
-      "exploratory" = selected_exploratory_func(),
-      "multivariate" = selected_multivariate_func(),
-      "machine" = selected_ml_func(),
-      NULL
-    )
-  })
-  # D. Update the logic for saving state when clicking "Next"
-  shiny::observeEvent(input$next2, {
-    userState$selected_columns <- selected_columns_combined()
 
-    currentStep(3)
+  # D) The main filteredData() used by DT
+  filteredData <- shiny::reactive({
+    df <- data_after_filters()
+    req(df)
+
+    # On Step 2, keep what the user has *just* selected;
+    # on Step 3+, keep what we saved in userState.
+    cols_to_keep <-
+      if (currentStep() >= 3) {
+        req(userState$selected_columns)
+        userState$selected_columns
+      } else {
+        req(selected_columns_combined())
+        selected_columns_combined()
+      }
+
+    # Always keep the internal ID for deletes
+    final_cols <- union(cols_to_keep, "..cyto_id..")
+    df[, intersect(names(df), final_cols), drop = FALSE]
+  })
+
+  # E) Render the table in Step 2
+  output$filtered_data_preview <- DT::renderDT({
+    df <- filteredData()
+    req(nrow(df) > 0)
+
+    df$..cyto_id.. <- NULL # Remove the internal ID column for display
+    DT::datatable(
+      df,
+      selection = "multiple",
+      # remove scrollY, let it paginate
+      options = list(
+        pageLength = 5, # default rows/page
+        lengthMenu = list(
+          # rows/page dropdown
+          c(5, 10, 25, 50, -1),
+          c("5", "10", "25", "50", "All")
+        ),
+        scrollX = TRUE,
+        scrollCollapse = TRUE
+      ),
+      class = "stripe hover"
+    )
   })
 
   # E. Update the conditional_filter_ui to use the new categorical input
-  output$conditional_filter_ui <- renderUI({
-    # *** SIMPLIFIED LOGIC ***
+  output$conditional_filter_ui <- shiny::renderUI({
     # The filter UI now depends only on the selection of categorical columns.
     if (
       !is.null(input$selected_categorical_cols) &&
         length(input$selected_categorical_cols) > 0
     ) {
-      column(
-        6,
-        card(
-          card_header(class = "bg-primary", "3. Apply Filters (Optional)"),
-          card_body(
-            bslib::accordion(
-              id = "filter_accordion",
-              open = isTruthy(input$filter_accordion),
-              bslib::accordion_panel(
-                "Filter by Categorical Values",
-                uiOutput("filter_ui"),
-                icon = fontawesome::fa("filter")
-              )
+      card(
+        card_header(class = "bg-primary", "3. Apply Filters (Optional)"),
+        card_body(
+          bslib::accordion(
+            id = "filter_accordion",
+            open = isTruthy(input$filter_accordion),
+            bslib::accordion_panel(
+              "Filter by Categorical Values",
+              uiOutput("filter_ui"),
+              icon = fontawesome::fa("filter")
             )
           )
         )
@@ -3322,142 +3988,146 @@ server <- function(input, output, session) {
   })
   # On moving from Step 3 to Step 4, save the selected function and function options
   shiny::observeEvent(input$next3, {
+    req(currentStep() == 4, !is.null(selected_function()))
     userState$selected_function <- selected_function()
-    if (selected_function() == "Boxplots") {
-      userState$bp_mf_row <- input$bp_mf_row
-      userState$bp_y_lim <- input$bp_y_lim
-      userState$bp_bin_size <- input$bp_bin_size
-      userState$bp_log2 <- input$bp_log2
+    if (currentStep() == 3 && !is.null(selected_function())) {
+      if (selected_function() == "Boxplots") {
+        userState$bp_mf_row <- input$bp_mf_row
+        userState$bp_y_lim <- input$bp_y_lim
+        userState$bp_bin_size <- input$bp_bin_size
+        userState$bp_log2 <- input$bp_log2
+      }
+      if (selected_function() == "Enhanced Boxplots") {
+        userState$bp2_mf_row <- input$bp2_mf_row
+        userState$bp2_log2 <- input$bp2_log2
+        userState$bp2_y_lim <- input$bp2_y_lim
+      }
+      if (selected_function() == "Error-Bar Plot") {
+        userState$eb_group_col <- input$eb_group_col
+        userState$eb_p_lab <- input$eb_p_lab
+        userState$eb_es_lab <- input$eb_es_lab
+        userState$eb_class_symbol <- input$eb_class_symbol
+        userState$eb_x_lab <- input$eb_x_lab
+        userState$eb_y_lab <- input$eb_y_lab
+        userState$eb_title <- input$eb_title
+        userState$eb_log2 <- input$eb_log2
+      }
+      if (selected_function() == "Dual-Flashlight Plot") {
+        userState$df_group_var <- input$df_group_var
+        userState$df_ssmd_thresh <- input$df_ssmd_thresh
+        userState$df_log2fc_thresh <- input$df_log2fc_thresh
+        userState$df_top_labels <- input$df_top_labels
+        userState$df_cond1 <- input$df_cond1
+        userState$df_cond2 <- input$df_cond2
+      }
+      if (selected_function() == "Heatmap") {
+        userState$hm_log2 <- input$hm_log2
+        userState$hm_annotation <- input$hm_annotation
+      }
+      if (selected_function() == "Principal Component Analysis (PCA)") {
+        userState$pca_group_col <- input$pca_group_col
+        userState$pca_group_col2 <- input$pca_group_col2
+        userState$pca_comp_num <- input$pca_comp_num
+        userState$pca_log2 <- input$pca_log2
+        userState$pca_ellipse <- input$pca_ellipse
+        userState$pca_style <- input$pca_style
+        userState$pca_pch <- input$pca_pch
+        userState$pca_colors <- input$pca_colors
+      }
+      if (selected_function() == "Random Forest") {
+        userState$rf_group_col <- input$rf_group_col
+        userState$rf_ntree <- input$rf_ntree
+        userState$rf_mtry <- input$rf_mtry
+        userState$rf_train_fraction <- input$rf_train_fraction
+        userState$rf_plot_roc <- input$rf_plot_roc
+        userState$rf_run_rfcv <- input$rf_run_rfcv
+        userState$rf_k_folds <- input$rf_k_folds
+        userState$rf_step <- input$rf_step
+      }
+      if (selected_function() == "Skewness/Kurtosis") {
+        userState$skku_group_cols <- input$skku_group_cols
+        userState$skku_print_raw <- input$skku_print_raw
+        userState$skku_print_log <- input$skku_print_log
+      }
+      if (
+        selected_function() ==
+          "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
+      ) {
+        userState$splsda_group_col <- input$splsda_group_col
+        userState$splsda_group_col2 <- input$splsda_group_col2
+        userState$splsda_batch_col <- input$splsda_batch_col
+        userState$splsda_multilevel <- input$splsda_multilevel
+        userState$splsda_var_num <- input$splsda_var_num
+        userState$splsda_cv_opt <- input$splsda_cv_opt
+        userState$splsda_fold_num <- input$splsda_fold_num
+        userState$splsda_log2 <- input$splsda_log2
+        userState$splsda_comp_num <- input$splsda_comp_num
+        userState$splsda_pch <- input$splsda_pch
+        userState$splsda_style <- input$splsda_style
+        userState$splsda_roc <- input$splsda_roc
+        userState$splsda_ellipse <- input$splsda_ellipse
+        userState$splsda_bg <- input$splsda_bg
+        userState$splsda_conf_mat <- input$splsda_conf_mat
+        userState$splsda_colors <- input$splsda_colors
+      }
+      if (
+        selected_function() ==
+          "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
+      ) {
+        userState$mint_splsda_group_col <- input$mint_splsda_group_col
+        userState$mint_splsda_group_col2 <- input$mint_splsda_group_col2
+        userState$mint_splsda_batch_col <- input$mint_splsda_batch_col
+        userState$mint_splsda_var_num <- input$mint_splsda_var_num
+        userState$mint_splsda_comp_num <- input$mint_splsda_comp_num
+        userstate$mint_splsda_cim <- input$mint_splsda_cim
+        userState$mint_splsda_log2 <- input$mint_splsda_log2
+        userState$mint_splsda_ellipse <- input$mint_splsda_ellipse
+        userState$mint_splsda_bg <- input$mint_splsda_bg
+        userState$mint_splsda_roc <- input$mint_splsda_roc
+        userState$mint_splsda_colors <- input$mint_splsda_colors
+        userState$mint_splsda_pch <- input$mint_splsda_pch
+      }
+      if (selected_function() == "Two-Sample T-Test") {
+        userState$ttest_log2 <- input$ttest_log2
+      }
+      if (selected_function() == "ANOVA") {
+        userState$anova_log2 <- input$anova_log2
+      }
+      if (selected_function() == "Volcano Plot") {
+        userState$volc_group_col <- input$volc_group_col
+        userState$volc_cond1 <- input$volc_cond1
+        userState$volc_cond2 <- input$volc_cond2
+        userState$volc_fold_change_thresh <- input$volc_fold_change_thresh
+        userState$volc_p_value_thresh <- input$volc_p_value_thresh
+        userState$volc_top_labels <- input$volc_top_labels
+      }
+      if (selected_function() == "Extreme Gradient Boosting (XGBoost)") {
+        userState$xgb_group_col <- input$xgb_group_col
+        userState$xgb_train_fraction <- input$xgb_train_fraction
+        userState$xgb_nrounds <- input$xgb_nrounds
+        userState$xgb_max_depth <- input$xgb_max_depth
+        userState$xgb_eta <- input$xgb_eta
+        userState$xgb_nfold <- input$xgb_nfold
+        userState$xgb_cv <- input$xgb_cv
+        userState$xgb_eval_metric <- input$xgb_eval_metric
+        userState$xgb_top_n_features <- input$xgb_top_n_features
+        userState$xgb_plot_roc <- input$xgb_plot_roc
+      }
     }
-    if (selected_function() == "Enhanced Boxplots") {
-      userState$bp2_mf_row <- input$bp2_mf_row
-      userState$bp2_log2 <- input$bp2_log2
-      userState$bp2_y_lim <- input$bp2_y_lim
-    }
-    if (selected_function() == "Error-BarPlot") {
-      userState$eb_group_col <- input$eb_group_col
-      userState$eb_p_lab <- input$eb_p_lab
-      userState$eb_es_lab <- input$eb_es_lab
-      userState$eb_class_symbol <- input$eb_class_symbol
-      userState$eb_x_lab <- input$eb_x_lab
-      userState$eb_y_lab <- input$eb_y_lab
-      userState$eb_title <- input$eb_title
-      userState$eb_log2 <- input$eb_log2
-    }
-    if (selected_function() == "Dual-Flashlight Plot") {
-      userState$df_group_var <- input$df_group_var
-      userState$df_ssmd_thresh <- input$df_ssmd_thresh
-      userState$df_log2fc_thresh <- input$df_log2fc_thresh
-      userState$df_top_labels <- input$df_top_labels
-      userState$df_cond1 <- input$df_cond1
-      userState$df_cond2 <- input$df_cond2
-    }
-    if (selected_function() == "Heatmap") {
-      userState$hm_log2 <- input$hm_log2
-      userState$hm_annotation <- input$hm_annotation
-    }
-    if (selected_function() == "Principle Component Analysis (PCA)") {
-      userState$pca_group_col <- input$pca_group_col
-      userState$pca_group_col2 <- input$pca_group_col2
-      userState$pca_comp_num <- input$pca_comp_num
-      userState$pca_log2 <- input$pca_log2
-      userState$pca_ellipse <- input$pca_ellipse
-      userState$pca_style <- input$pca_style
-      userState$pca_pch <- as.numeric(input$pca_pch)
-      userState$pca_colors <- input$pca_colors
-    }
-    if (selected_function() == "Random Forest") {
-      userState$rf_group_col <- input$rf_group_col
-      userState$rf_ntree <- input$rf_ntree
-      userState$rf_mtry <- input$rf_mtry
-      userState$rf_train_fraction <- input$rf_train_fraction
-      userState$rf_plot_roc <- input$rf_plot_roc
-      userState$rf_run_rfcv <- input$rf_run_rfcv
-      userState$rf_k_folds <- input$rf_k_folds
-      userState$rf_step <- input$rf_step
-    }
-    if (selected_function() == "Skewness/Kurtosis") {
-      userState$skku_group_cols <- input$skku_group_cols
-      userState$skku_print_raw <- input$skku_print_raw
-      userState$skku_print_log <- input$skku_print_log
-    }
-    if (
-      selected_function() ==
-        "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
-    ) {
-      userState$splsda_group_col <- input$splsda_group_col
-      userState$splsda_group_col2 <- input$splsda_group_col2
-      userState$splsda_multilevel <- input$splsda_multilevel
-      userState$splsda_var_num <- input$splsda_var_num
-      userState$splsda_cv_opt <- input$splsda_cv_opt
-      userState$splsda_fold_num <- input$splsda_fold_num
-      userState$splsda_log2 <- input$splsda_log2
-      userState$splsda_comp_num <- input$splsda_comp_num
-      userState$splsda_pch <- as.numeric(input$splsda_pch)
-      userState$splsda_style <- input$splsda_style
-      userState$splsda_roc <- input$splsda_roc
-      userState$splsda_ellipse <- input$splsda_ellipse
-      userState$splsda_bg <- input$splsda_bg
-      userState$splsda_conf_mat <- input$splsda_conf_mat
-      userState$splsda_colors <- input$splsda_colors
-    }
-    if (
-      selected_function() ==
-        "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
-    ) {
-      userState$mint_splsda_group_col <- input$mint_splsda_group_col
-      userState$mint_splsda_group_col2 <- input$mint_splsda_group_col2
-      userState$mint_splsda_batch_col <- input$mint_splsda_batch_col
-      userState$mint_splsda_var_num <- input$mint_splsda_var_num
-      userState$mint_splsda_comp_num <- input$mint_splsda_comp_num
-      userState$mint_splsda_log2 <- input$mint_splsda_log2
-      userState$mint_splsda_ellipse <- input$mint_splsda_ellipse
-      userState$mint_splsda_bg <- input$mint_splsda_bg
-      userState$mint_splsda_roc <- input$mint_splsda_roc
-      userState$mint_splsda_colors <- input$mint_splsda_colors
-      userState$mint_splsda_pch <- as.numeric(input$mint_splsda_pch)
-    }
-    if (selected_function() == "Two-Sample T-Test") {
-      userState$ttest_log2 <- input$ttest_log2
-    }
-    if (selected_function() == "ANOVA") {
-      userState$anova_log2 <- input$anova_log2
-    }
-    if (selected_function() == "Volcano Plot") {
-      userState$volc_group_col <- input$volc_group_col
-      userState$volc_cond1 <- input$volc_cond1
-      userState$volc_cond2 <- input$volc_cond2
-      userState$volc_fold_change_thresh <- input$volc_fold_change_thresh
-      userState$volc_p_value_thresh <- input$volc_p_value_thresh
-      userState$volc_top_labels <- input$volc_top_labels
-    }
-    if (selected_function() == "Extreme Gradient Boosting (XGBoost)") {
-      userState$xgb_group_col <- input$xgb_group_col
-      userState$xgb_train_fraction <- input$xgb_train_fraction
-      userState$xgb_nrounds <- input$xgb_nrounds
-      userState$xgb_max_depth <- input$xgb_max_depth
-      userState$xgb_eta <- input$xgb_eta
-      userState$xgb_nfold <- input$xgb_nfold
-      userState$xgb_cv <- input$xgb_cv
-      userState$xgb_eval_metric <- input$xgb_eval_metric
-      userState$xgb_top_n_features <- input$xgb_top_n_features
-      userState$xgb_plot_roc <- input$xgb_plot_roc
-    }
+    currentPage("step4")
     currentStep(4)
   })
-
-  shiny::observeEvent(input$back4, {
-    currentStep(3)
-  })
   # For error message screen.
-  shiny::observeEvent(input$back5, {
-    currentStep(3)
+  shiny::observeEvent(input$back6, {
+    currentPage("step4")
+    currentStep(4)
   })
   ## ---------------------------
   ## Updating inputs by userState
   ## ---------------------------
 
   shiny::observeEvent(currentStep(), {
+    req(currentStep(), !is.null(selected_function()))
     if (currentStep() == 1) {
       # restore the “Use built‑in?” toggle
       updateCheckboxInput(session, "use_builtin", value = userState$use_builtin)
@@ -3529,7 +4199,7 @@ server <- function(input, output, session) {
         updateCheckboxInput(session, "bp2_log2", value = userState$bp2_log2)
         updateTextInput(session, "bp2_y_lim", value = userState$bp2_y_lim)
       }
-      if (userState$selected_function == "Error-BarPlot") {
+      if (userState$selected_function == "Error-Bar Plot") {
         updateSelectInput(
           session,
           "eb_group_col",
@@ -3591,8 +4261,8 @@ server <- function(input, output, session) {
         )
       }
 
-      # Principle Component Analysis (PCA)
-      if (userState$selected_function == "Principle Component Analysis (PCA)") {
+      # Principal Component Analysis (PCA)
+      if (userState$selected_function == "Principal Component Analysis (PCA)") {
         updateSelectInput(
           session,
           "pca_group_col",
@@ -3684,6 +4354,11 @@ server <- function(input, output, session) {
           session,
           "splsda_group_col2",
           selected = userState$splsda_group_col2
+        )
+        updateSelectInput(
+          session,
+          "splsda_batch_col",
+          selected = userState$splsda_batch_col
         )
         updateSelectInput(
           session,
@@ -3832,19 +4507,146 @@ server <- function(input, output, session) {
     }
   })
 
+  analysis_inputs <- shiny::reactive({
+    list(
+      # The function name
+      func_name = selected_function(),
+      # Data
+      df = filteredData(),
+      args = list(
+        # ANOVA
+        anova_log2 = input$anova_log2,
+
+        # Boxplots
+        bp_bin_size = input$bp_bin_size,
+        bp_mf_row = input$bp_mf_row,
+        bp_y_lim = input$bp_y_lim,
+        bp_log2 = input$bp_log2,
+
+        # Enhanced Boxplots
+        bp2_mf_row = input$bp2_mf_row,
+        bp2_log2 = input$bp2_log2,
+        bp2_y_lim = input$bp2_y_lim,
+
+        # Error-Bar Plot
+        eb_group_col = input$eb_group_col,
+        eb_p_lab = input$eb_p_lab,
+        eb_es_lab = input$eb_es_lab,
+        eb_class_symbol = input$eb_class_symbol,
+        eb_x_lab = input$eb_x_lab,
+        eb_y_lab = input$eb_y_lab,
+        eb_title = input$eb_title,
+        eb_log2 = input$eb_log2,
+
+        # Dual-Flashlight Plot
+        df_group_var = input$df_group_var,
+        df_cond1 = input$df_cond1,
+        df_cond2 = input$df_cond2,
+        df_ssmd_thresh = input$df_ssmd_thresh,
+        df_log2fc_thresh = input$df_log2fc_thresh,
+        df_top_labels = input$df_top_labels,
+
+        # Heatmap
+        hm_log2 = input$hm_log2,
+        hm_annotation = input$hm_annotation,
+
+        # PCA
+        pca_group_col = input$pca_group_col,
+        pca_group_col2 = input$pca_group_col2,
+        pca_comp_num = input$pca_comp_num,
+        pca_log2 = input$pca_log2,
+        pca_ellipse = input$pca_ellipse,
+        pca_style = input$pca_style,
+        pca_pch = input$pca_pch,
+        pca_colors = input$pca_colors,
+
+        # Random Forest
+        rf_group_col = input$rf_group_col,
+        rf_ntree = input$rf_ntree,
+        rf_mtry = input$rf_mtry,
+        rf_train_fraction = input$rf_train_fraction,
+        rf_plot_roc = input$rf_plot_roc,
+        rf_run_rfcv = input$rf_run_rfcv,
+        rf_k_folds = input$rf_k_folds,
+        rf_step = input$rf_step,
+
+        # Skewness/Kurtosis
+        skku_group_cols = input$skku_group_cols,
+        skku_print_raw = input$skku_print_raw,
+        skku_print_log = input$skku_print_log,
+
+        # sPLS-DA
+        splsda_group_col = input$splsda_group_col,
+        splsda_group_col2 = input$splsda_group_col2,
+        splsda_use_batch_corr = input$splsda_use_batch_corr,
+        splsda_batch_col = input$splsda_batch_col,
+        splsda_use_multilevel = input$splsda_use_multilevel,
+        splsda_multilevel = input$splsda_multilevel,
+        splsda_var_num = input$splsda_var_num,
+        splsda_cv_opt = input$splsda_cv_opt,
+        splsda_fold_num = input$splsda_fold_num,
+        splsda_log2 = input$splsda_log2,
+        splsda_comp_num = input$splsda_comp_num,
+        splsda_pch = input$splsda_pch,
+        splsda_style = input$splsda_style,
+        splsda_roc = input$splsda_roc,
+        splsda_ellipse = input$splsda_ellipse,
+        splsda_bg = input$splsda_bg,
+        splsda_conf_mat = input$splsda_conf_mat,
+        splsda_colors = input$splsda_colors,
+
+        # MINT sPLS-DA
+        mint_splsda_group_col = input$mint_splsda_group_col,
+        mint_splsda_group_col2 = input$mint_splsda_group_col2,
+        mint_splsda_batch_col = input$mint_splsda_batch_col,
+        mint_splsda_var_num = input$mint_splsda_var_num,
+        mint_splsda_comp_num = input$mint_splsda_comp_num,
+        mint_splsda_cim = input$mint_splsda_cim,
+        mint_splsda_log2 = input$mint_splsda_log2,
+        mint_splsda_ellipse = input$mint_splsda_ellipse,
+        mint_splsda_bg = input$mint_splsda_bg,
+        mint_splsda_roc = input$mint_splsda_roc,
+        mint_splsda_colors = input$mint_splsda_colors,
+        mint_splsda_pch = input$mint_splsda_pch,
+
+        # Two-Sample T-Test
+        ttest_log2 = input$ttest_log2,
+
+        # Volcano Plot
+        volc_group_col = input$volc_group_col,
+        volc_cond1 = input$volc_cond1,
+        volc_cond2 = input$volc_cond2,
+        volc_fold_change_thresh = input$volc_fold_change_thresh,
+        volc_p_value_thresh = input$volc_p_value_thresh,
+        volc_top_labels = input$volc_top_labels,
+
+        # XGBoost
+        xgb_group_col = input$xgb_group_col,
+        xgb_train_fraction = input$xgb_train_fraction,
+        xgb_nrounds = input$xgb_nrounds,
+        xgb_max_depth = input$xgb_max_depth,
+        xgb_eta = input$xgb_eta,
+        xgb_nfold = input$xgb_nfold,
+        xgb_cv = input$xgb_cv,
+        xgb_eval_metric = input$xgb_eval_metric,
+        xgb_top_n_features = input$xgb_top_n_features,
+        xgb_plot_roc = input$xgb_plot_roc
+      )
+    )
+  })
+
   ## ---------------------------
   ## Analysis and Results
   ## ---------------------------
-  downloadPath <- shiny::reactiveVal(NULL)
   errorMessage <- shiny::reactiveVal(NULL)
   warningMessage <- shiny::reactiveVal(NULL)
 
-  analysisResult <- shiny::eventReactive(input$next3, {
+  analysisResult <- shiny::eventReactive(input$next4, {
     errorMessage(NULL)
     warningMessage(NULL)
 
     req(filteredData())
-    prog <- shiny::Progress$new()
+    prog <- Progress$new()
     on.exit(prog$close())
 
     tryCatch(
@@ -3852,20 +4654,13 @@ server <- function(input, output, session) {
         withCallingHandlers(
           {
             df <- filteredData()
-            mode <- input$output_mode
-            out_file <- if (
-              mode == "Download" && nzchar(input$output_file_name)
-            ) {
-              file.path(tempdir(), paste0(input$output_file_name, ".pdf"))
-            } else {
-              NULL
-            }
+            df$..cyto_id.. <- NULL
 
-            # Get the function to run from our corrected reactive
+            # Simplified: always generate a file path for functions that can output a PDF
+
             func_to_run <- selected_function()
             req(func_to_run)
 
-            # A single, consolidated switch statement drives all analysis
             results <- switch(
               func_to_run,
 
@@ -3875,6 +4670,7 @@ server <- function(input, output, session) {
                 progress = prog,
                 format_output = TRUE
               ),
+
               "Two-Sample T-Test" = cyt_ttest(
                 data = df,
                 progress = prog,
@@ -3885,40 +4681,34 @@ server <- function(input, output, session) {
               # -- Exploratory Visualization --
               "Boxplots" = cyt_bp(
                 data = df,
-                output_file = if (mode == "Download") out_file else NULL,
+
                 progress = prog,
                 bin_size = input$bp_bin_size,
                 mf_row = if (nzchar(input$bp_mf_row)) {
                   as.numeric(strsplit(input$bp_mf_row, ",")[[1]])
-                } else {
-                  NULL
                 },
                 y_lim = if (nzchar(input$bp_y_lim)) {
                   as.numeric(strsplit(input$bp_y_lim, ",")[[1]])
-                } else {
-                  NULL
                 },
                 scale = if (input$bp_log2) "log2" else NULL
               ),
+
               "Enhanced Boxplots" = cyt_bp2(
                 data = df,
-                output_file = if (mode == "Download") out_file else NULL,
+
                 progress = prog,
                 mf_row = if (nzchar(input$bp2_mf_row)) {
                   as.numeric(strsplit(input$bp2_mf_row, ",")[[1]])
-                } else {
-                  NULL
                 },
                 y_lim = if (nzchar(input$bp2_y_lim)) {
                   as.numeric(strsplit(input$bp2_y_lim, ",")[[1]])
-                } else {
-                  NULL
                 },
                 scale = if (input$bp2_log2) "log2" else NULL
               ),
-              "Error-BarPlot" = cyt_errbp(
+
+              "Error-Bar Plot" = cyt_errbp(
                 data = df,
-                output_file = if (mode == "Download") out_file else NULL,
+
                 progress = prog,
                 group_col = input$eb_group_col,
                 p_lab = input$eb_p_lab,
@@ -3929,35 +4719,39 @@ server <- function(input, output, session) {
                 title = input$eb_title,
                 log2 = input$eb_log2
               ),
+
               "Dual-Flashlight Plot" = cyt_dualflashplot(
                 data = df,
                 group_var = input$df_group_var,
                 group1 = input$df_cond1,
                 group2 = input$df_cond2,
-                output_file = if (mode == "Download") out_file else NULL,
+
                 progress = prog,
                 ssmd_thresh = input$df_ssmd_thresh,
                 log2fc_thresh = input$df_log2fc_thresh,
                 top_labels = input$df_top_labels
               ),
+
               "Heatmap" = cyt_heatmap(
                 data = df,
-                output_file = if (mode == "Download") out_file else NULL,
+
                 progress = prog,
                 scale = if (input$hm_log2) "log2" else NULL,
                 annotation_col_name = input$hm_annotation
               ),
+
               "Skewness/Kurtosis" = cyt_skku(
                 data = df,
-                output_file = if (mode == "Download") out_file else NULL,
+
                 progress = prog,
                 group_cols = input$skku_group_cols,
                 print_res_raw = input$skku_print_raw,
                 print_res_log = input$skku_print_log
               ),
+
               "Volcano Plot" = cyt_volc(
                 data = df,
-                output_file = if (mode == "Download") out_file else NULL,
+
                 progress = prog,
                 group_col = input$volc_group_col,
                 cond1 = input$volc_cond1,
@@ -3968,7 +4762,7 @@ server <- function(input, output, session) {
               ),
 
               # -- Multivariate Analysis --
-              "Principle Component Analysis (PCA)" = {
+              "Principal Component Analysis (PCA)" = {
                 pch_vals <- as.numeric(input$pca_pch)
                 grp <- df[[input$pca_group_col]]
                 uniq <- unique(grp)
@@ -3980,13 +4774,14 @@ server <- function(input, output, session) {
                 } else {
                   rainbow(length(uniq))
                 }
+
                 cyt_pca(
                   data = df,
-                  output_file = if (mode == "Download") out_file else NULL,
+
                   progress = prog,
                   group_col = input$pca_group_col,
-                  group_col2 = if (nzchar(input$mint_splsda_group_col2)) {
-                    input$mint_splsda_group_col2
+                  group_col2 = if (nzchar(input$pca_group_col2)) {
+                    input$pca_group_col2
                   } else {
                     NULL
                   },
@@ -3998,6 +4793,7 @@ server <- function(input, output, session) {
                   pca_colors = cols
                 )
               },
+
               "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
                 pch_vals <- as.numeric(input$splsda_pch)
                 grp <- df[[input$splsda_group_col]]
@@ -4010,20 +4806,25 @@ server <- function(input, output, session) {
                 } else {
                   rainbow(length(uniq))
                 }
-                multilevel_column_to_pass <- if (
-                  isTRUE(input$splsda_use_multilevel)
-                ) {
+                multilevel <- if (isTRUE(input$splsda_use_multilevel)) {
                   input$splsda_multilevel
                 } else {
                   NULL
                 }
+                batch_col <- if (isTRUE(input$splsda_use_batch_corr)) {
+                  input$splsda_batch_col
+                } else {
+                  NULL
+                }
+
                 cyt_splsda(
                   data = df,
-                  output_file = if (mode == "Download") out_file else NULL,
+
                   progress = prog,
                   group_col = input$splsda_group_col,
                   group_col2 = input$splsda_group_col2,
-                  multilevel = multilevel_column_to_pass,
+                  batch_col = batch_col,
+                  multilevel = multilevel,
                   var_num = input$splsda_var_num,
                   cv_opt = if (input$splsda_cv_opt == "None") {
                     NULL
@@ -4042,29 +4843,27 @@ server <- function(input, output, session) {
                   conf_mat = input$splsda_conf_mat
                 )
               },
-              "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
-                # Ensure pch values are numeric
-                pch_vals <- as.numeric(input$mint_splsda_pch)
 
-                # Get number of unique groups to set colors
+              "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
+                pch_vals <- as.numeric(input$mint_splsda_pch)
                 grp <- df[[input$mint_splsda_group_col]]
-                uniq_groups <- unique(grp)
+                uniq <- unique(grp)
                 cols <- if (length(input$mint_splsda_colors)) {
                   input$mint_splsda_colors
                 } else {
-                  rainbow(length(uniq_groups))
+                  rainbow(length(uniq))
                 }
 
-                # Call the new function
                 cyt_mint_splsda(
                   data = df,
-                  output_file = if (mode == "Download") out_file else NULL,
+
                   progress = prog,
                   group_col = input$mint_splsda_group_col,
                   group_col2 = input$mint_splsda_group_col2,
                   batch_col = input$mint_splsda_batch_col,
                   var_num = input$mint_splsda_var_num,
                   comp_num = input$mint_splsda_comp_num,
+                  cim = input$mint_splsda_cim,
                   scale = if (input$mint_splsda_log2) "log2" else NULL,
                   pch_values = pch_vals,
                   colors = cols,
@@ -4073,23 +4872,25 @@ server <- function(input, output, session) {
                   bg = input$mint_splsda_bg
                 )
               },
+
               # -- Machine Learning --
               "Random Forest" = cyt_rf(
                 data = df,
-                output_file = if (mode == "Download") out_file else NULL,
+
                 progress = prog,
                 group_col = input$rf_group_col,
                 ntree = input$rf_ntree,
                 mtry = input$rf_mtry,
                 train_fraction = input$rf_train_fraction,
-                plot_roc = input$rf_plot_roc,
-                run_rfcv = input$rf_run_rfcv,
+                plot_roc = isTRUE(input$rf_plot_roc),
+                run_rfcv = isTRUE(input$rf_run_rfcv),
                 k_folds = input$rf_k_folds,
                 step = input$rf_step
               ),
+
               "Extreme Gradient Boosting (XGBoost)" = cyt_xgb(
                 data = df,
-                output_file = if (mode == "Download") out_file else NULL,
+
                 progress = prog,
                 group_col = input$xgb_group_col,
                 train_fraction = input$xgb_train_fraction,
@@ -4097,19 +4898,14 @@ server <- function(input, output, session) {
                 max_depth = input$xgb_max_depth,
                 eta = input$xgb_eta,
                 nfold = input$xgb_nfold,
-                cv = input$xgb_cv,
+                cv = isTRUE(input$xgb_cv),
                 eval_metric = input$xgb_eval_metric,
                 top_n_features = input$xgb_top_n_features,
-                plot_roc = input$xgb_plot_roc
+                plot_roc = isTRUE(input$xgb_plot_roc)
               )
-            )
+            ) # end switch
 
-            if (mode == "Download" && nzchar(input$output_file_name)) {
-              downloadPath(normalizePath(out_file))
-              return(paste("Output file generated:", out_file))
-            }
-
-            return(results)
+            results
           },
           warning = function(w) {
             warningMessage(conditionMessage(w))
@@ -4121,7 +4917,12 @@ server <- function(input, output, session) {
         errorMessage(conditionMessage(e))
         NULL
       }
-    )
+    ) # end tryCatch
+  })
+
+  reactivePlots <- shiny::reactive({
+    req(analysisResult())
+    analysisResult()
   })
 
   output$errorText <- shiny::renderUI({
@@ -4147,12 +4948,16 @@ server <- function(input, output, session) {
     if (isTruthy(err)) {
       return(tagList(
         uiOutput("errorText"),
-        actionButton("back5", "Change inputs")
+        actionButton(
+          "back6",
+          "Change Inputs",
+          icon = icon("arrow-left"),
+          class = "btn-secondary"
+        )
       ))
     }
     req(analysisResult())
     res <- analysisResult()
-    mode <- input$output_mode
     func_name <- selected_function()
     req(func_name)
 
@@ -4160,272 +4965,324 @@ server <- function(input, output, session) {
     tagList(
       uiOutput("warningText"), # Display warnings if any
 
-      if (mode == "Download") {
-        # Simple message for download mode
-        h3(if (is.character(res)) res else as.character(res))
-      } else {
-        # Interactive Mode: Use a switch to render the correct UI
-        switch(
-          func_name,
+      # Interactive Mode: Use a switch to render the correct UI
+      switch(
+        func_name,
 
-          # --- sPLS-DA UI ---
-          "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
-            if ("overall_indiv_plot" %in% names(res)) {
-              # Single analysis UI
-              tagList(
-                h4("sPLS-DA Results"),
-                tabsetPanel(
-                  id = "splsda_tabs",
-                  type = "tabs",
+        # --- sPLS-DA UI ---
+        "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
+          if ("overall_indiv_plot" %in% names(res)) {
+            # Single analysis UI
+            tagList(
+              h4("sPLS-DA Results"),
+              tabsetPanel(
+                id = "splsda_tabs",
+                type = "tabs",
+                tabPanel(
+                  "sPLS-DA Plot",
+                  shinycssloaders::withSpinner(
+                    plotOutput("splsda_overallIndivPlot", height = "500px"),
+                    type = 8
+                  )
+                ),
+                tabPanel(
+                  "Loadings",
+                  shinycssloaders::withSpinner(
+                    uiOutput("splsda_loadingsUI"),
+                    type = 8
+                  )
+                ),
+                tabPanel(
+                  "VIP Scores",
+                  shinycssloaders::withSpinner(
+                    uiOutput("splsda_vipScoresUI"),
+                    type = 8
+                  )
+                ),
+                if (!is.null(res$vip_indiv_plot)) {
                   tabPanel(
-                    "sPLS-DA Plot",
+                    "VIP Model Plot",
                     shinycssloaders::withSpinner(
-                      plotOutput("splsda_overallIndivPlot", height = "500px"),
+                      plotOutput("splsda_vipIndivPlot", height = "500px"),
                       type = 8
                     )
-                  ),
+                  )
+                },
+                if (!is.null(res$vip_loadings)) {
                   tabPanel(
-                    "Loadings",
+                    "VIP Loadings",
                     shinycssloaders::withSpinner(
-                      uiOutput("splsda_loadingsUI"),
+                      uiOutput("splsda_vipLoadingsUI"),
                       type = 8
                     )
-                  ),
+                  )
+                },
+                if (!is.null(res$overall_3D)) {
                   tabPanel(
-                    "VIP Scores",
+                    "3D Plot",
                     shinycssloaders::withSpinner(
-                      uiOutput("splsda_vipScoresUI"),
+                      plotOutput("splsda_overall3DPlot", height = "500px"),
                       type = 8
                     )
-                  ),
-                  if (!is.null(res$vip_indiv_plot)) {
-                    tabPanel(
-                      "VIP Model Plot",
+                  )
+                },
+                if (!is.null(res$overall_ROC) || !is.null(res$overall_CV)) {
+                  tabPanel(
+                    "Performance",
+                    if (!is.null(res$overall_ROC)) {
                       shinycssloaders::withSpinner(
-                        plotOutput("splsda_vipIndivPlot", height = "500px"),
+                        plotOutput("splsda_overallRocPlot", height = "400px"),
                         type = 8
                       )
-                    )
-                  },
-                  if (!is.null(res$vip_loadings)) {
-                    tabPanel(
-                      "VIP Loadings",
+                    },
+                    if (!is.null(res$overall_CV)) {
                       shinycssloaders::withSpinner(
-                        uiOutput("splsda_vipLoadingsUI"),
+                        plotOutput("splsda_overallCvPlot", height = "400px"),
                         type = 8
                       )
+                    }
+                  )
+                },
+                if (!is.null(res$conf_matrix)) {
+                  tabPanel(
+                    "Confusion Matrix",
+                    shinycssloaders::withSpinner(
+                      verbatimTextOutput("splsda_confMatrix"),
+                      type = 8
                     )
-                  },
-                  if (!is.null(res$overall_3D)) {
-                    tabPanel(
-                      "3D Plot",
-                      shinycssloaders::withSpinner(
-                        plotOutput("splsda_overall3DPlot", height = "500px"),
-                        type = 8
-                      )
-                    )
-                  },
-                  if (!is.null(res$overall_ROC) || !is.null(res$overall_CV)) {
-                    tabPanel(
-                      "Performance",
-                      if (!is.null(res$overall_ROC)) {
-                        shinycssloaders::withSpinner(
-                          plotOutput("splsda_overallRocPlot", height = "400px"),
-                          type = 8
-                        )
-                      },
-                      if (!is.null(res$overall_CV)) {
-                        shinycssloaders::withSpinner(
-                          plotOutput("splsda_overallCvPlot", height = "400px"),
-                          type = 8
-                        )
-                      }
-                    )
-                  },
-                  if (!is.null(res$conf_matrix)) {
-                    tabPanel(
-                      "Confusion Matrix",
-                      shinycssloaders::withSpinner(
-                        verbatimTextOutput("splsda_confMatrix"),
-                        type = 8
-                      )
-                    )
-                  }
-                )
+                  )
+                }
               )
-            } else {
-              # Multi-group analysis UI (tabs for each group)
-              do.call(
-                tabsetPanel,
-                c(
-                  list(id = "splsda_multigroup_tabs"),
-                  lapply(names(res), function(trt) {
-                    tabPanel(
-                      title = trt,
-                      tabsetPanel(
-                        type = "tabs",
+            )
+          } else {
+            # Multi-group analysis UI (tabs for each group)
+            do.call(
+              tabsetPanel,
+              c(
+                list(id = "splsda_multigroup_tabs"),
+                lapply(names(res), function(trt) {
+                  tabPanel(
+                    title = trt,
+                    tabsetPanel(
+                      type = "tabs",
+                      tabPanel(
+                        "sPLS-DA Plot",
+                        shinycssloaders::withSpinner(
+                          plotOutput(
+                            paste0("splsda_overallIndivPlot_", trt),
+                            height = "500px"
+                          ),
+                          type = 8
+                        )
+                      ),
+                      tabPanel(
+                        "Loadings",
+                        shinycssloaders::withSpinner(
+                          uiOutput(paste0("splsda_loadingsUI_", trt)),
+                          type = 8
+                        )
+                      ),
+                      tabPanel(
+                        "VIP Scores",
+                        shinycssloaders::withSpinner(
+                          uiOutput(paste0("splsda_vipScoresUI_", trt)),
+                          type = 8
+                        )
+                      ),
+                      if (!is.null(res[[trt]]$vip_indiv_plot)) {
                         tabPanel(
-                          "sPLS-DA Plot",
+                          "VIP Model Plot",
                           shinycssloaders::withSpinner(
                             plotOutput(
-                              paste0("splsda_overallIndivPlot_", trt),
+                              paste0("splsda_vipIndivPlot_", trt),
                               height = "500px"
                             ),
                             type = 8
                           )
-                        ),
+                        )
+                      },
+                      if (!is.null(res[[trt]]$vip_loadings)) {
                         tabPanel(
-                          "Loadings",
+                          "VIP Loadings",
                           shinycssloaders::withSpinner(
-                            uiOutput(paste0("splsda_loadingsUI_", trt)),
+                            uiOutput(paste0("splsda_vipLoadingsUI_", trt)),
                             type = 8
                           )
-                        ),
+                        )
+                      },
+                      if (!is.null(res[[trt]]$overall_3D)) {
                         tabPanel(
-                          "VIP Scores",
+                          "3D Plot",
                           shinycssloaders::withSpinner(
-                            uiOutput(paste0("splsda_vipScoresUI_", trt)),
+                            plotOutput(
+                              paste0("splsda_overall3DPlot_", trt),
+                              height = "500px"
+                            ),
                             type = 8
                           )
-                        ),
-                        if (!is.null(res[[trt]]$vip_indiv_plot)) {
-                          tabPanel(
-                            "VIP Model Plot",
+                        )
+                      },
+                      if (
+                        !is.null(res[[trt]]$overall_ROC) ||
+                          !is.null(res[[trt]]$overall_CV)
+                      ) {
+                        tabPanel(
+                          "Performance",
+                          if (!is.null(res[[trt]]$overall_ROC)) {
                             shinycssloaders::withSpinner(
                               plotOutput(
-                                paste0("splsda_vipIndivPlot_", trt),
-                                height = "500px"
+                                paste0(
+                                  "splsda_overallRocPlot_",
+                                  trt
+                                ),
+                                height = "400px",
                               ),
                               type = 8
                             )
-                          )
-                        },
-                        if (!is.null(res[[trt]]$vip_loadings)) {
-                          tabPanel(
-                            "VIP Loadings",
+                          },
+                          if (!is.null(res[[trt]]$overall_CV)) {
                             shinycssloaders::withSpinner(
-                              uiOutput(paste0("splsda_vipLoadingsUI_", trt)),
+                              plotOutput(
+                                paste0(
+                                  "splsda_overallCvPlot_",
+                                  trt
+                                ),
+                                height = "400px"
+                              ),
                               type = 8
                             )
+                          }
+                        )
+                      },
+                      if (!is.null(res[[trt]]$conf_matrix)) {
+                        tabPanel(
+                          "Confusion Matrix",
+                          shinycssloaders::withSpinner(
+                            verbatimTextOutput(
+                              paste0("splsda_confMatrix_", trt)
+                            ),
+                            type = 8
                           )
-                        }
-                      )
+                        )
+                      }
                     )
-                  })
-                )
+                  )
+                })
               )
-            }
-          },
-          # --- MINT sPLS-DA UI ---
-          "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
-            # Check if the result is for a single analysis or multiple (nested list)
-            is_nested <- is.list(res) &&
-              !is.null(names(res)) &&
-              is.list(res[[1]]) &&
-              "global_indiv_plot" %in% names(res[[1]])
+            )
+          }
+        },
+        # --- MINT sPLS-DA UI ---
+        "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
+          # Check if the result is for a single analysis or multiple (nested list)
+          is_nested <- is.list(res) &&
+            !is.null(names(res)) &&
+            is.list(res[[1]]) &&
+            "global_indiv_plot" %in% names(res[[1]])
 
-            if (!is_nested) {
-              # UI for a single analysis (original behavior)
-              tagList(
-                h4("MINT sPLS-DA Results"),
-                tabsetPanel(
-                  id = "mint_splsda_tabs",
+          if (!is_nested) {
+            # UI for a single analysis (original behavior)
+            tagList(
+              h4("MINT sPLS-DA Results"),
+              tabsetPanel(
+                id = "mint_splsda_tabs",
+                tabPanel(
+                  "Global Sample Plot",
+                  withSpinner(plotOutput("mint_splsda_global_plot"))
+                ),
+                tabPanel(
+                  "Partial Sample Plots",
+                  withSpinner(plotOutput("mint_splsda_partial_plot"))
+                ),
+                tabPanel(
+                  "Variable Loadings",
+                  withSpinner(uiOutput("mint_splsda_loadings_ui")) # Changed to uiOutput
+                ),
+                tabPanel(
+                  "Correlation Circle",
+                  withSpinner(plotOutput("mint_splsda_corr_circle_plot"))
+                ),
+                tabPanel(
+                  "Heatmap (CIM)",
+                  withSpinner(plotOutput(
+                    "mint_splsda_cim_plot",
+                    height = "600px"
+                  ))
+                ),
+                if (!is.null(res$roc_plot)) {
                   tabPanel(
-                    "Global Sample Plot",
-                    withSpinner(plotOutput("mint_splsda_global_plot"))
-                  ),
-                  tabPanel(
-                    "Partial Sample Plots",
-                    withSpinner(plotOutput("mint_splsda_partial_plot"))
-                  ),
-                  tabPanel(
-                    "Variable Loadings",
-                    withSpinner(uiOutput("mint_splsda_loadings_ui")) # Changed to uiOutput
-                  ),
-                  tabPanel(
-                    "Correlation Circle",
-                    withSpinner(plotOutput("mint_splsda_corr_circle_plot"))
-                  ),
-                  tabPanel(
-                    "Heatmap (CIM)",
-                    withSpinner(plotOutput(
-                      "mint_splsda_cim_plot",
-                      height = "600px"
-                    ))
-                  ),
-                  if (!is.null(res$roc_plot)) {
-                    tabPanel(
-                      "ROC Curve",
-                      withSpinner(plotOutput("mint_splsda_roc_plot"))
-                    )
-                  }
-                )
+                    "ROC Curve",
+                    withSpinner(plotOutput("mint_splsda_roc_plot"))
+                  )
+                }
               )
-            } else {
-              # UI for multi-group analysis (nested tabs)
-              do.call(
-                tabsetPanel,
-                c(
-                  list(id = "mint_splsda_multigroup_tabs"),
-                  lapply(names(res), function(trt) {
-                    tabPanel(
-                      title = trt,
-                      tabsetPanel(
-                        type = "tabs",
+            )
+          } else {
+            # UI for multi-group analysis (nested tabs)
+            do.call(
+              tabsetPanel,
+              c(
+                list(id = "mint_splsda_multigroup_tabs"),
+                lapply(names(res), function(trt) {
+                  tabPanel(
+                    title = trt,
+                    tabsetPanel(
+                      type = "tabs",
+                      tabPanel(
+                        "Global Plot",
+                        withSpinner(plotOutput(paste0(
+                          "mint_splsda_global_",
+                          trt
+                        )))
+                      ),
+                      tabPanel(
+                        "Partial Plots",
+                        withSpinner(plotOutput(paste0(
+                          "mint_splsda_partial_",
+                          trt
+                        )))
+                      ),
+                      tabPanel(
+                        "Variable Loadings",
+                        withSpinner(uiOutput(paste0(
+                          "mint_splsda_loadings_",
+                          trt
+                        )))
+                      ),
+                      tabPanel(
+                        "Correlation",
+                        withSpinner(plotOutput(paste0(
+                          "mint_splsda_corr_",
+                          trt
+                        )))
+                      ),
+                      tabPanel(
+                        "CIM",
+                        withSpinner(plotOutput(
+                          paste0("mint_splsda_cim_", trt),
+                          height = "600px"
+                        ))
+                      ),
+                      if (!is.null(res[[trt]]$roc_plot)) {
                         tabPanel(
-                          "Global Plot",
+                          "ROC",
                           withSpinner(plotOutput(paste0(
-                            "mint_splsda_global_",
+                            "mint_splsda_roc_",
                             trt
                           )))
-                        ),
-                        tabPanel(
-                          "Partial Plots",
-                          withSpinner(plotOutput(paste0(
-                            "mint_splsda_partial_",
-                            trt
-                          )))
-                        ),
-                        tabPanel(
-                          "Variable Loadings",
-                          withSpinner(uiOutput(paste0(
-                            "mint_splsda_loadings_",
-                            trt
-                          )))
-                        ),
-                        tabPanel(
-                          "Correlation",
-                          withSpinner(plotOutput(paste0(
-                            "mint_splsda_corr_",
-                            trt
-                          )))
-                        ),
-                        tabPanel(
-                          "CIM",
-                          withSpinner(plotOutput(
-                            paste0("mint_splsda_cim_", trt),
-                            height = "600px"
-                          ))
-                        ),
-                        if (!is.null(res[[trt]]$roc_plot)) {
-                          tabPanel(
-                            "ROC",
-                            withSpinner(plotOutput(paste0(
-                              "mint_splsda_roc_",
-                              trt
-                            )))
-                          )
-                        }
-                      )
+                        )
+                      }
                     )
-                  })
-                )
+                  )
+                })
               )
-            }
-          },
+            )
+          }
+        },
 
-          # --- PCA UI ---
-          "Principle Component Analysis (PCA)" = {
+        # --- PCA UI ---
+        "Principal Component Analysis (PCA)" = {
+          if ("overall_indiv_plot" %in% names(res)) {
             tagList(
               h4("PCA Results"),
               tabsetPanel(
@@ -4476,210 +5333,289 @@ server <- function(input, output, session) {
                 }
               )
             )
-          },
-
-          # --- Random Forest UI ---
-          "Random Forest" = {
-            tagList(
-              h4("Random Forest Results"),
-              tabsetPanel(
-                type = "tabs",
-                tabPanel("Summary", verbatimTextOutput("rf_summary")),
-                tabPanel(
-                  "Variable Importance",
-                  shinycssloaders::withSpinner(
-                    plotOutput("rf_vipPlot", height = "400px"),
-                    type = 8
-                  )
-                ),
-                if (!is.null(res$roc_plot)) {
+          } else {
+            do.call(
+              tabsetPanel,
+              c(
+                list(id = "pca_multigroup_tabs"),
+                lapply(names(res), function(trt) {
                   tabPanel(
-                    "ROC Curve",
-                    shinycssloaders::withSpinner(
-                      plotOutput("rf_rocPlot", height = "400px"),
-                      type = 8
+                    title = trt,
+                    tabsetPanel(
+                      type = "tabs",
+                      tabPanel(
+                        "PCA Plot",
+                        shinycssloaders::withSpinner(
+                          plotOutput(
+                            paste0("pca_indivPlot_", trt),
+                            height = "400px"
+                          ),
+                          type = 8
+                        )
+                      ),
+                      tabPanel(
+                        "Scree Plot",
+                        shinycssloaders::withSpinner(
+                          plotOutput(
+                            paste0("pca_screePlot_", trt),
+                            height = "400px"
+                          ),
+                          type = 8
+                        )
+                      ),
+                      tabPanel(
+                        "Loadings Plots",
+                        shinycssloaders::withSpinner(
+                          uiOutput(paste0("pca_loadingsUI_", trt)),
+                          type = 8
+                        )
+                      ),
+                      tabPanel(
+                        "Biplot",
+                        shinycssloaders::withSpinner(
+                          plotOutput(
+                            paste0("pca_biplot_", trt),
+                            height = "400px"
+                          ),
+                          type = 8
+                        )
+                      ),
+                      tabPanel(
+                        "Correlation Circle",
+                        shinycssloaders::withSpinner(
+                          plotOutput(
+                            paste0("pca_corrCircle_", trt),
+                            height = "400px"
+                          ),
+                          type = 8
+                        )
+                      ),
+                      if (!is.null(res[[trt]]$overall_3D)) {
+                        tabPanel(
+                          "3D Plot",
+                          shinycssloaders::withSpinner(
+                            plotOutput(
+                              paste0("pca_3DPlot_", trt),
+                              height = "400px"
+                            ),
+                            type = 8
+                          )
+                        )
+                      }
                     )
-                  )
-                },
-                if (!is.null(res$rfcv_plot)) {
-                  tabPanel(
-                    "Cross-Validation",
-                    shinycssloaders::withSpinner(
-                      plotOutput("rf_rfcvPlot", height = "400px"),
-                      type = 8
-                    )
-                  )
-                }
-              )
-            )
-          },
-
-          # --- XGBoost UI ---
-          "Extreme Gradient Boosting (XGBoost)" = {
-            tagList(
-              h4("XGBoost Results"),
-              tabsetPanel(
-                type = "tabs",
-                tabPanel("Summary", verbatimTextOutput("xgb_summary")),
-                tabPanel(
-                  "Variable Importance",
-                  shinycssloaders::withSpinner(
-                    plotOutput("xgb_vipPlot", height = "400px"),
-                    type = 8
-                  )
-                ),
-                if (!is.null(res$roc_plot)) {
-                  tabPanel(
-                    "ROC Curve",
-                    shinycssloaders::withSpinner(
-                      plotOutput("xgb_rocPlot", height = "400px"),
-                      type = 8
-                    )
-                  )
-                }
-              )
-            )
-          },
-
-          # --- Volcano Plot UI ---
-          "Volcano Plot" = {
-            tagList(
-              h4("Volcano Plot Results"),
-              tabsetPanel(
-                type = "tabs",
-                tabPanel(
-                  "Plot",
-                  shinycssloaders::withSpinner(
-                    plotOutput("volcPlotOutput", height = "400px"),
-                    type = 8
-                  )
-                ),
-                tabPanel(
-                  "Statistics Table",
-                  shinycssloaders::withSpinner(
-                    DT::dataTableOutput("volcStats"),
-                    type = 8
-                  )
-                )
-              )
-            )
-          },
-
-          # --- Heatmap UI ---
-          "Heatmap" = {
-            tagList(
-              h4("Heatmap"),
-              shinycssloaders::withSpinner(
-                imageOutput("heatmapImage", height = "400px"),
-                type = 8
-              ),
-              verbatimTextOutput("textResults")
-            )
-          },
-
-          # --- Dual-Flashlight Plot UI ---
-          "Dual-Flashlight Plot" = {
-            tagList(
-              h4("Dual-Flashlight Plot Results"),
-              tabsetPanel(
-                type = "tabs",
-                tabPanel(
-                  "Plot",
-                  shinycssloaders::withSpinner(
-                    plotOutput("dualflashPlotOutput", height = "400px"),
-                    type = 8
-                  )
-                ),
-                tabPanel(
-                  "Statistics Table",
-                  shinycssloaders::withSpinner(
-                    DT::dataTableOutput("dualflashStats"),
-                    type = 8
-                  )
-                )
-              )
-            )
-          },
-          "Skewness/Kurtosis" = {
-            tagList(
-              h4("Skewness and Kurtosis Results"),
-              tabsetPanel(
-                type = "tabs",
-                tabPanel(
-                  "Skewness Plot",
-                  shinycssloaders::withSpinner(
-                    plotOutput("skku_skewPlot", height = "400px"),
-                    type = 8
-                  )
-                ),
-                tabPanel(
-                  "Kurtosis Plot",
-                  shinycssloaders::withSpinner(
-                    plotOutput("skku_kurtPlot", height = "400px"),
-                    type = 8
-                  )
-                ),
-                if (input$skku_print_raw) {
-                  tabPanel(
-                    "Raw Data",
-                    shinycssloaders::withSpinner(
-                      DT::dataTableOutput("skku_raw_results"),
-                      type = 8
-                    )
-                  )
-                },
-                if (input$skku_print_log) {
-                  tabPanel(
-                    "Log-Transformed Data",
-                    shinycssloaders::withSpinner(
-                      DT::dataTableOutput("skku_log_results"),
-                      type = 8
-                    )
-                  )
-                }
-              )
-            )
-          },
-          "Error-BarPlot" = {
-            tagList(
-              h4("Error-Bar Plot Results"),
-              shinycssloaders::withSpinner(
-                plotOutput("errorBarPlotOutput", height = "400px"),
-                type = 8
-              )
-            )
-          },
-
-          # --- Default UI for other functions (plots or tables) ---
-          # This will catch simpler functions that return one plot or one table
-          {
-            if (
-              is.list(res) &&
-                length(res) > 0 &&
-                all(sapply(res, function(x) inherits(x, "ggplot")))
-            ) {
-              # Handle functions that return a list of ggplot objects (like Boxplots)
-              do.call(
-                tagList,
-                lapply(seq_along(res), function(i) {
-                  shinycssloaders::withSpinner(
-                    plotOutput(paste0("dynamicPlot_", i), height = "400px"),
-                    type = 8
                   )
                 })
               )
-            } else {
-              # Handle functions that return a data frame for a table
-              shinycssloaders::withSpinner(
-                DT::dataTableOutput("statResults"),
-                type = 8
-              )
-            }
+            )
           }
-        )
-      }
+        },
+        # --- Random Forest UI ---
+        "Random Forest" = {
+          tagList(
+            h4("Random Forest Results"),
+            tabsetPanel(
+              type = "tabs",
+              tabPanel("Summary", verbatimTextOutput("rf_summary")),
+              tabPanel(
+                "Variable Importance",
+                shinycssloaders::withSpinner(
+                  plotOutput("rf_vipPlot", height = "400px"),
+                  type = 8
+                )
+              ),
+              if (!is.null(res$roc_plot)) {
+                tabPanel(
+                  "ROC Curve",
+                  shinycssloaders::withSpinner(
+                    plotOutput("rf_rocPlot", height = "400px"),
+                    type = 8
+                  )
+                )
+              },
+              if (!is.null(res$rfcv_plot)) {
+                tabPanel(
+                  "Cross-Validation",
+                  shinycssloaders::withSpinner(
+                    plotOutput("rf_rfcvPlot", height = "400px"),
+                    type = 8
+                  )
+                )
+              }
+            )
+          )
+        },
+
+        # --- XGBoost UI ---
+        "Extreme Gradient Boosting (XGBoost)" = {
+          tagList(
+            h4("XGBoost Results"),
+            tabsetPanel(
+              type = "tabs",
+              tabPanel("Summary", verbatimTextOutput("xgb_summary")),
+              tabPanel(
+                "Variable Importance",
+                shinycssloaders::withSpinner(
+                  plotOutput("xgb_vipPlot", height = "400px"),
+                  type = 8
+                )
+              ),
+              if (!is.null(res$roc_plot)) {
+                tabPanel(
+                  "ROC Curve",
+                  shinycssloaders::withSpinner(
+                    plotOutput("xgb_rocPlot", height = "400px"),
+                    type = 8
+                  )
+                )
+              }
+            )
+          )
+        },
+
+        # --- Volcano Plot UI ---
+        "Volcano Plot" = {
+          tagList(
+            h4("Volcano Plot Results"),
+            tabsetPanel(
+              type = "tabs",
+              tabPanel(
+                "Plot",
+                shinycssloaders::withSpinner(
+                  plotOutput("volcPlotOutput", height = "400px"),
+                  type = 8
+                )
+              ),
+              tabPanel(
+                "Statistics Table",
+                shinycssloaders::withSpinner(
+                  DT::dataTableOutput("volcStats"),
+                  type = 8
+                )
+              )
+            )
+          )
+        },
+
+        # --- Heatmap UI ---
+        "Heatmap" = {
+          tagList(
+            h4("Heatmap"),
+            shinycssloaders::withSpinner(
+              imageOutput("heatmapImage", height = "400px"),
+              type = 8
+            ),
+            verbatimTextOutput("textResults")
+          )
+        },
+
+        # --- Dual-Flashlight Plot UI ---
+        "Dual-Flashlight Plot" = {
+          tagList(
+            h4("Dual-Flashlight Plot Results"),
+            tabsetPanel(
+              type = "tabs",
+              tabPanel(
+                "Plot",
+                shinycssloaders::withSpinner(
+                  plotOutput("dualflashPlotOutput", height = "400px"),
+                  type = 8
+                )
+              ),
+              tabPanel(
+                "Statistics Table",
+                shinycssloaders::withSpinner(
+                  DT::dataTableOutput("dualflashStats"),
+                  type = 8
+                )
+              )
+            )
+          )
+        },
+        "Skewness/Kurtosis" = {
+          tagList(
+            h4("Skewness and Kurtosis Results"),
+            tabsetPanel(
+              type = "tabs",
+              tabPanel(
+                "Skewness Plot",
+                shinycssloaders::withSpinner(
+                  plotOutput("skku_skewPlot", height = "400px"),
+                  type = 8
+                )
+              ),
+              tabPanel(
+                "Kurtosis Plot",
+                shinycssloaders::withSpinner(
+                  plotOutput("skku_kurtPlot", height = "400px"),
+                  type = 8
+                )
+              ),
+              if (input$skku_print_raw) {
+                tabPanel(
+                  "Raw Data",
+                  shinycssloaders::withSpinner(
+                    DT::dataTableOutput("skku_raw_results"),
+                    type = 8
+                  )
+                )
+              },
+              if (input$skku_print_log) {
+                tabPanel(
+                  "Log-Transformed Data",
+                  shinycssloaders::withSpinner(
+                    DT::dataTableOutput("skku_log_results"),
+                    type = 8
+                  )
+                )
+              }
+            )
+          )
+        },
+        "Error-Bar Plot" = {
+          tagList(
+            h4("Error-Bar Plot Results"),
+            shinycssloaders::withSpinner(
+              plotOutput("errorBarPlotOutput", height = "400px"),
+              type = 8
+            )
+          )
+        },
+
+        # --- Default UI for other functions (plots or tables) ---
+        # This will catch simpler functions that return one plot or one table
+        {
+          if (
+            is.list(res) &&
+              length(res) > 0 &&
+              all(sapply(res, function(x) inherits(x, "ggplot")))
+          ) {
+            # Handle functions that return a list of ggplot objects (like Boxplots)
+            do.call(
+              tagList,
+              lapply(seq_along(res), function(i) {
+                shinycssloaders::withSpinner(
+                  plotOutput(paste0("dynamicPlot_", i), height = "400px"),
+                  type = 8
+                )
+              })
+            )
+          } else {
+            # Handle functions that return a data frame for a table
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("statResults"),
+              type = 8
+            )
+          }
+        }
+      )
     )
-  })
+  }) %>%
+    shiny::bindCache(
+      analysis_inputs()$df,
+      analysis_inputs()$func_name,
+      analysis_inputs()$args,
+      cache = "session"
+    )
 
   output$textResults <- shiny::renderPrint({
     res <- analysisResult()
@@ -4695,7 +5631,13 @@ server <- function(input, output, session) {
       # Optionally print a message or nothing if it's a plot list
       cat("Plot results displayed below.")
     }
-  })
+  }) %>%
+    shiny::bindCache(
+      analysis_inputs()$df,
+      analysis_inputs()$func_name,
+      analysis_inputs()$args,
+      cache = "session"
+    )
 
   shiny::observe({
     res <- analysisResult()
@@ -4716,11 +5658,6 @@ server <- function(input, output, session) {
   })
 
   shiny::observeEvent(analysisResult(), {
-    # Ensure this runs only in interactive mode
-    if (input$output_mode != "Interactive") {
-      return(NULL)
-    }
-
     # Get results and function name
     res <- analysisResult()
     func_name <- selected_function()
@@ -4869,6 +5806,35 @@ server <- function(input, output, session) {
                 replayPlot(sub_res$vip_loadings[[i]])
               })
             })
+            output[[paste0(
+              "splsda_overall3DPlot_",
+              current_trt
+            )]] <- renderPlot({
+              if (!is.null(sub_res$overall_3D)) {
+                replayPlot(sub_res$overall_3D)
+              }
+            })
+            output[[paste0(
+              "splsda_overallRocPlot_",
+              current_trt
+            )]] <- renderPlot({
+              if (!is.null(sub_res$overall_ROC)) {
+                replayPlot(sub_res$overall_ROC)
+              }
+            })
+            output[[paste0(
+              "splsda_overallCvPlot_",
+              current_trt
+            )]] <- renderPlot({
+              if (!is.null(sub_res$overall_CV)) {
+                print(sub_res$overall_CV)
+              }
+            })
+            output[[paste0("splsda_confMatrix_", current_trt)]] <- renderPrint({
+              if (!is.null(sub_res$conf_matrix)) {
+                cat(paste(sub_res$conf_matrix, collapse = "\n"))
+              }
+            })
           })
         }
       }
@@ -4974,7 +5940,107 @@ server <- function(input, output, session) {
         }
       }
     }
+    if (func_name == "Principal Component Analysis (PCA)" && is.list(res)) {
+      if ("overall_indiv_plot" %in% names(res)) {
+        output$pca_indivPlot <- renderPlot({
+          replayPlot(res$overall_indiv_plot)
+        })
+        output$pca_3DPlot <- renderPlot({
+          if (!is.null(res$overall_3D)) replayPlot(res$overall_3D)
+        })
+        output$pca_screePlot <- renderPlot({
+          if (!is.null(res$overall_scree_plot)) {
+            replayPlot(res$overall_scree_plot)
+          }
+        })
+        output$pca_biplot <- renderPlot({
+          if (!is.null(res$biplot)) replayPlot(res$biplot)
+        })
+        output$pca_corrCircle <- renderPlot({
+          if (!is.null(res$correlation_circle)) {
+            replayPlot(res$correlation_circle)
+          }
+        })
 
+        output$pca_loadingsUI <- shiny::renderUI({
+          if (!is.null(res$loadings)) {
+            tagList(lapply(seq_along(res$loadings), function(i) {
+              plotOutput(paste0("pca_loadings_", i), height = "300px")
+            }))
+          }
+        })
+
+        if (!is.null(res$loadings)) {
+          for (i in seq_along(res$loadings)) {
+            local({
+              local_i <- i
+              output[[paste0("pca_loadings_", local_i)]] <- renderPlot({
+                replayPlot(res$loadings[[local_i]])
+              })
+            })
+          }
+        }
+      } else {
+        for (lvl in names(res)) {
+          local({
+            currentGroup <- lvl
+            subres <- res[[currentGroup]]
+            output[[paste0("pca_indivPlot_", currentGroup)]] <- renderPlot({
+              if (!is.null(subres$overall_indiv_plot)) {
+                replayPlot(subres$overall_indiv_plot)
+              }
+            })
+            output[[paste0("pca_3DPlot_", currentGroup)]] <- renderPlot({
+              if (!is.null(subres$overall_3D)) replayPlot(subres$overall_3D)
+            })
+            output[[paste0("pca_screePlot_", currentGroup)]] <- renderPlot({
+              if (!is.null(subres$overall_scree_plot)) {
+                replayPlot(subres$overall_scree_plot)
+              }
+            })
+            output[[paste0("pca_biplot_", currentGroup)]] <- renderPlot({
+              if (!is.null(subres$biplot)) replayPlot(subres$biplot)
+            })
+            output[[paste0("pca_corrCircle_", currentGroup)]] <- renderPlot({
+              if (!is.null(subres$correlation_circle)) {
+                replayPlot(subres$correlation_circle)
+              }
+            })
+
+            output[[paste0(
+              "pca_loadingsUI_",
+              currentGroup
+            )]] <- shiny::renderUI({
+              if (!is.null(subres$loadings)) {
+                tagList(lapply(seq_along(subres$loadings), function(i) {
+                  safeGroup <- gsub("[^A-Za-z0-9_]+", "_", currentGroup)
+                  plotOutput(
+                    paste0("pca_loadings_", safeGroup, "_", i),
+                    height = "300px"
+                  )
+                }))
+              }
+            })
+            if (!is.null(subres$loadings)) {
+              for (i in seq_along(subres$loadings)) {
+                local({
+                  local_i <- i
+                  safeGroup <- gsub("[^A-Za-z0-9_]+", "_", currentGroup)
+                  output[[paste0(
+                    "pca_loadings_",
+                    safeGroup,
+                    "_",
+                    local_i
+                  )]] <- renderPlot({
+                    replayPlot(subres$loadings[[local_i]])
+                  })
+                })
+              }
+            }
+          })
+        }
+      }
+    }
     # --- Random Forest Rendering Logic ---
     if (func_name == "Random Forest") {
       output$rf_summary <- renderPrint({
@@ -5038,7 +6104,7 @@ server <- function(input, output, session) {
         options = list(pageLength = 10, scrollX = TRUE)
       )
     }
-    # --- Skewness/Kurtosis Rendering (FIXED) ---
+    # --- Skewness/Kurtosis Rendering ---
     if (func_name == "Skewness/Kurtosis") {
       output$skku_skewPlot <- renderPlot({
         print(res$p_skew)
@@ -5088,13 +6154,16 @@ server <- function(input, output, session) {
 
   output$volcPlotOutput <- shiny::renderPlot({
     req(analysisResult())
-    if (input$output_mode != "Interactive") {
-      return(NULL)
-    }
     res <- analysisResult()
     req(res$plot)
     print(res$plot)
-  })
+  }) %>%
+    shiny::bindCache(
+      analysis_inputs()$df,
+      analysis_inputs()$func_name,
+      analysis_inputs()$args,
+      cache = "session"
+    )
 
   output$volcStats <- shiny::renderTable(
     {
@@ -5104,7 +6173,13 @@ server <- function(input, output, session) {
       res$stats
     },
     rownames = FALSE
-  )
+  ) %>%
+    shiny::bindCache(
+      analysis_inputs()$df,
+      analysis_inputs()$func_name,
+      analysis_inputs()$args,
+      cache = "session"
+    )
   output$statResults <- DT::renderDT(
     {
       res <- analysisResult()
@@ -5176,13 +6251,16 @@ server <- function(input, output, session) {
   )
   output$dualflashPlotOutput <- shiny::renderPlot({
     req(analysisResult())
-    if (input$output_mode != "Interactive") {
-      return(NULL)
-    }
     res <- analysisResult()
     req(res$plot)
     print(res$plot)
-  })
+  }) %>%
+    shiny::bindCache(
+      analysis_inputs()$df,
+      analysis_inputs()$func_name,
+      analysis_inputs()$args,
+      cache = "session"
+    )
   output$dualflashStats <- shiny::renderTable(
     {
       req(analysisResult())
@@ -5191,7 +6269,13 @@ server <- function(input, output, session) {
       res$stats
     },
     rownames = FALSE
-  )
+  ) %>%
+    shiny::bindCache(
+      analysis_inputs()$df,
+      analysis_inputs()$func_name,
+      analysis_inputs()$args,
+      cache = "session"
+    )
 
   output$heatmapImage <- shiny::renderImage(
     {
@@ -5215,9 +6299,6 @@ server <- function(input, output, session) {
 
   output$skku_skewPlot <- shiny::renderPlot({
     req(analysisResult())
-    if (input$output_mode != "Interactive") {
-      return(NULL)
-    }
     res <- analysisResult()
     if (is.list(res) && !is.null(res$p_skew)) {
       print(res$p_skew)
@@ -5225,9 +6306,6 @@ server <- function(input, output, session) {
   })
   output$skku_kurtPlot <- shiny::renderPlot({
     req(analysisResult())
-    if (input$output_mode != "Interactive") {
-      return(NULL)
-    }
     res <- analysisResult()
     if (is.list(res) && !is.null(res$p_kurt)) {
       print(res$p_kurt)
@@ -5257,19 +6335,35 @@ server <- function(input, output, session) {
     print(res)
   })
 
+  # Render the download UI conditionally
+  output$download_ui <- shiny::renderUI({
+    res <- analysisResult()
+    # Show download button only if the result is of a type that generates a downloadable plot
+    if (!is.null(res) && (is.list(res) || is.character(res))) {
+      tagList(
+        textInput(
+          "download_filename",
+          "Enter filename for download:",
+          value = "Cytokine_Analysis_Results"
+        ),
+        downloadButton("download_output", "Download Results as PDF")
+      )
+    }
+  })
+
+  # Download handler
   output$download_output <- shiny::downloadHandler(
     filename = function() {
-      if (nzchar(input$output_file_name)) {
-        paste0(input$output_file_name, ".pdf")
-      } else {
-        "output.pdf"
-      }
+      paste0(input$download_filename, ".pdf")
     },
     content = function(file) {
-      req(input$output_mode == "Download")
-      req(downloadPath())
-
-      file.copy(downloadPath(), file, overwrite = TRUE)
+      pdf(file, width = 10, height = 8)
+      plots <- reactivePlots()
+      # print each ggplot in order
+      for (p in plots) {
+        print(p)
+      }
+      dev.off()
     }
   )
 
@@ -5313,7 +6407,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$bp2_y_lim, {
     userState$bp2_y_lim <- input$bp2_y_lim
   })
-  # For Error-BarPlot
+  # For Error-Bar Plot
   shiny::observeEvent(input$eb_group_col, {
     userState$eb_group_col <- input$eb_group_col
   })
@@ -5431,6 +6525,9 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$splsda_group_col2, {
     userState$splsda_group_col2 <- input$splsda_group_col2
   })
+  shiny::observeEvent(input$splsda_batch_col, {
+    userState$splsda_batch_col <- input$splsda_batch_col
+  })
   shiny::observeEvent(input$splsda_multilevel, {
     userState$splsda_multilevel <- input$splsda_multilevel
   })
@@ -5501,6 +6598,9 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$mint_splsda_comp_num, {
     userState$mint_splsda_comp_num <- input$mint_splsda_comp_num
   })
+  shiny::observeEvent(input$mint_splsda_cim, {
+    userState$mint_splsda_cim <- input$mint_splsda_cim
+  })
   shiny::observeEvent(input$mint_splsda_log2, {
     userState$mint_splsda_log2 <- input$mint_splsda_log2
   })
@@ -5524,7 +6624,7 @@ server <- function(input, output, session) {
     userState$ttest_log2 <- input$ttest_log2
   })
   # ANOVA
-  shiny::observeEvent(input$ttest_log2, {
+  shiny::observeEvent(input$anova_log2, {
     userState$anova_log2 <- input$anova_log2
   })
   # For Volcano Plot
@@ -5605,4 +6705,79 @@ server <- function(input, output, session) {
     },
     ignoreNULL = FALSE
   )
+
+  shiny::observeEvent(input$menu_ANOVA, {
+    selected_function("ANOVA")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_t_test, {
+    selected_function("Two-Sample T-Test")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_boxplots, {
+    selected_function("Boxplots")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_enhanced_boxplots, {
+    selected_function("Enhanced Boxplots")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_errorbp, {
+    selected_function("Error-Bar Plot")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_dualflash, {
+    selected_function("Dual-Flashlight Plot")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_volcano, {
+    selected_function("Volcano Plot")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_heatmap, {
+    selected_function("Heatmap")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_PCA, {
+    selected_function("Principal Component Analysis (PCA)")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_splsda, {
+    selected_function(
+      "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
+    )
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_mint_splsda, {
+    selected_function(
+      "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
+    )
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_skewkurt, {
+    selected_function("Skewness/Kurtosis")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_rf, {
+    selected_function("Random Forest")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_xgb, {
+    selected_function("Extreme Gradient Boosting (XGBoost)")
+    currentPage("step4")
+    currentStep(4)
+  })
 }

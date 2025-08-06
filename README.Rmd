@@ -47,9 +47,10 @@ The Shiny application is available at [CytokineProfile Shiny App](https://sarasw
     7. Random Forest
     8. Skewness/Kurtosis
     9. Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)
-    10. Two-Sample T-Test
-    11. Volcano Plot
-    12. Extreme Gradient Boosting (XGBoost)
+    10. Multivariate INTegrative Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)
+    11. Two-Sample T-Test
+    12. Volcano Plot
+    13. Extreme Gradient Boosting (XGBoost)
 
 * Interactive & Downloadable Outputs:
     View results directly within the app or download outputs (e.g., PDF reports, images).

@@ -29,7 +29,7 @@ Below is a plot generated for the comparison of subjects with Type 2 Diabetes (T
 ### The Axes
 
 * X-axis: Average log2 Fold Change (log2FC)
-This axis quanties how much the level of a specific variable has changed between the groups. It is used to represent up-regulation and down-regulation symmetrically. For interpretation, when looking at positive values (> 0), the cytokines are more abundant (up-regulated) in subjects. On the other hand, when looking at negative values (< 0), the cytokines are less abundant (down-regulated) in subjects.
+This axis quantifies how much the level of a specific variable has changed between the groups. It is used to represent up-regulation and down-regulation symmetrically. For interpretation, when looking at positive values (> 0), the cytokines are more abundant (up-regulated) in subjects. On the other hand, when looking at negative values (< 0), the cytokines are less abundant (down-regulated) in subjects.
 
 * Y-axis: -Log10 p-value
 This axis represents the statistical significance of the change observed for each cytokine. The p-value from a t-test is transformed using the negative logarithm base 10. This transformation is convenient because smaller p-values (which indicate greater significance) become larger numbers.

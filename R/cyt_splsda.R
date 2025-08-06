@@ -8,6 +8,7 @@
 #'   grouping and treatment.
 #' @param group_col2 A string specifying the second grouping column name. Default is
 #'   \code{NULL}.
+#' @param batch_col A string specifying the column that identifies the batch or study for each sample.
 #' @param splsda_colors A vector of splsda_colors for the groups or treatments. If
 #'   \code{NULL}, a random palette (using \code{rainbow}) is generated based on
 #'   the number of groups.
@@ -33,13 +34,11 @@
 #'   a 3D plot is generated using the \code{plot3D} package. Default is \code{NULL}.
 #' @param roc Logical. Whether to compute and plot the ROC curve for the model.
 #'   Default is \code{FALSE}.
-# --- NEW ADDITION START ---
 #' @param multilevel_col A string specifying the column name that identifies
 #'   repeated measurements (e.g., patient or sample IDs). If provided, a
 #'   multilevel analysis will be performed. Default is \code{NULL}.
-# --- NEW ADDITION END ---
 #'
-#' @return In Download mode (output_file not NULL), a PDF file is written aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaand the function
+#' @return In Download mode (output_file not NULL), a PDF file is written and the function
 #'         returns NULL invisibly. In Interactive mode (output_file = NULL), a named list is
 #'         returned with the following elements (in this order):
 #'         1. overall_indiv_plot: Main individual classification plot
@@ -64,16 +63,6 @@
 #' pch_values = c(16, 4), style = NULL, ellipse = TRUE,
 #' group_col = "Group", group_col2 = "Treatment", roc = FALSE)
 #'
-# --- NEW ADDITION START ---
-#' # Example with multilevel analysis (assuming a 'PatientID' column exists)
-#' # data_df$PatientID <- rep(1:20, each = 2) # Example repeated measures column
-#' # cyt_splsda(data_df, output_file = NULL,
-#' # splsda_colors = c("black", "purple"), bg = FALSE, scale = "log2",
-#' # var_num = 25, comp_num = 2, pch_values = c(16, 4), ellipse = TRUE,
-#' # group_col = "Group", group_col2 = "Treatment",
-#' # multilevel_col = "PatientID")
-# --- NEW ADDITION END ---
-#'
 #' @export
 #' @importFrom mixOmics splsda background.predict perf vip auroc plotIndiv plotLoadings
 #' @import ggplot2
@@ -84,6 +73,7 @@ cyt_splsda <- function(
   data,
   group_col = NULL,
   group_col2 = NULL,
+  batch_col = NULL,
   splsda_colors = NULL,
   output_file = NULL,
   ellipse = FALSE,
@@ -97,9 +87,7 @@ cyt_splsda <- function(
   pch_values,
   style = NULL,
   roc = FALSE,
-  # --- NEW ADDITION START ---
   multilevel_col = NULL,
-  # --- NEW ADDITION END ---
   progress = NULL
 ) {
   # Initialize progress if provided.
@@ -118,11 +106,9 @@ cyt_splsda <- function(
   if (is.null(group_col) && is.null(group_col2)) {
     stop("At least one grouping column must be provided.")
   }
-
-  # --- NEW ADDITION START ---
   if (!is.null(scale) && scale == "log2") {
     # Also exclude the multilevel column from transformation
-    id_cols <- unique(c(group_col, group_col2, multilevel_col))
+    id_cols <- unique(c(group_col, group_col2, multilevel_col, batch_col))
     id_cols <- id_cols[!sapply(id_cols, is.null)] # Remove NULLs
 
     # Ensure id_cols exist in data before subsetting
@@ -138,8 +124,23 @@ cyt_splsda <- function(
   } else {
     message("Results based on no transformation:")
   }
-  # --- NEW ADDITION END ---
+  if (!is.null(batch_col)) {
+    id_cols2 <- unique(c(id_cols, batch_col))
+    num_cols <- setdiff(
+      names(data)[sapply(data, is.numeric)],
+      id_cols2
+    )
 
+    data <- data %>%
+      dplyr::group_by(!!sym(batch_col)) %>%
+      dplyr::mutate(
+        dplyr::across(
+          .cols = dplyr::all_of(num_cols),
+          .fns = ~ (. - mean(., na.rm = TRUE)) / sd(., na.rm = TRUE)
+        )
+      ) %>%
+      dplyr::ungroup()
+  }
   # Update progress after transformation.
   if (!is.null(progress)) {
     progress$inc(0.1, detail = "Data transformation complete")
@@ -165,12 +166,10 @@ cyt_splsda <- function(
     if (is.null(group_col2) || group_col == group_col2) {
       overall_analysis <- "Overall Analysis"
 
-      # --- NEW ADDITION START ---
       # Exclude all grouping and multilevel columns from predictors
       exclude_cols <- unique(c(group_col, multilevel_col))
       exclude_cols <- exclude_cols[!sapply(exclude_cols, is.null)]
       exclude_cols <- exclude_cols[exclude_cols %in% names(data)]
-      # --- NEW ADDITION END ---
 
       the_data_df <- data[, !(names(data) %in% exclude_cols), drop = FALSE]
       the_data_df <- the_data_df[, sapply(the_data_df, is.numeric)]
@@ -183,7 +182,6 @@ cyt_splsda <- function(
         progress$inc(0.05, detail = "Fitting sPLS-DA model (overall)")
       }
 
-      # --- NEW ADDITION START ---
       # Prepare for multilevel analysis if requested
       multilevel_design <- NULL
       if (!is.null(multilevel_col)) {
@@ -210,7 +208,6 @@ cyt_splsda <- function(
         splsda_args$multilevel <- multilevel_design
       }
       model <- do.call(mixOmics::splsda, splsda_args)
-      # --- NEW ADDITION END ---
 
       if (!is.null(progress)) {
         progress$inc(0.05, detail = "Calculating predictions (overall)")
@@ -236,14 +233,13 @@ cyt_splsda <- function(
           resolution = 300
         )
       }
-      group_factors <- sort(unique(the_groups))
+      group_factors <- seq_len(length(levels(factor(the_groups))))
       plot_args <- list(
         model,
         ind.names = NA,
         legend = TRUE,
         col = splsda_colors,
-        pch = pch_values,
-        pch.levels = group_factors,
+        pch = pch_values[group_factors],
         title = paste(overall_analysis, "With Accuracy:", acc1, "%"),
         legend.title = group_col
       )
@@ -261,7 +257,7 @@ cyt_splsda <- function(
           scores[, 1],
           scores[, 2],
           scores[, 3],
-          pch = pch_values,
+          pch = pch_values[group_factors],
           col = splsda_colors,
           xlab = "Component 1",
           ylab = "Component 2",
@@ -369,7 +365,7 @@ cyt_splsda <- function(
           bar,
           ggplot2::aes(x = stats::reorder(metabo, score), y = score)
         ) +
-          ggplot2::geom_bar(stat = "identity", fill = "red2") +
+          ggplot2::geom_bar(stat = "identity", fill = "grey") +
           ggplot2::coord_flip() +
           ggplot2::labs(
             title = paste("VIP Scores for Component", comp),
@@ -384,7 +380,6 @@ cyt_splsda <- function(
         vip_filter <- all_vip[, 1] > 1
         predictors_vip <- the_data_df[, vip_filter, drop = FALSE]
 
-        # --- NEW ADDITION START ---
         # Dynamically call splsda for the VIP model
         vip_splsda_args <- list(
           X = predictors_vip,
@@ -397,7 +392,6 @@ cyt_splsda <- function(
           vip_splsda_args$multilevel <- multilevel_design
         }
         vip_model <- do.call(mixOmics::splsda, vip_splsda_args)
-        # --- NEW ADDITION END ---
 
         vip_pred <- stats::predict(vip_model, predictors_vip, dist = "max.dist")
         prediction2 <- cbind(original = the_groups, vip_pred$class$max.dist)
@@ -423,8 +417,7 @@ cyt_splsda <- function(
           ind.names = NA,
           legend = TRUE,
           col = splsda_colors,
-          pch = pch_values,
-          pch.levels = group_factors,
+          pch = pch_values[group_factors],
           title = paste(overall_analysis, "(VIP>1) With Accuracy:", acc2, "%"),
           legend.title = group_col
         )
@@ -462,7 +455,7 @@ cyt_splsda <- function(
             scores2[, 1],
             scores2[, 2],
             scores2[, 3],
-            pch = pch_values,
+            pch = pch_values[group_factors],
             col = splsda_colors,
             xlab = "Component 1",
             ylab = "Component 2",
@@ -601,12 +594,15 @@ cyt_splsda <- function(
         overall_analysis <- current_level
         condt <- data[[group_col2]] == current_level
 
-        # --- NEW ADDITION START ---
         # Exclude all grouping and multilevel columns from predictors
-        exclude_cols <- unique(c(group_col, group_col2, multilevel_col))
+        exclude_cols <- unique(c(
+          group_col,
+          group_col2,
+          multilevel_col,
+          batch_col
+        ))
         exclude_cols <- exclude_cols[!sapply(exclude_cols, is.null)]
         exclude_cols <- exclude_cols[exclude_cols %in% names(data)]
-        # --- NEW ADDITION END ---
 
         the_data_df <- data[
           condt,
@@ -634,7 +630,6 @@ cyt_splsda <- function(
           )
         }
 
-        # --- NEW ADDITION START ---
         # Prepare for multilevel analysis if requested
         multilevel_design_subset <- NULL
         if (!is.null(multilevel_col)) {
@@ -660,7 +655,6 @@ cyt_splsda <- function(
           splsda_args$multilevel <- multilevel_design_subset
         }
         model <- do.call(mixOmics::splsda, splsda_args)
-        # --- NEW ADDITION END ---
 
         if (!is.null(progress)) {
           progress$inc(
@@ -696,14 +690,13 @@ cyt_splsda <- function(
             resolution = 300
           )
         }
-        group_factors <- sort(unique(the_groups))
+        group_factors <- seq_len(length(levels(factor(the_groups))))
         plot_args <- list(
           model,
           ind.names = NA,
           legend = TRUE,
           col = splsda_colors,
-          pch = pch_values,
-          pch.levels = group_factors,
+          pch = pch_values[group_factors],
           title = paste(overall_analysis, "With Accuracy:", acc1, "%"),
           legend.title = group_col
         )
@@ -721,7 +714,7 @@ cyt_splsda <- function(
             scores[, 1],
             scores[, 2],
             scores[, 3],
-            pch = pch_values,
+            pch = pch_values[group_factors],
             col = splsda_colors,
             xlab = "Component 1",
             ylab = "Component 2",
@@ -834,7 +827,7 @@ cyt_splsda <- function(
             bar,
             ggplot2::aes(x = stats::reorder(metabo, score), y = score)
           ) +
-            ggplot2::geom_bar(stat = "identity", fill = "red2") +
+            ggplot2::geom_bar(stat = "identity", fill = "grey") +
             ggplot2::coord_flip() +
             ggplot2::labs(
               title = paste(
@@ -854,7 +847,6 @@ cyt_splsda <- function(
           vip_filter <- all_vip[, 1] > 1
           predictors_vip <- the_data_df[, vip_filter, drop = FALSE]
 
-          # --- NEW ADDITION START ---
           # Dynamically call splsda for the VIP model
           vip_splsda_args <- list(
             X = predictors_vip,
@@ -867,7 +859,6 @@ cyt_splsda <- function(
             vip_splsda_args$multilevel <- multilevel_design_subset
           }
           vip_model <- do.call(mixOmics::splsda, vip_splsda_args)
-          # --- NEW ADDITION END ---
 
           vip_pred <- stats::predict(
             vip_model,
@@ -897,8 +888,7 @@ cyt_splsda <- function(
             ind.names = NA,
             legend = TRUE,
             col = splsda_colors,
-            pch = pch_values,
-            pch.levels = group_factors,
+            pch = pch_values[group_factors],
             title = paste(
               overall_analysis,
               "(VIP>1) With Accuracy:",
@@ -940,7 +930,7 @@ cyt_splsda <- function(
               scores2[, 1],
               scores2[, 2],
               scores2[, 3],
-              pch = pch_values,
+              pch = pch_values[group_factors],
               col = splsda_colors,
               xlab = "Component 1",
               ylab = "Component 2",
@@ -1100,12 +1090,10 @@ cyt_splsda <- function(
       return(p)
     }
 
-    # --- NEW ADDITION START ---
     # Exclude all grouping and ID columns from predictors
     exclude_cols <- unique(c(group_col, group_col2, multilevel_col))
     exclude_cols <- exclude_cols[!sapply(exclude_cols, is.null)]
     exclude_cols <- exclude_cols[exclude_cols %in% names(df_subset)]
-    # --- NEW ADDITION END ---
 
     conf_text <- NULL
     predictors <- df_subset[,
@@ -1115,13 +1103,14 @@ cyt_splsda <- function(
     predictors <- predictors[, sapply(predictors, is.numeric), drop = FALSE]
     groups <- as.vector(df_subset[[group_col]])
 
+    group_factors <- seq_len(length(levels(factor(groups))))
+
     if (length(unique(groups)) < 2) {
       stop(
         "The grouping variable must have at least two levels for sPLS-DA."
       )
     }
 
-    # --- NEW ADDITION START ---
     # Prepare for multilevel analysis if requested
     local_multilevel_design <- NULL
     if (!is.null(multilevel_col)) {
@@ -1154,7 +1143,6 @@ cyt_splsda <- function(
       splsda_args$multilevel <- local_multilevel_design
     }
     overall_model <- do.call(mixOmics::splsda, splsda_args)
-    # --- NEW ADDITION END ---
 
     if (!is.null(progress)) {
       progress$inc(0.1, detail = "Calculating overall accuracy...")
@@ -1176,8 +1164,7 @@ cyt_splsda <- function(
         ind.names = NA,
         legend = TRUE,
         col = splsda_colors,
-        pch = pch_values,
-        pch.levels = sort(unique(groups)),
+        pch = pch_values[group_factors],
         title = paste(
           "sPLS-DA:",
           analysis_label,
@@ -1211,7 +1198,7 @@ cyt_splsda <- function(
           scores[, 1],
           scores[, 2],
           scores[, 3],
-          pch = pch_values,
+          pch = pch_values[group_factors],
           col = splsda_colors,
           xlab = "Component 1",
           ylab = "Component 2",
@@ -1337,11 +1324,11 @@ cyt_splsda <- function(
         bar,
         ggplot2::aes(x = stats::reorder(variable, score), y = score)
       ) +
-        ggplot2::geom_bar(stat = "identity", fill = "red2") +
+        ggplot2::geom_bar(stat = "identity", fill = "grey") +
         ggplot2::coord_flip() +
         ggplot2::labs(
           title = paste("VIP Scores for Component", comp),
-          x = "Variable",
+          x = "Variables",
           y = "VIP Score"
         ) +
         ggplot2::theme_minimal()
@@ -1358,7 +1345,6 @@ cyt_splsda <- function(
       vip_filter <- all_vip[, 1] > 1
       predictors_vip <- predictors[, vip_filter, drop = FALSE]
 
-      # --- NEW ADDITION START ---
       # Dynamically build and call splsda for the VIP model
       vip_splsda_args <- list(
         X = predictors_vip,
@@ -1371,7 +1357,6 @@ cyt_splsda <- function(
         vip_splsda_args$multilevel <- local_multilevel_design
       }
       vip_model <- do.call(mixOmics::splsda, vip_splsda_args)
-      # --- NEW ADDITION END ---
 
       vip_pred <- stats::predict(vip_model, predictors_vip, dist = "max.dist")
       prediction2 <- cbind(original = groups, vip_pred$class$max.dist)
@@ -1390,8 +1375,7 @@ cyt_splsda <- function(
           ind.names = NA,
           legend = TRUE,
           col = splsda_colors,
-          pch = pch_values,
-          pch.levels = sort(unique(groups)),
+          pch = pch_values[group_factors],
           title = paste(
             "sPLS-DA (VIP>1):",
             analysis_label,
@@ -1447,7 +1431,7 @@ cyt_splsda <- function(
             scores[, 1],
             scores[, 2],
             scores[, 3],
-            pch = pch_values,
+            pch = pch_values[group_factors],
             col = splsda_colors,
             xlab = "Component 1",
             ylab = "Component 2",

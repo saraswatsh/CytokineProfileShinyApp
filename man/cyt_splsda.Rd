@@ -8,6 +8,7 @@ cyt_splsda(
   data,
   group_col = NULL,
   group_col2 = NULL,
+  batch_col = NULL,
   splsda_colors = NULL,
   output_file = NULL,
   ellipse = FALSE,
@@ -21,12 +22,13 @@ cyt_splsda(
   pch_values,
   style = NULL,
   roc = FALSE,
+  multilevel_col = NULL,
   progress = NULL
 )
 }
 \arguments{
 \item{data}{A matrix or data frame containing the variables. Columns not
-specified by \code{group_col} or \code{group_col2} are assumed to be continuous
+specified by \code{group_col}, \code{group_col2}, or \code{multilevel_col} are assumed to be continuous
 variables for analysis.}
 
 \item{group_col}{A string specifying the first grouping column name that contains grouping
@@ -35,6 +37,8 @@ grouping and treatment.}
 
 \item{group_col2}{A string specifying the second grouping column name. Default is
 \code{NULL}.}
+
+\item{batch_col}{A string specifying the column that identifies the batch or study for each sample.}
 
 \item{splsda_colors}{A vector of splsda_colors for the groups or treatments. If
 \code{NULL}, a random palette (using \code{rainbow}) is generated based on
@@ -73,6 +77,10 @@ a 3D plot is generated using the \code{plot3D} package. Default is \code{NULL}.}
 
 \item{roc}{Logical. Whether to compute and plot the ROC curve for the model.
 Default is \code{FALSE}.}
+
+\item{multilevel_col}{A string specifying the column name that identifies
+repeated measurements (e.g., patient or sample IDs). If provided, a
+multilevel analysis will be performed. Default is \code{NULL}.}
 }
 \value{
 In Download mode (output_file not NULL), a PDF file is written and the function

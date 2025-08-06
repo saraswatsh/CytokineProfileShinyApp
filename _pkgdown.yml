@@ -46,6 +46,7 @@ reference:
     Functions for deeper multivariate insights.
   contents:
   - cyt_splsda
+  - cyt_mint_splsda
   - cyt_pca
 - title: Machine Learning Methods
   contents:
@@ -57,6 +58,7 @@ reference:
   - ExampleData2
   - ExampleData3
   - ExampleData4
+  - ExampleData5
 footer:
   left: © 2025 Shubh Saraswat
   right: Built with pkgdown
