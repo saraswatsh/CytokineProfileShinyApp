@@ -106,14 +106,14 @@ cyt_splsda <- function(
   if (is.null(group_col) && is.null(group_col2)) {
     stop("At least one grouping column must be provided.")
   }
+  # Also exclude the multilevel column from transformation
+  id_cols <- unique(c(group_col, group_col2, multilevel_col, batch_col))
+  id_cols <- id_cols[!sapply(id_cols, is.null)] # Remove NULLs
+
+  # Ensure id_cols exist in data before subsetting
+  id_cols <- id_cols[id_cols %in% names(data)]
+
   if (!is.null(scale) && scale == "log2") {
-    # Also exclude the multilevel column from transformation
-    id_cols <- unique(c(group_col, group_col2, multilevel_col, batch_col))
-    id_cols <- id_cols[!sapply(id_cols, is.null)] # Remove NULLs
-
-    # Ensure id_cols exist in data before subsetting
-    id_cols <- id_cols[id_cols %in% names(data)]
-
     numeric_cols <- data[, !(names(data) %in% id_cols), drop = FALSE]
 
     data <- data.frame(

@@ -38,13 +38,14 @@ Imports:
     gridExtra,
     reshape2
 Suggests:
-    spelling, 
+    spelling,
     BiocManager,
     testthat,
     knitr,
     rmarkdown,
     devtools,
-    Ckmeans.1d.dp
+    Ckmeans.1d.dp,
+    learnr
 NeedsCompilation: no
 License: GPL (>= 2)
 LazyData: true

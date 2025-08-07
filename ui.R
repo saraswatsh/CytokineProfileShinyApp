@@ -188,7 +188,7 @@ ui <- fluidPage(
       tags$a(
         icon("globe"),
         "Project Website",
-        href = "https://shiny.cytokineprofile.org",
+        href = "https://shinyinfo.cytokineprofile.org",
         target = "_blank",
         class = "btn btn-light btn-sm me-4"
       ),

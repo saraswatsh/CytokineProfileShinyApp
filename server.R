@@ -2989,6 +2989,262 @@ server <- function(input, output, session) {
     currentStep(4)
   })
 
+  resetState <- function() {
+    # General state
+    userState$selected_columns = NULL
+
+    # Built=in Data built‑in tracking:
+    userState$use_builtin = FALSE
+    userState$built_in_choice = NULL
+
+    # ANOVA options
+    userState$anova_log2 = NULL
+
+    # Boxplots options
+    userState$bp_bin_size = NULL
+    userState$bp_mf_row = NULL
+    userState$bp_y_lim = NULL
+    userState$bp_log2 = NULL
+
+    # Enhanced Boxplots options
+    userState$bp2_mf_row = NULL
+    userState$bp2_log2 = NULL
+    userState$bp2_y_lim = NULL
+
+    # Error-Bar Plot
+    userState$eb_group_col = NULL
+    userState$eb_p_lab = NULL
+    userState$eb_es_lab = NULL
+    userState$eb_class_symbol = NULL
+    userState$eb_x_lab = NULL
+    userState$eb_y_lab = NULL
+    userState$eb_title = NULL
+    userState$eb_log2 = NULL
+
+    # Dual-Flashlight Plot options
+    userState$df_group_var = NULL
+    userState$df_cond1 = NULL
+    userState$df_cond2 = NULL
+    userState$df_ssmd_thresh = NULL
+    userState$df_log2fc_thresh = NULL
+    userState$df_top_labels = NULL
+
+    # Heatmap options
+    userState$hm_log2 = NULL
+    userState$hm_annotation = NULL
+
+    # PCA options
+    userState$pca_group_col = NULL
+    userState$pca_group_col2 = NULL
+    userState$pca_comp_num = NULL
+    userState$pca_log2 = NULL
+    userState$pca_ellipse = NULL
+    userState$pca_style = NULL
+    userState$pca_pch = NULL
+    userState$pca_colors = NULL
+
+    # Random Forest options
+    userState$rf_group_col = NULL
+    userState$rf_ntree = NULL
+    userState$rf_mtry = NULL
+    userState$rf_train_fraction = NULL
+    userState$rf_plot_roc = NULL
+    userState$rf_run_rfcv = NULL
+    userState$rf_k_folds = NULL
+    userState$rf_step = NULL
+
+    # Skewness/Kurtosis options
+    userState$skku_group_cols = NULL
+    userState$skku_print_raw = NULL
+    userState$skku_print_log = NULL
+
+    # sPLS-DA options
+    userState$splsda_group_col = NULL
+    userState$splsda_group_col2 = NULL
+    userState$spsda_batch_col = NULL
+    userState$splsda_var_num = NULL
+    userState$splsda_var_num_manual = FALSE
+    userState$splsda_cv_opt = NULL
+    userState$splsda_fold_num = NULL
+    userState$splsda_log2 = NULL
+    userState$splsda_comp_num = NULL
+    userState$splsda_pch = NULL
+    userState$splsda_style = NULL
+    userState$splsda_roc = NULL
+    userState$splsda_ellipse = NULL
+    userState$splsda_bg = NULL
+    userState$splsda_conf_mat = NULL
+    userState$plsda_colors = NULL
+    userState$splsda_multilevel = NULL
+
+    # MINT sPLS-DA options
+    userState$mint_splsda_group_col = NULL
+    userState$mint_splsda_group_col2 = NULL
+    userState$mint_splsda_batch_col = NULL
+    userState$mint_splsda_var_num = NULL
+    userState$mint_splsda_var_num_manual = FALSE
+    userState$mint_splsda_comp_num = NULL
+    userState$mint_splsda_cim = NULL
+    userState$mint_splsda_log2 = NULL
+    userState$mint_splsda_ellipse = NULL
+    userState$mint_splsda_bg = NULL
+    userState$mint_splsda_roc = NULL
+    userState$mint_splsda_colors = NULL
+    userState$mint_splsda_pch = NULL
+
+    # Two-Sample T-Test options
+    userState$ttest_log2 = NULL
+
+    # Volcano Plot options
+    userState$volc_group_col = NULL
+    userState$volc_cond1 = NULL
+    userState$volc_cond2 = NULL
+    userState$volc_fold_change_thresh = NULL
+    userState$volc_p_value_thresh = NULL
+    userState$volc_top_labels = NULL
+
+    # XGBoost options
+    userState$xgb_group_col = NULL
+    userState$xgb_train_fraction = NULL
+    userState$xgb_nrounds = NULL
+    userState$xgb_max_depth = NULL
+    userState$xgb_eta = NULL
+    userState$xgb_nfold = NULL
+    userState$xgb_cv = NULL
+    userState$xgb_eval_metric = NULL
+    userState$xgb_top_n_features = NULL
+    userState$xgb_plot_roc = NULL
+  }
+  shiny::observeEvent(input$new_fresh, {
+    resetState()
+    currentPage("step1")
+    currentStep(1)
+  })
+
+  shiny::observeEvent(input$new_reuse, {
+    isolate({
+      # ANOVA options
+      userState$anova_log2 = NULL
+
+      # Boxplots options
+      userState$bp_bin_size = NULL
+      userState$bp_mf_row = NULL
+      userState$bp_y_lim = NULL
+      userState$bp_log2 = NULL
+
+      # Enhanced Boxplots options
+      userState$bp2_mf_row = NULL
+      userState$bp2_log2 = NULL
+      userState$bp2_y_lim = NULL
+
+      # Error-Bar Plot
+      userState$eb_group_col = NULL
+      userState$eb_p_lab = NULL
+      userState$eb_es_lab = NULL
+      userState$eb_class_symbol = NULL
+      userState$eb_x_lab = NULL
+      userState$eb_y_lab = NULL
+      userState$eb_title = NULL
+      userState$eb_log2 = NULL
+
+      # Dual-Flashlight Plot options
+      userState$df_group_var = NULL
+      userState$df_cond1 = NULL
+      userState$df_cond2 = NULL
+      userState$df_ssmd_thresh = NULL
+      userState$df_log2fc_thresh = NULL
+      userState$df_top_labels = NULL
+
+      # Heatmap options
+      userState$hm_log2 = NULL
+      userState$hm_annotation = NULL
+
+      # PCA options
+      userState$pca_group_col = NULL
+      userState$pca_group_col2 = NULL
+      userState$pca_comp_num = NULL
+      userState$pca_log2 = NULL
+      userState$pca_ellipse = NULL
+      userState$pca_style = NULL
+      userState$pca_pch = NULL
+      userState$pca_colors = NULL
+
+      # Random Forest options
+      userState$rf_group_col = NULL
+      userState$rf_ntree = NULL
+      userState$rf_mtry = NULL
+      userState$rf_train_fraction = NULL
+      userState$rf_plot_roc = NULL
+      userState$rf_run_rfcv = NULL
+      userState$rf_k_folds = NULL
+      userState$rf_step = NULL
+
+      # Skewness/Kurtosis options
+      userState$skku_group_cols = NULL
+      userState$skku_print_raw = NULL
+      userState$skku_print_log = NULL
+
+      # sPLS-DA options
+      userState$splsda_group_col = NULL
+      userState$splsda_group_col2 = NULL
+      userState$spsda_batch_col = NULL
+      userState$splsda_var_num = NULL
+      userState$splsda_var_num_manual = FALSE
+      userState$splsda_cv_opt = NULL
+      userState$splsda_fold_num = NULL
+      userState$splsda_log2 = NULL
+      userState$splsda_comp_num = NULL
+      userState$splsda_pch = NULL
+      userState$splsda_style = NULL
+      userState$splsda_roc = NULL
+      userState$splsda_ellipse = NULL
+      userState$splsda_bg = NULL
+      userState$splsda_conf_mat = NULL
+      userState$plsda_colors = NULL
+      userState$splsda_multilevel = NULL
+
+      # MINT sPLS-DA options
+      userState$mint_splsda_group_col = NULL
+      userState$mint_splsda_group_col2 = NULL
+      userState$mint_splsda_batch_col = NULL
+      userState$mint_splsda_var_num = NULL
+      userState$mint_splsda_var_num_manual = FALSE
+      userState$mint_splsda_comp_num = NULL
+      userState$mint_splsda_cim = NULL
+      userState$mint_splsda_log2 = NULL
+      userState$mint_splsda_ellipse = NULL
+      userState$mint_splsda_bg = NULL
+      userState$mint_splsda_roc = NULL
+      userState$mint_splsda_colors = NULL
+      userState$mint_splsda_pch = NULL
+
+      # Two-Sample T-Test options
+      userState$ttest_log2 = NULL
+
+      # Volcano Plot options
+      userState$volc_group_col = NULL
+      userState$volc_cond1 = NULL
+      userState$volc_cond2 = NULL
+      userState$volc_fold_change_thresh = NULL
+      userState$volc_p_value_thresh = NULL
+      userState$volc_top_labels = NULL
+
+      # XGBoost options
+      userState$xgb_group_col = NULL
+      userState$xgb_train_fraction = NULL
+      userState$xgb_nrounds = NULL
+      userState$xgb_max_depth = NULL
+      userState$xgb_eta = NULL
+      userState$xgb_nfold = NULL
+      userState$xgb_cv = NULL
+      userState$xgb_eval_metric = NULL
+      userState$xgb_top_n_features = NULL
+      userState$xgb_plot_roc = NULL
+    })
+    currentPage("step2")
+    currentStep(2)
+  })
+
   output$page_content <- shiny::renderUI({
     switch(
       currentPage(),
@@ -3141,21 +3397,13 @@ server <- function(input, output, session) {
 
   tutorialUI <- function() {
     shiny::tagList(
-      h2("Tutorials"),
-      p(
-        HTML(paste0(
-          "Find our full tutorials at <a href='https://shinyinfo.cytokineprofile.org/articles/index.html'>project website.</a>"
-        ))
-      )
+      includeMarkdown("TUTORIALS.md")
     )
   }
   newsUI <- function() {
     shiny::tagList(
-      h2("News"),
-      p("Stay tuned for updates and new features!"),
-      p(HTML(paste0(
-        "Check out our <a href='https://github.com/saraswatsh/CytokineProfileShinyApp'>GitHub repository.</a>"
-      )))
+      h4("News and Updates"),
+      includeMarkdown("NEWS.md")
     )
   }
   contactUI <- function() {
@@ -3630,6 +3878,24 @@ server <- function(input, output, session) {
         column(
           12,
           uiOutput("download_ui") # Placeholder for download button
+        )
+      ),
+      fluidRow(
+        column(
+          12,
+          style = "margin-top: 1rem; text-align: right;",
+          actionButton(
+            "new_fresh",
+            label = "Start New (fresh)",
+            icon = icon("play"),
+            class = "btn-primary"
+          ),
+          actionButton(
+            "new_reuse",
+            label = "Start New (reuse data)",
+            icon = icon("repeat"),
+            class = "btn-secondary"
+          )
         )
       ),
       fluidRow(
@@ -5614,6 +5880,8 @@ server <- function(input, output, session) {
       analysis_inputs()$df,
       analysis_inputs()$func_name,
       analysis_inputs()$args,
+      input$new_fresh,
+      input$new_resuse,
       cache = "session"
     )
 
@@ -5636,6 +5904,8 @@ server <- function(input, output, session) {
       analysis_inputs()$df,
       analysis_inputs()$func_name,
       analysis_inputs()$args,
+      input$new_fresh,
+      input$new_resuse,
       cache = "session"
     )
 
@@ -6162,6 +6432,8 @@ server <- function(input, output, session) {
       analysis_inputs()$df,
       analysis_inputs()$func_name,
       analysis_inputs()$args,
+      input$new_fresh,
+      input$new_resuse,
       cache = "session"
     )
 
@@ -6178,6 +6450,8 @@ server <- function(input, output, session) {
       analysis_inputs()$df,
       analysis_inputs()$func_name,
       analysis_inputs()$args,
+      input$new_fresh,
+      input$new_resuse,
       cache = "session"
     )
   output$statResults <- DT::renderDT(
@@ -6259,6 +6533,8 @@ server <- function(input, output, session) {
       analysis_inputs()$df,
       analysis_inputs()$func_name,
       analysis_inputs()$args,
+      input$new_fresh,
+      input$new_resuse,
       cache = "session"
     )
   output$dualflashStats <- shiny::renderTable(
@@ -6274,6 +6550,8 @@ server <- function(input, output, session) {
       analysis_inputs()$df,
       analysis_inputs()$func_name,
       analysis_inputs()$args,
+      input$new_fresh,
+      input$new_resuse,
       cache = "session"
     )
 

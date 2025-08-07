@@ -17,6 +17,10 @@ navbar:
     href: reference/index.html
   - text: Articles
     href: articles/index.html
+  - text: News
+    menu:
+    - text: Changelog
+      href: news/index.html
 articles:
 - title: Installation for RStudio
   contents: R_installation
