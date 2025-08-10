@@ -15,8 +15,8 @@ cyt_mint_splsda(
   bg = FALSE,
   var_num = 20,
   comp_num = 2,
+  cim = FALSE,
   scale = NULL,
-  pch_values = NULL,
   roc = FALSE,
   progress = NULL
 )
@@ -54,11 +54,10 @@ Default is \code{FALSE}.}
 \item{comp_num}{Numeric. The number of components to calculate in the sPLS-DA model.
 Default is 2.}
 
+\item{cim}{Logical. Whether to compute and plot the Clustered Image Map (CIM) heatmap. Default is \code{FALSE}.}
+
 \item{scale}{Character. Option for data transformation; if set to \code{"log2"}, a log2
 transformation is applied to the continuous variables. Default is \code{NULL}.}
-
-\item{pch_values}{A vector of integers specifying the plotting characters (pch values)
-to be used in the plots.}
 
 \item{roc}{Logical. Whether to compute and plot the ROC curve for the model.
 Default is \code{FALSE}.}

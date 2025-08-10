@@ -12,6 +12,7 @@ library(DT)
 library(shinyFeedback)
 library(skimr)
 library(shinycssloaders)
+library(patchwork)
 
 # Define server logic
 server <- function(input, output, session) {
@@ -68,18 +69,16 @@ server <- function(input, output, session) {
     use_builtin = FALSE,
     built_in_choice = NULL,
 
-    # ANOVA options
-    anova_log2 = NULL,
+    # Step 2 log2 transformation checkbox
+    step2_log2 = FALSE,
 
     # Boxplots options
     bp_bin_size = NULL,
     bp_mf_row = NULL,
     bp_y_lim = NULL,
-    bp_log2 = NULL,
 
     # Enhanced Boxplots options
     bp2_mf_row = NULL,
-    bp2_log2 = NULL,
     bp2_y_lim = NULL,
 
     # Error-Bar Plot
@@ -90,7 +89,6 @@ server <- function(input, output, session) {
     eb_x_lab = NULL,
     eb_y_lab = NULL,
     eb_title = NULL,
-    eb_log2 = NULL,
 
     # Dual-Flashlight Plot options
     df_group_var = NULL,
@@ -101,14 +99,12 @@ server <- function(input, output, session) {
     df_top_labels = NULL,
 
     # Heatmap options
-    hm_log2 = NULL,
     hm_annotation = NULL,
 
     # PCA options
     pca_group_col = NULL,
     pca_group_col2 = NULL,
     pca_comp_num = NULL,
-    pca_log2 = NULL,
     pca_ellipse = NULL,
     pca_style = NULL,
     pca_pch = NULL,
@@ -137,7 +133,6 @@ server <- function(input, output, session) {
     splsda_var_num_manual = FALSE,
     splsda_cv_opt = NULL,
     splsda_fold_num = NULL,
-    splsda_log2 = NULL,
     splsda_comp_num = NULL,
     splsda_pch = NULL,
     splsda_style = NULL,
@@ -147,6 +142,8 @@ server <- function(input, output, session) {
     splsda_conf_mat = NULL,
     splsda_colors = NULL,
     splsda_multilevel = NULL,
+    splsda_use_batch_corr = FALSE,
+    splsda_batch_col = NULL,
 
     # MINT sPLS-DA options
     mint_splsda_group_col = NULL,
@@ -156,15 +153,10 @@ server <- function(input, output, session) {
     mint_splsda_var_num_manual = FALSE,
     mint_splsda_comp_num = NULL,
     mint_splsda_cim = NULL,
-    mint_splsda_log2 = NULL,
     mint_splsda_ellipse = NULL,
     mint_splsda_bg = NULL,
     mint_splsda_roc = NULL,
     mint_splsda_colors = NULL,
-    mint_splsda_pch = NULL,
-
-    # Two-Sample T-Test options
-    ttest_log2 = NULL,
 
     # Volcano Plot options
     volc_group_col = NULL,
@@ -493,30 +485,6 @@ server <- function(input, output, session) {
 
     switch(
       func_name,
-      "ANOVA" = {
-        ui_list <- tagList(
-          checkboxInput(
-            "anova_log2",
-            label = helper(
-              type = "inline",
-              title = "Apply log2 transformation",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-              ),
-              content = "Apply a log2 transformation to the data before performing the ANOVA test. This transformation can help manage data that span a wide range of values.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$anova_log2) %||% FALSE
-          )
-        )
-      },
       # ------------------------
       # Boxplots
       # ------------------------
@@ -593,28 +561,6 @@ server <- function(input, output, session) {
                 ),
                 value = isolate(userState$bp_y_lim) %||% ""
               )
-            ),
-            column(
-              width = 6,
-              checkboxInput(
-                "bp_log2",
-                label = helper(
-                  type = "inline",
-                  title = "Apply log2 transformation",
-                  icon = "fas fa-exclamation-circle",
-                  shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-                  ),
-                  content = "Apply a log2 transformation to the data before generating the boxplots. This transformation can
-                         help manage data that span a wide range of values.",
-                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                    "red"
-                  } else {
-                    "blue"
-                  }
-                ),
-                value = isolate(userState$bp_log2) %||% FALSE
-              )
             )
           )
         )
@@ -667,30 +613,6 @@ server <- function(input, output, session) {
                 value = isolate(userState$bp2_y_lim) %||% ""
               )
             )
-          ),
-          fluidRow(
-            column(
-              6,
-              checkboxInput(
-                "bp2_log2",
-                label = helper(
-                  type = "inline",
-                  title = "Apply log2 transformation",
-                  icon = "fas fa-exclamation-circle",
-                  shiny_tag = HTML(
-                    "<span style='margin-right:15px;'>Apply log2 transformation</span>"
-                  ),
-                  content = "Transform data by log2 before plotting enhanced boxplots.",
-                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                    "red"
-                  } else {
-                    "blue"
-                  }
-                ),
-                value = isolate(userState$bp2_log2) %||% FALSE
-              )
-            ),
-            column(6) # placeholder to balance the grid
           )
         )
       },
@@ -728,27 +650,6 @@ server <- function(input, output, session) {
                 ),
                 choices = cat_vars,
                 selected = isolate(userState$eb_group_col) %||% cat_vars[1]
-              )
-            ),
-            column(
-              6,
-              checkboxInput(
-                "eb_log2",
-                label = helper(
-                  type = "inline",
-                  title = "Apply log2 transformation",
-                  icon = "fas fa-exclamation-circle",
-                  shiny_tag = HTML(
-                    "<span style='margin-right:15px;'>Apply log2 transformation</span>"
-                  ),
-                  content = "Apply log2 transformation to the data before plotting.",
-                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                    "red"
-                  } else {
-                    "blue"
-                  }
-                ),
-                value = isolate(userState$eb_log2) %||% FALSE
               )
             )
           ),
@@ -1009,27 +910,6 @@ server <- function(input, output, session) {
           fluidRow(
             column(
               6,
-              checkboxInput(
-                "hm_log2",
-                label = helper(
-                  type = "inline",
-                  title = "Apply log2 transformation",
-                  icon = "fas fa-exclamation-circle",
-                  shiny_tag = HTML(
-                    "<span style='margin-right:15px;'>Apply log2 transformation</span>"
-                  ),
-                  content = "Apply log2 to the data before drawing the heatmap.",
-                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                    "red"
-                  } else {
-                    "blue"
-                  }
-                ),
-                value = isolate(userState$hm_log2) %||% FALSE
-              )
-            ),
-            column(
-              6,
               selectInput(
                 "hm_annotation",
                 label = helper(
@@ -1165,27 +1045,6 @@ server <- function(input, output, session) {
 
           # Row 3: transformations & ellipse
           fluidRow(
-            column(
-              6,
-              checkboxInput(
-                "pca_log2",
-                label = helper(
-                  type = "inline",
-                  title = "Apply log2 transformation",
-                  icon = "fas fa-exclamation-circle",
-                  shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-                  ),
-                  content = "Apply a log2 transformation to the data before generating the PCA plot. This transformation can help manage data that span a wide range of values.",
-                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                    "red"
-                  } else {
-                    "blue"
-                  }
-                ),
-                value = isolate(userState$pca_log2) %||% FALSE
-              )
-            ),
             column(
               6,
               checkboxInput(
@@ -1838,27 +1697,6 @@ server <- function(input, output, session) {
           fluidRow(
             column(
               6,
-              checkboxInput(
-                "splsda_log2",
-                label = helper(
-                  type = "inline",
-                  title = "Apply log2 transformation",
-                  icon = "fas fa-exclamation-circle",
-                  shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-                  ),
-                  content = "Apply log2 to the data before generating the sPLS-DA plot.",
-                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                    "red"
-                  } else {
-                    "blue"
-                  }
-                ),
-                value = isolate(userState$splsda_log2) %||% FALSE
-              )
-            ),
-            column(
-              6,
               numericInput(
                 "splsda_comp_num",
                 label = helper(
@@ -2192,57 +2030,6 @@ server <- function(input, output, session) {
           fluidRow(
             column(
               6,
-              selectizeInput(
-                "mint_splsda_pch",
-                label = helper(
-                  type = "inline",
-                  title = "Plotting Symbols for Batches",
-                  icon = "fas fa-question-circle",
-                  shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Plotting Symbols</span>"
-                  ),
-                  content = "Select PCH symbols to represent the different batches on the sample plots.",
-                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                    "red"
-                  } else {
-                    "blue"
-                  }
-                ),
-                choices = pch_choices,
-                selected = isolate(
-                  userState$mint_splsda_pch %||% pch_choices[c(17, 5)]
-                ),
-                multiple = TRUE,
-                options = list(
-                  placeholder = "Select PCH Values",
-                  plugins = c("remove_button", "restore_on_backspace"),
-                  create = TRUE
-                )
-              )
-            ),
-            column(
-              6,
-              checkboxInput(
-                "mint_splsda_log2",
-                label = helper(
-                  type = "inline",
-                  title = "Apply log2 transformation",
-                  icon = "fas fa-exclamation-circle",
-                  shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-                  ),
-                  content = "Apply log2 to the data before analysis.",
-                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                    "red"
-                  } else {
-                    "blue"
-                  }
-                ),
-                value = isolate(userState$mint_splsda_log2) %||% FALSE
-              )
-            ),
-            column(
-              6,
               checkboxInput(
                 "mint_splsda_cim",
                 label = helper(
@@ -2250,7 +2037,7 @@ server <- function(input, output, session) {
                   title = "Draw a Clustered Image Map (CIM)?",
                   icon = "fas fa-exclamation-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
+                    "<span style='margin-right: 15px;'>Draw a Clustered Image Map?</span>"
                   ),
                   content = "Draw a Clustered Image Map (CIM) to visualize the data. This provides a heatmap-like view of the data with clustering.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
@@ -2261,12 +2048,9 @@ server <- function(input, output, session) {
                 ),
                 value = isolate(userState$mint_splsda_cim) %||% FALSE
               )
-            )
-          ),
-          # Row 5: Final Toggles
-          fluidRow(
+            ),
             column(
-              4,
+              6,
               checkboxInput(
                 "mint_splsda_ellipse",
                 label = helper(
@@ -2285,9 +2069,12 @@ server <- function(input, output, session) {
                 ),
                 value = isolate(userState$mint_splsda_ellipse) %||% FALSE
               )
-            ),
+            )
+          ),
+          # Row 5: Final Toggles
+          fluidRow(
             column(
-              4,
+              6,
               checkboxInput(
                 "mint_splsda_roc",
                 label = helper(
@@ -2308,7 +2095,7 @@ server <- function(input, output, session) {
               )
             ),
             column(
-              4,
+              6,
               checkboxInput(
                 "mint_splsda_bg",
                 label = helper(
@@ -2328,30 +2115,6 @@ server <- function(input, output, session) {
                 value = isolate(userState$mint_splsda_bg) %||% FALSE
               )
             )
-          )
-        )
-      },
-      "Two-Sample T-Test" = {
-        ui_list <- tagList(
-          checkboxInput(
-            "ttest_log2",
-            label = helper(
-              type = "inline",
-              title = "Apply log2 transformation",
-              icon = "fas fa-exclamation-circle",
-              shiny_tag = HTML(
-                "<span style='margin-right: 15px;'>Apply log2 transformation</span>"
-              ),
-              content = "Apply a log2 transformation to the data before performing the two-sample t-test. This transformation can help manage data that span a wide range of values.",
-              if (
-                input$theme_choice == "darkly" || input$theme_choice == "cyborg"
-              ) {
-                colour = "red"
-              } else {
-                colour = "blue"
-              }
-            ),
-            value = isolate(userState$ttest_log2) %||% FALSE
           )
         )
       },
@@ -2997,18 +2760,16 @@ server <- function(input, output, session) {
     userState$use_builtin = FALSE
     userState$built_in_choice = NULL
 
-    # ANOVA options
-    userState$anova_log2 = NULL
+    # Step 2 log2 checkbox
+    userState$step2_log2 = FALSE
 
     # Boxplots options
     userState$bp_bin_size = NULL
     userState$bp_mf_row = NULL
     userState$bp_y_lim = NULL
-    userState$bp_log2 = NULL
 
     # Enhanced Boxplots options
     userState$bp2_mf_row = NULL
-    userState$bp2_log2 = NULL
     userState$bp2_y_lim = NULL
 
     # Error-Bar Plot
@@ -3019,7 +2780,6 @@ server <- function(input, output, session) {
     userState$eb_x_lab = NULL
     userState$eb_y_lab = NULL
     userState$eb_title = NULL
-    userState$eb_log2 = NULL
 
     # Dual-Flashlight Plot options
     userState$df_group_var = NULL
@@ -3030,14 +2790,12 @@ server <- function(input, output, session) {
     userState$df_top_labels = NULL
 
     # Heatmap options
-    userState$hm_log2 = NULL
     userState$hm_annotation = NULL
 
     # PCA options
     userState$pca_group_col = NULL
     userState$pca_group_col2 = NULL
     userState$pca_comp_num = NULL
-    userState$pca_log2 = NULL
     userState$pca_ellipse = NULL
     userState$pca_style = NULL
     userState$pca_pch = NULL
@@ -3066,7 +2824,6 @@ server <- function(input, output, session) {
     userState$splsda_var_num_manual = FALSE
     userState$splsda_cv_opt = NULL
     userState$splsda_fold_num = NULL
-    userState$splsda_log2 = NULL
     userState$splsda_comp_num = NULL
     userState$splsda_pch = NULL
     userState$splsda_style = NULL
@@ -3075,7 +2832,10 @@ server <- function(input, output, session) {
     userState$splsda_bg = NULL
     userState$splsda_conf_mat = NULL
     userState$plsda_colors = NULL
+    userState$splsda_use_multilevel = FALSE
     userState$splsda_multilevel = NULL
+    userState$splsda_use_batch_corr = FALSE
+    userState$splsda_batch_col = NULL
 
     # MINT sPLS-DA options
     userState$mint_splsda_group_col = NULL
@@ -3085,15 +2845,10 @@ server <- function(input, output, session) {
     userState$mint_splsda_var_num_manual = FALSE
     userState$mint_splsda_comp_num = NULL
     userState$mint_splsda_cim = NULL
-    userState$mint_splsda_log2 = NULL
     userState$mint_splsda_ellipse = NULL
     userState$mint_splsda_bg = NULL
     userState$mint_splsda_roc = NULL
     userState$mint_splsda_colors = NULL
-    userState$mint_splsda_pch = NULL
-
-    # Two-Sample T-Test options
-    userState$ttest_log2 = NULL
 
     # Volcano Plot options
     userState$volc_group_col = NULL
@@ -3123,18 +2878,13 @@ server <- function(input, output, session) {
 
   shiny::observeEvent(input$new_reuse, {
     isolate({
-      # ANOVA options
-      userState$anova_log2 = NULL
-
       # Boxplots options
       userState$bp_bin_size = NULL
       userState$bp_mf_row = NULL
       userState$bp_y_lim = NULL
-      userState$bp_log2 = NULL
 
       # Enhanced Boxplots options
       userState$bp2_mf_row = NULL
-      userState$bp2_log2 = NULL
       userState$bp2_y_lim = NULL
 
       # Error-Bar Plot
@@ -3145,7 +2895,6 @@ server <- function(input, output, session) {
       userState$eb_x_lab = NULL
       userState$eb_y_lab = NULL
       userState$eb_title = NULL
-      userState$eb_log2 = NULL
 
       # Dual-Flashlight Plot options
       userState$df_group_var = NULL
@@ -3156,14 +2905,12 @@ server <- function(input, output, session) {
       userState$df_top_labels = NULL
 
       # Heatmap options
-      userState$hm_log2 = NULL
       userState$hm_annotation = NULL
 
       # PCA options
       userState$pca_group_col = NULL
       userState$pca_group_col2 = NULL
       userState$pca_comp_num = NULL
-      userState$pca_log2 = NULL
       userState$pca_ellipse = NULL
       userState$pca_style = NULL
       userState$pca_pch = NULL
@@ -3192,7 +2939,6 @@ server <- function(input, output, session) {
       userState$splsda_var_num_manual = FALSE
       userState$splsda_cv_opt = NULL
       userState$splsda_fold_num = NULL
-      userState$splsda_log2 = NULL
       userState$splsda_comp_num = NULL
       userState$splsda_pch = NULL
       userState$splsda_style = NULL
@@ -3202,7 +2948,9 @@ server <- function(input, output, session) {
       userState$splsda_conf_mat = NULL
       userState$plsda_colors = NULL
       userState$splsda_multilevel = NULL
-
+      userState$splsda_use_batch_corr = FALSE
+      userState$splsda_batch_col = NULL
+      userState$splsda_use_multilevel = FALSE
       # MINT sPLS-DA options
       userState$mint_splsda_group_col = NULL
       userState$mint_splsda_group_col2 = NULL
@@ -3211,15 +2959,10 @@ server <- function(input, output, session) {
       userState$mint_splsda_var_num_manual = FALSE
       userState$mint_splsda_comp_num = NULL
       userState$mint_splsda_cim = NULL
-      userState$mint_splsda_log2 = NULL
       userState$mint_splsda_ellipse = NULL
       userState$mint_splsda_bg = NULL
       userState$mint_splsda_roc = NULL
       userState$mint_splsda_colors = NULL
-      userState$mint_splsda_pch = NULL
-
-      # Two-Sample T-Test options
-      userState$ttest_log2 = NULL
 
       # Volcano Plot options
       userState$volc_group_col = NULL
@@ -3402,7 +3145,7 @@ server <- function(input, output, session) {
   }
   newsUI <- function() {
     shiny::tagList(
-      h4("News and Updates"),
+      h1("News and Updates"),
       includeMarkdown("NEWS.md")
     )
   }
@@ -3646,8 +3389,22 @@ server <- function(input, output, session) {
                 )
               )
             ),
+            # 3) Optional: Log₂ transformation
+            card(
+              card_header(
+                class = "bg-info",
+                "3. Optional: Log₂ Transformation"
+              ),
+              card_body(
+                checkboxInput(
+                  "step2_log2",
+                  label = "Apply log₂ transformation to all selected numerical columns",
+                  value = isolate(userState$step2_log2) %||% FALSE
+                )
+              )
+            ),
 
-            # 3) Conditional filters UI
+            # 4) Conditional filters UI
             uiOutput("conditional_filter_ui")
           ),
 
@@ -3715,6 +3472,15 @@ server <- function(input, output, session) {
             div(
               style = "margin-top:0.5rem;",
               actionButton("back2", "Back", icon = icon("arrow-left")),
+              conditionalPanel(
+                "input.step2_log2 == true",
+                actionButton(
+                  "preview_transform",
+                  "Preview Transformation",
+                  icon = icon("magnifying-glass"),
+                  class = "btn-secondary"
+                )
+              ),
               actionButton(
                 "next2",
                 "Next",
@@ -3876,38 +3642,35 @@ server <- function(input, output, session) {
       # Add the download UI output here
       fluidRow(
         column(
-          12,
+          6,
           uiOutput("download_ui") # Placeholder for download button
         )
       ),
       fluidRow(
         column(
           12,
-          style = "margin-top: 1rem; text-align: right;",
-          actionButton(
-            "new_fresh",
-            label = "Start New (fresh)",
-            icon = icon("play"),
-            class = "btn-primary"
-          ),
-          actionButton(
-            "new_reuse",
-            label = "Start New (reuse data)",
-            icon = icon("repeat"),
-            class = "btn-secondary"
-          )
-        )
-      ),
-      fluidRow(
-        column(
-          12,
           div(
-            style = "text-align: left; margin-top: 1rem;",
+            style = "display:flex; align-items:center; margin-top:1rem;",
             actionButton(
               "back5",
               "Back",
               icon = icon("arrow-left"),
               class = "btn-secondary"
+            ),
+            div(
+              style = "margin-left:auto; display:flex; align-items:center; gap:.5rem;",
+              actionButton(
+                "new_fresh",
+                "Start New (fresh)",
+                icon = icon("play"),
+                class = "btn-primary"
+              ),
+              actionButton(
+                "new_reuse",
+                "Start New (reuse data)",
+                icon = icon("repeat"),
+                class = "btn-secondary"
+              )
             )
           )
         )
@@ -4163,15 +3926,15 @@ server <- function(input, output, session) {
     )
   })
   # C) Base reactive to apply row‐deletions and categorical filters
-  data_after_filters <- shiny::reactive({
+  # 1. Always keep the filtered-but-raw data
+  raw_filtered <- shiny::reactive({
     df <- userData()
-    req(df)
-    # (1) apply any row‐deletions…
+    # (1) apply any row‐deletions
     if (!is.null(userState$deleted_row_ids)) {
       df <- df[!df$..cyto_id.. %in% userState$deleted_row_ids, , drop = FALSE]
     }
-    # (2) only apply filters on Step 2
-    if (currentStep() == 2 && length(input$selected_categorical_cols)) {
+    # (2) apply filters
+    if (length(input$selected_categorical_cols)) {
       for (col in input$selected_categorical_cols) {
         fid <- paste0("filter_", col)
         if (fid %in% names(input)) {
@@ -4181,14 +3944,20 @@ server <- function(input, output, session) {
     }
     df
   })
+  data_after_filters <- shiny::reactive({
+    df <- raw_filtered()
+    req(df)
+    if (isTRUE(input$step2_log2)) {
+      num_cols <- intersect(input$selected_numerical_cols, names(df))
+      df[num_cols] <- round(log2(df[num_cols]), 5)
+    }
+    df
+  })
 
   # D) The main filteredData() used by DT
   filteredData <- shiny::reactive({
     df <- data_after_filters()
     req(df)
-
-    # On Step 2, keep what the user has *just* selected;
-    # on Step 3+, keep what we saved in userState.
     cols_to_keep <-
       if (currentStep() >= 3) {
         req(userState$selected_columns)
@@ -4252,6 +4021,119 @@ server <- function(input, output, session) {
       NULL
     }
   })
+  # ============================================================================
+  # Reactive holders for the before/after comparison
+  # ============================================================================
+  comparison_data <- shiny::reactiveVal(list(
+    orig = NULL,
+    trans = NULL,
+    num_cols = character()
+  ))
+
+  show_comparison <- shiny::reactiveVal(FALSE)
+
+  # 1) Define the comparison plot output up front:
+  output$norm_compare <- shiny::renderPlot({
+    req(show_comparison())
+    cmp <- comparison_data()
+    orig <- cmp$orig
+    trans <- cmp$trans
+    num_cols <- cmp$num_cols
+    # long data for before & after
+    df_before <- pivot_longer(
+      orig[, num_cols, drop = FALSE],
+      cols = everything(),
+      names_to = "variable",
+      values_to = "value"
+    )
+    df_after <- pivot_longer(
+      trans[, num_cols, drop = FALSE],
+      cols = everything(),
+      names_to = "variable",
+      values_to = "value"
+    )
+    # 1) Separate density plots
+    dens_before <- ggplot(df_before, aes(x = value)) +
+      geom_density(fill = "skyblue", alpha = 0.5) +
+      labs(title = "Before log₂", x = "Value", y = "Density") +
+      theme_minimal()
+
+    dens_after <- ggplot(df_after, aes(x = value)) +
+      geom_density(fill = "salmon", alpha = 0.5) +
+      labs(title = "After log₂", x = "Value", y = "") +
+      theme_minimal() +
+      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+
+    # 2) Separate boxplot grids
+    box_before <- ggplot(df_before, aes(x = variable, y = value)) +
+      geom_boxplot(fill = "skyblue", outlier.size = 0.5) +
+      labs(title = "Before log₂", x = NULL, y = "Value") +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        strip.text = element_text(size = 8)
+      )
+
+    box_after <- ggplot(df_after, aes(x = variable, y = value)) +
+      geom_boxplot(fill = "salmon", outlier.size = 0.5) +
+      labs(title = "After log₂", x = NULL, y = "") +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        strip.text = element_text(size = 8),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()
+      )
+
+    # 3) Combine with patchwork
+    # Top row: two densities
+    # Bottom row: two boxplot facets
+    comparison_plot <- patchwork::wrap_plots(
+      dens_before,
+      dens_after,
+      box_before,
+      box_after,
+      ncol = 2,
+      nrow = 2,
+      heights = c(0.3, 0.7),
+      widths = c(0.5, 0.5)
+    )
+    print(comparison_plot)
+  })
+
+  # 2) When they click “Next” on Step 2, save the selected columns and log2 option
+  shiny::observeEvent(input$next2, {
+    # save state
+    userState$selected_columns <- selected_columns_combined()
+    userState$step2_log2 <- input$step2_log2
+    currentPage("step3")
+    currentStep(3)
+  })
+
+  shiny::observeEvent(input$preview_transform, {
+    req(input$step2_log2) # only if they’ve asked for log2
+    orig <- raw_filtered()
+    num_cols <- intersect(input$selected_numerical_cols, names(orig))
+    trans <- orig
+    trans[num_cols] <- round(log2(orig[num_cols]), 5)
+
+    comparison_data(list(
+      orig = orig,
+      trans = trans,
+      num_cols = num_cols
+    ))
+    show_comparison(TRUE)
+
+    showModal(
+      modalDialog(
+        title = "Before vs After log₂-Transformation",
+        plotOutput("norm_compare", height = "600px"),
+        footer = modalButton("Close"),
+        size = "l"
+      )
+    )
+  })
+
   # On moving from Step 3 to Step 4, save the selected function and function options
   shiny::observeEvent(input$next3, {
     req(currentStep() == 4, !is.null(selected_function()))
@@ -4261,11 +4143,9 @@ server <- function(input, output, session) {
         userState$bp_mf_row <- input$bp_mf_row
         userState$bp_y_lim <- input$bp_y_lim
         userState$bp_bin_size <- input$bp_bin_size
-        userState$bp_log2 <- input$bp_log2
       }
       if (selected_function() == "Enhanced Boxplots") {
         userState$bp2_mf_row <- input$bp2_mf_row
-        userState$bp2_log2 <- input$bp2_log2
         userState$bp2_y_lim <- input$bp2_y_lim
       }
       if (selected_function() == "Error-Bar Plot") {
@@ -4276,7 +4156,6 @@ server <- function(input, output, session) {
         userState$eb_x_lab <- input$eb_x_lab
         userState$eb_y_lab <- input$eb_y_lab
         userState$eb_title <- input$eb_title
-        userState$eb_log2 <- input$eb_log2
       }
       if (selected_function() == "Dual-Flashlight Plot") {
         userState$df_group_var <- input$df_group_var
@@ -4287,14 +4166,12 @@ server <- function(input, output, session) {
         userState$df_cond2 <- input$df_cond2
       }
       if (selected_function() == "Heatmap") {
-        userState$hm_log2 <- input$hm_log2
         userState$hm_annotation <- input$hm_annotation
       }
       if (selected_function() == "Principal Component Analysis (PCA)") {
         userState$pca_group_col <- input$pca_group_col
         userState$pca_group_col2 <- input$pca_group_col2
         userState$pca_comp_num <- input$pca_comp_num
-        userState$pca_log2 <- input$pca_log2
         userState$pca_ellipse <- input$pca_ellipse
         userState$pca_style <- input$pca_style
         userState$pca_pch <- input$pca_pch
@@ -4320,13 +4197,13 @@ server <- function(input, output, session) {
           "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
       ) {
         userState$splsda_group_col <- input$splsda_group_col
-        userState$splsda_group_col2 <- input$splsda_group_col2
+        userState$splsda_group_col2 <- input$splsda_group_col
+        userState$splsda_use_batch_corr <- input$splsda_use_batch_corr
         userState$splsda_batch_col <- input$splsda_batch_col
         userState$splsda_multilevel <- input$splsda_multilevel
         userState$splsda_var_num <- input$splsda_var_num
         userState$splsda_cv_opt <- input$splsda_cv_opt
         userState$splsda_fold_num <- input$splsda_fold_num
-        userState$splsda_log2 <- input$splsda_log2
         userState$splsda_comp_num <- input$splsda_comp_num
         userState$splsda_pch <- input$splsda_pch
         userState$splsda_style <- input$splsda_style
@@ -4346,18 +4223,10 @@ server <- function(input, output, session) {
         userState$mint_splsda_var_num <- input$mint_splsda_var_num
         userState$mint_splsda_comp_num <- input$mint_splsda_comp_num
         userstate$mint_splsda_cim <- input$mint_splsda_cim
-        userState$mint_splsda_log2 <- input$mint_splsda_log2
         userState$mint_splsda_ellipse <- input$mint_splsda_ellipse
         userState$mint_splsda_bg <- input$mint_splsda_bg
         userState$mint_splsda_roc <- input$mint_splsda_roc
         userState$mint_splsda_colors <- input$mint_splsda_colors
-        userState$mint_splsda_pch <- input$mint_splsda_pch
-      }
-      if (selected_function() == "Two-Sample T-Test") {
-        userState$ttest_log2 <- input$ttest_log2
-      }
-      if (selected_function() == "ANOVA") {
-        userState$anova_log2 <- input$anova_log2
       }
       if (selected_function() == "Volcano Plot") {
         userState$volc_group_col <- input$volc_group_col
@@ -4395,11 +4264,8 @@ server <- function(input, output, session) {
   shiny::observeEvent(currentStep(), {
     req(currentStep(), !is.null(selected_function()))
     if (currentStep() == 1) {
-      # restore the “Use built‑in?” toggle
+      # restore the Use built‑in” toggle
       updateCheckboxInput(session, "use_builtin", value = userState$use_builtin)
-
-      # if they *had* chosen built‑in, make sure the selector
-      # comes back with the right choice
       if (
         isTRUE(userState$use_builtin) && !is.null(userState$built_in_choice)
       ) {
@@ -4409,6 +4275,44 @@ server <- function(input, output, session) {
           selected = userState$built_in_choice
         )
       }
+    }
+    if (currentStep() == 2) {
+      # recompute the same choices used in step2UI()
+      df <- data_after_filters()
+      all_cols <- names(df)
+      is_numeric_col <- vapply(df, is.numeric, logical(1))
+      categorical_cols <- all_cols[!is_numeric_col]
+      numerical_cols <- all_cols[is_numeric_col]
+
+      # restore what they had selected
+      if (!is.null(userState$selected_categorical_cols)) {
+        updateCheckboxGroupInput(
+          session,
+          "selected_categorical_cols",
+          choices = categorical_cols,
+          selected = intersect(
+            userState$selected_categorical_cols,
+            categorical_cols
+          )
+        )
+      }
+      if (!is.null(userState$selected_numerical_cols)) {
+        updateCheckboxGroupInput(
+          session,
+          "selected_numerical_cols",
+          choices = numerical_cols,
+          selected = intersect(
+            userState$selected_numerical_cols,
+            numerical_cols
+          )
+        )
+      }
+      # also restore the log2 box
+      updateCheckboxInput(
+        session,
+        "step2_log2",
+        value = userState$step2_log2
+      )
     }
     if (currentStep() == 3 && !is.null(userState$selected_function)) {
       if (!is.null(userState$analysis_categories)) {
@@ -4456,13 +4360,11 @@ server <- function(input, output, session) {
           "bp_bin_size",
           value = userState$bp_bin_size
         )
-        updateCheckboxInput(session, "bp_log2", value = userState$bp_log2)
       }
 
       # Enhanced Boxplots
       if (userState$selected_function == "Enhanced Boxplots") {
         updateTextInput(session, "bp2_mf_row", value = userState$bp2_mf_row)
-        updateCheckboxInput(session, "bp2_log2", value = userState$bp2_log2)
         updateTextInput(session, "bp2_y_lim", value = userState$bp2_y_lim)
       }
       if (userState$selected_function == "Error-Bar Plot") {
@@ -4481,7 +4383,6 @@ server <- function(input, output, session) {
         updateTextInput(session, "eb_x_lab", value = userState$eb_x_lab)
         updateTextInput(session, "eb_y_lab", value = userState$eb_y_lab)
         updateTextInput(session, "eb_title", value = userState$eb_title)
-        updateCheckboxInput(session, "eb_log2", value = userState$eb_log2)
       }
       # Dual-Flashlight Plot
       if (userState$selected_function == "Dual-Flashlight Plot") {
@@ -4519,7 +4420,6 @@ server <- function(input, output, session) {
 
       # Heatmap
       if (userState$selected_function == "Heatmap") {
-        updateCheckboxInput(session, "hm_log2", value = userState$hm_log2)
         updateSelectInput(
           session,
           "hm_annotation",
@@ -4544,7 +4444,6 @@ server <- function(input, output, session) {
           "pca_comp_num",
           value = userState$pca_comp_num
         )
-        updateCheckboxInput(session, "pca_log2", value = userState$pca_log2)
         updateCheckboxInput(
           session,
           "pca_ellipse",
@@ -4621,10 +4520,20 @@ server <- function(input, output, session) {
           "splsda_group_col2",
           selected = userState$splsda_group_col2
         )
+        updateCheckboxInput(
+          session,
+          "splsda_use_batch_corr",
+          value = userState$splsda_use_batch_corr
+        )
         updateSelectInput(
           session,
           "splsda_batch_col",
           selected = userState$splsda_batch_col
+        )
+        updateCheckboxInput(
+          session,
+          "splsda_use_multilevel",
+          value = userState$splsda_use_multilevel
         )
         updateSelectInput(
           session,
@@ -4645,11 +4554,6 @@ server <- function(input, output, session) {
           session,
           "splsda_fold_num",
           value = userState$splsda_fold_num
-        )
-        updateCheckboxInput(
-          session,
-          "splsda_log2",
-          value = userState$splsda_log2
         )
         updateNumericInput(
           session,
@@ -4683,15 +4587,6 @@ server <- function(input, output, session) {
           "splsda_colors",
           selected = userState$splsda_colors
         )
-      }
-
-      # Two-Sample T-Test
-      if (userState$selected_function == "Two-Sample T-Test") {
-        updateCheckboxInput(session, "ttest_log2", value = userState$ttest_log2)
-      }
-      # ANOVA
-      if (userState$selected_function == "ANOVA") {
-        updateCheckboxInput(session, "anova_log2", value = userState$anova_log2)
       }
       # Volcano Plot
       if (userState$selected_function == "Volcano Plot") {
@@ -4780,18 +4675,13 @@ server <- function(input, output, session) {
       # Data
       df = filteredData(),
       args = list(
-        # ANOVA
-        anova_log2 = input$anova_log2,
-
         # Boxplots
         bp_bin_size = input$bp_bin_size,
         bp_mf_row = input$bp_mf_row,
         bp_y_lim = input$bp_y_lim,
-        bp_log2 = input$bp_log2,
 
         # Enhanced Boxplots
         bp2_mf_row = input$bp2_mf_row,
-        bp2_log2 = input$bp2_log2,
         bp2_y_lim = input$bp2_y_lim,
 
         # Error-Bar Plot
@@ -4802,7 +4692,6 @@ server <- function(input, output, session) {
         eb_x_lab = input$eb_x_lab,
         eb_y_lab = input$eb_y_lab,
         eb_title = input$eb_title,
-        eb_log2 = input$eb_log2,
 
         # Dual-Flashlight Plot
         df_group_var = input$df_group_var,
@@ -4813,14 +4702,12 @@ server <- function(input, output, session) {
         df_top_labels = input$df_top_labels,
 
         # Heatmap
-        hm_log2 = input$hm_log2,
         hm_annotation = input$hm_annotation,
 
         # PCA
         pca_group_col = input$pca_group_col,
         pca_group_col2 = input$pca_group_col2,
         pca_comp_num = input$pca_comp_num,
-        pca_log2 = input$pca_log2,
         pca_ellipse = input$pca_ellipse,
         pca_style = input$pca_style,
         pca_pch = input$pca_pch,
@@ -4851,7 +4738,6 @@ server <- function(input, output, session) {
         splsda_var_num = input$splsda_var_num,
         splsda_cv_opt = input$splsda_cv_opt,
         splsda_fold_num = input$splsda_fold_num,
-        splsda_log2 = input$splsda_log2,
         splsda_comp_num = input$splsda_comp_num,
         splsda_pch = input$splsda_pch,
         splsda_style = input$splsda_style,
@@ -4868,15 +4754,10 @@ server <- function(input, output, session) {
         mint_splsda_var_num = input$mint_splsda_var_num,
         mint_splsda_comp_num = input$mint_splsda_comp_num,
         mint_splsda_cim = input$mint_splsda_cim,
-        mint_splsda_log2 = input$mint_splsda_log2,
         mint_splsda_ellipse = input$mint_splsda_ellipse,
         mint_splsda_bg = input$mint_splsda_bg,
         mint_splsda_roc = input$mint_splsda_roc,
         mint_splsda_colors = input$mint_splsda_colors,
-        mint_splsda_pch = input$mint_splsda_pch,
-
-        # Two-Sample T-Test
-        ttest_log2 = input$ttest_log2,
 
         # Volcano Plot
         volc_group_col = input$volc_group_col,
@@ -4940,7 +4821,7 @@ server <- function(input, output, session) {
               "Two-Sample T-Test" = cyt_ttest(
                 data = df,
                 progress = prog,
-                scale = if (input$ttest_log2) "log2" else NULL,
+                scale = NULL,
                 format_output = TRUE
               ),
 
@@ -4956,7 +4837,7 @@ server <- function(input, output, session) {
                 y_lim = if (nzchar(input$bp_y_lim)) {
                   as.numeric(strsplit(input$bp_y_lim, ",")[[1]])
                 },
-                scale = if (input$bp_log2) "log2" else NULL
+                scale = NULL
               ),
 
               "Enhanced Boxplots" = cyt_bp2(
@@ -4969,7 +4850,7 @@ server <- function(input, output, session) {
                 y_lim = if (nzchar(input$bp2_y_lim)) {
                   as.numeric(strsplit(input$bp2_y_lim, ",")[[1]])
                 },
-                scale = if (input$bp2_log2) "log2" else NULL
+                scale = NULL
               ),
 
               "Error-Bar Plot" = cyt_errbp(
@@ -4983,7 +4864,7 @@ server <- function(input, output, session) {
                 x_lab = input$eb_x_lab,
                 y_lab = input$eb_y_lab,
                 title = input$eb_title,
-                log2 = input$eb_log2
+                log2 = FALSE
               ),
 
               "Dual-Flashlight Plot" = cyt_dualflashplot(
@@ -5002,7 +4883,7 @@ server <- function(input, output, session) {
                 data = df,
 
                 progress = prog,
-                scale = if (input$hm_log2) "log2" else NULL,
+                scale = NULL,
                 annotation_col_name = input$hm_annotation
               ),
 
@@ -5052,7 +4933,7 @@ server <- function(input, output, session) {
                     NULL
                   },
                   comp_num = input$pca_comp_num,
-                  scale = if (input$pca_log2) "log2" else NULL,
+                  scale = NULL,
                   ellipse = input$pca_ellipse,
                   style = if (input$pca_style == "3D") "3d" else NULL,
                   pch_values = pch_vals,
@@ -5098,7 +4979,7 @@ server <- function(input, output, session) {
                     input$splsda_cv_opt
                   },
                   fold_num = input$splsda_fold_num,
-                  scale = if (input$splsda_log2) "log2" else NULL,
+                  scale = NULL,
                   comp_num = input$splsda_comp_num,
                   style = if (input$splsda_style == "3D") "3d" else NULL,
                   pch_values = pch_vals,
@@ -5111,7 +4992,6 @@ server <- function(input, output, session) {
               },
 
               "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
-                pch_vals <- as.numeric(input$mint_splsda_pch)
                 grp <- df[[input$mint_splsda_group_col]]
                 uniq <- unique(grp)
                 cols <- if (length(input$mint_splsda_colors)) {
@@ -5130,8 +5010,7 @@ server <- function(input, output, session) {
                   var_num = input$mint_splsda_var_num,
                   comp_num = input$mint_splsda_comp_num,
                   cim = input$mint_splsda_cim,
-                  scale = if (input$mint_splsda_log2) "log2" else NULL,
-                  pch_values = pch_vals,
+                  scale = NULL,
                   colors = cols,
                   roc = input$mint_splsda_roc,
                   ellipse = input$mint_splsda_ellipse,
@@ -5454,31 +5333,39 @@ server <- function(input, output, session) {
                 id = "mint_splsda_tabs",
                 tabPanel(
                   "Global Sample Plot",
-                  withSpinner(plotOutput("mint_splsda_global_plot"))
+                  withSpinner(plotOutput("mint_splsda_global_plot"), type = 8)
                 ),
                 tabPanel(
                   "Partial Sample Plots",
-                  withSpinner(plotOutput("mint_splsda_partial_plot"))
+                  withSpinner(plotOutput("mint_splsda_partial_plot"), type = 8)
                 ),
                 tabPanel(
                   "Variable Loadings",
-                  withSpinner(uiOutput("mint_splsda_loadings_ui")) # Changed to uiOutput
+                  withSpinner(uiOutput("mint_splsda_loadings_ui"), type = 8)
                 ),
                 tabPanel(
                   "Correlation Circle",
-                  withSpinner(plotOutput("mint_splsda_corr_circle_plot"))
+                  withSpinner(
+                    plotOutput("mint_splsda_corr_circle_plot"),
+                    type = 8
+                  )
                 ),
-                tabPanel(
-                  "Heatmap (CIM)",
-                  withSpinner(plotOutput(
-                    "mint_splsda_cim_plot",
-                    height = "600px"
-                  ))
-                ),
+                if (!is.null(res$cim_obj)) {
+                  tabPanel(
+                    "Heatmap (CIM)",
+                    withSpinner(
+                      plotOutput(
+                        "mint_splsda_cim_plot",
+                        height = "600px"
+                      ),
+                      type = 8
+                    )
+                  )
+                },
                 if (!is.null(res$roc_plot)) {
                   tabPanel(
                     "ROC Curve",
-                    withSpinner(plotOutput("mint_splsda_roc_plot"))
+                    withSpinner(plotOutput("mint_splsda_roc_plot"), type = 8)
                   )
                 }
               )
@@ -5496,46 +5383,66 @@ server <- function(input, output, session) {
                       type = "tabs",
                       tabPanel(
                         "Global Plot",
-                        withSpinner(plotOutput(paste0(
-                          "mint_splsda_global_",
-                          trt
-                        )))
+                        withSpinner(
+                          plotOutput(paste0(
+                            "mint_splsda_global_",
+                            trt
+                          )),
+                          type = 8
+                        )
                       ),
                       tabPanel(
                         "Partial Plots",
-                        withSpinner(plotOutput(paste0(
-                          "mint_splsda_partial_",
-                          trt
-                        )))
+                        withSpinner(
+                          plotOutput(paste0(
+                            "mint_splsda_partial_",
+                            trt
+                          )),
+                          type = 8
+                        )
                       ),
                       tabPanel(
                         "Variable Loadings",
-                        withSpinner(uiOutput(paste0(
-                          "mint_splsda_loadings_",
-                          trt
-                        )))
+                        withSpinner(
+                          uiOutput(paste0(
+                            "mint_splsda_loadings_",
+                            trt
+                          )),
+                          type = 8
+                        )
                       ),
                       tabPanel(
                         "Correlation",
-                        withSpinner(plotOutput(paste0(
-                          "mint_splsda_corr_",
-                          trt
-                        )))
+                        withSpinner(
+                          plotOutput(paste0(
+                            "mint_splsda_corr_",
+                            trt
+                          )),
+                          type = 8
+                        )
                       ),
-                      tabPanel(
-                        "CIM",
-                        withSpinner(plotOutput(
-                          paste0("mint_splsda_cim_", trt),
-                          height = "600px"
-                        ))
-                      ),
+                      if (!is.null(res[[trt]]$cim_obj)) {
+                        tabPanel(
+                          "CIM",
+                          withSpinner(
+                            plotOutput(
+                              paste0("mint_splsda_cim_", trt),
+                              height = "600px"
+                            ),
+                            type = 8
+                          )
+                        )
+                      },
                       if (!is.null(res[[trt]]$roc_plot)) {
                         tabPanel(
                           "ROC",
-                          withSpinner(plotOutput(paste0(
-                            "mint_splsda_roc_",
-                            trt
-                          )))
+                          withSpinner(
+                            plotOutput(paste0(
+                              "mint_splsda_roc_",
+                              trt
+                            )),
+                            type = 8
+                          )
                         )
                       }
                     )
@@ -6128,23 +6035,41 @@ server <- function(input, output, session) {
         output$mint_splsda_partial_plot <- renderPlot({
           replayPlot(res$partial_indiv_plot)
         })
-        output$mint_splsda_loadings_ui <- renderUI({
-          req(res$partial_loadings_plots)
-          lapply(seq_along(res$partial_loadings_plots), function(i) {
-            plotOutput(paste0("mint_splsda_loading_plot_", i), height = "400px")
+        if (!is.null(res$partial_loadings_plots)) {
+          output$mint_splsda_loadings_ui <- renderUI({
+            req(res$partial_loadings_plots)
+            tagList(lapply(seq_along(res$partial_loadings_plots), function(i) {
+              plotOutput(
+                paste0("mint_splsda_loading_plot_", i),
+                height = "400px"
+              )
+            }))
           })
-        })
-        lapply(seq_along(res$partial_loadings_plots), function(i) {
-          output[[paste0("mint_splsda_loading_plot_", i)]] <- renderPlot({
-            replayPlot(res$partial_loadings_plots[[i]])
-          })
-        })
+
+          # Use a for loop to correctly scope the index 'i'
+          for (i in seq_along(res$partial_loadings_plots)) {
+            local({
+              # Use local() to ensure 'i' is captured correctly
+              local_i <- i
+              output[[paste0(
+                "mint_splsda_loading_plot_",
+                local_i
+              )]] <- renderPlot({
+                replayPlot(res$partial_loadings_plots[[local_i]])
+              })
+            })
+          }
+        }
         output$mint_splsda_corr_circle_plot <- renderPlot({
           replayPlot(res$correlation_circle_plot)
         })
         output$mint_splsda_cim_plot <- renderPlot(
           {
-            replayPlot(res$cim_plot)
+            if (
+              !is.null(res$cim_obj) && inherits(res$cim_obj, "recordedplot")
+            ) {
+              replayPlot(res$cim_obj)
+            }
           },
           height = 600
         )
@@ -6174,7 +6099,7 @@ server <- function(input, output, session) {
                 "mint_splsda_loadings_",
                 current_trt
               )]] <- renderUI({
-                req(sub_res$partial_loadings_plots) # Use plural 'plots'
+                req(sub_res$partial_loadings_plots)
                 lapply(seq_along(sub_res$partial_loadings_plots), function(i) {
                   plotOutput(
                     paste0("mint_splsda_loading_", current_trt, "_", i),
@@ -6198,7 +6123,12 @@ server <- function(input, output, session) {
               })
               output[[paste0("mint_splsda_cim_", current_trt)]] <- renderPlot(
                 {
-                  replayPlot(sub_res$cim_plot)
+                  if (
+                    !is.null(sub_res$cim_obj) &&
+                      inherits(sub_res$cim_obj, "recordedplot")
+                  ) {
+                    replayPlot(sub_res$cim_obj)
+                  }
                 },
                 height = 600
               )
@@ -6672,15 +6602,9 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$bp_y_lim, {
     userState$bp_y_lim <- input$bp_y_lim
   })
-  shiny::observeEvent(input$bp_log2, {
-    userState$bp_log2 <- input$bp_log2
-  })
   # For Enhanced Boxplots
   shiny::observeEvent(input$bp2_mf_row, {
     userState$bp2_mf_row <- input$bp2_mf_row
-  })
-  shiny::observeEvent(input$bp2_log2, {
-    userState$bp2_log2 <- input$bp2_log2
   })
   shiny::observeEvent(input$bp2_y_lim, {
     userState$bp2_y_lim <- input$bp2_y_lim
@@ -6707,9 +6631,6 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$eb_title, {
     userState$eb_title <- input$eb_title
   })
-  shiny::observeEvent(input$eb_log2, {
-    userState$eb_log2 <- input$eb_log2
-  })
   # For Dual-Flashlight Plot
   shiny::observeEvent(input$df_group_var, {
     userState$df_group_var <- input$df_group_var
@@ -6730,9 +6651,6 @@ server <- function(input, output, session) {
     userState$df_top_labels <- input$df_top_labels
   })
   # For Heatmap
-  shiny::observeEvent(input$hm_log2, {
-    userState$hm_log2 <- input$hm_log2
-  })
   shiny::observeEvent(input$hm_annotation, {
     userState$hm_annotation <- input$hm_annotation
   })
@@ -6745,9 +6663,6 @@ server <- function(input, output, session) {
   })
   shiny::observeEvent(input$pca_comp_num, {
     userState$pca_comp_num <- input$pca_comp_num
-  })
-  shiny::observeEvent(input$pca_log2, {
-    userState$pca_log2 <- input$pca_log2
   })
   shiny::observeEvent(input$pca_ellipse, {
     userState$pca_ellipse <- input$pca_ellipse
@@ -6803,8 +6718,14 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$splsda_group_col2, {
     userState$splsda_group_col2 <- input$splsda_group_col2
   })
+  shiny::observeEvent(input$splsda_use_batch_corr, {
+    userState$splsda_use_batch_corr <- input$splsda_use_batch_corr
+  })
   shiny::observeEvent(input$splsda_batch_col, {
     userState$splsda_batch_col <- input$splsda_batch_col
+  })
+  shiny::observeEvent(input$use_splsda_multilevel, {
+    userState$splsda_multilevel <- input$use_splsda_multilevel
   })
   shiny::observeEvent(input$splsda_multilevel, {
     userState$splsda_multilevel <- input$splsda_multilevel
@@ -6825,9 +6746,6 @@ server <- function(input, output, session) {
   })
   shiny::observeEvent(input$splsda_fold_num, {
     userState$splsda_fold_num <- input$splsda_fold_num
-  })
-  shiny::observeEvent(input$splsda_log2, {
-    userState$splsda_log2 <- input$splsda_log2
   })
   shiny::observeEvent(input$splsda_comp_num, {
     userState$splsda_comp_num <- input$splsda_comp_num
@@ -6879,9 +6797,6 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$mint_splsda_cim, {
     userState$mint_splsda_cim <- input$mint_splsda_cim
   })
-  shiny::observeEvent(input$mint_splsda_log2, {
-    userState$mint_splsda_log2 <- input$mint_splsda_log2
-  })
   shiny::observeEvent(input$mint_splsda_ellipse, {
     userState$mint_splsda_ellipse <- input$mint_splsda_ellipse
   })
@@ -6893,17 +6808,6 @@ server <- function(input, output, session) {
   })
   shiny::observeEvent(input$mint_splsda_colors, {
     userState$mint_splsda_colors <- input$mint_splsda_colors
-  })
-  shiny::observeEvent(input$mint_splsda_pch, {
-    userState$mint_splsda_pch <- input$mint_splsda_pch
-  })
-  # For Two-Sample T-Test
-  shiny::observeEvent(input$ttest_log2, {
-    userState$ttest_log2 <- input$ttest_log2
-  })
-  # ANOVA
-  shiny::observeEvent(input$anova_log2, {
-    userState$anova_log2 <- input$anova_log2
   })
   # For Volcano Plot
   shiny::observeEvent(input$volc_group_col, {

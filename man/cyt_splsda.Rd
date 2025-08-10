@@ -6,23 +6,23 @@
 \usage{
 cyt_splsda(
   data,
-  group_col = NULL,
+  group_col,
   group_col2 = NULL,
   batch_col = NULL,
-  splsda_colors = NULL,
-  output_file = NULL,
-  ellipse = FALSE,
-  bg = FALSE,
-  conf_mat = FALSE,
+  multilevel_col = NULL,
   var_num,
+  comp_num = 2,
   cv_opt = NULL,
   fold_num = 5,
   scale = NULL,
-  comp_num = 2,
-  pch_values,
-  style = NULL,
+  ellipse = FALSE,
+  bg = FALSE,
   roc = FALSE,
-  multilevel_col = NULL,
+  conf_mat = FALSE,
+  style = NULL,
+  splsda_colors = NULL,
+  pch_values = NULL,
+  output_file = NULL,
   progress = NULL
 )
 }
@@ -40,23 +40,14 @@ grouping and treatment.}
 
 \item{batch_col}{A string specifying the column that identifies the batch or study for each sample.}
 
-\item{splsda_colors}{A vector of splsda_colors for the groups or treatments. If
-\code{NULL}, a random palette (using \code{rainbow}) is generated based on
-the number of groups.}
-
-\item{output_file}{A string specifying the file name for saving the PDF output.
-If set to NULL, the function runs in interactive mode.}
-
-\item{ellipse}{Logical. Whether to draw a 95\\% confidence ellipse on the figures.
-Default is \code{FALSE}.}
-
-\item{bg}{Logical. Whether to draw the prediction background in the figures.
-Default is \code{FALSE}.}
-
-\item{conf_mat}{Logical. Whether to print the confusion matrix for the classifications.
-Default is \code{FALSE}.}
+\item{multilevel_col}{A string specifying the column name that identifies
+repeated measurements (e.g., patient or sample IDs). If provided, a
+multilevel analysis will be performed. Default is \code{NULL}.}
 
 \item{var_num}{Numeric. The number of variables to be used in the PLS-DA model.}
+
+\item{comp_num}{Numeric. The number of components to calculate in the sPLS-DA model.
+Default is 2.}
 
 \item{cv_opt}{Character. Option for cross-validation method: either "loocv" or "Mfold".
 Default is \code{NULL}.}
@@ -66,21 +57,30 @@ Default is \code{NULL}.}
 \item{scale}{Character. Option for data transformation; if set to \code{"log2"}, a log2
 transformation is applied to the continuous variables. Default is \code{NULL}.}
 
-\item{comp_num}{Numeric. The number of components to calculate in the sPLS-DA model.
-Default is 2.}
+\item{ellipse}{Logical. Whether to draw a 95\\% confidence ellipse on the figures.
+Default is \code{FALSE}.}
 
-\item{pch_values}{A vector of integers specifying the plotting characters (pch values)
-to be used in the plots.}
-
-\item{style}{Character. If set to \code{"3D"} or \code{"3d"} and \code{comp_num} equals 3,
-a 3D plot is generated using the \code{plot3D} package. Default is \code{NULL}.}
+\item{bg}{Logical. Whether to draw the prediction background in the figures.
+Default is \code{FALSE}.}
 
 \item{roc}{Logical. Whether to compute and plot the ROC curve for the model.
 Default is \code{FALSE}.}
 
-\item{multilevel_col}{A string specifying the column name that identifies
-repeated measurements (e.g., patient or sample IDs). If provided, a
-multilevel analysis will be performed. Default is \code{NULL}.}
+\item{conf_mat}{Logical. Whether to print the confusion matrix for the classifications.
+Default is \code{FALSE}.}
+
+\item{style}{Character. If set to \code{"3D"} or \code{"3d"} and \code{comp_num} equals 3,
+a 3D plot is generated using the \code{plot3D} package. Default is \code{NULL}.}
+
+\item{splsda_colors}{A vector of splsda_colors for the groups or treatments. If
+\code{NULL}, a random palette (using \code{rainbow}) is generated based on
+the number of groups.}
+
+\item{pch_values}{A vector of integers specifying the plotting characters (pch values)
+to be used in the plots.}
+
+\item{output_file}{A string specifying the file name for saving the PDF output.
+If set to NULL, the function runs in interactive mode.}
 }
 \value{
 In Download mode (output_file not NULL), a PDF file is written and the function

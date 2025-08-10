@@ -30,8 +30,6 @@
 #' @param comp_num Numeric. The number of components to calculate in the sPLS-DA model.
 #'   Default is 2.
 #' @param cim Logical. Whether to compute and plot the Clustered Image Map (CIM) heatmap. Default is \code{FALSE}.
-#' @param pch_values A vector of integers specifying the plotting characters (pch values)
-#'   to be used in the plots.
 #' @param roc Logical. Whether to compute and plot the ROC curve for the model.
 #'   Default is \code{FALSE}.
 #' @return In Download mode, a PDF file is written. In Interactive mode, a named list
@@ -63,7 +61,6 @@ cyt_mint_splsda <- function(
   comp_num = 2,
   cim = FALSE,
   scale = NULL,
-  pch_values = NULL,
   roc = FALSE,
   progress = NULL
 ) {
@@ -94,8 +91,8 @@ cyt_mint_splsda <- function(
       ))
       return(NULL)
     }
-    Y <- data_subset[[group_col]]
-    study <- data_subset[[batch_col]]
+    Y <- droplevels(factor(data_subset[[group_col]]))
+    study <- factor(data_subset[[batch_col]])
     X <- data_subset[,
       !(names(data_subset) %in% c(group_col, group_col2, batch_col)),
       drop = FALSE
@@ -144,16 +141,12 @@ cyt_mint_splsda <- function(
       )
     }
     record_base_plot <- function(expr) {
-      if (grDevices::dev.cur() == 1) {
-        grDevices::png(filename = tempfile())
-      }
+      tf <- tempfile(fileext = ".png")
+      grDevices::png(tf, width = 960, height = 720, res = 120)
+      on.exit(grDevices::dev.off(), add = TRUE)
       grDevices::dev.control(displaylist = "enable")
-      expr
-      p <- grDevices::recordPlot()
-      if (names(grDevices::dev.cur()) == "png") {
-        grDevices::dev.off()
-      }
-      return(p)
+      force(expr)
+      grDevices::recordPlot()
     }
 
     # --- 5. Handle Output: PDF vs. Interactive ---
@@ -162,12 +155,9 @@ cyt_mint_splsda <- function(
         final_model,
         study = "global",
         group = Y,
-        pch = study,
-        pch.levels = levels(study),
-        col.per.group = colors,
+        col = colors,
         legend = TRUE,
         legend.title = group_col,
-        legend.title.pch = batch_col,
         subtitle = main_title,
         ellipse = ellipse,
         background = bg_obj
@@ -176,7 +166,7 @@ cyt_mint_splsda <- function(
         final_model,
         study = "all.partial",
         group = Y,
-        col.per.group = colors,
+        col = colors,
         legend = TRUE,
         title = paste("Partial Plots:", analysis_label)
       )
@@ -192,13 +182,14 @@ cyt_mint_splsda <- function(
           comp = 1,
           row.sideColors = colors[as.numeric(Y)],
           row.names = FALSE,
-          title = paste("CIM (Comp 1):", analysis_label)
+          title = paste("CIM (Comp 1 -", comp_num, "):", analysis_label)
         )
       }
       for (i in 1:comp_num) {
         mixOmics::plotLoadings(
           final_model,
           comp = i,
+          legend.color = colors,
           study = "all.partial",
           contrib = "max",
           method = "mean",
@@ -236,75 +227,72 @@ cyt_mint_splsda <- function(
     } else {
       # For interactive mode, create and return the list of plot objects
       # Use lapply to create a LIST of plot objects, one for each component
-      partial_loadings_plots <- lapply(1:comp_num, function(i) {
-        record_base_plot({
-          mixOmics::plotLoadings(
+      cim_obj <- NULL
+      if (isTRUE(cim)) {
+        cim_obj = record_base_plot({
+          mixOmics::cim(
             final_model,
-            comp = i, # Use loop variable 'i'
-            study = "all.partial",
-            contrib = "max",
-            method = "mean",
-            title = paste(
-              "Partial Loadings for Component",
-              i,
-              "in",
-              analysis_label
-            ) # Use loop variable 'i'
+            comp = 1:comp_num,
+            row.sideColors = colors[as.numeric(Y)],
+            row.names = FALSE,
+            title = paste("CIM (Comp 1 -", comp_num, "):", analysis_label)
           )
         })
-      })
-      results_list <- list(
-        global_indiv_plot = record_base_plot({
-          mixOmics::plotIndiv(
-            final_model,
-            study = "global",
-            group = Y,
-            pch = study,
-            pch.levels = levels(study),
-            col.per.group = colors,
-            legend = TRUE,
-            legend.title = group_col,
-            legend.title.pch = batch_col,
-            subtitle = main_title,
-            ellipse = ellipse,
-            background = bg_obj
+      }
+      studies <- levels(study)
+      if (is.null(studies) || length(studies) == 0) {
+        studies <- unique(as.character(study))
+      }
+      partial_loadings_plots <- list()
+      for (i in seq_len(comp_num)) {
+        for (s_idx in seq_along(studies)) {
+          lbl <- paste0(
+            "Comp ",
+            i,
+            " — ",
+            deparse(substitute(batch_col)),
+            ": ",
+            studies[s_idx]
           )
-        }),
-        partial_indiv_plot = record_base_plot({
-          mixOmics::plotIndiv(
-            final_model,
-            study = "all.partial",
-            group = Y,
-            col.per.group = colors,
-            legend = TRUE,
-            title = paste("Partial Plots:", analysis_label)
-          )
-        }),
-        correlation_circle_plot = record_base_plot({
-          mixOmics::plotVar(
-            final_model,
-            var.names = FALSE,
-            legend = TRUE,
-            title = paste("Correlation Circle:", analysis_label)
-          )
-        }),
-        if (cim) {
-          cim_plot = record_base_plot({
-            mixOmics::cim(
-              final_model,
-              comp = 1,
-              row.sideColors = colors[as.numeric(Y)],
-              row.names = FALSE,
-              title = paste("CIM (Comp 1):", analysis_label)
+          partial_loadings_plots[[lbl]] <- record_base_plot({
+            tryCatch(
+              {
+                op <- graphics::par(no.readonly = TRUE)
+                on.exit(graphics::par(op), add = TRUE)
+                mixOmics::plotLoadings(
+                  final_model,
+                  comp = i,
+                  legend.color = colors,
+                  study = s_idx,
+                  contrib = "max",
+                  method = "mean",
+                  title = paste(
+                    "Partial Loadings for Component",
+                    i,
+                    "\nStudy:",
+                    studies[s_idx]
+                  )
+                )
+              },
+              error = function(e) {
+                plot.new()
+                title(
+                  main = paste(
+                    "Loadings failed for Comp",
+                    i,
+                    "Study",
+                    studies[s_idx]
+                  )
+                )
+                mtext(e$message, side = 1, line = -1, cex = 0.8)
+              }
             )
           })
-        },
-        partial_loadings_plots = partial_loadings_plots, # Assign the list of plots here
-        roc_plot = NULL
-      )
-
+        }
+      }
+      roc_plot <- NULL
       if (roc) {
-        results_list$roc_plot <- record_base_plot({
+        roc_plot <- record_base_plot({
           # The plotting command is now correctly wrapped by the recorder
           tryCatch(
             {
@@ -327,6 +315,42 @@ cyt_mint_splsda <- function(
           )
         })
       }
+      results_list <- list(
+        global_indiv_plot = record_base_plot({
+          mixOmics::plotIndiv(
+            final_model,
+            study = "global",
+            group = Y,
+            col = colors,
+            legend = TRUE,
+            legend.title = group_col,
+            subtitle = main_title,
+            ellipse = ellipse,
+            background = bg_obj
+          )
+        }),
+        partial_indiv_plot = record_base_plot({
+          mixOmics::plotIndiv(
+            final_model,
+            study = "all.partial",
+            group = Y,
+            col = colors,
+            legend = TRUE,
+            title = paste("Partial Plots:", analysis_label)
+          )
+        }),
+        correlation_circle_plot = record_base_plot({
+          mixOmics::plotVar(
+            final_model,
+            var.names = FALSE,
+            legend = TRUE,
+            title = paste("Correlation Circle:", analysis_label)
+          )
+        }),
+        cim_obj = cim_obj, # Assign the CIM object here
+        partial_loadings_plots = partial_loadings_plots, # Assign the list of plots here
+        roc_plot = roc_plot # Assign the ROC plot here
+      )
       return(results_list)
     }
   }
