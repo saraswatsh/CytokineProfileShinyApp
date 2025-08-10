@@ -50,23 +50,23 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cyt_splsda</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
-<span>  group_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">group_col</span>,</span>
 <span>  group_col2 <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  batch_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  splsda_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  output_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  ellipse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  bg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  conf_mat <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  multilevel_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">var_num</span>,</span>
+<span>  comp_num <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  cv_opt <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fold_num <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  comp_num <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  <span class="va">pch_values</span>,</span>
-<span>  style <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ellipse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  bg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  roc <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  multilevel_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  conf_mat <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  style <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  splsda_colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pch_values <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  output_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -96,34 +96,19 @@ grouping and treatment.</p></dd>
 <dd><p>A string specifying the column that identifies the batch or study for each sample.</p></dd>
 
 
-<dt id="arg-splsda-colors">splsda_colors<a class="anchor" aria-label="anchor" href="#arg-splsda-colors"></a></dt>
-<dd><p>A vector of splsda_colors for the groups or treatments. If
-<code>NULL</code>, a random palette (using <code>rainbow</code>) is generated based on
-the number of groups.</p></dd>
-
-
-<dt id="arg-output-file">output_file<a class="anchor" aria-label="anchor" href="#arg-output-file"></a></dt>
-<dd><p>A string specifying the file name for saving the PDF output.
-If set to NULL, the function runs in interactive mode.</p></dd>
-
-
-<dt id="arg-ellipse">ellipse<a class="anchor" aria-label="anchor" href="#arg-ellipse"></a></dt>
-<dd><p>Logical. Whether to draw a 95\<!-- % confidence ellipse on the figures. -->
-Default is <code>FALSE</code>.</p></dd>
-
-
-<dt id="arg-bg">bg<a class="anchor" aria-label="anchor" href="#arg-bg"></a></dt>
-<dd><p>Logical. Whether to draw the prediction background in the figures.
-Default is <code>FALSE</code>.</p></dd>
-
-
-<dt id="arg-conf-mat">conf_mat<a class="anchor" aria-label="anchor" href="#arg-conf-mat"></a></dt>
-<dd><p>Logical. Whether to print the confusion matrix for the classifications.
-Default is <code>FALSE</code>.</p></dd>
+<dt id="arg-multilevel-col">multilevel_col<a class="anchor" aria-label="anchor" href="#arg-multilevel-col"></a></dt>
+<dd><p>A string specifying the column name that identifies
+repeated measurements (e.g., patient or sample IDs). If provided, a
+multilevel analysis will be performed. Default is <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-var-num">var_num<a class="anchor" aria-label="anchor" href="#arg-var-num"></a></dt>
 <dd><p>Numeric. The number of variables to be used in the PLS-DA model.</p></dd>
+
+
+<dt id="arg-comp-num">comp_num<a class="anchor" aria-label="anchor" href="#arg-comp-num"></a></dt>
+<dd><p>Numeric. The number of components to calculate in the sPLS-DA model.
+Default is 2.</p></dd>
 
 
 <dt id="arg-cv-opt">cv_opt<a class="anchor" aria-label="anchor" href="#arg-cv-opt"></a></dt>
@@ -140,19 +125,14 @@ Default is <code>NULL</code>.</p></dd>
 transformation is applied to the continuous variables. Default is <code>NULL</code>.</p></dd>
 
 
-<dt id="arg-comp-num">comp_num<a class="anchor" aria-label="anchor" href="#arg-comp-num"></a></dt>
-<dd><p>Numeric. The number of components to calculate in the sPLS-DA model.
-Default is 2.</p></dd>
+<dt id="arg-ellipse">ellipse<a class="anchor" aria-label="anchor" href="#arg-ellipse"></a></dt>
+<dd><p>Logical. Whether to draw a 95\<!-- % confidence ellipse on the figures. -->
+Default is <code>FALSE</code>.</p></dd>
 
 
-<dt id="arg-pch-values">pch_values<a class="anchor" aria-label="anchor" href="#arg-pch-values"></a></dt>
-<dd><p>A vector of integers specifying the plotting characters (pch values)
-to be used in the plots.</p></dd>
-
-
-<dt id="arg-style">style<a class="anchor" aria-label="anchor" href="#arg-style"></a></dt>
-<dd><p>Character. If set to <code>"3D"</code> or <code>"3d"</code> and <code>comp_num</code> equals 3,
-a 3D plot is generated using the <code>plot3D</code> package. Default is <code>NULL</code>.</p></dd>
+<dt id="arg-bg">bg<a class="anchor" aria-label="anchor" href="#arg-bg"></a></dt>
+<dd><p>Logical. Whether to draw the prediction background in the figures.
+Default is <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-roc">roc<a class="anchor" aria-label="anchor" href="#arg-roc"></a></dt>
@@ -160,10 +140,30 @@ a 3D plot is generated using the <code>plot3D</code> package. Default is <code>N
 Default is <code>FALSE</code>.</p></dd>
 
 
-<dt id="arg-multilevel-col">multilevel_col<a class="anchor" aria-label="anchor" href="#arg-multilevel-col"></a></dt>
-<dd><p>A string specifying the column name that identifies
-repeated measurements (e.g., patient or sample IDs). If provided, a
-multilevel analysis will be performed. Default is <code>NULL</code>.</p></dd>
+<dt id="arg-conf-mat">conf_mat<a class="anchor" aria-label="anchor" href="#arg-conf-mat"></a></dt>
+<dd><p>Logical. Whether to print the confusion matrix for the classifications.
+Default is <code>FALSE</code>.</p></dd>
+
+
+<dt id="arg-style">style<a class="anchor" aria-label="anchor" href="#arg-style"></a></dt>
+<dd><p>Character. If set to <code>"3D"</code> or <code>"3d"</code> and <code>comp_num</code> equals 3,
+a 3D plot is generated using the <code>plot3D</code> package. Default is <code>NULL</code>.</p></dd>
+
+
+<dt id="arg-splsda-colors">splsda_colors<a class="anchor" aria-label="anchor" href="#arg-splsda-colors"></a></dt>
+<dd><p>A vector of splsda_colors for the groups or treatments. If
+<code>NULL</code>, a random palette (using <code>rainbow</code>) is generated based on
+the number of groups.</p></dd>
+
+
+<dt id="arg-pch-values">pch_values<a class="anchor" aria-label="anchor" href="#arg-pch-values"></a></dt>
+<dd><p>A vector of integers specifying the plotting characters (pch values)
+to be used in the plots.</p></dd>
+
+
+<dt id="arg-output-file">output_file<a class="anchor" aria-label="anchor" href="#arg-output-file"></a></dt>
+<dd><p>A string specifying the file name for saving the PDF output.
+If set to NULL, the function runs in interactive mode.</p></dd>
 
 </dl></div>
     <div class="section level2">
