@@ -98,6 +98,7 @@ If TRUE, returns a data frame with columns "Outcome", "Categorical", "Comparison
 <span class="r-in"><span><span class="va">data_df</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">data_df</span>, <span class="va">Group</span> <span class="op">!=</span> <span class="st">"ND"</span>, <span class="va">Treatment</span> <span class="op">!=</span> <span class="st">"Unstimulated"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">cyt_ttest</span><span class="op">(</span><span class="va">data_df</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span><span class="op">]</span>, scale <span class="op">=</span> <span class="st">"log2"</span>, format_output <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $out_df</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Outcome Categorical      Comparison</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1   IFN.G       Group   PreT2D vs T2D</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2   IL.10       Group   PreT2D vs T2D</span>
@@ -108,6 +109,7 @@ If TRUE, returns a data frame with columns "Outcome", "Categorical", "Comparison
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 Wilcoxon rank sum test with continuity correction   -0.956    1625.0   0.012</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3 Wilcoxon rank sum test with continuity correction    9.024    4132.5   0.000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4 Wilcoxon rank sum test with continuity correction    1.690    3091.0   0.000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
