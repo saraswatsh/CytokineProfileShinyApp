@@ -139,7 +139,7 @@ ui <- fluidPage(
     }
 
     /* ─────────────────────────────────────────────
-       Inline checkboxes (BS3 + BS5)
+       Inline checkboxes for scrollable checkboxes
     ───────────────────────────────────────────── */
     .scrollable-checkbox-group .checkbox-inline,
     .scrollable-checkbox-group .form-check-inline {
@@ -147,6 +147,46 @@ ui <- fluidPage(
       vertical-align: middle     !important; white-space:    nowrap      !important; /* no wrapping between box+label */
       padding:        0.25rem 0  !important; /* tiny top/bottom padding */
     }
+    /* Brand row: title + version + logo */
+    #brand { display:flex; align-items:center; gap:.55rem; }
+    #brand .brand-title { margin:0; line-height:1; }
+    
+    /* Header divider (slightly stronger in dark) */
+    .app-header { border-bottom: 1px solid var(--bs-border-color) !important; }
+
+    /* Shared pill layout */
+    #brand .app-version {
+      font-size: .78rem;
+      line-height: 1;
+      padding: .08rem .45rem;
+      border-radius: .5rem;
+      position: relative;
+      top: 1em;              /* subscript nudge; scale with text */
+      font-weight: 500;
+      letter-spacing: .01em;
+    }
+
+    /* Light (flatly): dark text on light pill */
+    [data-bs-theme='flatly'] #brand .app-version {
+      background: rgba(0,0,0,.04);
+      border: 1px solid rgba(0,0,0,.18);
+      color: #212529;          /* standard body text in light */
+    }
+
+    /* Dark (darkly): light text on darker pill */
+    [data-bs-theme='darkly'] #brand .app-version {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.28);
+      color: #fff;
+    }
+
+    #brand .brand-logo {
+      height:60px; object-fit:cover; border-radius:.35rem;
+    }
+    @media (max-width: 576px) {
+      #brand .app-version { display:none; } /* hide on very small screens */
+    }
+    
   "
     )),
     tags$meta(
@@ -160,17 +200,13 @@ ui <- fluidPage(
     class = "app-header d-flex align-items-center",
     # left: title + description
     div(
-      tagList(
-        tags$h1("CytokineProfile", style = "margin:0;"),
-      )
-    ),
-    # middle: GitHub & Website links
-    div(
-      class = "d-flex align-items-right",
+      id = "brand",
+      tags$h1("CytokineProfile", class = "brand-title", style = "margin:0;"),
+      tags$span(class = "app-version", paste0("v0.0.0.9000")),
       tags$img(
         src = "logo.png",
-        height = "60px",
-        style = "margin-left:1rem;"
+        class = "brand-logo",
+        alt = "CytokineProfile logo"
       )
     ),
     # ── Spacer to push the next flex item to the right

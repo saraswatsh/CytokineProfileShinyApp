@@ -1905,7 +1905,7 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right: 15px;'>Confusion Matrix</span>"
                   ),
-                  content = "Display the confusion matrix for the sPLS-DA model.",
+                  content = "Display the confusion matrix for the sPLS-DA model. This helps evaluate classification accuracy by showing true vs predicted values. Additional metrics are also provided such as sensitivity and specificity.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
