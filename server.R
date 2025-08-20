@@ -474,6 +474,34 @@ server <- function(input, output, session) {
     "Triangle Up w/ Border" = 24,
     "Triangle Down w/ Border" = 25
   )
+  # --- Helper: expand/normalize PCH to match number of levels ---
+  expand_pch <- function(selected, needed, pool = 0:25) {
+    sel <- as.integer(selected)
+    sel <- sel[!is.na(sel)]
+    if (!length(sel)) {
+      sel <- c(16, 17)
+    } # sensible defaults if none selected
+    sel <- unique(sel)
+
+    if (needed <= length(sel)) {
+      return(sel[seq_len(needed)])
+    }
+
+    add_n <- needed - length(sel)
+    remaining <- setdiff(pool, sel)
+
+    if (length(remaining) >= add_n) {
+      # fill with unique, non-duplicate shapes
+      extra <- sample(remaining, add_n, replace = FALSE)
+    } else {
+      # pool exhausted: take all remaining, then sample with replacement
+      extra <- c(
+        remaining,
+        sample(pool, add_n - length(remaining), replace = TRUE)
+      )
+    }
+    c(sel, extra)
+  }
 
   output$function_options_ui <- shiny::renderUI({
     func <- selected_function()
@@ -482,7 +510,15 @@ server <- function(input, output, session) {
     userState$selected_function <- func
     func_name <- func
     ui_list <- list()
-
+    # For ANOVA / Two-Sample T-Test we show no options, just a short hint.
+    if (func %in% c("ANOVA", "Two-Sample T-Test")) {
+      return(div(
+        class = "well",
+        h4(paste(func, "options")),
+        p("No additional options for this analysis."),
+        p("Click", strong(paste("Run Analysis")), "to continue.")
+      ))
+    }
     switch(
       func_name,
       # ------------------------
@@ -636,12 +672,12 @@ server <- function(input, output, session) {
                 "eb_group_col",
                 label = helper(
                   type = "inline",
-                  title = "Grouping Variable",
+                  title = "Comparison Column",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right:15px;'>Grouping Variable</span>"
+                    "<span style='margin-right:15px;'>Comparison Column</span>"
                   ),
-                  content = "The column to use for grouping the data (e.g. 'Control' vs 'Treatment').",
+                  content = "The column to use for comparing groups in the error-bar plot. This should be a categorical variable.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -686,7 +722,12 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right:15px;'>Effect-Size Label</span>"
                   ),
-                  content = "Label for the effect-size annotation on the plot.",
+                  content = HTML(paste0(
+                    "Display effect size labels above the bar plots to indicate the effect observed by strictly
+                standardized mean differences (SSMD).
+                Learn more about SSMD at <a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
+                <a href='https://doi.org/10.1177/1087057107300645' target='_blank' rel='noopener noreferrer'>link 2</a>"
+                  )),
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -806,12 +847,12 @@ server <- function(input, output, session) {
                 "df_group_var",
                 label = helper(
                   type = "inline",
-                  title = "Grouping Variable",
+                  title = "Comparison Column",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right:15px;'>Grouping Variable</span>"
+                    "<span style='margin-right:15px;'>Comparison Column</span>"
                   ),
-                  content = "Column that contains the group labels (e.g. 'Control', 'Treated').",
+                  content = "Column that contains the groups to compare in the dual-flashlight plot. This should be a categorical variable.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -839,7 +880,14 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right:15px;'>SSMD Threshold</span>"
                   ),
-                  content = "Threshold for Strictly Standardized Mean Difference.",
+                  content = HTML(paste0(
+                    "The threshold for the SSMD (strictly standardized mean difference) value. 
+                     SSMD is a measure of how different two groups are. A higher threshold means that 
+                      only larger differences are considered significant.
+                     Learn more about SSMD at <a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
+                    <a href='https://doi.org/10.1177/1087057107300645' target='_blank' rel='noopener noreferrer'>link 2</a>"
+                  )),
+
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -869,7 +917,9 @@ server <- function(input, output, session) {
                 ),
                 value = isolate(userState$df_log2fc_thresh) %||% 1
               )
-            ),
+            )
+          ),
+          fluidRow(
             column(
               4,
               numericInput(
@@ -951,12 +1001,12 @@ server <- function(input, output, session) {
                 "pca_group_col",
                 label = helper(
                   type = "inline",
-                  title = "Grouping Column 1",
+                  title = "PCA Comparison Column",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Grouping Column 1</span>"
+                    "<span style='margin-right: 15px;'>PCA Comparison Column</span>"
                   ),
-                  content = "The first column to use for grouping the data.",
+                  content = "Column to use for grouping the data in PCA. This is typically a categorical variable that defines the groups you want to compare.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -973,12 +1023,12 @@ server <- function(input, output, session) {
                 "pca_group_col2",
                 label = helper(
                   type = "inline",
-                  title = "Grouping Column 2",
+                  title = "PCA Stratification Column",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Grouping Column 2</span>"
+                    "<span style='margin-right: 15px;'>PCA Stratification Column</span>"
                   ),
-                  content = "An optional second column to use for grouping the data.",
+                  content = "Optional second grouping column for PCA. This can be used to further stratify the data within the primary grouping column. If you don't want to use a second grouping column, select the same column as in the comparison column.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1026,7 +1076,7 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right: 15px;'>Select Colors for PCA Plot (Optional)</span>"
                   ),
-                  content = "The color palette to use for the PCA plot. Select the number of colors to match the number of categories in grouping column 1.",
+                  content = "The color palette to use for the PCA plot. Select the number of colors to match the number of categories in comparison column.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1444,10 +1494,10 @@ server <- function(input, output, session) {
                 "splsda_group_col",
                 label = helper(
                   type = "inline",
-                  title = "Grouping Column 1",
+                  title = "sPLS-DA Comparison Column",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Grouping Column 1</span>"
+                    "<span style='margin-right: 15px;'>sPLS-DA Comparison Column</span>"
                   ),
                   content = "Select the column containing the class labels or groups to discriminate between using sPLS-DA.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
@@ -1466,12 +1516,12 @@ server <- function(input, output, session) {
                 "splsda_group_col2",
                 label = helper(
                   type = "inline",
-                  title = "Grouping Column 2",
+                  title = "sPLS-DA Stratification Column",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Grouping Column 2</span>"
+                    "<span style='margin-right: 15px;'>sPLS-DA Stratification Column</span>"
                   ),
-                  content = "Optional: Select a second column for additional grouping information on the plots.",
+                  content = "Optional: Select a second column for stratifying the sPLS-DA analysis. This can be used to further differentiate groups within the primary grouping column. If not needed, select the same column as in the comparison column.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1623,7 +1673,7 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right: 15px;'>Select Colors for sPLS-DA Plot (Optional)</span>"
                   ),
-                  content = "The color palette to use for the sPLS-DA plot. Match the number of colors to the number of groups.",
+                  content = "The color palette to use for the sPLS-DA plot. Match the number of colors to the number of categories in the comparison column.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1889,12 +1939,12 @@ server <- function(input, output, session) {
                 "mint_splsda_group_col",
                 label = helper(
                   type = "inline",
-                  title = "Grouping Column (Outcome)",
+                  title = "MINT sPLS-DA Comparison Column",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Grouping Column</span>"
+                    "<span style='margin-right: 15px;'>MINT sPLS-DA Comparison Column</span>"
                   ),
-                  content = "Select the column containing the class labels you want to discriminate (e.g., Treatment, Condition).",
+                  content = "Select the column containing the class labels you want to discriminate.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1911,12 +1961,12 @@ server <- function(input, output, session) {
                 "mint_splsda_group_col2",
                 label = helper(
                   type = "inline",
-                  title = "Second Grouping Column (Optional)",
+                  title = "MINT sPLS-DA Stratification Column",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Second Grouping Column</span>"
+                    "<span style='margin-right: 15px;'>MINT sPLS-DA Stratification Column</span>"
                   ),
-                  content = "Optional. If specified, the MINT sPLS-DA analysis will be run separately for each level of this column.",
+                  content = "Optional. If specified, the MINT sPLS-DA analysis will be run separately for each level of this column. If not needed, select the same column as in the comparison column.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -2010,7 +2060,7 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right: 15px;'>Select Colors for Groups</span>"
                   ),
-                  content = "The color palette to use for the different groups in the plots.",
+                  content = "The color palette to use for the different groups in the plots. Match the number of colors to the number of categories in the comparison column.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -2136,12 +2186,12 @@ server <- function(input, output, session) {
                 "volc_group_col",
                 label = helper(
                   type = "inline",
-                  title = "Grouping Variable",
+                  title = "Comparison Column",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right:15px;'>Grouping Variable</span>"
+                    "<span style='margin-right:15px;'>Comparison Column</span>"
                   ),
-                  content = "Column to color points by (e.g. 'Treatment').",
+                  content = "The column that contains the comparison groups for the volcano plot. This should be a categorical column.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -2631,7 +2681,7 @@ server <- function(input, output, session) {
       )
     } else {
       helpText(
-        "Selected grouping variable does not have at least two unique values."
+        "Selected comparison variable does not have at least two unique values."
       )
     }
   })
@@ -3507,7 +3557,7 @@ server <- function(input, output, session) {
               actionButton("menu_ANOVA", "ANOVA", class = "menu-card"),
               actionButton(
                 "menu_t_test",
-                "Two-Sample T‑Test",
+                "Two-Sample T-Test",
                 class = "menu-card"
               ),
             )
@@ -3892,7 +3942,7 @@ server <- function(input, output, session) {
     updateCheckboxGroupInput(
       session,
       "selected_categorical_cols",
-      selected = categorical_cols
+      selected = cat_cols
     )
   })
   shiny::observeEvent(input$deselect_all_cat, {
@@ -4912,10 +4962,26 @@ server <- function(input, output, session) {
               "Principal Component Analysis (PCA)" = {
                 pch_vals <- as.numeric(input$pca_pch)
                 grp <- df[[input$pca_group_col]]
-                uniq <- unique(grp)
-                if (length(pch_vals) < length(uniq)) {
-                  pch_vals <- rep(pch_vals, length.out = length(uniq))
+                uniq <- unique(na.omit(grp))
+                n_levels <- length(uniq)
+
+                if (!length(pch_vals)) {
+                  pch_vals <- c(16, 17) # fallback if nothing selected
                 }
+
+                if (length(pch_vals) < n_levels) {
+                  needed <- n_levels - length(pch_vals)
+                  pool <- setdiff(0:25, pch_vals) # standard numeric pch set
+
+                  extra <- if (length(pool) >= needed) {
+                    sample(pool, needed, replace = FALSE)
+                  } else {
+                    c(pool, sample(0:25, needed - length(pool), replace = TRUE))
+                  }
+
+                  pch_vals <- c(pch_vals, extra)
+                }
+
                 cols <- if (length(input$pca_colors)) {
                   input$pca_colors
                 } else {
@@ -4924,7 +4990,6 @@ server <- function(input, output, session) {
 
                 cyt_pca(
                   data = df,
-
                   progress = prog,
                   group_col = input$pca_group_col,
                   group_col2 = if (nzchar(input$pca_group_col2)) {
@@ -4943,11 +5008,27 @@ server <- function(input, output, session) {
 
               "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
                 pch_vals <- as.numeric(input$splsda_pch)
+                pch_vals <- pch_vals[!is.na(pch_vals)]
                 grp <- df[[input$splsda_group_col]]
-                uniq <- unique(grp)
-                if (length(pch_vals) < length(uniq)) {
-                  pch_vals <- rep(pch_vals, length.out = length(uniq))
+                uniq <- unique(na.omit(grp))
+                n_levels <- length(uniq)
+
+                if (!length(pch_vals)) {
+                  pch_vals <- c(16, 17) # sensible fallback if nothing selected
                 }
+
+                if (length(pch_vals) < n_levels) {
+                  needed <- n_levels - length(pch_vals)
+                  pool <- setdiff(0:25, pch_vals) # standard numeric pch pool, avoid duplicates
+
+                  extra <- if (length(pool) >= needed) {
+                    sample(pool, needed, replace = FALSE)
+                  } else {
+                    c(pool, sample(0:25, needed - length(pool), replace = TRUE))
+                  }
+                  pch_vals <- c(pch_vals, extra)
+                }
+
                 cols <- if (length(input$splsda_colors)) {
                   input$splsda_colors
                 } else {
@@ -5665,6 +5746,17 @@ server <- function(input, output, session) {
                   type = 8
                 )
               )
+            ),
+            div(
+              style = "margin-top: .75rem;",
+              p(
+                tags$a(
+                  "Learn how to interpret volcano plot results",
+                  href = "https://shinyinfo.cytokineprofile.org/articles/Understanding-Volcano-Plot.html",
+                  target = "_blank",
+                  style = "text-decoration: underline;"
+                )
+              )
             )
           )
         },
@@ -5699,6 +5791,17 @@ server <- function(input, output, session) {
                 shinycssloaders::withSpinner(
                   DT::dataTableOutput("dualflashStats"),
                   type = 8
+                )
+              )
+            ),
+            div(
+              style = "margin-top: .75rem;",
+              p(
+                tags$a(
+                  "Learn how to interpret dualflashlight plot results",
+                  href = "https://shinyinfo.cytokineprofile.org/articles/Understanding-Dual-Flashlight-Plot.html",
+                  target = "_blank",
+                  style = "text-decoration: underline;"
                 )
               )
             )
@@ -5753,7 +5856,24 @@ server <- function(input, output, session) {
             )
           )
         },
-
+        "ANOVA" = {
+          tagList(
+            h4("ANOVA Results"),
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("anovaResults"),
+              type = 8
+            )
+          )
+        },
+        "Two-Sample T-Test" = {
+          tagList(
+            h4("Two-Sample T-Test Results"),
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("ttestResults"),
+              type = 8
+            )
+          )
+        },
         # --- Default UI for other functions (plots or tables) ---
         # This will catch simpler functions that return one plot or one table
         {
@@ -5772,23 +5892,15 @@ server <- function(input, output, session) {
                 )
               })
             )
-          } else {
-            # Handle functions that return a data frame for a table
-            shinycssloaders::withSpinner(
-              DT::dataTableOutput("statResults"),
-              type = 8
-            )
           }
         }
       )
     )
   }) %>%
     shiny::bindCache(
-      analysis_inputs()$df,
-      analysis_inputs()$func_name,
-      analysis_inputs()$args,
+      selected_function(),
       input$new_fresh,
-      input$new_resuse,
+      input$new_reuse,
       cache = "session"
     )
 
@@ -5812,7 +5924,7 @@ server <- function(input, output, session) {
       analysis_inputs()$func_name,
       analysis_inputs()$args,
       input$new_fresh,
-      input$new_resuse,
+      input$new_reuse,
       cache = "session"
     )
 
@@ -6325,15 +6437,6 @@ server <- function(input, output, session) {
         options = list(pageLength = 10, scrollX = TRUE)
       )
     }
-    # --- Generic Table Rendering Logic (for ANOVA, T-Test, etc.) ---
-    if (func_name %in% c("ANOVA", "Two-Sample T-Test")) {
-      output$statResults <- DT::renderDataTable(
-        {
-          res
-        },
-        options = list(pageLength = 10, scrollX = TRUE)
-      )
-    }
 
     # --- Generic Plot List Rendering Logic (for Boxplots, etc.) ---
     if (
@@ -6352,191 +6455,32 @@ server <- function(input, output, session) {
     }
   })
 
-  output$volcPlotOutput <- shiny::renderPlot({
-    req(analysisResult())
-    res <- analysisResult()
-    req(res$plot)
-    print(res$plot)
-  }) %>%
-    shiny::bindCache(
-      analysis_inputs()$df,
-      analysis_inputs()$func_name,
-      analysis_inputs()$args,
-      input$new_fresh,
-      input$new_resuse,
-      cache = "session"
-    )
-
-  output$volcStats <- shiny::renderTable(
-    {
-      req(analysisResult())
-      res <- analysisResult()
-      req(res$stats)
-      res$stats
-    },
-    rownames = FALSE
-  ) %>%
-    shiny::bindCache(
-      analysis_inputs()$df,
-      analysis_inputs()$func_name,
-      analysis_inputs()$args,
-      input$new_fresh,
-      input$new_resuse,
-      cache = "session"
-    )
-  output$statResults <- DT::renderDT(
-    {
-      res <- analysisResult()
-      func <- selected_function()
-
-      if (func == "ANOVA") {
-        if (is.data.frame(res)) {
-          df <- res
-        } else if (is.list(res)) {
-          df <- dplyr::bind_rows(
-            lapply(names(res), function(key) {
-              parts <- strsplit(key, "_")[[1]]
-              tibble::tibble(
-                Outcome = parts[1],
-                Categorical = parts[2],
-                Comparison = names(res[[key]]),
-                P_adj = unname(res[[key]])
-              )
-            })
-          )
-        } else {
-          df <- tibble::tibble(Message = as.character(res))
-        }
-      } else if (func == "Two-Sample T-Test") {
-        if (is.data.frame(res)) {
-          df <- res
-        } else if (
-          is.list(res) && all(vapply(res, inherits, logical(1), "htest"))
-        ) {
-          df <- dplyr::bind_rows(
-            lapply(names(res), function(key) {
-              tt <- res[[key]]
-              parts <- strsplit(key, "_")[[1]]
-
-              lvl <- tryCatch(
-                levels(filteredData()[[parts[2]]]),
-                error = function(e) c("Level1", "Level2")
-              )
-              tibble::tibble(
-                Outcome = parts[1],
-                Categorical = parts[2],
-                Comparison = paste(lvl[1], "vs", lvl[2]),
-                Test = tt$method,
-                Estimate = if ("estimate" %in% names(tt)) {
-                  unname(tt$estimate)[1]
-                } else {
-                  NA_real_
-                },
-                Statistic = unname(tt$statistic)[1],
-                P_value = tt$p.value
-              )
-            })
-          )
-        } else {
-          df <- tibble::tibble(Message = as.character(res))
-        }
-      } else {
-        df <- if (is.data.frame(res)) {
-          res
-        } else {
-          tibble::tibble(Result = as.character(res))
-        }
-      }
-
-      df
-    },
-    options = list(pageLength = 10, scrollX = TRUE),
-    rownames = FALSE
-  )
-  output$dualflashPlotOutput <- shiny::renderPlot({
-    req(analysisResult())
-    res <- analysisResult()
-    req(res$plot)
-    print(res$plot)
-  }) %>%
-    shiny::bindCache(
-      analysis_inputs()$df,
-      analysis_inputs()$func_name,
-      analysis_inputs()$args,
-      input$new_fresh,
-      input$new_resuse,
-      cache = "session"
-    )
-  output$dualflashStats <- shiny::renderTable(
-    {
-      req(analysisResult())
-      res <- analysisResult()
-      req(res$stats)
-      res$stats
-    },
-    rownames = FALSE
-  ) %>%
-    shiny::bindCache(
-      analysis_inputs()$df,
-      analysis_inputs()$func_name,
-      analysis_inputs()$args,
-      input$new_fresh,
-      input$new_resuse,
-      cache = "session"
-    )
-
-  output$heatmapImage <- shiny::renderImage(
-    {
-      req(analysisResult())
-      filepath <- analysisResult()
-      list(
-        src = filepath,
-        contentType = "image/png",
-        width = "600",
-        height = "600",
-        alt = "Heatmap"
-      )
-    },
-    deleteFile = FALSE
-  )
-
   output$textResults <- shiny::renderPrint({
     res <- analysisResult()
     print(res)
   })
+  # --- ANOVA table ---
+  output$anovaResults <- DT::renderDataTable(
+    {
+      res <- analysisResult()
+      # Ensure this renderer only runs when ANOVA was the selected function
+      req(selected_function() == "ANOVA")
+      res$out_df
+    },
+    options = list(pageLength = 10, scrollX = TRUE)
+  )
 
-  output$skku_skewPlot <- shiny::renderPlot({
-    req(analysisResult())
-    res <- analysisResult()
-    if (is.list(res) && !is.null(res$p_skew)) {
-      print(res$p_skew)
-    }
-  })
-  output$skku_kurtPlot <- shiny::renderPlot({
-    req(analysisResult())
-    res <- analysisResult()
-    if (is.list(res) && !is.null(res$p_kurt)) {
-      print(res$p_kurt)
-    }
-  })
-  output$skku_raw_results <- shiny::renderTable(
+  # --- Two-Sample T-Test table ---
+  output$ttestResults <- DT::renderDataTable(
     {
-      req(analysisResult())
       res <- analysisResult()
-      req(res$raw_results)
-      res$raw_results
+      # Ensure this renderer only runs when T-Test was the selected function
+      req(selected_function() == "Two-Sample T-Test")
+      res$out_df
     },
-    rownames = FALSE
+    options = list(pageLength = 10, scrollX = TRUE)
   )
-  output$skku_log_results <- shiny::renderTable(
-    {
-      req(analysisResult())
-      res <- analysisResult()
-      req(res$log_results)
-      res$log_results
-    },
-    rownames = FALSE
-  )
+
   output$errorBarPlotOutput <- shiny::renderPlot({
     req(analysisResult())
     res <- analysisResult()
@@ -6547,7 +6491,12 @@ server <- function(input, output, session) {
   output$download_ui <- shiny::renderUI({
     res <- analysisResult()
     # Show download button only if the result is of a type that generates a downloadable plot
-    if (!is.null(res) && (is.list(res) || is.character(res))) {
+    if (
+      !is.null(res) &&
+        !selected_function() %in% c("ANOVA", "Two-Sample T-Test") &&
+        !inherits(res, "data.frame") &&
+        (is.list(res) || is.character(res))
+    ) {
       tagList(
         textInput(
           "download_filename",

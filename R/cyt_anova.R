@@ -25,19 +25,22 @@
 #' @export
 
 cyt_anova <- function(data, format_output = FALSE, progress = NULL) {
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Converting data to data frame")
+  }
   x1_df <- as.data.frame(data)
 
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Converting characters to factors")
+  }
   cat_vars <- sapply(x1_df, is.character)
   if (any(cat_vars)) {
     x1_df[cat_vars] <- lapply(x1_df[cat_vars], as.factor)
   }
 
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Identifying predictors and outcomes")
+  }
   cat_preds <- sapply(x1_df, is.factor)
   cont_vars <- sapply(x1_df, is.numeric)
 
@@ -46,7 +49,9 @@ cyt_anova <- function(data, format_output = FALSE, progress = NULL) {
 
   for (cat_var in names(x1_df)[cat_preds]) {
     num_levels <- length(levels(x1_df[[cat_var]]))
-    if (num_levels == 1 || num_levels > 10) next
+    if (num_levels == 1 || num_levels > 10) {
+      next
+    }
 
     for (outcome in names(x1_df)[cont_vars]) {
       model <- stats::aov(
@@ -58,22 +63,43 @@ cyt_anova <- function(data, format_output = FALSE, progress = NULL) {
       result_key <- paste(outcome, cat_var, sep = "_")
       tukey_results[[result_key]] <- p_vals
       iter_count <- iter_count + 1
-      if (!is.null(progress))
+      if (!is.null(progress)) {
         progress$inc(0, detail = paste("Processed", iter_count, "comparisons"))
+      }
     }
   }
 
   if (length(tukey_results) == 0) {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.1, detail = "No valid comparisons performed")
+    }
     return(
       "No valid comparisons were performed. Check that your data has numeric columns and factors with 2-10 levels."
     )
   }
 
-  if (!is.null(progress)) progress$inc(0.1, detail = "Formatting output")
+  if (!is.null(progress)) {
+    progress$inc(0.1, detail = "Formatting output")
+  }
   if (!format_output) {
     return(tukey_results)
+  }
+  if (length(tukey_results)) {
+    rows <- lapply(names(tukey_results), function(key) {
+      parts <- strsplit(key, "_", fixed = TRUE)[[1]]
+      outcome <- parts[1]
+      cat_var <- parts[2]
+      pv <- tukey_results[[key]]
+      data.frame(
+        Outcome = outcome,
+        Categorical = cat_var,
+        Comparison = names(pv),
+        P_adj = round(unname(pv), 3),
+        stringsAsFactors = FALSE
+      )
+    })
+    out_df <- do.call(rbind, rows)
+    msg <- ""
   } else {
     out_df <- data.frame(
       Outcome = character(),
@@ -82,26 +108,15 @@ cyt_anova <- function(data, format_output = FALSE, progress = NULL) {
       P_adj = numeric(),
       stringsAsFactors = FALSE
     )
-
-    for (key in names(tukey_results)) {
-      parts <- unlist(strsplit(key, "_"))
-      outcome <- parts[1]
-      cat_var <- parts[2]
-      p_vals <- tukey_results[[key]]
-      for (comp in names(p_vals)) {
-        out_df <- rbind(
-          out_df,
-          data.frame(
-            Outcome = outcome,
-            Categorical = cat_var,
-            Comparison = comp,
-            P_adj = round(p_vals[comp], 3),
-            stringsAsFactors = FALSE
-          )
-        )
-      }
-    }
-    if (!is.null(progress)) progress$inc(0.05, detail = "Done")
-    return(out_df)
+    msg <- "No valid comparisons were performed. Check that your data has numeric columns and factors with 2–10 levels."
   }
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Done")
+  }
+
+  return(list(
+    out_df = out_df,
+    tukey_list = tukey_results,
+    message = msg
+  ))
 }

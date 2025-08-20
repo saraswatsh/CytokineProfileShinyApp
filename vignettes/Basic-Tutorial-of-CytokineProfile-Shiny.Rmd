@@ -29,13 +29,13 @@ The app allows users to upload their own data and supports various formats such 
 
 ## Selecting Columns and Applying Filters
 
-In step 2 of the app, the user is provided with a list of columns available within the uploaded data to select or deselect variables of choice and also filter categorical variables.
+In step 2 of the app, the user is provided with a list of columns available within the uploaded data to select or deselect variables of choice and also filter categorical variables. There is also a live view of the filtered data set after applying the selections and filters which updates as changes are made to your data prior to running analysis. Lastly, users can select specific rows to exclude from the analysis which is then seen in the deleted samples table where users can also undo the deletion of samples. 
 
 ![](../man/figures/Shiny_Step2.gif)
 
 ## Selecting Analysis Types
 
-In step 3 of the app, the user is given selection of different analyses to choose from each with its special parameters to configure in order to obtain specific statistical metrics or visualizations. 
+In step 3 and step 4 of the app, the user is given selection of different analyses to choose from each with its special parameters to configure in order to obtain specific statistical metrics or visualizations. 
 
 ![](../man/figures/Shiny_Step3.gif)
 

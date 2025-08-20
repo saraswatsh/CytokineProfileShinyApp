@@ -33,7 +33,9 @@ cyt_ttest <- function(
   x1_df <- as.data.frame(data)
   # convert chars to factors
   char_cols <- sapply(x1_df, is.character)
-  if (any(char_cols)) x1_df[char_cols] <- lapply(x1_df[char_cols], as.factor)
+  if (any(char_cols)) {
+    x1_df[char_cols] <- lapply(x1_df[char_cols], as.factor)
+  }
 
   # Add scale if user inputs scale
   if (!is.null(scale) && scale == "log2") {
@@ -45,12 +47,16 @@ cyt_ttest <- function(
   # loop over every factor with exactly 2 levels against each numeric
   test_results <- list()
   for (cat_var in names(x1_df)[sapply(x1_df, is.factor)]) {
-    if (length(levels(x1_df[[cat_var]])) != 2) next
+    if (length(levels(x1_df[[cat_var]])) != 2) {
+      next
+    }
     for (outcome in names(x1_df)[sapply(x1_df, is.numeric)]) {
       lvls <- levels(x1_df[[cat_var]])
       g1 <- x1_df[[outcome]][x1_df[[cat_var]] == lvls[1]]
       g2 <- x1_df[[outcome]][x1_df[[cat_var]] == lvls[2]]
-      if (length(g1) < 2 || length(g2) < 2) next
+      if (length(g1) < 2 || length(g2) < 2) {
+        next
+      }
 
       # normality check
       p1 <- tryCatch(stats::shapiro.test(g1)$p.value, error = function(e) 0)
@@ -92,8 +98,11 @@ cyt_ttest <- function(
         comp <- paste(lvls[1], "vs", lvls[2])
 
         est <- if (!is.null(tt$estimate)) unname(tt$estimate)[1] else NA_real_
-        stat <- if (!is.null(tt$statistic)) unname(tt$statistic)[1] else
+        stat <- if (!is.null(tt$statistic)) {
+          unname(tt$statistic)[1]
+        } else {
           NA_real_
+        }
 
         data.frame(
           Outcome = outcome,
@@ -107,9 +116,13 @@ cyt_ttest <- function(
         )
       })
     )
-    return(out_df)
+    return(list(
+      out_df = out_df
+    ))
   }
 
   # otherwise return the raw list of htest objects
-  test_results
+  return(list(
+    test_results = test_results
+  ))
 }
