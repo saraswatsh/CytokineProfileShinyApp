@@ -9,6 +9,9 @@
 #' @param group_col2 A string specifying the second grouping column name. Default is
 #'   \code{NULL}.
 #' @param batch_col A string specifying the column that identifies the batch or study for each sample.
+#' @param ind_names  If \code{TRUE}, the row names of the first (or second) data matrix is used as names.
+#'   Default is \code{FALSE}. If a character vector is provided, these values will be used as names.
+#'   If 'pch' is set this will overwrite the names as shapes. See ?mixOmics::plotIndiv for details.
 #' @param splsda_colors A vector of splsda_colors for the groups or treatments. If
 #'   \code{NULL}, a random palette (using \code{rainbow}) is generated based on
 #'   the number of groups.
@@ -74,6 +77,7 @@ cyt_splsda <- function(
   group_col,
   group_col2 = NULL,
   batch_col = NULL,
+  ind_names = FALSE,
   multilevel_col = NULL,
   var_num,
   comp_num = 2,
@@ -206,11 +210,53 @@ cyt_splsda <- function(
     list(X = X, Y = Y)
   }
 
+  # resolve labels for the current subset (TRUE, FALSE, or character vector)
+  .resolve_ind_names <- function(df_subset, ind_names, parent_n, parent_rownm) {
+    if (isTRUE(ind_names)) {
+      return(TRUE)
+    }
+    if (!is.character(ind_names)) {
+      return(FALSE)
+    }
+
+    # Case A: user supplied exactly the labels for this subset
+    if (length(ind_names) == nrow(df_subset) && is.null(names(ind_names))) {
+      return(ind_names)
+    }
+
+    # Case B: user supplied a named vector keyed by parent rownames
+    rn_sub <- rownames(df_subset)
+    if (!is.null(names(ind_names)) && !is.null(rn_sub)) {
+      lab <- ind_names[rn_sub]
+      if (sum(!is.na(lab)) >= 1) return(lab)
+    }
+
+    # Case C: user supplied full-length vector for the parent data (no names)
+    if (
+      length(ind_names) == parent_n &&
+        !is.null(parent_rownm) &&
+        !is.null(rn_sub)
+    ) {
+      # rely on rownames alignment of subset with parent
+      return(ind_names[match(rn_sub, parent_rownm)])
+    }
+
+    warning(
+      "`ind_names` provided but could not be reliably aligned; using default sample names."
+    )
+    TRUE
+  }
+
   # draw indiv plot (shared by interactive and pdf)
-  .plot_indiv <- function(model, groups, title, bg_on = FALSE) {
+  .plot_indiv <- function(
+    model,
+    groups,
+    title,
+    ind_names_resolved,
+    bg_on = FALSE
+  ) {
     bg_obj <- NULL
     if (isTRUE(bg)) {
-      # (re)compute background per model so axes match
       bg_obj <- mixOmics::background.predict(
         model,
         comp.predicted = min(2, ncol(model$variates$X)),
@@ -220,18 +266,28 @@ cyt_splsda <- function(
         resolution = 300
       )
     }
-    mixOmics::plotIndiv(
+
+    # Build args without pch/ind.names first
+    args <- list(
       model,
-      group = groups, # <- force mapping by factor
-      ind.names = NA,
+      group = groups,
       legend = TRUE,
       col = col_levels[levels(groups)],
-      pch = pch_levels[levels(groups)],
       title = title,
       legend.title = group_col,
       ellipse = isTRUE(ellipse),
       background = bg_obj
     )
+
+    # Key rule: labels OR shapes, never both
+    if (isTRUE(ind_names_resolved) || is.character(ind_names_resolved)) {
+      args$ind.names <- ind_names_resolved
+    } else {
+      args$ind.names <- FALSE
+      args$pch <- pch_levels[levels(groups)]
+    }
+
+    do.call(mixOmics::plotIndiv, args)
   }
 
   # record base graphics into replayable plot objects
@@ -291,11 +347,25 @@ cyt_splsda <- function(
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Plotting")
     }
+    lab_res <- .resolve_ind_names(
+      df_subset,
+      ind_names,
+      nrow(data),
+      rownames(data)
+    )
+    if ((isTRUE(lab_res) || is.character(lab_res)) && !is.null(pch_values)) {
+      message(
+        "`ind_names` is TRUE/character; ignoring `pch_values` for plotIndiv (labels and shapes are mutually exclusive)."
+      )
+    }
+
     indiv_plot <- .record_plot(.plot_indiv(
       mdl,
       Y,
-      sprintf("%s With Accuracy: %s %%", label, round(acc1, 1))
+      sprintf("%s With Accuracy: %s %%", label, round(acc1, 1)),
+      ind_names_resolved = lab_res
     ))
+
     indiv_3D <- NULL
     if (!is.null(style) && tolower(style) == "3d" && comp_num_eff == 3) {
       indiv_3D <- .record_plot({
@@ -448,7 +518,8 @@ cyt_splsda <- function(
           "sPLS-DA (VIP > 1): %s With Accuracy: %s %%",
           label,
           round(acc2, 1)
-        )
+        ),
+        ind_names_resolved = lab_res
       ))
       vip_loadings <- lapply(seq_len(comp_num_eff), function(k) {
         .record_plot({

@@ -135,6 +135,8 @@ server <- function(input, output, session) {
     splsda_fold_num = NULL,
     splsda_comp_num = NULL,
     splsda_pch = NULL,
+    splsda_ind_names_mode = NULL,
+    splsda_ind_names_col = NULL,
     splsda_style = NULL,
     splsda_roc = NULL,
     splsda_ellipse = NULL,
@@ -1766,9 +1768,62 @@ server <- function(input, output, session) {
                 value = isolate(userState$splsda_comp_num) %||% 2,
                 min = 2
               )
+            ),
+            column(
+              6,
+              radioButtons(
+                "splsda_ind_names_mode",
+                label = helper(
+                  type = "inline",
+                  title = "Plot Individual Names?",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Plot Individual Names?</span>"
+                  ),
+                  content = "Choose Off (shapes only), Row names (use rownames), or a Column (choose a column to label points).",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c(
+                  "Off" = "off",
+                  "Row names" = "rownames",
+                  "Column" = "column"
+                ),
+                selected = isolate(userState$splsda_ind_names_mode) %||% "off",
+                inline = TRUE
+              )
+            ),
+            column(
+              6,
+              conditionalPanel(
+                condition = "input.splsda_ind_names_mode === 'column'",
+                selectInput(
+                  "splsda_ind_names_col",
+                  label = helper(
+                    type = "inline",
+                    title = "Label Column",
+                    icon = "fas fa-question-circle",
+                    shiny_tag = HTML(
+                      "<span style='margin-right: 15px;'>Label Column</span>"
+                    ),
+                    content = "Column to use for individual labels.",
+                    colour = if (
+                      input$theme_choice %in% c("darkly", "cyborg")
+                    ) {
+                      "red"
+                    } else {
+                      "blue"
+                    }
+                  ),
+                  choices = cols,
+                  selected = isolate(userState$splsda_ind_names_col) %||% NULL
+                )
+              )
             )
           ),
-
           # Row 6: symbols & plot style
           fluidRow(
             column(
@@ -2876,6 +2931,8 @@ server <- function(input, output, session) {
     userState$splsda_fold_num = NULL
     userState$splsda_comp_num = NULL
     userState$splsda_pch = NULL
+    userState$splsda_ind_names_mode = NULL
+    userState$splsda_ind_names_col = NULL
     userState$splsda_style = NULL
     userState$splsda_roc = NULL
     userState$splsda_ellipse = NULL
@@ -2991,6 +3048,8 @@ server <- function(input, output, session) {
       userState$splsda_fold_num = NULL
       userState$splsda_comp_num = NULL
       userState$splsda_pch = NULL
+      userState$splsda_ind_names_mode = NULL
+      userState$splsda_ind_names_col = NULL
       userState$splsda_style = NULL
       userState$splsda_roc = NULL
       userState$splsda_ellipse = NULL
@@ -4022,6 +4081,34 @@ server <- function(input, output, session) {
     df[, intersect(names(df), final_cols), drop = FALSE]
   })
 
+  # Populate the sPLS-DA "Label column" choices whenever the working data changes
+  observeEvent(data_after_filters(), {
+    df <- data_after_filters()
+    req(nrow(df) > 0)
+
+    # Start with all non-numeric columns available after filters
+    cand <- names(df)[!vapply(df, is.numeric, logical(1))]
+
+    # Always include common label columns if present
+    extra <- unique(na.omit(c(
+      input$splsda_group_col,
+      input$splsda_group_col2,
+      input$splsda_multilevel,
+      input$splsda_batch_col
+    )))
+    extra <- intersect(extra, names(df))
+
+    cand <- unique(c(extra, cand))
+    cand <- setdiff(cand, ".cyto_id.") # never expose internal id
+
+    updateSelectInput(
+      session,
+      "splsda_ind_names_col",
+      choices = cand,
+      selected = isolate(userState$splsda_ind_names_col) %||%
+        if (length(cand)) cand[1] else NULL
+    )
+  })
   # E) Render the table in Step 2
   output$filtered_data_preview <- DT::renderDT({
     df <- filteredData()
@@ -4256,6 +4343,8 @@ server <- function(input, output, session) {
         userState$splsda_fold_num <- input$splsda_fold_num
         userState$splsda_comp_num <- input$splsda_comp_num
         userState$splsda_pch <- input$splsda_pch
+        userState$splsda_ind_names_mode <- input$splsda_ind_names_mode
+        userState$splsda_ind_names_col <- input$splsda_ind_names_col
         userState$splsda_style <- input$splsda_style
         userState$splsda_roc <- input$splsda_roc
         userState$splsda_ellipse <- input$splsda_ellipse
@@ -4560,6 +4649,13 @@ server <- function(input, output, session) {
         userState$selected_function ==
           "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
       ) {
+        df_now <- isolate(data_after_filters())
+        if (isTruthy(df_now)) {
+          cand <- names(df_now)[!vapply(df_now, is.numeric, logical(1))]
+          cand <- setdiff(cand, ".cyto_id.")
+        } else {
+          cand <- character(0)
+        }
         updateSelectInput(
           session,
           "splsda_group_col",
@@ -4609,6 +4705,18 @@ server <- function(input, output, session) {
           session,
           "splsda_comp_num",
           value = userState$splsda_comp_num
+        )
+        updateRadioButtons(
+          session,
+          "splsda_ind_names_mode",
+          selected = userState$splsda_ind_names_mode %||% "off"
+        )
+        updateSelectInput(
+          session,
+          "splsda_ind_names_col",
+          choices = cand,
+          selected = userState$splsda_ind_names_col %||%
+            if (length(cand)) cand[1] else NULL
         )
         updateSelectizeInput(
           session,
@@ -4790,6 +4898,8 @@ server <- function(input, output, session) {
         splsda_fold_num = input$splsda_fold_num,
         splsda_comp_num = input$splsda_comp_num,
         splsda_pch = input$splsda_pch,
+        splsda_ind_names_mode = input$splsda_ind_names_mode,
+        splsda_ind_names_col = input$splsda_ind_names_col,
         splsda_style = input$splsda_style,
         splsda_roc = input$splsda_roc,
         splsda_ellipse = input$splsda_ellipse,
@@ -5044,10 +5154,18 @@ server <- function(input, output, session) {
                 } else {
                   NULL
                 }
-
+                ind_names_val <- switch(
+                  input$splsda_ind_names_mode %||% "off",
+                  "off" = FALSE,
+                  "rownames" = TRUE,
+                  "column" = {
+                    req(input$splsda_ind_names_col)
+                    as.character(df[[input$splsda_ind_names_col]])
+                  },
+                  FALSE
+                )
                 cyt_splsda(
                   data = df,
-
                   progress = prog,
                   group_col = input$splsda_group_col,
                   group_col2 = input$splsda_group_col2,
@@ -5067,6 +5185,7 @@ server <- function(input, output, session) {
                   splsda_colors = cols,
                   roc = input$splsda_roc,
                   ellipse = input$splsda_ellipse,
+                  ind_names = ind_names_val,
                   bg = input$splsda_bg,
                   conf_mat = input$splsda_conf_mat
                 )
@@ -6698,6 +6817,12 @@ server <- function(input, output, session) {
   })
   shiny::observeEvent(input$splsda_comp_num, {
     userState$splsda_comp_num <- input$splsda_comp_num
+  })
+  shiny::observeEvent(input$splsda_ind_names_mode, {
+    userState$splsda_ind_names_mode <- input$splsda_ind_names_mode
+  })
+  shiny::observeEvent(input$splsda_ind_names_col, {
+    userState$splsda_ind_names_col <- input$splsda_ind_names_col
   })
   shiny::observeEvent(input$splsda_pch, {
     userState$splsda_pch <- input$splsda_pch
