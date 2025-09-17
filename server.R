@@ -3544,7 +3544,7 @@ server <- function(input, output, session) {
             class = "card h-100",
             div(
               class = "card-header bg-primary text-white",
-              "Statistical Tests"
+              "Univariate Analysis"
             ),
             div(
               class = "card-body",
@@ -4029,7 +4029,7 @@ server <- function(input, output, session) {
         column(
           width = 3,
           card(
-            card_header("Statistical Tests", class = "bg-info"),
+            card_header("Univariate Analysis", class = "bg-info"),
             card_body(
               actionButton("menu_ANOVA", "ANOVA", class = "menu-card"),
               actionButton(
