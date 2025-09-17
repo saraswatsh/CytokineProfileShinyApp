@@ -5,6 +5,7 @@ library(tidyr)
 library(rlang)
 library(broom)
 library(ggplot2)
+library(ggcorrplot)
 library(readxl)
 library(bslib)
 library(shinyhelper)
@@ -120,6 +121,18 @@ server <- function(input, output, session) {
     rf_k_folds = NULL,
     rf_step = NULL,
 
+    # PLSR options
+    plsr_group_col = NULL,
+    plsr_response_col = NULL,
+    plsr_comp_num = NULL,
+    plsr_keepX = NULL,
+    plsr_keepX_manual = FALSE,
+    plsr_sparse = FALSE,
+    plsr_cv_opt = NULL,
+    plsr_fold_num = NULL,
+    plsr_ellipse = NULL,
+    plsr_colors = NULL,
+
     # Skewness/Kurtosis options
     skku_group_cols = NULL,
     skku_print_raw = NULL,
@@ -178,7 +191,12 @@ server <- function(input, output, session) {
     xgb_cv = NULL,
     xgb_eval_metric = NULL,
     xgb_top_n_features = NULL,
-    xgb_plot_roc = NULL
+    xgb_plot_roc = NULL,
+
+    # Correlation options
+    corr_target = NULL,
+    corr_group_col = NULL,
+    corr_by_group = FALSE
   )
   # Reactive values to store the selection from our new custom buttons
   selected_stat_func <- shiny::reactiveVal("ANOVA")
@@ -986,6 +1004,93 @@ server <- function(input, output, session) {
         )
       },
       # ————————————————————
+      # Correlation Plots
+      # ————————————————————
+      "Correlation Plots" = {
+        df <- filteredData()
+        if (is.null(df)) {
+          return(NULL)
+        }
+
+        cols <- names(df)
+        cols <- cols[cols != "..cyto_id.."]
+        num_cols <- cols[sapply(df[cols], is.numeric)]
+        none_choice <- c("None (no grouping)" = "")
+
+        ui_list <- tagList(
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "corr_target",
+                label = helper(
+                  type = "inline",
+                  title = "Target Variable",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Target Variable</span>"
+                  ),
+                  content = "Correlate this variable against all other numeric features.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = num_cols,
+                selected = isolate(userState$corr_target) %||% num_cols[1]
+              )
+            ),
+            column(
+              6,
+              selectInput(
+                "corr_group_col",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping (optional)",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Grouping Variable</span>"
+                  ),
+                  content = "If set, you can render per-group heatmaps (first two levels) for each method.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c(none_choice, setNames(cols, cols)),
+                selected = isolate(userState$corr_group_col) %||% ""
+              )
+            )
+          ),
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "corr_by_group",
+                label = helper(
+                  type = "inline",
+                  title = "Per-group Heatmaps",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Per-group Heatmaps</span>"
+                  ),
+                  content = "If a grouping column is selected, show one heatmap per (first two) levels.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$corr_by_group) %||% FALSE
+              )
+            )
+          )
+        )
+      },
+
+      # ————————————————————
       # PCA
       # ————————————————————
       "Principal Component Analysis (PCA)" = {
@@ -1171,6 +1276,239 @@ server <- function(input, output, session) {
                   placeholder = "Select Symbols",
                   plugins = c("remove_button", "restore_on_backspace"),
                   create = TRUE
+                )
+              )
+            )
+          )
+        )
+      },
+
+      # ——————————————————————————————
+      # Partial Least Squares Regression
+      # ——————————————————————————————
+      "Partial Least Squares Regression (PLSR)" = {
+        df <- filteredData()
+        if (is.null(df)) {
+          return(NULL)
+        }
+        cols <- names(df)
+        cols <- cols[cols != "..cyto_id.."]
+
+        # Adding a None option
+        none_choice <- c("None (no grouping)" = "") # empty-string sentinel
+        grp_choices <- c(none_choice, setNames(cols, cols)) # prepend None
+
+        num_cols <- names(df)[sapply(df, is.numeric)]
+        num_cols <- num_cols[num_cols != "..cyto_id.."]
+        default_num_vars <- sum(sapply(df, is.numeric))
+        if (!isTRUE(userState$plsr_keepX_manual)) {
+          userState$plsr_keepX <- default_num_vars
+        }
+        ui_list <- tagList(
+          fluidRow(
+            column(
+              6,
+              selectInput(
+                "plsr_group_col",
+                label = helper(
+                  type = "inline",
+                  title = "Grouping Column",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Grouping Column</span>"
+                  ),
+                  content = "Optional: choose a column to colour points in the score plot.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = grp_choices,
+                selected = isolate(userState$plsr_group_col) %||% ""
+              )
+            ),
+            column(
+              6,
+              selectInput(
+                "plsr_response_col",
+                label = helper(
+                  type = "inline",
+                  title = "Response Column",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Response Column</span>"
+                  ),
+                  content = "Select the numeric column to be predicted.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = num_cols,
+                selected = isolate(userState$plsr_response_col) %||%
+                  num_cols[1]
+              )
+            )
+          ),
+          fluidRow(
+            column(
+              6,
+              numericInput(
+                "plsr_comp_num",
+                label = helper(
+                  type = "inline",
+                  title = "Number of Components",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Number of Components</span>"
+                  ),
+                  content = "How many latent components to extract.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$plsr_comp_num) %||% 2,
+                min = 2
+              )
+            ),
+            # Add a checkbox for sparse PLSR
+            column(
+              6,
+              checkboxInput(
+                "plsr_sparse",
+                label = helper(
+                  type = "inline",
+                  title = "Sparse PLSR",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Sparse PLSR</span>"
+                  ),
+                  content = "Use sparse PLSR for variable selection.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$plsr_sparse) %||% FALSE
+              )
+            )
+          ),
+          fluidRow(
+            column(
+              6,
+              # Conditional to show keepX only if sparse is checked
+              conditionalPanel(
+                condition = "input.plsr_sparse == true",
+                numericInput(
+                  "plsr_keepX",
+                  label = helper(
+                    type = "inline",
+                    title = "Number of Variables",
+                    icon = "fas fa-exclamation-circle",
+                    shiny_tag = HTML(
+                      "<span style='margin-right: 15px;'>Number of Variables</span>"
+                    ),
+                    content = "Select number of variables to keep per component.",
+                    colour = if (
+                      input$theme_choice %in% c("darkly", "cyborg")
+                    ) {
+                      "red"
+                    } else {
+                      "blue"
+                    }
+                  ),
+                  value = isolate(userState$plsr_keepX),
+                  1
+                )
+              )
+            )
+          ),
+          fluidRow(
+            column(
+              6,
+              checkboxInput(
+                "plsr_ellipse",
+                label = helper(
+                  type = "inline",
+                  title = "Ellipse",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Ellipse</span>"
+                  ),
+                  content = "Draw 95% confidence ellipses on the Scores plot (if grouping provided).",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                value = isolate(userState$plsr_ellipse) %||% FALSE
+              )
+            ),
+            column(
+              6,
+              selectizeInput(
+                "plsr_colors",
+                label = helper(
+                  type = "inline",
+                  title = "Colors (optionnal)",
+                  icon = "fas fa-exclamation-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Colors (optional)</span>"
+                  ),
+                  content = "Optional palette for levels of the grouping column (recycled as needed).",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = allowed_colors, # already defined globally
+                selected = isolate(userState$plsr_colors),
+                multiple = TRUE,
+                options = list(placeholder = "Pick colors (optional)")
+              )
+            )
+          ),
+          fluidRow(
+            column(
+              6,
+              tagList(
+                radioButtons(
+                  "plsr_cv_opt",
+                  label = helper(
+                    type = "inline",
+                    title = "Cross-validation",
+                    icon = "fas fa-exclamation-circle",
+                    shiny_tag = HTML(
+                      "<span style='margin-right: 15px;'>Cross-validation</span>"
+                    ),
+                    content = "Choose Leave-One-Out Cross Validation (LOOCV) or M-fold with defined number of folds to assess predictive performance.",
+                    colour = if (
+                      input$theme_choice %in% c("darkly", "cyborg")
+                    ) {
+                      "red"
+                    } else {
+                      "blue"
+                    }
+                  ),
+                  choices = c("None", "LOOCV", "Mfold"),
+                  selected = isolate(userState$plsr_cv_opt) %||% "None",
+                  inline = TRUE
+                ),
+                conditionalPanel(
+                  condition = "input.plsr_cv_opt == 'Mfold'",
+                  numericInput(
+                    "plsr_fold_num",
+                    "Number of folds",
+                    value = isolate(userState$plsr_fold_num) %||% 5,
+                    min = 2
+                  )
                 )
               )
             )
@@ -2610,6 +2948,13 @@ server <- function(input, output, session) {
         value = default_num_vars
       )
     }
+    if (!isTRUE(userState$plsr_keepX_manual)) {
+      updateNumericInput(
+        session,
+        "plsr_keepX",
+        value = default_num_vars
+      )
+    }
   })
 
   # 3) As soon as they type their own number, stop auto‑syncing
@@ -2625,6 +2970,13 @@ server <- function(input, output, session) {
     input$mint_splsda_var_num,
     {
       userState$mint_splsda_var_num_manual <- TRUE
+    },
+    ignoreInit = TRUE
+  )
+  shiny::observeEvent(
+    input$plsr_keepX,
+    {
+      userState$plsr_keepX_manual <- TRUE
     },
     ignoreInit = TRUE
   )
@@ -2897,6 +3249,11 @@ server <- function(input, output, session) {
     # Heatmap options
     userState$hm_annotation = NULL
 
+    # Correlation options
+    userState$corr_target = NULL
+    userState$corr_group_col = NULL
+    userState$corr_by_group = FALSE
+
     # PCA options
     userState$pca_group_col = NULL
     userState$pca_group_col2 = NULL
@@ -2905,6 +3262,18 @@ server <- function(input, output, session) {
     userState$pca_style = NULL
     userState$pca_pch = NULL
     userState$pca_colors = NULL
+
+    # PLSR options
+    userState$plsr_group_col = NULL
+    userState$plsr_response_col = NULL
+    userState$plsr_comp_num = NULL
+    userState$plsr_keepX = NULL
+    userState$plsr_keepX_manual = FALSE
+    userState$plsr_sparse = FALSE
+    userState$plsr_cv_opt = NULL
+    userState$plsr_fold_num = NULL
+    userState$plsr_ellipse = FALSE
+    userState$plsr_colors = NULL
 
     # Random Forest options
     userState$rf_group_col = NULL
@@ -3023,6 +3392,18 @@ server <- function(input, output, session) {
       userState$pca_pch = NULL
       userState$pca_colors = NULL
 
+      # PLSR options
+      userState$plsr_group_col = NULL
+      userState$plsr_response_col = NULL
+      userState$plsr_comp_num = NULL
+      userState$plsr_keepX = NULL
+      userState$plsr_keepX_manual = FALSE
+      userState$sparse = FALSE
+      userState$plsr_cv_opt = NULL
+      userState$plsr_fold_num = NULL
+      userState$plsr_ellipse = FALSE
+      userState$plsr_colors = NULL
+
       # Random Forest options
       userState$rf_group_col = NULL
       userState$rf_ntree = NULL
@@ -3092,6 +3473,11 @@ server <- function(input, output, session) {
       userState$xgb_eval_metric = NULL
       userState$xgb_top_n_features = NULL
       userState$xgb_plot_roc = NULL
+
+      # Correlation options
+      userState$corr_target = NULL
+      userState$corr_group_col = NULL
+      userState$corr_by_group = FALSE
     })
     currentPage("step2")
     currentStep(2)
@@ -3182,6 +3568,7 @@ server <- function(input, output, session) {
               tags$ul(
                 tags$li("Boxplots"),
                 tags$li("Enhanced Boxplots"),
+                tags$li("Correlation Plots"),
                 tags$li("Error-Bar Plot"),
                 tags$li("Dual-Flashlight Plot"),
                 tags$li("Heatmap"),
@@ -3203,6 +3590,7 @@ server <- function(input, output, session) {
               class = "card-body",
               tags$ul(
                 tags$li("Principal Component Analysis (PCA)"),
+                tags$li("Partial Least Squares Regression (PLSR)"),
                 tags$li(
                   "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
                 ),
@@ -3267,6 +3655,7 @@ server <- function(input, output, session) {
           width = 6,
           h2("Shubh Saraswat"),
           p(em("Creator and Author of CytokineProfile")),
+          p("Biomedical Data Scientist"),
           p("PhD Student in Epidemiology & Biostatistics"),
           p("University of Kentucky"),
           tags$a(
@@ -3314,6 +3703,35 @@ server <- function(input, output, session) {
             icon("orcid"),
             "ORCID"
           )
+        )
+      ),
+      fluidRow(
+        ## —— Column 3 —— ##
+        column(
+          width = 6,
+          h2("Bira Arumndari Nurrahma"),
+          p(em("Author of CytokineProfile")),
+          p("PhD Student in Nutritional Sciences"),
+          p("University of Kentucky"),
+          tags$a(
+            href = "mailto:biraarum@uky.edu",
+            class = "btn btn-primary me-2",
+            icon("envelope"),
+            "Email"
+          )
+        )
+      ),
+      # Add a note about who to contact for application issues
+      column(
+        width = 12,
+        br(),
+        p(
+          "For issues related to the application, submit an issue at the ",
+          tags$a(
+            href = "https://github.com/saraswatsh/CytokineProfileShinyApp/issues",
+            "GitHub repository."
+          ),
+          "For additional questions or concerns, contact the creator Shubh Saraswat with the provided email above."
         )
       )
     )
@@ -3635,6 +4053,11 @@ server <- function(input, output, session) {
                 class = "menu-card"
               ),
               actionButton(
+                "menu_correlation",
+                "Correlation Plots",
+                class = "menu-card"
+              ),
+              actionButton(
                 "menu_skewkurt",
                 "Skewness/Kurtosis",
                 class = "menu-card"
@@ -3667,6 +4090,11 @@ server <- function(input, output, session) {
               actionButton(
                 "menu_PCA",
                 "Principal Component Analysis (PCA)",
+                class = "menu-card"
+              ),
+              actionButton(
+                "menu_PLSR",
+                "Partial Least Squares Regression (PLSR)",
                 class = "menu-card"
               ),
               actionButton(
@@ -3867,6 +4295,7 @@ server <- function(input, output, session) {
   exploratory_choices <- c(
     "Boxplots",
     "Enhanced Boxplots",
+    "Correlation Plots",
     "Error-Bar Plot",
     "Dual-Flashlight Plot",
     "Heatmap",
@@ -3891,6 +4320,9 @@ server <- function(input, output, session) {
       input[[paste0("exp_func_", gsub("\\s|\\-", "_", choice))]],
       {
         selected_exploratory_func(choice)
+        selected_function(choice)
+        currentPage("step4")
+        currentStep(4)
       }
     )
   })
@@ -3898,6 +4330,7 @@ server <- function(input, output, session) {
   # --- Logic for Custom Button Group: Multivariate ---
   multivariate_choices <- c(
     "Principal Component Analysis (PCA)",
+    "Partial Least Squares Regression (PLSR)",
     "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)",
     "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
   )
@@ -4275,7 +4708,7 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$next3, {
     req(currentStep() == 4, !is.null(selected_function()))
     userState$selected_function <- selected_function()
-    if (currentStep() == 3 && !is.null(selected_function())) {
+    if (currentStep() == 4 && !is.null(selected_function())) {
       if (selected_function() == "Boxplots") {
         userState$bp_mf_row <- input$bp_mf_row
         userState$bp_y_lim <- input$bp_y_lim
@@ -4305,6 +4738,11 @@ server <- function(input, output, session) {
       if (selected_function() == "Heatmap") {
         userState$hm_annotation <- input$hm_annotation
       }
+      if (selected_function() == "Correlation Plots") {
+        userState$corr_group_col <- input$corr_group_col
+        userState$corr_target <- input$corr_target
+        userState$corr_by_group <- input$corr_by_group
+      }
       if (selected_function() == "Principal Component Analysis (PCA)") {
         userState$pca_group_col <- input$pca_group_col
         userState$pca_group_col2 <- input$pca_group_col2
@@ -4313,6 +4751,17 @@ server <- function(input, output, session) {
         userState$pca_style <- input$pca_style
         userState$pca_pch <- input$pca_pch
         userState$pca_colors <- input$pca_colors
+      }
+      if (selected_function() == "Partial Least Squares Regression (PLSR)") {
+        userState$plsr_group_col <- input$plsr_group_col
+        userState$plsr_response_col <- input$plsr_response_col
+        userState$plsr_comp_num <- input$plsr_comp_num
+        userState$plsr_sparse <- input$plsr_sparse
+        userState$plsr_keepX <- input$plsr_keepX
+        userState$plsr_cv_opt <- input$plsr_cv_opt
+        userState$plsr_fold_num <- input$plsr_fold_num
+        userState$plsr_ellipse <- input$plsr_ellipse
+        userState$plsr_colors <- input$plsr_colors
       }
       if (selected_function() == "Random Forest") {
         userState$rf_group_col <- input$rf_group_col
@@ -4596,6 +5045,75 @@ server <- function(input, output, session) {
           selected = userState$pca_colors
         )
       }
+      # Partial Least Squares Regression (PLSR)
+      if (
+        userState$selected_function == "Partial Least Squares Regression (PLSR)"
+      ) {
+        updateSelectInput(
+          session,
+          "plsr_group_col",
+          selected = userState$plsr_group_col
+        )
+        updateSelectInput(
+          session,
+          "plsr_response_col",
+          selected = userState$plsr_response_col
+        )
+        updateNumericInput(
+          session,
+          "plsr_comp_num",
+          value = userState$plsr_comp_num
+        )
+        updateCheckboxInput(
+          session,
+          "plsr_sparse",
+          value = userState$plsr_sparse
+        )
+        updateNumericInput(
+          session,
+          "plsr_keepX",
+          value = userState$plsr_keepX
+        )
+        updateCheckboxInput(
+          session,
+          "plsr_cv_opt",
+          value = userState$plsr_cv_opt
+        )
+        updateNumericInput(
+          session,
+          "plsr_fold_num",
+          value = userState$plsr_fold_num
+        )
+        updateCheckboxInput(
+          session,
+          "plsr_ellipse",
+          value = userState$plsr_ellipse
+        )
+        updateSelectizeInput(
+          session,
+          "plsr_colors",
+          selected = userState$plsr_colors
+        )
+      }
+
+      # Correlation Plots
+      if (userState$selected_function == "Correlation Plots") {
+        updateSelectInput(
+          session,
+          "corr_group_col",
+          selected = userState$corr_group_col
+        )
+        updateSelectInput(
+          session,
+          "corr_target",
+          selected = userState$corr_target
+        )
+        updateCheckboxInput(
+          session,
+          "corr_by_group",
+          value = userState$corr_by_group
+        )
+      }
 
       # Random Forest
       if (userState$selected_function == "Random Forest") {
@@ -4862,6 +5380,11 @@ server <- function(input, output, session) {
         # Heatmap
         hm_annotation = input$hm_annotation,
 
+        # Correlation Plots
+        corr_group_col = input$corr_group_col,
+        corr_target = input$corr_target,
+        corr_by_group = input$corr_by_group,
+
         # PCA
         pca_group_col = input$pca_group_col,
         pca_group_col2 = input$pca_group_col2,
@@ -4870,6 +5393,17 @@ server <- function(input, output, session) {
         pca_style = input$pca_style,
         pca_pch = input$pca_pch,
         pca_colors = input$pca_colors,
+
+        # PLSR
+        plsr_group_col = input$plsr_group_col,
+        plsr_response_col = input$plsr_response_col,
+        plsr_comp_num = input$plsr_comp_num,
+        plsr_sparse = input$plsr_sparse,
+        plsr_keepX = input$plsr_keepX,
+        plsr_cv_opt = input$plsr_cv_opt,
+        plsr_fold_num = input$plsr_fold_num,
+        plsr_ellipse = input$plsr_ellipse,
+        plsr_colors = input$plsr_colors,
 
         # Random Forest
         rf_group_col = input$rf_group_col,
@@ -5113,6 +5647,92 @@ server <- function(input, output, session) {
                   style = if (input$pca_style == "3D") "3d" else NULL,
                   pch_values = pch_vals,
                   pca_colors = cols
+                )
+              },
+
+              "Partial Least Squares Regression (PLSR)" = {
+                df <- filteredData()
+                grp <- if (
+                  !is.null(input$plsr_group_col) && nzchar(input$plsr_group_col)
+                ) {
+                  input$plsr_group_col
+                } else {
+                  NULL
+                }
+
+                res <- cyt_plsr(
+                  data = df,
+                  group_col = grp,
+                  response_col = input$plsr_response_col,
+                  comp_num = input$plsr_comp_num,
+                  sparse = input$plsr_sparse,
+                  var_num = input$plsr_keepX,
+                  scale = NULL,
+                  ellipse = isTRUE(input$plsr_ellipse),
+                  cv_opt = if (input$plsr_cv_opt == "None") {
+                    NULL
+                  } else {
+                    tolower(input$plsr_cv_opt)
+                  }, # "loocv" or "mfold"
+                  fold_num = input$plsr_fold_num,
+                  pls_colors = input$plsr_colors,
+                  progress = prog
+                )
+              },
+
+              "Correlation Plots" = {
+                tgt <- input$corr_target
+                grp <- input$corr_group_col
+                bygrp <- isTRUE(input$corr_by_group) && nzchar(grp)
+
+                # overall: both methods at once
+                both <- cyt_corr(
+                  data = df,
+                  target = tgt,
+                  methods = c("spearman", "pearson"),
+                  group_var = if (nzchar(grp)) grp else NULL,
+                  compare_groups = FALSE,
+                  progress = prog
+                )
+
+                # per-group heatmaps for each method
+                group_mats <- NULL
+                if (bygrp) {
+                  g <- factor(df[[grp]])
+                  levs <- levels(g)
+                  levs <- levs[!is.na(levs)]
+
+                  build_group_mats <- function(method) {
+                    mats <- list()
+                    for (lv in levs) {
+                      sub <- df[g == lv, , drop = FALSE]
+                      mats[[lv]] <- cyt_corr(
+                        data = sub,
+                        target = tgt,
+                        methods = method,
+                        progress = prog
+                      )[[method]]$heat_mat
+                    }
+                    mats
+                  }
+
+                  group_mats <- list(
+                    spearman = build_group_mats("spearman"),
+                    pearson = build_group_mats("pearson")
+                  )
+                }
+
+                list(
+                  spearman = list(
+                    table = both$spearman$table,
+                    heat_mat = both$spearman$heat_mat
+                  ),
+                  pearson = list(
+                    table = both$pearson$table,
+                    heat_mat = both$pearson$heat_mat
+                  ),
+                  group_mats = group_mats,
+                  corr_target = tgt
                 )
               },
 
@@ -5781,6 +6401,145 @@ server <- function(input, output, session) {
               )
             )
           }
+        },
+        # --- PLSR UI ---
+        "Partial Least Squares Regression (PLSR)" = {
+          tagList(
+            h4("PLSR Results"),
+            tabsetPanel(
+              type = "tabs",
+              tabPanel(
+                "Scores Plot",
+                shinycssloaders::withSpinner(
+                  plotOutput("plsr_indivPlot", height = "400px"),
+                  type = 8
+                )
+              ),
+              tabPanel(
+                "Predicted vs Observed",
+                shinycssloaders::withSpinner(
+                  plotOutput("plsr_predPlot", height = "400px"),
+                  type = 8
+                )
+              ),
+              tabPanel(
+                "Residuals vs Fitted",
+                shinycssloaders::withSpinner(
+                  plotOutput("plsr_residPlot", height = "400px"),
+                  type = 8
+                )
+              ),
+              tabPanel(
+                "Loadings Plots",
+                shinycssloaders::withSpinner(
+                  uiOutput("plsr_loadingsUI"),
+                  type = 8
+                )
+              ),
+              tabPanel(
+                "VIP Scores",
+                shinycssloaders::withSpinner(
+                  uiOutput("plsr_vipUI"),
+                  type = 8
+                )
+              ),
+              if (!is.null(res$cv_plot)) {
+                tabPanel(
+                  "Cross-Validation",
+                  shinycssloaders::withSpinner(
+                    plotOutput("plsr_cvPlot", height = "400px"),
+                    type = 8
+                  )
+                )
+              },
+              if (!is.null(res$vip_scores_indiv)) {
+                tabPanel(
+                  "VIP > 1: Scores",
+                  shinycssloaders::withSpinner(
+                    plotOutput("plsr_vipIndivPlot", height = "400px"),
+                    type = 8
+                  )
+                )
+              },
+              if (!is.null(res$vip_cv_plot)) {
+                tabPanel(
+                  "VIP > 1: Cross-Validation",
+                  shinycssloaders::withSpinner(
+                    plotOutput("plsr_vipCVPlot", height = "400px"),
+                    type = 8
+                  )
+                )
+              }
+            )
+          )
+        },
+
+        # --- Correlation UI ---
+        "Correlation Plots" = {
+          tagList(
+            h4("Correlation Results"),
+            tabsetPanel(
+              type = "tabs",
+              tabPanel(
+                "Spearman",
+                tabsetPanel(
+                  type = "tabs",
+                  tabPanel(
+                    "Table",
+                    shinycssloaders::withSpinner(
+                      DT::dataTableOutput("corr_tbl_spearman"),
+                      type = 8
+                    )
+                  ),
+                  tabPanel(
+                    "Heatmap",
+                    shinycssloaders::withSpinner(
+                      plotOutput("corr_heatmap_spearman", height = "600px"),
+                      type = 8
+                    )
+                  ),
+                  if (!is.null(res$group_mats)) {
+                    tabPanel(
+                      "Per-Group Heatmaps",
+                      shinycssloaders::withSpinner(
+                        uiOutput("corr_group_heatmap_ui_spearman"),
+                        type = 8
+                      )
+                    )
+                  }
+                )
+              ),
+              tabPanel(
+                "Pearson",
+                tabsetPanel(
+                  type = "tabs",
+                  tabPanel(
+                    "Table",
+                    shinycssloaders::withSpinner(
+                      DT::dataTableOutput("corr_tbl_pearson"),
+                      type = 8
+                    )
+                  ),
+                  tabPanel(
+                    "Heatmap",
+                    shinycssloaders::withSpinner(
+                      plotOutput("corr_heatmap_pearson", height = "600px"),
+                      type = 8
+                    )
+                  ),
+                  if (!is.null(res$group_mats)) {
+                    tabPanel(
+                      "Per-Group Heatmaps",
+                      shinycssloaders::withSpinner(
+                        uiOutput("corr_group_heatmap_ui_pearson"),
+                        type = 8
+                      )
+                    )
+                  }
+                )
+              )
+            )
+          )
         },
         # --- Random Forest UI ---
         "Random Forest" = {
@@ -6472,6 +7231,215 @@ server <- function(input, output, session) {
         }
       }
     }
+
+    # --- PLSR Rendering Logic ---
+    if (func_name == "Partial Least Squares Regression (PLSR)") {
+      # Scores (recordedplot)
+      output$plsr_indivPlot <- renderPlot({
+        req(res$scores_plot)
+        replayPlot(res$scores_plot)
+      })
+
+      # Predicted vs Observed (recordedplot)
+      output$plsr_predPlot <- renderPlot({
+        req(res$pred_vs_obs)
+        replayPlot(res$pred_vs_obs)
+      })
+
+      # Residuals vs Fitted (recordedplot)
+      output$plsr_residPlot <- renderPlot({
+        req(res$residuals_plot)
+        replayPlot(res$residuals_plot)
+      })
+
+      # CV plot (recordedplot) + metrics text
+      output$plsr_cvPlot <- renderPlot({
+        req(res$cv_plot)
+        replayPlot(res$cv_plot)
+      })
+
+      # Per-component loadings (each element is a recordedplot)
+      output$plsr_loadingsUI <- renderUI({
+        req(res$loadings)
+        tagList(lapply(seq_along(res$loadings), function(i) {
+          plotOutput(paste0("plsr_loading_plot_", i), height = "350px")
+        }))
+      })
+      if (!is.null(res$loadings)) {
+        for (i in seq_along(res$loadings)) {
+          local({
+            ii <- i
+            output[[paste0("plsr_loading_plot_", ii)]] <- renderPlot({
+              replayPlot(res$loadings[[ii]])
+            })
+          })
+        }
+      }
+
+      # VIP barplots (ggplot objects — do NOT use replayPlot)
+      output$plsr_vipUI <- renderUI({
+        req(res$vip_scores)
+        tagList(lapply(seq_along(res$vip_scores), function(i) {
+          plotOutput(paste0("plsr_vip_plot_", i), height = "350px")
+        }))
+      })
+      if (!is.null(res$vip_scores)) {
+        for (i in seq_along(res$vip_scores)) {
+          local({
+            ii <- i
+            output[[paste0("plsr_vip_plot_", ii)]] <- renderPlot({
+              # ggplot object; just return it
+              res$vip_scores[[ii]]
+            })
+          })
+        }
+      }
+
+      # VIP>1 preview plots (recordedplot, conditional)
+      output$plsr_vipIndivPlot <- renderPlot({
+        req(res$vip_scores_indiv)
+        replayPlot(res$vip_scores_indiv)
+      })
+      output$plsr_vipCVPlot <- renderPlot({
+        req(res$vip_cv_plot)
+        replayPlot(res$vip_cv_plot)
+      })
+    }
+
+    # --- Correlation Rendering Logic ---
+    # Tables
+    output$corr_tbl_spearman <- DT::renderDataTable({
+      req(res$spearman$table)
+      DT::datatable(
+        res$spearman$table,
+        options = list(pageLength = 25, scrollX = TRUE),
+        rownames = FALSE
+      )
+    })
+    output$corr_tbl_pearson <- DT::renderDataTable({
+      req(res$pearson$table)
+      DT::datatable(
+        res$pearson$table,
+        options = list(pageLength = 25, scrollX = TRUE),
+        rownames = FALSE
+      )
+    })
+
+    # Heatmaps (overall)
+    output$corr_heatmap_spearman <- renderPlot({
+      req(res$spearman$heat_mat)
+      ggcorrplot::ggcorrplot(
+        res$spearman$heat_mat,
+        hc.order = TRUE,
+        type = "full",
+        lab = FALSE,
+        show.diag = TRUE,
+        outline.col = "white",
+        ggtheme = ggplot2::theme_minimal()
+      ) +
+        ggplot2::labs(
+          title = paste0("Spearman: ", res$corr_target, " vs all features"),
+          x = NULL,
+          y = NULL
+        )
+    })
+
+    output$corr_heatmap_pearson <- renderPlot({
+      req(res$pearson$heat_mat)
+      ggcorrplot::ggcorrplot(
+        res$pearson$heat_mat,
+        hc.order = TRUE,
+        type = "full",
+        lab = FALSE,
+        show.diag = TRUE,
+        outline.col = "white",
+        ggtheme = ggplot2::theme_minimal()
+      ) +
+        ggplot2::labs(
+          title = paste0("Pearson: ", res$corr_target, " vs all features"),
+          x = NULL,
+          y = NULL
+        )
+    })
+
+    # Per-group heatmaps (if any) — Spearman
+    output$corr_group_heatmap_ui_spearman <- renderUI({
+      req(res$group_mats$spearman)
+      tabs <- lapply(names(res$group_mats$spearman), function(lv) {
+        tabPanel(
+          title = lv,
+          plotOutput(
+            paste0("corr_heatmap_grp_spear_", gsub("\\W+", "_", lv)),
+            height = "600px"
+          )
+        )
+      })
+      do.call(tabsetPanel, c(list(type = "tabs"), tabs))
+    })
+
+    if (!is.null(res$group_mats$spearman)) {
+      for (lv in names(res$group_mats$spearman)) {
+        local({
+          lvl <- lv
+          output[[paste0(
+            "corr_heatmap_grp_spear_",
+            gsub("\\W+", "_", lvl)
+          )]] <- renderPlot({
+            mat <- res$group_mats$spearman[[lvl]]
+            ggcorrplot::ggcorrplot(
+              mat,
+              hc.order = TRUE,
+              type = "full",
+              lab = FALSE,
+              show.diag = TRUE,
+              outline.col = "white",
+              ggtheme = ggplot2::theme_minimal()
+            ) +
+              ggplot2::labs(title = paste0("Group: ", lvl), x = NULL, y = NULL)
+          })
+        })
+      }
+    }
+
+    # Per-group heatmaps (if any) — Pearson
+    output$corr_group_heatmap_ui_pearson <- renderUI({
+      req(res$group_mats$pearson)
+      tabs <- lapply(names(res$group_mats$pearson), function(lv) {
+        tabPanel(
+          title = lv,
+          plotOutput(
+            paste0("corr_heatmap_grp_pear_", gsub("\\W+", "_", lv)),
+            height = "600px"
+          )
+        )
+      })
+      do.call(tabsetPanel, c(list(type = "tabs"), tabs))
+    })
+
+    if (!is.null(res$group_mats$pearson)) {
+      for (lv in names(res$group_mats$pearson)) {
+        local({
+          lvl <- lv
+          output[[paste0(
+            "corr_heatmap_grp_pear_",
+            gsub("\\W+", "_", lvl)
+          )]] <- renderPlot({
+            mat <- res$group_mats$pearson[[lvl]]
+            ggcorrplot::ggcorrplot(
+              mat,
+              hc.order = TRUE,
+              type = "full",
+              lab = FALSE,
+              show.diag = TRUE,
+              outline.col = "white",
+              ggtheme = ggplot2::theme_minimal()
+            ) +
+              ggplot2::labs(title = paste0("Group: ", lvl), x = NULL, y = NULL)
+          })
+        })
+      }
+    }
+
     # --- Random Forest Rendering Logic ---
     if (func_name == "Random Forest") {
       output$rf_summary <- renderPrint({
@@ -6779,6 +7747,41 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$skku_print_log, {
     userState$skku_print_log <- input$skku_print_log
   })
+
+  # For PLSR
+  shiny::observeEvent(input$plsr_response_var, {
+    userState$plsr_response_var <- input$plsr_response_var
+  })
+  shiny::observeEvent(input$plsr_comp_num, {
+    userState$plsr_comp_num <- input$plsr_comp_num
+  })
+  shiny::observeEvent(input$plsr_sparse, {
+    userState$plsr_sparse <- input$plsr_sparse
+  })
+  shiny::observeEvent(input$plsr_keepX, {
+    df <- filteredData()
+    req(df)
+    computed_default <- sum(sapply(df, is.numeric))
+    # Mark as manually changed if the input does not equal the computed default.
+    userState$plsr_keepX_manual <- (input$plsr_keepX != computed_default)
+    # Also, update the stored value so it’s available if the user has modified it.
+    userState$plsr_keepX <- input$plsr_keepX
+  })
+  shiny::observeEvent(input$plsr_comp_num, {
+    userState$plsr_comp_num <- input$plsr_comp_num
+  })
+  shiny::observeEvent(input$plsr_cv_opt, {
+    userState$plsr_cv_opt <- input$plsr_cv_opt
+  })
+  shiny::observeEvent(input$plsr_fold_num, {
+    userState$plsr_fold_num <- input$plsr_fold_num
+  })
+  shiny::observeEvent(input$plsr_ellipse, {
+    userState$plsr_ellipse <- input$plsr_ellipse
+  })
+  shiny::observeEvent(input$plsr_colors, {
+    userState$plsr_colors <- input$plsr_colors
+  })
   # For sPLS-DA
   shiny::observeEvent(input$splsda_group_col, {
     userState$splsda_group_col <- input$splsda_group_col
@@ -6933,6 +7936,18 @@ server <- function(input, output, session) {
   shiny::observeEvent(input$xgb_plot_roc, {
     userState$xgb_plot_roc <- input$xgb_plot_roc
   })
+
+  # For Correlation Analysis
+  shiny::observeEvent(input$corr_target, {
+    userState$corr_target <- input$corr_target
+  })
+  shiny::observeEvent(input$corr_group_col, {
+    userState$corr_group_col <- input$corr_group_col
+  })
+  shiny::observeEvent(input$corr_by_group, {
+    userState$corr_by_group <- input$corr_by_group
+  })
+
   # remember which categories the user checked
   shiny::observeEvent(
     input$analysis_categories,
@@ -7002,8 +8017,18 @@ server <- function(input, output, session) {
     currentPage("step4")
     currentStep(4)
   })
+  shiny::observeEvent(input$menu_correlation, {
+    selected_function("Correlation Plots")
+    currentPage("step4")
+    currentStep(4)
+  })
   shiny::observeEvent(input$menu_PCA, {
     selected_function("Principal Component Analysis (PCA)")
+    currentPage("step4")
+    currentStep(4)
+  })
+  shiny::observeEvent(input$menu_PLSR, {
+    selected_function("Partial Least Squares Regression (PLSR)")
     currentPage("step4")
     currentStep(4)
   })
