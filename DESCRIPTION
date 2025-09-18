@@ -37,7 +37,9 @@ Imports:
     ggrepel, 
     gridExtra,
     Ckmeans.1d.dp,
-    reshape2
+    reshape2, 
+    recipes, 
+    impute
 Suggests:
     spelling,
     BiocManager,

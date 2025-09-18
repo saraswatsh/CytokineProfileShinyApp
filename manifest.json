@@ -2506,6 +2506,31 @@
         "RemoteSha": "2.1.4"
       }
     },
+    "impute": {
+      "Source": "Bioconductor",
+      "Repository": "https://bioconductor.org/packages/3.21/bioc",
+      "description": {
+        "Package": "impute",
+        "Title": "impute: Imputation for microarray data",
+        "Version": "1.82.0",
+        "Author": "Trevor Hastie, Robert Tibshirani, Balasubramanian Narasimhan,\n        Gilbert Chu",
+        "Description": "Imputation for microarray data (currently KNN only)",
+        "Maintainer": "Balasubramanian Narasimhan <naras@stat.Stanford.EDU>",
+        "Depends": "R (>= 2.10)",
+        "License": "GPL-2",
+        "biocViews": "Microarray",
+        "git_url": "https://git.bioconductor.org/packages/impute",
+        "git_branch": "RELEASE_3_21",
+        "git_last_commit": "3e54bd4",
+        "git_last_commit_date": "2025-04-15",
+        "Repository": "Bioconductor 3.21",
+        "Date/Publication": "2025-04-15",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-04-16 01:24:26 UTC; biocbuild",
+        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-16 14:41:44 UTC; windows",
+        "Archs": "x64"
+      }
+    },
     "ipred": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -5472,7 +5497,7 @@
       "checksum": "d29a40278434f9d67efcdf14046c6469"
     },
     "DESCRIPTION": {
-      "checksum": "78303af6eb9addc694e838506b4b8d0a"
+      "checksum": "9f8ec396ac37356f667af43a599d9a60"
     },
     "doc/Basic-Tutorial-of-CytokineProfile-Shiny.html": {
       "checksum": "33124eeb57befc3bee9883b045b73187"
@@ -6069,7 +6094,7 @@
       "checksum": "9d5c21b862738b641dcae61e1f049e8d"
     },
     "server.R": {
-      "checksum": "0174724aeece79824715693440256645"
+      "checksum": "f5363b16470a7435dd55426de8fb9ad1"
     },
     "server_test.R": {
       "checksum": "e4db0df6cda8ce5bde1df86cbb182bfd"

@@ -14,6 +14,8 @@ library(shinyFeedback)
 library(skimr)
 library(shinycssloaders)
 library(patchwork)
+library(recipes)
+library(impute)
 
 # Define server logic
 server <- function(input, output, session) {
@@ -62,6 +64,7 @@ server <- function(input, output, session) {
   ## ---------------------------
   selected_function <- shiny::reactiveVal(NULL)
   deleted_row_ids <- shiny::reactiveVal(character())
+  imputed_data <- shiny::reactiveVal(NULL)
 
   userState <- shiny::reactiveValues(
     # General state
@@ -69,6 +72,9 @@ server <- function(input, output, session) {
     # Built=in Data built‑in tracking:
     use_builtin = FALSE,
     built_in_choice = NULL,
+
+    # Imputation
+    impute_meta = NULL,
 
     # Step 2 log2 transformation checkbox
     step2_log2 = FALSE,
@@ -4013,6 +4019,12 @@ server <- function(input, output, session) {
                 "Next",
                 icon = icon("arrow-right"),
                 class = "btn-primary"
+              ),
+              actionButton(
+                "open_impute_modal",
+                "Treat missing values",
+                icon = icon("fas fa-eraser"),
+                class = "btn-secondary"
               )
             )
           )
@@ -4496,9 +4508,18 @@ server <- function(input, output, session) {
     df
   })
 
+  data_after_imputation <- reactive({
+    dat <- data_after_filters()
+    imp <- imputed_data()
+    if (!is.null(imp)) {
+      return(imp)
+    }
+    dat
+  })
+
   # D) The main filteredData() used by DT
   filteredData <- shiny::reactive({
-    df <- data_after_filters()
+    df <- data_after_imputation()
     req(df)
     cols_to_keep <-
       if (currentStep() >= 3) {
@@ -4532,7 +4553,7 @@ server <- function(input, output, session) {
     extra <- intersect(extra, names(df))
 
     cand <- unique(c(extra, cand))
-    cand <- setdiff(cand, ".cyto_id.") # never expose internal id
+    cand <- setdiff(cand, "..cyto_id..") # never expose internal id
 
     updateSelectInput(
       session,
@@ -4591,6 +4612,170 @@ server <- function(input, output, session) {
       NULL
     }
   })
+
+  observeEvent(input$open_impute_modal, {
+    showModal(modalDialog(
+      title = "Treat Missing Values",
+      size = "l",
+      easyClose = TRUE,
+      footer = tagList(
+        actionButton("apply_impute", "Apply", class = "btn-primary"),
+        modalButton("Cancel")
+      ),
+      # --- simple UI for 5 methods ---
+      fluidRow(
+        column(4, {
+          df <- data_after_filters()
+          cols <- setdiff(names(df), c(".cyto_id.", "..cyto_id.."))
+          checkboxGroupInput(
+            "imp_cols",
+            "Columns to include",
+            choices = cols,
+            selected = {
+              if (!is.null(userState$impute_meta$cols)) {
+                intersect(cols, userState$impute_meta$cols)
+              } else {
+                cols
+              }
+            }
+          )
+        }),
+        column(
+          4,
+          radioButtons(
+            "imp_method",
+            "Method",
+            choices = c(
+              "Mean (numeric)" = "mean",
+              "Median (numeric)" = "median",
+              "Mode (categorical)" = "mode",
+              "k-NN (sample-wise / mixed types)" = "knn_sample",
+              "k-NN (feature-wise / numeric only)" = "knn_feature"
+            ),
+            selected = userState$impute_meta$method %||% "mean"
+          ),
+          conditionalPanel(
+            "input.imp_method == 'knn_sample' || input.imp_method == 'knn_feature'",
+            numericInput(
+              "imp_k",
+              "k neighbors",
+              value = userState$impute_meta$k %||% 5,
+              min = 1,
+              step = 1
+            ),
+            checkboxInput(
+              "imp_scale",
+              "Standardize numeric vars before k-NN",
+              value = isTRUE(userState$impute_meta$scaled)
+            )
+          )
+        ),
+        column(
+          4,
+          verbatimTextOutput("imp_na_before"),
+          verbatimTextOutput("imp_na_after")
+        )
+      )
+    ))
+  })
+  output$imp_na_before <- renderPrint({
+    d <- data_after_filters()
+    c(NAs = sum(is.na(d)), Pct = round(100 * mean(is.na(d)), 2))
+  })
+  output$imp_na_after <- renderPrint({
+    req(imputed_data())
+    d <- imputed_data()
+    c(NAs = sum(is.na(d)), Pct = round(100 * mean(is.na(d)), 2))
+  })
+  .stat_mode <- function(x) {
+    ux <- unique(x[!is.na(x)])
+    if (!length(ux)) {
+      return(NA)
+    }
+    ux[which.max(tabulate(match(x, ux)))]
+  }
+
+  impute_data <- function(df, include, method, k = 5, scale_for_knn = TRUE) {
+    stopifnot(all(include %in% names(df)))
+    dat <- df
+    num_cols <- include[sapply(dat[include], is.numeric)]
+    cat_cols <- setdiff(include, num_cols)
+
+    if (method %in% c("mean", "median")) {
+      if (length(num_cols)) {
+        fun <- if (method == "mean") mean else median
+        for (nm in num_cols) {
+          if (anyNA(dat[[nm]])) {
+            dat[[nm]][is.na(dat[[nm]])] <- fun(dat[[nm]], na.rm = TRUE)
+          }
+        }
+      }
+    } else if (method == "mode") {
+      if (length(cat_cols)) {
+        for (nm in cat_cols) {
+          m <- .stat_mode(dat[[nm]])
+          dat[[nm]][is.na(dat[[nm]])] <- m
+          if (is.factor(df[[nm]])) {
+            dat[[nm]] <- factor(dat[[nm]], levels = union(levels(df[[nm]]), m))
+          }
+        }
+      }
+    } else if (method == "knn_sample") {
+      # mixed types via recipes::step_impute_knn (Gower)
+
+      rec <- recipe(~., data = dat)
+      if (scale_for_knn && length(num_cols)) {
+        rec <- rec %>% step_normalize(all_of(num_cols))
+      }
+      rec <- rec %>% step_impute_knn(all_of(include), neighbors = k)
+      dat <- bake(prep(rec, training = dat), new_data = dat)
+    } else if (method == "knn_feature") {
+      # numeric-only, neighbors across features using impute::impute.knn
+      if (!length(num_cols)) {
+        stop("Feature-wise k-NN requires numeric columns.")
+      }
+
+      M <- as.matrix(dat[num_cols])
+      if (scale_for_knn) {
+        center <- colMeans(M, na.rm = TRUE)
+        scalev <- apply(M, 2, sd, na.rm = TRUE)
+        scalev[!is.finite(scalev) | scalev == 0] <- 1
+        Ms <- scale(M, center = center, scale = scalev)
+        out <- impute.knn(Ms, k = k)$data
+        out <- sweep(out, 2, scalev, "*")
+        out <- sweep(out, 2, center, "+")
+      } else {
+        out <- impute.knn(M, k = k)$data
+      }
+      dat[num_cols] <- as.data.frame(out)
+    }
+    dat
+  }
+  observeEvent(input$apply_impute, {
+    df <- data_after_filters() # <-- impute the *filtered* data
+    sel <- input$imp_cols
+    if (!length(sel)) {
+      showNotification("Select ≥1 column.", type = "error")
+      return()
+    }
+
+    dat_imp <- impute_data(
+      df,
+      include = sel,
+      method = input$imp_method,
+      k = input$imp_k %||% 5,
+      scale_for_knn = isTRUE(input$imp_scale)
+    )
+    imputed_data(dat_imp)
+    userState$impute_meta <- list(
+      method = input$imp_method,
+      k = input$imp_k %||% 5,
+      cols = sel,
+      scaled = isTRUE(input$imp_scale)
+    )
+    removeModal()
+  })
+
   # ============================================================================
   # Reactive holders for the before/after comparison
   # ============================================================================
@@ -5170,7 +5355,7 @@ server <- function(input, output, session) {
         df_now <- isolate(data_after_filters())
         if (isTruthy(df_now)) {
           cand <- names(df_now)[!vapply(df_now, is.numeric, logical(1))]
-          cand <- setdiff(cand, ".cyto_id.")
+          cand <- setdiff(cand, "..cyto_id..")
         } else {
           cand <- character(0)
         }
