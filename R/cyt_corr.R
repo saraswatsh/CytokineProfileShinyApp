@@ -32,7 +32,6 @@
 #'     for the difference), and adjusted p-values (`p_diff_bonf`, `p_diff_bh`).}
 #'
 #' @export
-#' @examples
 cyt_corr <- function(
   data,
   target,

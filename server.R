@@ -107,6 +107,8 @@ server <- function(input, output, session) {
 
     # Heatmap options
     hm_annotation = NULL,
+    hm_scale = NULL,
+    hm_ann_side = NULL,
 
     # PCA options
     pca_group_col = NULL,
@@ -978,15 +980,46 @@ server <- function(input, output, session) {
         if (is.null(df)) {
           return(NULL)
         }
-        ann_choices <- names(df)[sapply(df, function(x) {
-          is.factor(x) || is.character(x)
-        })]
+
+        cols <- names(df)
+        ann_choices <- c("None" = "", cols)
 
         ui_list <- tagList(
+          # Row 1: Scale + Annotation col
           fluidRow(
             column(
-              6,
+              width = 6,
               selectInput(
+                "hm_scale",
+                label = helper(
+                  type = "inline",
+                  title = "Scaling / Transform",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Scale</span>"
+                  ),
+                  content = paste(
+                    "Choose none (raw), log2 transform, or Z-scores across rows/columns.",
+                    "Z-scores standardize to mean 0, SD 1."
+                  ),
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c(
+                  "None" = "none",
+                  "log2" = "log2",
+                  "Row Z-score" = "row_zscore",
+                  "Column Z-score" = "col_zscore"
+                ),
+                selected = isolate(userState$hm_scale) %||% "none"
+              )
+            ),
+            column(
+              width = 6,
+              selectizeInput(
                 "hm_annotation",
                 label = helper(
                   type = "inline",
@@ -995,7 +1028,7 @@ server <- function(input, output, session) {
                   shiny_tag = HTML(
                     "<span style='margin-right:15px;'>Annotation Column</span>"
                   ),
-                  content = "Categorical column to use for annotating rows/columns.",
+                  content = "Categorical column to use for annotating rows/columns. Choose 'None' to skip.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1003,7 +1036,33 @@ server <- function(input, output, session) {
                   }
                 ),
                 choices = ann_choices,
-                selected = isolate(userState$hm_annotation) %||% ann_choices[1]
+                multiple = FALSE,
+                selected = isolate(userState$hm_annotation) %||% ""
+              )
+            )
+          ),
+          # Row 2: Annotation side + Title/Filename
+          fluidRow(
+            column(
+              width = 6,
+              selectInput(
+                "hm_ann_side",
+                label = helper(
+                  type = "inline",
+                  title = "Annotation Side",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = HTML(
+                    "<span style='margin-right: 15px;'>Annotation Side</span>"
+                  ),
+                  content = "Auto chooses row/column based on length match; override if desired.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c("Auto" = "auto", "Row" = "row", "Column" = "col"),
+                selected = isolate(userState$hm_ann_side) %||% "auto"
               )
             )
           )
@@ -3254,6 +3313,8 @@ server <- function(input, output, session) {
 
     # Heatmap options
     userState$hm_annotation = NULL
+    userState$hm_scale = NULL
+    userState$hm_ann_side = NULL
 
     # Correlation options
     userState$corr_target = NULL
@@ -3388,6 +3449,8 @@ server <- function(input, output, session) {
 
       # Heatmap options
       userState$hm_annotation = NULL
+      userState$hm_scale = NULL
+      userState$hm_ann_side = NULL
 
       # PCA options
       userState$pca_group_col = NULL
@@ -4922,6 +4985,8 @@ server <- function(input, output, session) {
       }
       if (selected_function() == "Heatmap") {
         userState$hm_annotation <- input$hm_annotation
+        userState$hm_scale <- input$hm_scale
+        userState$hm_ann_side <- input$hm_ann_side
       }
       if (selected_function() == "Correlation Plots") {
         userState$corr_group_col <- input$corr_group_col
@@ -5197,6 +5262,12 @@ server <- function(input, output, session) {
           session,
           "hm_annotation",
           selected = userState$hm_annotation
+        )
+        updateSelectInput(session, "hm_scale", selected = userState$hm_scale)
+        updateSelectInput(
+          session,
+          "hm_ann_side",
+          selected = userState$hm_ann_side
         )
       }
 
@@ -5564,6 +5635,8 @@ server <- function(input, output, session) {
 
         # Heatmap
         hm_annotation = input$hm_annotation,
+        hm_scale = input$hm_scale,
+        hm_ann_side = input$hm_ann_side,
 
         # Correlation Plots
         corr_group_col = input$corr_group_col,
@@ -5757,14 +5830,33 @@ server <- function(input, output, session) {
                 log2fc_thresh = input$df_log2fc_thresh,
                 top_labels = input$df_top_labels
               ),
+              "Heatmap" = {
+                # map UI → args (keep your current inputs)
+                scale_arg <- if (
+                  is.null(input$hm_scale) || input$hm_scale == "none"
+                ) {
+                  "none"
+                } else {
+                  input$hm_scale
+                }
+                ann_arg <- if (
+                  !is.null(input$hm_annotation) && nzchar(input$hm_annotation)
+                ) {
+                  input$hm_annotation
+                } else {
+                  NULL
+                }
+                side_arg <- input$hm_ann_side %||% "auto"
 
-              "Heatmap" = cyt_heatmap(
-                data = df,
-
-                progress = prog,
-                scale = NULL,
-                annotation_col_name = input$hm_annotation
-              ),
+                # build (silent) pheatmap object; nothing is drawn yet
+                ph <- cyt_heatmap(
+                  data = df,
+                  scale = if (identical(scale_arg, "none")) NULL else scale_arg,
+                  annotation_col = ann_arg,
+                  annotation_side = side_arg
+                )
+                ph # <- return the pheatmap object
+              },
 
               "Skewness/Kurtosis" = cyt_skku(
                 data = df,
@@ -6827,12 +6919,11 @@ server <- function(input, output, session) {
         # --- Heatmap UI ---
         "Heatmap" = {
           tagList(
-            h4("Heatmap"),
+            h4("Heatmap Results"),
             shinycssloaders::withSpinner(
-              imageOutput("heatmapImage", height = "400px"),
+              imageOutput("heatmapImage", height = "auto", width = "100%"),
               type = 8
-            ),
-            verbatimTextOutput("textResults")
+            )
           )
         },
 
@@ -7671,11 +7762,34 @@ server <- function(input, output, session) {
     if (func_name == "Heatmap") {
       output$heatmapImage <- renderImage(
         {
-          list(src = res, contentType = 'image/png', alt = "Heatmap")
+          req(res)
+
+          # res is the pheatmap object
+          ph <- res
+
+          # size for preview; UI will scale it down responsively
+          panel_px <- session$clientData$output_heatmapImage_width %||% 1000
+          out_png <- file.path(
+            tempdir(),
+            paste0("cyt_heatmap_", Sys.Date(), ".png")
+          )
+
+          grDevices::png(
+            out_png,
+            width = panel_px,
+            height = round(panel_px * 0.62),
+            res = 96
+          )
+          grid::grid.newpage()
+          grid::grid.draw(ph$gtable) # draw the heatmap object
+          grDevices::dev.off()
+
+          list(src = out_png, contentType = "image/png", alt = "Heatmap")
         },
         deleteFile = FALSE
       )
     }
+
     # --- Dual-Flashlight Plot Rendering ---
     if (func_name == "Dual-Flashlight Plot") {
       output$dualflashPlotOutput <- renderPlot({
@@ -7790,7 +7904,17 @@ server <- function(input, output, session) {
       plots <- reactivePlots()
       # print each ggplot in order
       for (p in plots) {
-        print(p)
+        if (inherits(p, "ggplot")) {
+          print(p)
+        } else if (inherits(p, "pheatmap")) {
+          # <— add
+          grid::grid.newpage()
+          grid::grid.draw(p$gtable)
+        } else if (inherits(p, "grob") || inherits(p, "gtable")) {
+          # <— add (fallback)
+          grid::grid.newpage()
+          grid::grid.draw(p)
+        }
       }
       dev.off()
     }
@@ -7874,6 +7998,12 @@ server <- function(input, output, session) {
   # For Heatmap
   shiny::observeEvent(input$hm_annotation, {
     userState$hm_annotation <- input$hm_annotation
+  })
+  shiny::observeEvent(input$hm_scale, {
+    userState$hm_scale <- input$hm_scale
+  })
+  shiny::observeEvent(input$hm_ann_side, {
+    userState$hm_ann_side <- input$hm_ann_side
   })
   # For PCA
   shiny::observeEvent(input$pca_group_col, {

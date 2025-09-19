@@ -97,7 +97,7 @@
         "Packaged": "2025-09-14 20:29:11 UTC; biocbuild",
         "Author": "Martin Morgan [aut, cre],\n  Jiefei Wang [aut],\n  Valerie Obenchain [aut],\n  Michel Lang [aut],\n  Ryan Thompson [aut],\n  Nitesh Turaga [aut],\n  Aaron Lun [ctb],\n  Henrik Bengtsson [ctb],\n  Madelyn Carlson [ctb] (Translated 'Random Numbers' vignette from Sweave\n    to RMarkdown / HTML.),\n  Phylis Atieno [ctb] (Translated 'Introduction to BiocParallel' vignette\n    from Sweave to Rmarkdown / HTML.),\n  Sergio Oller [ctb] (Improved bpmapply() efficiency., ORCID:\n    <https://orcid.org/0000-0002-8994-1549>)",
         "Maintainer": "Martin Morgan <mtmorgan.bioc@gmail.com>",
-        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-17 19:19:35 UTC; windows",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-18 02:01:50 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -3068,7 +3068,7 @@
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "CRAN",
         "Date/Publication": "2025-09-12 07:20:14 UTC",
-        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-17 09:30:10 UTC; windows",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-13 00:01:55 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -3454,6 +3454,32 @@
         "Built": "R 4.5.1; ; 2025-09-08 02:28:14 UTC; windows"
       }
     },
+    "pheatmap": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "pheatmap",
+        "Type": "Package",
+        "Title": "Pretty Heatmaps",
+        "Version": "1.0.13",
+        "Date": "2025-06-05",
+        "Authors@R": "person(given = \"Raivo\",\n                  family = \"Kolde\",\n                  role = c(\"aut\", \"cre\"),\n                  email = \"rkolde@gmail.com\")",
+        "Depends": "R (>= 2.0)",
+        "Description": "Implementation of heatmaps that offers more control\n    over dimensions and appearance.",
+        "Imports": "grid, RColorBrewer, scales, gtable, stats, grDevices, graphics",
+        "License": "GPL-2",
+        "Encoding": "UTF-8",
+        "LazyLoad": "yes",
+        "RoxygenNote": "7.3.2",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-06-05 12:31:16 UTC; raivokolde",
+        "Author": "Raivo Kolde [aut, cre]",
+        "Maintainer": "Raivo Kolde <rkolde@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-06-05 13:20:01 UTC",
+        "Built": "R 4.5.1; ; 2025-08-04 01:21:24 UTC; windows"
+      }
+    },
     "pillar": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -3484,7 +3510,7 @@
         "Maintainer": "Kirill Müller <kirill@cynkra.com>",
         "Repository": "CRAN",
         "Date/Publication": "2025-09-17 11:20:02 UTC",
-        "Built": "R 4.5.1; ; 2025-09-17 17:44:28 UTC; windows"
+        "Built": "R 4.5.1; ; 2025-09-18 01:48:09 UTC; windows"
       }
     },
     "pkgconfig": {
@@ -5497,7 +5523,7 @@
       "checksum": "d29a40278434f9d67efcdf14046c6469"
     },
     "DESCRIPTION": {
-      "checksum": "9f8ec396ac37356f667af43a599d9a60"
+      "checksum": "845575302a16a27641ac263a983e3212"
     },
     "doc/Basic-Tutorial-of-CytokineProfile-Shiny.html": {
       "checksum": "33124eeb57befc3bee9883b045b73187"
@@ -6022,7 +6048,7 @@
       "checksum": "b34fcb265a7ab94ac4ca17ad84498c95"
     },
     "R/cyt_heatmap.R": {
-      "checksum": "cddb9c266dad4fb9106daf9b8e77cb05"
+      "checksum": "fd74ccb5b80b1679d61e1e2a65b119a9"
     },
     "R/cyt_mint_splsda.R": {
       "checksum": "73f2e3de41505f21769eccebcdb1c38e"
@@ -6094,7 +6120,7 @@
       "checksum": "9d5c21b862738b641dcae61e1f049e8d"
     },
     "server.R": {
-      "checksum": "f5363b16470a7435dd55426de8fb9ad1"
+      "checksum": "9987773dd74b476901935361da14d8ed"
     },
     "server_test.R": {
       "checksum": "e4db0df6cda8ce5bde1df86cbb182bfd"

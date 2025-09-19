@@ -9,6 +9,7 @@ cyt_splsda(
   group_col,
   group_col2 = NULL,
   batch_col = NULL,
+  ind_names = FALSE,
   multilevel_col = NULL,
   var_num,
   comp_num = 2,
@@ -39,6 +40,10 @@ grouping and treatment.}
 \code{NULL}.}
 
 \item{batch_col}{A string specifying the column that identifies the batch or study for each sample.}
+
+\item{ind_names}{If \code{TRUE}, the row names of the first (or second) data matrix is used as names.
+Default is \code{FALSE}. If a character vector is provided, these values will be used as names.
+If 'pch' is set this will overwrite the names as shapes. See ?mixOmics::plotIndiv for details.}
 
 \item{multilevel_col}{A string specifying the column name that identifies
 repeated measurements (e.g., patient or sample IDs). If provided, a

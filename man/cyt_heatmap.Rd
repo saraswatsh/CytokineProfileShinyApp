@@ -6,23 +6,23 @@
 \usage{
 cyt_heatmap(
   data,
-  scale = NULL,
-  annotation_col_name = NULL,
-  output_file = NULL,
+  scale = c(NULL, "log2", "row_zscore", "col_zscore"),
+  annotation_col = NULL,
+  annotation_side = c("auto", "row", "col"),
   progress = NULL
 )
 }
 \arguments{
 \item{data}{A data frame containing the input data. Only numeric columns will be used.}
 
-\item{scale}{Character. An optional scaling option. If set to "log2", numeric data will be log2-transformed (with non-positive values set to NA). Default is NULL.}
+\item{scale}{Character. Optional scaling method. One of NULL (no scaling), "log2" (log2 transformation), "row_zscore" (z-score normalization by row), or "col_zscore" (z-score normalization by column). Default is NULL.}
 
-\item{annotation_col_name}{Character. Optional column name from data to be used for annotation colors.}
+\item{annotation_col}{Optional. A character string specifying a column name in \code{data} or a vector of annotations matching the number of rows or columns in \code{data} for adding colored annotations to the heatmap.}
 
-\item{output_file}{Optional. A file path to save the plot. If NULL, the function creates a temporary PNG file and returns its path.}
+\item{annotation_side}{Character. Specifies whether the annotation should be applied to rows or columns. One of "auto" (automatically determine based on length), "row", or "col". Default is "auto".}
 }
 \value{
-If output_file is NULL, returns a character string with the file path of the PNG. Otherwise, writes the plot and returns NULL invisibly.
+A pheatmap object representing the generated heatmap.
 }
 \description{
 Heat Map.
