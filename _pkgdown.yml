@@ -36,15 +36,20 @@ reference:
     Functions for exploring raw data, summarizing statistics,
     and visualizing key patterns.
   contents:
-  - cyt_anova
-  - cyt_ttest
   - cyt_bp
   - cyt_bp2
+  - cyt_corr
   - cyt_errbp
   - cyt_skku
   - cyt_volc
   - cyt_heatmap
   - cyt_dualflashplot
+- title: Univariate Analysis
+  description: |
+    Functions for performing univariate statistical tests.
+  contents:
+  - cyt_anova
+  - cyt_ttest
 - title: Multivariate Analysis
   description: |
     Functions for deeper multivariate insights.
@@ -52,6 +57,7 @@ reference:
   - cyt_splsda
   - cyt_mint_splsda
   - cyt_pca
+  - cyt_plsr
 - title: Machine Learning Methods
   contents:
   - cyt_rf

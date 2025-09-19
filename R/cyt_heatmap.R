@@ -15,7 +15,7 @@
 #' cyt_heatmap(
 #'   data = data_df[, -c(2:3)],
 #'   scale = "log2",  # Optional scaling
-#'   annotation_col_name = "Group"
+#'   annotation_col = "Group"
 #' )
 #'
 #' @importFrom pheatmap pheatmap
