@@ -264,8 +264,17 @@ server <- function(input, output, session) {
           stringsAsFactors = FALSE
         )
       } else if (ext %in% c("xls", "xlsx")) {
-        sheet_num <- ifelse(is.null(input$sheet), 1, input$sheet)
-        df <- readxl::read_excel(dest, sheet = sheet_num) %>% as.data.frame()
+        # pick the selected sheet name if it exists, otherwise default to the first
+        all_sheets <- readxl::excel_sheets(dest)
+        sheet_to_read <- if (
+          !is.null(input$sheet_name) && input$sheet_name %in% all_sheets
+        ) {
+          input$sheet_name
+        } else {
+          all_sheets[1]
+        }
+        df <- readxl::read_excel(dest, sheet = sheet_to_read) %>%
+          as.data.frame()
       } else {
         stop("Unsupported file type.")
       }
@@ -282,12 +291,28 @@ server <- function(input, output, session) {
   output$sheet_selector <- shiny::renderUI({
     req(input$datafile)
     ext <- tolower(tools::file_ext(input$datafile$name))
-    if (ext %in% c("xls", "xlsx")) {
-      numericInput("sheet", "Sheet Number", value = 1, min = 1)
-    } else {
+    if (!ext %in% c("xls", "xlsx")) {
       return(NULL)
     }
+
+    # Read sheet names directly from the uploaded temp file
+    sheets <- tryCatch(
+      readxl::excel_sheets(input$datafile$datapath),
+      error = function(e) character()
+    )
+
+    if (length(sheets) == 0) {
+      return(NULL)
+    }
+
+    selectInput(
+      inputId = "sheet_name",
+      label = "Sheet",
+      choices = sheets,
+      selected = sheets[1]
+    )
   })
+
   output$built_in_selector <- shiny::renderUI({
     if (!isTRUE(input$use_builtin)) {
       return(NULL)
