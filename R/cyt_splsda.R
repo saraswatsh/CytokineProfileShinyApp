@@ -69,6 +69,7 @@
 #' @export
 #' @importFrom mixOmics splsda background.predict perf vip auroc plotIndiv plotLoadings
 #' @import ggplot2
+#' @import plotly
 #' @importFrom plot3D scatter3D
 #' @importFrom reshape2 melt
 #' @importFrom caret confusionMatrix
@@ -367,6 +368,7 @@ cyt_splsda <- function(
     ))
 
     indiv_3D <- NULL
+    indiv_3D_interactive <- NULL
     if (!is.null(style) && tolower(style) == "3d" && comp_num_eff == 3) {
       indiv_3D <- .record_plot({
         sc <- mdl$variates$X
@@ -386,7 +388,34 @@ cyt_splsda <- function(
           bty = "g",
           colkey = FALSE
         )
+        legend(
+          "topleft",
+          legend = levels(Y),
+          col = col_levels[levels(Y)],
+          pch = pch_levels[levels(Y)],
+          pt.cex = 1.2,
+          bty = "n",
+          title = "Group"
+        )
       })
+      indiv_3D_interactive <- plotly::plot_ly(
+        x = sc[, 1],
+        y = sc[, 2],
+        z = sc[, 3],
+        type = "scatter3d",
+        mode = "markers",
+        color = as.factor(Y),
+        colors = col_levels[levels(Y)],
+        marker = list(symbol = "circle")
+      ) %>%
+        plotly::layout(
+          title = paste("Interactive 3D Plot:", label),
+          scene = list(
+            xaxis = list(title = "Component 1"),
+            yaxis = list(title = "Component 2"),
+            zaxis = list(title = "Component 3")
+          )
+        )
     }
 
     indiv_ROC <- NULL
@@ -491,7 +520,7 @@ cyt_splsda <- function(
         ggplot2::theme_minimal()
     })
 
-    vip_indiv_plot <- vip_loadings <- vip_3D <- vip_ROC <- vip_CV <- NULL
+    vip_indiv_plot <- vip_loadings <- vip_3D <- vip_ROC <- vip_CV <- vip_3D_interactive <- NULL
     vip_pred <- NULL
     vip_filter <- vip_all[, 1] > 1
     if (sum(vip_filter) > 0) {
@@ -556,7 +585,34 @@ cyt_splsda <- function(
             bty = "g",
             colkey = FALSE
           )
+          legend(
+            "topleft",
+            legend = levels(Y),
+            col = col_levels[levels(Y)],
+            pch = pch_levels[levels(Y)],
+            pt.cex = 1.2,
+            bty = "n",
+            title = "Group"
+          )
         })
+        vip_3D_interactive <- plotly::plot_ly(
+          x = sc[, 1],
+          y = sc[, 2],
+          z = sc[, 3],
+          type = "scatter3d",
+          mode = "markers",
+          color = as.factor(Y),
+          colors = col_levels[levels(Y)],
+          marker = list(symbol = "circle")
+        ) %>%
+          plotly::layout(
+            title = paste("Interactive 3D Plot (VIP>1):", label),
+            scene = list(
+              xaxis = list(title = "Component 1"),
+              yaxis = list(title = "Component 2"),
+              zaxis = list(title = "Component 3")
+            )
+          )
       }
       if (isTRUE(roc)) {
         vip_ROC <- .record_plot({
@@ -697,6 +753,15 @@ cyt_splsda <- function(
           bty = "g",
           colkey = FALSE
         )
+        legend(
+          "topleft",
+          legend = levels(Y),
+          col = col_levels[levels(Y)],
+          pch = pch_levels[levels(Y)],
+          pt.cex = 1.2,
+          bty = "n",
+          title = "Group"
+        )
       }
       # ROC (if any)
       if (isTRUE(roc)) {
@@ -760,6 +825,15 @@ cyt_splsda <- function(
             bty = "g",
             colkey = FALSE
           )
+          legend(
+            "topleft",
+            legend = levels(Y),
+            col = col_levels[levels(Y)],
+            pch = pch_levels[levels(Y)],
+            pt.cex = 1.2,
+            bty = "n",
+            title = "Group"
+          )
         }
         if (isTRUE(roc)) {
           mixOmics::auroc(
@@ -795,6 +869,7 @@ cyt_splsda <- function(
     list(
       overall_indiv_plot = indiv_plot,
       overall_3D = indiv_3D,
+      overall_3D_interactive = indiv_3D_interactive,
       overall_ROC = indiv_ROC,
       overall_CV = indiv_CV,
       loadings = loadings,
@@ -802,6 +877,7 @@ cyt_splsda <- function(
       vip_indiv_plot = vip_indiv_plot,
       vip_loadings = vip_loadings,
       vip_3D = vip_3D,
+      vip_3D_interactive = vip_3D_interactive,
       vip_ROC = vip_ROC,
       vip_CV = vip_CV,
       conf_matrix = conf_text

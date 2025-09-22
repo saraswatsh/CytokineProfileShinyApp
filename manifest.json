@@ -97,7 +97,7 @@
         "Packaged": "2025-09-14 20:29:11 UTC; biocbuild",
         "Author": "Martin Morgan [aut, cre],\n  Jiefei Wang [aut],\n  Valerie Obenchain [aut],\n  Michel Lang [aut],\n  Ryan Thompson [aut],\n  Nitesh Turaga [aut],\n  Aaron Lun [ctb],\n  Henrik Bengtsson [ctb],\n  Madelyn Carlson [ctb] (Translated 'Random Numbers' vignette from Sweave\n    to RMarkdown / HTML.),\n  Phylis Atieno [ctb] (Translated 'Introduction to BiocParallel' vignette\n    from Sweave to Rmarkdown / HTML.),\n  Sergio Oller [ctb] (Improved bpmapply() efficiency., ORCID:\n    <https://orcid.org/0000-0002-8994-1549>)",
         "Maintainer": "Martin Morgan <mtmorgan.bioc@gmail.com>",
-        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-18 02:01:50 UTC; windows",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-17 19:19:35 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -633,29 +633,6 @@
         "RemoteSha": "0.1-3"
       }
     },
-    "bitops": {
-      "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
-      "description": {
-        "Package": "bitops",
-        "Version": "1.0-9",
-        "Date": "2024-10-03",
-        "Authors@R": "c(\n   person(\"Steve\", \"Dutky\", role = \"aut\", email = \"sdutky@terpalum.umd.edu\",\n    \t     comment = \"S original; then (after MM's port) revised and modified\"),\n   person(\"Martin\", \"Maechler\", role = c(\"cre\", \"aut\"), email = \"maechler@stat.math.ethz.ch\",\n\t     comment = c(\"Initial R port; tweaks\", ORCID = \"0000-0002-8685-9910\")))",
-        "Title": "Bitwise Operations",
-        "Description": "Functions for bitwise operations on integer vectors.",
-        "License": "GPL (>= 2)",
-        "URL": "https://github.com/mmaechler/R-bitops",
-        "BugReports": "https://github.com/mmaechler/R-bitops/issues",
-        "NeedsCompilation": "yes",
-        "Packaged": "2024-10-03 09:17:35 UTC; maechler",
-        "Author": "Steve Dutky [aut] (S original; then (after MM's port) revised and\n    modified),\n  Martin Maechler [cre, aut] (Initial R port; tweaks,\n    <https://orcid.org/0000-0002-8685-9910>)",
-        "Maintainer": "Martin Maechler <maechler@stat.math.ethz.ch>",
-        "Repository": "CRAN",
-        "Date/Publication": "2024-10-03 23:00:54 UTC",
-        "Built": "R 4.4.1; x86_64-w64-mingw32; 2024-10-04 23:50:58 UTC; windows",
-        "Archs": "x64"
-      }
-    },
     "brio": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -748,37 +725,6 @@
         "Repository": "CRAN",
         "Date/Publication": "2025-01-30 23:20:02 UTC",
         "Built": "R 4.5.0; ; 2025-05-21 02:03:29 UTC; windows"
-      }
-    },
-    "caTools": {
-      "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
-      "description": {
-        "Package": "caTools",
-        "Type": "Package",
-        "Title": "Tools: Moving Window Statistics, GIF, Base64, ROC AUC, etc",
-        "Version": "1.18.3",
-        "Date": "2024-09-04",
-        "Authors@R": "c(person(given = \"Jarek\",\n                      family = \"Tuszynski\",\n                      role = \"aut\",\n                      email = \"jaroslaw.w.tuszynski@saic.com\"),\n               person(given = \"Michael\",\n                      family = \"Dietze\",\n                      role = \"cre\",\n                      email = \"michael.dietze@uni-goettingen.de\"))",
-        "Maintainer": "Michael Dietze <michael.dietze@uni-goettingen.de>",
-        "Depends": "R (>= 3.6.0)",
-        "Imports": "bitops",
-        "Suggests": "MASS, rpart",
-        "Description": "Contains several basic utility functions including: moving\n        (rolling, running) window statistic functions, read/write for\n        GIF and ENVI binary files, fast calculation of AUC, LogitBoost\n        classifier, base64 encoder/decoder, round-off-error-free sum\n        and cumsum, etc.",
-        "License": "GPL-3",
-        "NeedsCompilation": "yes",
-        "Repository": "CRAN",
-        "Packaged": "2024-09-04 15:01:56 UTC; dietze2",
-        "Author": "Jarek Tuszynski [aut],\n  Michael Dietze [cre]",
-        "Date/Publication": "2024-09-04 17:00:02 UTC",
-        "Built": "R 4.4.3; x86_64-w64-mingw32; 2025-04-07 00:32:41 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemotePkgRef": "caTools",
-        "RemoteRef": "caTools",
-        "RemoteRepos": "https://cran.rstudio.com/",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "1.18.3"
       }
     },
     "cachem": {
@@ -2032,39 +1978,6 @@
         "Archs": "x64"
       }
     },
-    "gplots": {
-      "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
-      "description": {
-        "Package": "gplots",
-        "Title": "Various R Programming Tools for Plotting Data",
-        "Description": "Various R programming tools for plotting data, including:\n  - calculating and plotting locally smoothed summary function as\n    ('bandplot', 'wapply'),\n  - enhanced versions of standard plots ('barplot2', 'boxplot2',\n    'heatmap.2', 'smartlegend'),\n  - manipulating colors ('col2hex', 'colorpanel', 'redgreen',\n    'greenred', 'bluered', 'redblue', 'rich.colors'),\n  - calculating and plotting two-dimensional data summaries ('ci2d',\n    'hist2d'),\n  - enhanced regression diagnostic plots ('lmplot2', 'residplot'),\n  - formula-enabled interface to 'stats::lowess' function ('lowess'),\n  - displaying textual data in plots ('textplot', 'sinkplot'),\n  - plotting dots whose size reflects the relative magnitude of the\n    elements ('balloonplot', 'bubbleplot'),\n  - plotting \"Venn\" diagrams ('venn'),\n  - displaying Open-Office style plots ('ooplot'),\n  - plotting multiple data on same region, with separate axes\n    ('overplot'),\n  - plotting means and confidence intervals ('plotCI', 'plotmeans'),\n  - spacing points in an x-y plot so they don't overlap ('space').",
-        "Depends": "R (>= 3.0)",
-        "Imports": "gtools, stats, caTools, KernSmooth, methods",
-        "Suggests": "grid, MASS, knitr, rmarkdown, r2d2, nlme",
-        "LazyData": "yes",
-        "VignetteBuilder": "knitr",
-        "Version": "3.2.0",
-        "Date": "2024-10-05",
-        "Authors@R": "c(\n    person(\"Gregory R.\", \"Warnes\", , role = \"aut\"),\n    person(\"Ben\", \"Bolker\", , role = \"aut\"),\n    person(\"Lodewijk\", \"Bonebakker\", , role = \"aut\"),\n    person(\"Robert\", \"Gentleman\", role = \"aut\"),\n    person(\"Wolfgang\", \"Huber\", role = \"aut\"),\n    person(\"Andy\", \"Liaw\", role = \"aut\"),\n    person(\"Thomas\", \"Lumley\", role = \"aut\"),\n    person(\"Martin\", \"Maechler\", role = \"aut\"),\n    person(\"Arni\", \"Magnusson\", role = \"aut\"),\n    person(\"Steffen\", \"Moeller\", role = \"aut\"),\n    person(\"Marc\", \"Schwartz\", role = \"aut\"),\n    person(\"Bill\", \"Venables\", role = \"aut\"),\n    person(\"Tal\", \"Galili\", , \"tal.galili@gmail.com\", c(\"aut\", \"cre\"))\n    )",
-        "License": "GPL-2",
-        "URL": "https://github.com/talgalili/gplots,\nhttps://talgalili.github.io/gplots/",
-        "BugReports": "https://github.com/talgalili/gplots/issues",
-        "NeedsCompilation": "no",
-        "Packaged": "2024-10-05 07:44:32 UTC; talgalili",
-        "Author": "Gregory R. Warnes [aut],\n  Ben Bolker [aut],\n  Lodewijk Bonebakker [aut],\n  Robert Gentleman [aut],\n  Wolfgang Huber [aut],\n  Andy Liaw [aut],\n  Thomas Lumley [aut],\n  Martin Maechler [aut],\n  Arni Magnusson [aut],\n  Steffen Moeller [aut],\n  Marc Schwartz [aut],\n  Bill Venables [aut],\n  Tal Galili [aut, cre]",
-        "Maintainer": "Tal Galili <tal.galili@gmail.com>",
-        "Repository": "CRAN",
-        "Date/Publication": "2024-10-05 23:00:02 UTC",
-        "Built": "R 4.4.3; ; 2025-04-07 01:14:27 UTC; windows",
-        "RemoteType": "standard",
-        "RemotePkgRef": "gplots",
-        "RemoteRef": "gplots",
-        "RemoteRepos": "https://cran.rstudio.com/",
-        "RemotePkgPlatform": "i386+x86_64-w64-mingw32",
-        "RemoteSha": "3.2.0"
-      }
-    },
     "gridExtra": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -2168,39 +2081,6 @@
         "RemoteRepos": "https://cran.rstudio.com/",
         "RemotePkgPlatform": "i386+x86_64-w64-mingw32",
         "RemoteSha": "0.3.6"
-      }
-    },
-    "gtools": {
-      "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
-      "description": {
-        "Package": "gtools",
-        "Title": "Various R Programming Tools",
-        "Description": "Functions to assist in R programming, including:\n  - assist in developing, updating, and maintaining R and R packages ('ask', 'checkRVersion',\n    'getDependencies', 'keywords', 'scat'),\n  - calculate the logit and inverse logit transformations ('logit', 'inv.logit'),\n  - test if a value is missing, empty or contains only NA and NULL values ('invalid'),\n  - manipulate R's .Last function ('addLast'),\n  - define macros ('defmacro'),\n  - detect odd and even integers ('odd', 'even'),\n  - convert strings containing non-ASCII characters (like single quotes) to plain ASCII ('ASCIIfy'),\n  - perform a binary search ('binsearch'),\n  - sort strings containing both numeric and character components ('mixedsort'),\n  - create a factor variable from the quantiles of a continuous variable ('quantcut'),\n  - enumerate permutations and combinations ('combinations', 'permutation'),\n  - calculate and convert between fold-change and log-ratio ('foldchange',\n    'logratio2foldchange', 'foldchange2logratio'),\n  - calculate probabilities and generate random numbers from Dirichlet distributions\n    ('rdirichlet', 'ddirichlet'),\n  - apply a function over adjacent subsets of a vector ('running'),\n  - modify the TCP_NODELAY ('de-Nagle') flag for socket objects,\n  - efficient 'rbind' of data frames, even if the column names don't match ('smartbind'),\n  - generate significance stars from p-values ('stars.pval'),\n  - convert characters to/from ASCII codes ('asc', 'chr'),\n  - convert character vector to ASCII representation ('ASCIIfy'),\n  - apply title capitalization rules to a character vector ('capwords').",
-        "Version": "3.9.5",
-        "Authors@R": "c(person(\"Gregory R.\", \"Warnes\", role = \"aut\"),\n             person(\"Ben\", \"Bolker\", role = c(\"aut\", \"cre\"),\n                     email = \"bolker@mcmaster.ca\",\n                     comment=c(ORCID=\"0000-0002-2127-0443\")),\n             person(\"Thomas\", \"Lumley\", role = \"aut\"),\n             person(\"Arni\", \"Magnusson\", role = \"aut\"),\n             person(\"Bill\", \"Venables\", role = \"aut\"),\n             person(\"Genei\", \"Ryodan\", role = \"aut\"),\n             person(\"Steffen\", \"Moeller\", role = \"aut\"),\n             person(\"Ian\", \"Wilson\", role = \"ctb\"),\n             person(\"Mark\", \"Davis\", role = \"ctb\"),\n             person(\"Nitin\", \"Jain\", role=\"ctb\"),\n             person(\"Scott\", \"Chamberlain\", role = \"ctb\"))",
-        "License": "GPL-2",
-        "Depends": "methods, stats, utils",
-        "URL": "https://github.com/r-gregmisc/gtools",
-        "BugReports": "https://github.com/r-gregmisc/gtools/issues",
-        "Language": "en-US",
-        "Suggests": "car, gplots, knitr, rstudioapi, SGP, taxize",
-        "RoxygenNote": "7.2.3",
-        "Encoding": "UTF-8",
-        "NeedsCompilation": "yes",
-        "Packaged": "2023-11-19 00:52:21 UTC; bolker",
-        "Author": "Gregory R. Warnes [aut],\n  Ben Bolker [aut, cre] (<https://orcid.org/0000-0002-2127-0443>),\n  Thomas Lumley [aut],\n  Arni Magnusson [aut],\n  Bill Venables [aut],\n  Genei Ryodan [aut],\n  Steffen Moeller [aut],\n  Ian Wilson [ctb],\n  Mark Davis [ctb],\n  Nitin Jain [ctb],\n  Scott Chamberlain [ctb]",
-        "Maintainer": "Ben Bolker <bolker@mcmaster.ca>",
-        "Repository": "CRAN",
-        "Date/Publication": "2023-11-20 15:10:05 UTC",
-        "Built": "R 4.4.3; x86_64-w64-mingw32; 2025-04-07 00:32:32 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemotePkgRef": "gtools",
-        "RemoteRef": "gtools",
-        "RemoteRepos": "https://cran.rstudio.com/",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "3.9.5"
       }
     },
     "hardhat": {
@@ -2399,6 +2279,34 @@
         "Date/Publication": "2025-04-16 08:00:06 UTC",
         "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-18 23:50:57 UTC; windows",
         "Archs": "x64"
+      }
+    },
+    "httr": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "httr",
+        "Title": "Tools for Working with URLs and HTTP",
+        "Version": "1.4.7",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Posit, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "Useful tools for working with HTTP organised by HTTP verbs\n    (GET(), POST(), etc). Configuration functions make it easy to control\n    additional request components (authenticate(), add_headers() and so\n    on).",
+        "License": "MIT + file LICENSE",
+        "URL": "https://httr.r-lib.org/, https://github.com/r-lib/httr",
+        "BugReports": "https://github.com/r-lib/httr/issues",
+        "Depends": "R (>= 3.5)",
+        "Imports": "curl (>= 5.0.2), jsonlite, mime, openssl (>= 0.8), R6",
+        "Suggests": "covr, httpuv, jpeg, knitr, png, readr, rmarkdown, testthat\n(>= 0.8.0), xml2",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.2.3",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-08-15 02:56:56 UTC; hadleywickham",
+        "Author": "Hadley Wickham [aut, cre],\n  Posit, PBC [cph, fnd]",
+        "Maintainer": "Hadley Wickham <hadley@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-08-15 09:00:02 UTC",
+        "Built": "R 4.3.1; ; 2023-10-01 02:03:04 UTC; windows"
       }
     },
     "httr2": {
@@ -3068,7 +2976,7 @@
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "CRAN",
         "Date/Publication": "2025-09-12 07:20:14 UTC",
-        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-13 00:01:55 UTC; windows",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-17 09:30:10 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -3510,7 +3418,7 @@
         "Maintainer": "Kirill Müller <kirill@cynkra.com>",
         "Repository": "CRAN",
         "Date/Publication": "2025-09-17 11:20:02 UTC",
-        "Built": "R 4.5.1; ; 2025-09-18 01:48:09 UTC; windows"
+        "Built": "R 4.5.1; ; 2025-09-17 17:44:28 UTC; windows"
       }
     },
     "pkgconfig": {
@@ -3596,6 +3504,34 @@
         "Repository": "CRAN",
         "Date/Publication": "2025-07-25 16:30:02 UTC",
         "Built": "R 4.5.1; ; 2025-08-04 01:05:33 UTC; windows"
+      }
+    },
+    "plotly": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "plotly",
+        "Title": "Create Interactive Web Graphics via 'plotly.js'",
+        "Version": "4.11.0",
+        "Authors@R": "c(person(\"Carson\", \"Sievert\", role = c(\"aut\", \"cre\"),\n    email = \"cpsievert1@gmail.com\", comment = c(ORCID = \"0000-0002-4958-2844\")),\n    person(\"Chris\", \"Parmer\", role = \"aut\",\n    email = \"chris@plot.ly\"),\n    person(\"Toby\", \"Hocking\", role = \"aut\",\n    email = \"tdhock5@gmail.com\"),\n    person(\"Scott\", \"Chamberlain\", role = \"aut\",\n    email = \"myrmecocystus@gmail.com\"),\n    person(\"Karthik\", \"Ram\", role = \"aut\",\n    email = \"karthik.ram@gmail.com\"),\n    person(\"Marianne\", \"Corvellec\", role = \"aut\",\n    email = \"marianne.corvellec@igdore.org\", comment = c(ORCID = \"0000-0002-1994-3581\")),\n    person(\"Pedro\", \"Despouy\", role = \"aut\",\n    email = \"pedro@plot.ly\"),\n    person(\"Salim\", \"Brüggemann\", role = \"ctb\",\n    email = \"salim-b@pm.me\", comment = c(ORCID = \"0000-0002-5329-5987\")),\n    person(\"Plotly Technologies Inc.\", role = \"cph\"))",
+        "License": "MIT + file LICENSE",
+        "Description": "Create interactive web graphics from 'ggplot2' graphs and/or a custom interface to the (MIT-licensed) JavaScript library 'plotly.js' inspired by the grammar of graphics.",
+        "URL": "https://plotly-r.com, https://github.com/plotly/plotly.R,\nhttps://plotly.com/r/",
+        "BugReports": "https://github.com/plotly/plotly.R/issues",
+        "Depends": "R (>= 3.2.0), ggplot2 (>= 3.0.0)",
+        "Imports": "tools, scales, httr (>= 1.3.0), jsonlite (>= 1.6), magrittr,\ndigest, viridisLite, base64enc, htmltools (>= 0.3.6),\nhtmlwidgets (>= 1.5.2.9001), tidyr (>= 1.0.0), RColorBrewer,\ndplyr, vctrs, tibble, lazyeval (>= 0.2.0), rlang (>= 1.0.0),\ncrosstalk, purrr, data.table, promises",
+        "Suggests": "MASS, maps, hexbin, ggthemes, GGally, ggalluvial, testthat,\nknitr, shiny (>= 1.1.0), shinytest2, curl, rmarkdown, Cairo,\nbroom, webshot, listviewer, dendextend, sf, png, IRdisplay,\nprocessx, plotlyGeoAssets, forcats, withr, palmerpenguins,\nrversions, reticulate, rsvg, ggridges",
+        "LazyData": "true",
+        "RoxygenNote": "7.3.2",
+        "Encoding": "UTF-8",
+        "Config/Needs/check": "tidyverse/ggplot2, ggobi/GGally, rcmdcheck,\ndevtools, reshape2, s2",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-06-19 15:43:06 UTC; cpsievert",
+        "Author": "Carson Sievert [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-4958-2844>),\n  Chris Parmer [aut],\n  Toby Hocking [aut],\n  Scott Chamberlain [aut],\n  Karthik Ram [aut],\n  Marianne Corvellec [aut] (ORCID:\n    <https://orcid.org/0000-0002-1994-3581>),\n  Pedro Despouy [aut],\n  Salim Brüggemann [ctb] (ORCID: <https://orcid.org/0000-0002-5329-5987>),\n  Plotly Technologies Inc. [cph]",
+        "Maintainer": "Carson Sievert <cpsievert1@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-06-19 18:30:02 UTC",
+        "Built": "R 4.5.1; ; 2025-08-04 02:39:54 UTC; windows"
       }
     },
     "plyr": {
@@ -5481,7 +5417,7 @@
       "checksum": "2339a34496379fd2274ab3974bfc72ac"
     },
     "_pkgdown.yml": {
-      "checksum": "3e50489197760b91c7cb85babf2f9f80"
+      "checksum": "6d4b3a4217577e3f0f0301c27de87de4"
     },
     "app.R": {
       "checksum": "95f7e887a1cd7599af11527a3acd4a26"
@@ -5523,7 +5459,7 @@
       "checksum": "d29a40278434f9d67efcdf14046c6469"
     },
     "DESCRIPTION": {
-      "checksum": "845575302a16a27641ac263a983e3212"
+      "checksum": "77dcd90a49d6933c17c69bf02cbc6603"
     },
     "doc/Basic-Tutorial-of-CytokineProfile-Shiny.html": {
       "checksum": "33124eeb57befc3bee9883b045b73187"
@@ -5700,7 +5636,7 @@
       "checksum": "dca708c90eee1f2352a32f4754901a6a"
     },
     "docs/pkgdown.yml": {
-      "checksum": "85ec4e5e6cb1d64c8264f69dd2c5f24f"
+      "checksum": "0a3e59f2f68881faae2432c65a0001d1"
     },
     "docs/reference/boxplot2_output.pdf": {
       "checksum": "7fbd0ea790a54bc2f184cd9d6d50b25c"
@@ -5709,34 +5645,40 @@
       "checksum": "fbab5cb061fda3102ede66032819c442"
     },
     "docs/reference/cyt_bp-1.png": {
-      "checksum": "1e9ef67a43f6a86c0c9eb49f734d00bc"
+      "checksum": "df2843fa84a33be920c0288e686c1b2e"
     },
     "docs/reference/cyt_bp.html": {
       "checksum": "8d334ba289321ad54ff3e217ab40e455"
     },
     "docs/reference/cyt_bp2-1.png": {
-      "checksum": "b49eca7ff692e4183204ee215922e4c5"
+      "checksum": "9997108eb6f80c4522e92e0770e9a489"
     },
     "docs/reference/cyt_bp2-2.png": {
-      "checksum": "8d8c4555ca5c136922b67affdb8c5fc1"
+      "checksum": "5beda4c9463c2f20ba5833f9e8166816"
     },
     "docs/reference/cyt_bp2.html": {
       "checksum": "e2e92b69c9424b88f142f6b1736b45d8"
     },
+    "docs/reference/cyt_corr.html": {
+      "checksum": "586ce2271ad143d52e10d33a1aae5029"
+    },
     "docs/reference/cyt_dualflashplot-1.png": {
-      "checksum": "29a19f34f74eafc104715a0166947e65"
+      "checksum": "b1aa1a76c2ef902e7b44a9f80970e988"
     },
     "docs/reference/cyt_dualflashplot.html": {
       "checksum": "b94229f742840be0cf52d30828263551"
     },
     "docs/reference/cyt_errbp-1.png": {
-      "checksum": "2b9052fc6cb2837cb0cad2e7dc15d263"
+      "checksum": "5a612034039524c41b6ec80548ba486f"
     },
     "docs/reference/cyt_errbp.html": {
       "checksum": "cb6182ca706c7b238011f94fe88bed41"
     },
+    "docs/reference/cyt_heatmap-1.png": {
+      "checksum": "939bd668d2bfac15f6c7168b3c308ed2"
+    },
     "docs/reference/cyt_heatmap.html": {
-      "checksum": "50653c9fa6e4a68a97fdc99f7e997df8"
+      "checksum": "353827542534ea84a4ff68fd70baf8df"
     },
     "docs/reference/cyt_mint_splsda-1.png": {
       "checksum": "32731f442a86586dd1b2422440f280cb"
@@ -5745,7 +5687,7 @@
       "checksum": "13277f190a236b5160a876a3b9f4c809"
     },
     "docs/reference/cyt_mint_splsda.html": {
-      "checksum": "9c0907992fe9abc74f7fe637024689de"
+      "checksum": "70f2d78d702b1cbb7bc103176e8674e2"
     },
     "docs/reference/cyt_pca-1.png": {
       "checksum": "0a94674d6339c34ec626b608f3d22680"
@@ -5765,29 +5707,32 @@
     "docs/reference/cyt_pca.html": {
       "checksum": "6467ac3b948189bf69bd83476a332c0c"
     },
+    "docs/reference/cyt_plsr.html": {
+      "checksum": "5b6a2eb35c297ec60adab55a12e38cbf"
+    },
     "docs/reference/cyt_rf-1.png": {
-      "checksum": "1f7f3243f69cb8b4fb4e57a6c8306bcc"
+      "checksum": "94f62d968af707c804b3cfe377879623"
     },
     "docs/reference/cyt_rf-2.png": {
-      "checksum": "dfada35511db9ff2d556590014d0fc23"
+      "checksum": "466b47d694f588b71104c18c50f3840b"
     },
     "docs/reference/cyt_rf-3.png": {
-      "checksum": "93b2d1e4992e86f32b2c2b1afe2de7f6"
+      "checksum": "1f5b65b37f06eabe8f35fdb1578a7fdf"
     },
     "docs/reference/cyt_rf.html": {
       "checksum": "b3a723afe16868a55c74d85f2c01d3d6"
     },
     "docs/reference/cyt_skku-1.png": {
-      "checksum": "ac7220643b5ec74a55fda4778672e13e"
+      "checksum": "5bfae73901c21183fecf1f732b006225"
     },
     "docs/reference/cyt_skku-2.png": {
-      "checksum": "38344d9713b6e233ea9a34f5d670a481"
+      "checksum": "92839da723cd345f39610c447ec77054"
     },
     "docs/reference/cyt_skku-3.png": {
-      "checksum": "25e908c2a01b7010b1391d70fa53418f"
+      "checksum": "ae38efb6dfe8ee5d28cafe75d8390224"
     },
     "docs/reference/cyt_skku-4.png": {
-      "checksum": "efdd3236bc8bc4a1b18460184a5d4387"
+      "checksum": "33170b8578bc7461754f3cb94795e8cf"
     },
     "docs/reference/cyt_skku.html": {
       "checksum": "29b69b2f769709f3537edd7cfdd30734"
@@ -5802,34 +5747,34 @@
       "checksum": "a709148cb96a304ca687cc6bba18bad4"
     },
     "docs/reference/cyt_splsda-4.png": {
-      "checksum": "c8fb084a224f8b571e5450004b193f93"
+      "checksum": "5724375cfb5077a8196c0428468b4217"
     },
     "docs/reference/cyt_splsda-5.png": {
       "checksum": "5c2b43fa2af2574758bb512023280db4"
     },
     "docs/reference/cyt_splsda-6.png": {
-      "checksum": "b6fc4525f443737ecaea8d5a2d2ff878"
+      "checksum": "27b49ae3fa7f71babb98afe03343566d"
     },
     "docs/reference/cyt_splsda-7.png": {
       "checksum": "97bb3e8c663483b28f94a388e7609be0"
     },
     "docs/reference/cyt_splsda.html": {
-      "checksum": "2604cf3604f0ff4a257b7f13532d111b"
+      "checksum": "738a3d22019ec8b7ef0313348380ab38"
     },
     "docs/reference/cyt_ttest.html": {
       "checksum": "dd43408366724e2cac8c7e0c04493ffd"
     },
     "docs/reference/cyt_volc-1.png": {
-      "checksum": "1eb3d667a29a116fc8de676b2f8cbde1"
+      "checksum": "58aa359b8b4f9c502f84e62f6a362a7a"
     },
     "docs/reference/cyt_volc.html": {
       "checksum": "f0c637ea53605f7df4c8fe7031891aa1"
     },
     "docs/reference/cyt_xgb-1.png": {
-      "checksum": "d149db3ca1b082084b6128bb178cbe57"
+      "checksum": "c0c0f248fb2aa525de1083f6263be4f6"
     },
     "docs/reference/cyt_xgb-2.png": {
-      "checksum": "337f888f5bc9a384fe51529d81ebc78d"
+      "checksum": "055e12a1e04131a4ac4fcdbed8646333"
     },
     "docs/reference/cyt_xgb.html": {
       "checksum": "1d20dc866231bfac1405f615b7020bb8"
@@ -5883,16 +5828,16 @@
       "checksum": "0b74aa7d4df8f9f5b563e58615c2dce1"
     },
     "docs/reference/index.html": {
-      "checksum": "5598d9d03cfdade599243ac277e92e2c"
+      "checksum": "69d36ee97c21a7755182a9ffb16ef3ab"
     },
     "docs/search.json": {
-      "checksum": "b7fb6ce80bfd32e9d36ada1abe34a5b5"
+      "checksum": "df54b3ec21641417fc1b114b7320e7fb"
     },
     "docs/site.webmanifest": {
       "checksum": "aa2a240255534cbd81d92a24956916f5"
     },
     "docs/sitemap.xml": {
-      "checksum": "3faa3a8f60da9c0320f75acc23dbd13f"
+      "checksum": "40f01bd31002d1f8e5db13ed8a9b2212"
     },
     "docs/TUTORIALS.html": {
       "checksum": "19f377ad23c831eb2eb51b7eb9623e52"
@@ -5921,6 +5866,9 @@
     "man/cyt_bp2.Rd": {
       "checksum": "8d7bbe88e3aac2bb7af8cbb763b267e7"
     },
+    "man/cyt_corr.Rd": {
+      "checksum": "066c5283ef8ed7d7f7db566a6ea6b3eb"
+    },
     "man/cyt_dualflashplot.Rd": {
       "checksum": "5d3e831b117883af0f17266c46b521e0"
     },
@@ -5928,13 +5876,16 @@
       "checksum": "f9fc4387e923a052845b3e5bff788a03"
     },
     "man/cyt_heatmap.Rd": {
-      "checksum": "3a9afc3a647edd5e2377d8ff1fc834a9"
+      "checksum": "253d9b4c41295f5221bd58849133e30d"
     },
     "man/cyt_mint_splsda.Rd": {
       "checksum": "346aa9b0b01cb155f41d20a45f09634d"
     },
     "man/cyt_pca.Rd": {
       "checksum": "4e4a79fef53eb611999b28bac61bb673"
+    },
+    "man/cyt_plsr.Rd": {
+      "checksum": "fa492332aca972b2a449043e61627877"
     },
     "man/cyt_rf.Rd": {
       "checksum": "dc8e5139bc2cbc9b97fa5cb370ca70c9"
@@ -5943,7 +5894,7 @@
       "checksum": "a6477cd81a18b39c778461816134d733"
     },
     "man/cyt_splsda.Rd": {
-      "checksum": "67c5f6a29d1f4fc3e654c34349feda25"
+      "checksum": "ac4bd22dc7dff8c718d6d3a01bf68d89"
     },
     "man/cyt_ttest.Rd": {
       "checksum": "c29ab82efe165bdccd1beca604fe83a6"
@@ -6003,7 +5954,7 @@
       "checksum": "817bfa541f0598d918d261ff7d1b01e9"
     },
     "NAMESPACE": {
-      "checksum": "5598b61b6859b1bec54c3048d75bb4a7"
+      "checksum": "039932c2df8487b88895e20daa0cf640"
     },
     "NEWS.md": {
       "checksum": "7ad112a0aff8c3f71b37e0130a583280"
@@ -6039,7 +5990,7 @@
       "checksum": "f9fd78b2163ea26625ec46f768b6fc6c"
     },
     "R/cyt_corr.R": {
-      "checksum": "50deeb896f9243931610ac338c4c3921"
+      "checksum": "7b726d80af1c609950e2edea701ab2bf"
     },
     "R/cyt_dualflashplot.R": {
       "checksum": "c46bc0adba4c8b0471a481b3642febd9"
@@ -6048,7 +5999,7 @@
       "checksum": "b34fcb265a7ab94ac4ca17ad84498c95"
     },
     "R/cyt_heatmap.R": {
-      "checksum": "fd74ccb5b80b1679d61e1e2a65b119a9"
+      "checksum": "ee6db4bcd541e040bfbf103f302c5e4f"
     },
     "R/cyt_mint_splsda.R": {
       "checksum": "73f2e3de41505f21769eccebcdb1c38e"
@@ -6066,7 +6017,7 @@
       "checksum": "da1a38cab4d26d73dd69f08b5576dfc4"
     },
     "R/cyt_splsda.R": {
-      "checksum": "1c9994c558ac7f5c484b0658d2ad689d"
+      "checksum": "297685a6c55642a4f1d30174afc1723a"
     },
     "R/cyt_ttest.R": {
       "checksum": "b1fc69c00aaf00cc8e5f2b2bc2f6d36b"
@@ -6120,7 +6071,7 @@
       "checksum": "9d5c21b862738b641dcae61e1f049e8d"
     },
     "server.R": {
-      "checksum": "9987773dd74b476901935361da14d8ed"
+      "checksum": "6506d42327657577d97e77ae0c024394"
     },
     "server_test.R": {
       "checksum": "e4db0df6cda8ce5bde1df86cbb182bfd"

@@ -16,6 +16,7 @@ library(shinycssloaders)
 library(patchwork)
 library(recipes)
 library(impute)
+library(plotly)
 
 # Define server logic
 server <- function(input, output, session) {
@@ -6290,9 +6291,37 @@ server <- function(input, output, session) {
                     shinycssloaders::withSpinner(
                       plotOutput("splsda_overall3DPlot", height = "500px"),
                       type = 8
-                    )
+                    ),
+                    # break line
+                    br(),
+                    actionButton(
+                      "splsda_show3d_interactive",
+                      "Interactive 3D",
+                      icon = icon("fas fa-cube")
+                    ),
+                    # break line
+                    br(),
                   )
                 },
+                if (!is.null(res$vip_3D)) {
+                  tabPanel(
+                    "3D Plot (VIP>1)",
+                    shinycssloaders::withSpinner(
+                      plotOutput("splsda_vip3DPlot", height = "500px"),
+                      type = 8
+                    ),
+                    # break line
+                    br(),
+                    actionButton(
+                      "splsda_show3d_interactive_vip",
+                      "Interactive 3D (VIP)",
+                      icon = icon("fas fa-cube")
+                    ),
+                    # break line
+                    br(),
+                  )
+                },
+
                 if (!is.null(res$overall_ROC) || !is.null(res$overall_CV)) {
                   tabPanel(
                     "Performance",
@@ -6386,7 +6415,39 @@ server <- function(input, output, session) {
                               height = "500px"
                             ),
                             type = 8
-                          )
+                          ),
+                          # break line
+                          br(),
+                          actionButton(
+                            paste0("splsda_show3d_interactive_", trt),
+                            "Interactive 3D",
+                            icon = icon("fas fa-cube")
+                          ),
+                          # break line
+                          br(),
+                        )
+                      },
+
+                      # VIP 3D tab per-trt (no div wrapper)
+                      if (!is.null(res[[trt]]$vip_3D)) {
+                        tabPanel(
+                          "3D Plot (VIP>1)",
+                          shinycssloaders::withSpinner(
+                            plotOutput(
+                              paste0("splsda_vip3DPlot_", trt),
+                              height = "500px"
+                            ),
+                            type = 8
+                          ),
+                          # break line
+                          br(),
+                          actionButton(
+                            paste0("splsda_show3d_interactive_vip_", trt),
+                            "Interactive 3D (VIP)",
+                            icon = icon("fas fa-cube")
+                          ),
+                          # break line
+                          br(),
                         )
                       },
                       if (
@@ -7080,6 +7141,7 @@ server <- function(input, output, session) {
       selected_function(),
       input$new_fresh,
       input$new_reuse,
+      input$next4,
       cache = "session"
     )
 
@@ -7143,6 +7205,15 @@ server <- function(input, output, session) {
         })
         output$splsda_overall3DPlot <- renderPlot({
           if (!is.null(res$overall_3D)) replayPlot(res$overall_3D)
+        })
+        output$splsda_vip3DPlot <- renderPlot({
+          if (!is.null(res$vip_3D)) replayPlot(res$vip_3D)
+        })
+        output$splsda_interactive_plot <- renderPlotly({
+          res$overall_3D_interactive
+        })
+        output$splsda_interactive_plot_vip <- renderPlotly({
+          res$vip_3D_interactive
         })
         output$splsda_overallRocPlot <- renderPlot({
           if (!is.null(res$overall_ROC)) replayPlot(res$overall_ROC)
@@ -7281,6 +7352,60 @@ server <- function(input, output, session) {
               if (!is.null(sub_res$overall_3D)) {
                 replayPlot(sub_res$overall_3D)
               }
+            })
+            output[[paste0("splsda_vip3DPlot_", current_trt)]] <- renderPlot({
+              if (!is.null(sub_res$vip_3D)) {
+                replayPlot(sub_res$vip_3D)
+              }
+            })
+            # ----- Interactive OVERALL 3D per-trt: open modal -----
+            observeEvent(
+              input[[paste0("splsda_show3d_interactive_", current_trt)]],
+              {
+                showModal(modalDialog(
+                  plotlyOutput(
+                    paste0("splsda_interactive_plot_", current_trt),
+                    width = "100%",
+                    height = "600px"
+                  ),
+                  easyClose = TRUE,
+                  size = "l"
+                ))
+              }
+            )
+
+            # ----- Interactive OVERALL 3D per-trt: render Plotly -----
+            output[[paste0(
+              "splsda_interactive_plot_",
+              current_trt
+            )]] <- renderPlotly({
+              req(sub_res$overall_3D_interactive)
+              sub_res$overall_3D_interactive
+            })
+
+            # ----- Interactive VIP 3D per-trt: open modal -----
+            observeEvent(
+              input[[paste0("splsda_show3d_interactive_vip_", current_trt)]],
+              {
+                showModal(modalDialog(
+                  plotlyOutput(
+                    paste0("splsda_interactive_plot_vip_", current_trt),
+                    width = "100%",
+                    height = "75vh"
+                  ),
+                  easyClose = TRUE,
+                  size = "l"
+                ))
+              }
+            )
+
+            # ----- Interactive VIP 3D per-trt: render Plotly -----
+            output[[paste0(
+              "splsda_interactive_plot_vip_",
+              current_trt
+            )]] <- renderPlotly({
+              req(sub_res$vip_3D_interactive)
+              sub_res$vip_3D_interactive
             })
             output[[paste0(
               "splsda_overallRocPlot_",
@@ -7939,6 +8064,8 @@ server <- function(input, output, session) {
           # <— add (fallback)
           grid::grid.newpage()
           grid::grid.draw(p)
+        } else {
+          print(p)
         }
       }
       dev.off()
@@ -8172,6 +8299,24 @@ server <- function(input, output, session) {
   })
   shiny::observeEvent(input$splsda_style, {
     userState$splsda_style <- input$splsda_style
+  })
+  shiny::observeEvent(input$splsda_show3d_interactive, {
+    showModal(modalDialog(
+      plotlyOutput("splsda_interactive_plot", width = "100%", height = "600px"),
+      easyClose = TRUE,
+      size = "l"
+    ))
+  })
+  observeEvent(input$splsda_show3d_interactive_vip, {
+    showModal(modalDialog(
+      plotlyOutput(
+        "splsda_interactive_plot_vip",
+        width = "100%",
+        height = "600px"
+      ),
+      easyClose = TRUE,
+      size = "l"
+    ))
   })
   shiny::observeEvent(input$splsda_roc, {
     userState$splsda_roc <- input$splsda_roc

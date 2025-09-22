@@ -39,7 +39,8 @@ Imports:
     Ckmeans.1d.dp,
     reshape2, 
     recipes, 
-    impute
+    impute,
+    plotly
 Suggests:
     spelling,
     BiocManager,
