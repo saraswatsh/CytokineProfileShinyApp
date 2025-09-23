@@ -74,6 +74,8 @@ server <- function(input, output, session) {
     use_builtin = FALSE,
     built_in_choice = NULL,
 
+    # Bioplex sheet tracking
+    sheet_name = NULL,
     # Imputation
     impute_meta = NULL,
 
@@ -207,6 +209,14 @@ server <- function(input, output, session) {
     corr_group_col = NULL,
     corr_by_group = FALSE
   )
+  # --- Bio-Plex import state ---
+  bioplex <- reactiveValues(
+    active = FALSE, # when TRUE, userData() will use the confirmed Bio-Plex data
+    df = NULL, # working table (after header-from-row1 + optional renames)
+    deleted_idx = integer(), # 1-based indices removed in the pre-import preview
+    deleted_by_sheet = list() # per-sheet deleted row indices
+  )
+
   # Reactive values to store the selection from our new custom buttons
   selected_stat_func <- shiny::reactiveVal("ANOVA")
   selected_exploratory_func <- shiny::reactiveVal("Boxplots")
@@ -235,25 +245,19 @@ server <- function(input, output, session) {
     ignoreNULL = FALSE
   )
   userData <- shiny::reactive({
-    # built‑in branch stays the same
-    if (isTRUE(input$use_builtin)) {
+    if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
+      df <- bioplex$final
+    } else if (isTRUE(input$use_builtin)) {
       req(input$built_in_choice)
-      # pull the data frame out of memory
       df <- get(input$built_in_choice)
-      # snapshot it to disk so it "sticks around" just like an upload
       dest <- file.path(builtins_dir, paste0(input$built_in_choice, ".rds"))
-      if (!file.exists(dest)) {
-        saveRDS(df, dest)
-      }
+      if (!file.exists(dest)) saveRDS(df, dest)
     } else {
-      # user upload branch
       req(input$datafile)
-      # copy into our session‐local tempdir
       dest <- file.path(upload_dir, input$datafile$name)
       if (!file.exists(dest)) {
         file.copy(input$datafile$datapath, dest, overwrite = TRUE)
       }
-      # read from dest (not from the app root!)
       ext <- tolower(tools::file_ext(dest))
       if (ext == "csv") {
         df <- read.csv(dest, stringsAsFactors = FALSE)
@@ -265,7 +269,6 @@ server <- function(input, output, session) {
           stringsAsFactors = FALSE
         )
       } else if (ext %in% c("xls", "xlsx")) {
-        # pick the selected sheet name if it exists, otherwise default to the first
         all_sheets <- readxl::excel_sheets(dest)
         sheet_to_read <- if (
           !is.null(input$sheet_name) && input$sheet_name %in% all_sheets
@@ -280,8 +283,6 @@ server <- function(input, output, session) {
         stop("Unsupported file type.")
       }
     }
-
-    # Add a unique internal ID to each row for tracking deletions
     df$..cyto_id.. <- 1:nrow(df)
     df
   })
@@ -310,7 +311,7 @@ server <- function(input, output, session) {
       inputId = "sheet_name",
       label = "Sheet",
       choices = sheets,
-      selected = sheets[1]
+      selected = isolate(userState$sheet_name) %||% sheets[1]
     )
   })
 
@@ -331,6 +332,516 @@ server <- function(input, output, session) {
         "ExampleData5"
       ), # Using example names
       selected = isolate(userState$built_in_choice) %||% "ExampleData1"
+    )
+  })
+  # ----- Bio-Plex: multi-sheet picker (limit to 2) -----
+  # flag for conditionalPanel
+  output$bioplex_on <- reactive({
+    isTruthy(input$bioplex_file) && isTruthy(input$bioplex_file$datapath)
+  })
+  outputOptions(output, "bioplex_on", suspendWhenHidden = FALSE)
+
+  observeEvent(input$bioplex_file, {
+    # only proceed for Excel uploads
+    req(isTruthy(input$bioplex_file$datapath))
+    req(grepl("\\.xlsx?$", input$bioplex_file$name, ignore.case = TRUE))
+
+    sh <- tryCatch(
+      readxl::excel_sheets(input$bioplex_file$datapath),
+      error = function(e) character(0)
+    )
+    # update the choices (safe even if the input was just created)
+    updateSelectizeInput(
+      session,
+      "bioplex_sheets",
+      choices = sh,
+      selected = head(sh, 1),
+      server = TRUE
+    )
+  })
+
+  output$bioplex_sheet_selector <- renderUI({
+    req(input$bioplex_file)
+    sheets <- tryCatch(
+      readxl::excel_sheets(input$bioplex_file$datapath),
+      error = function(e) character()
+    )
+    if (!length(sheets)) {
+      return(NULL)
+    }
+    selectizeInput(
+      "bioplex_sheets",
+      "Choose up to two sheets:",
+      choices = sheets,
+      multiple = TRUE,
+      options = list(maxItems = 2, placeholder = "Select up to two sheets")
+    )
+  })
+
+  # ----- Bio-Plex: build working table from selected sheet(s) -----
+  bioplex_build_df <- reactive({
+    req(isTruthy(input$bioplex_file$datapath))
+    req(length(input$bioplex_sheets) >= 1) # at least one sheet picked
+
+    dfs <- lapply(input$bioplex_sheets, function(sh) {
+      x <- readxl::read_excel(
+        input$bioplex_file$datapath,
+        sheet = sh,
+        col_names = FALSE
+      )
+      if (!nrow(x)) {
+        return(NULL)
+      } # nothing to use
+      hdr <- as.character(unlist(x[1, ], use.names = FALSE))
+      x <- x[-1, , drop = FALSE]
+      names(x) <- make.unique(make.names(hdr)) # valid, unique
+      x
+    })
+    dfs <- Filter(Negate(is.null), dfs)
+    req(length(dfs) >= 1) # ensure at least one non-empty sheet
+    dplyr::bind_rows(dfs) # bind by names, fill NAs as needed
+  })
+
+  # Keep working copy in reactiveValues so we can rename columns & delete rows before import
+  observeEvent(
+    bioplex_build_df(),
+    {
+      req(bioplex_build_df())
+      bioplex$df <- bioplex_build_df()
+      bioplex$deleted_idx <- integer(0)
+      bioplex$active <- FALSE
+    },
+    ignoreInit = TRUE
+  )
+  # Per-sheet data frames (row 1 -> column names)
+  bioplex_per_sheet <- reactive({
+    req(input$bioplex_file, length(input$bioplex_sheets) >= 1)
+    setNames(
+      lapply(input$bioplex_sheets, function(sh) {
+        x <- readxl::read_excel(
+          input$bioplex_file$datapath,
+          sheet = sh,
+          col_names = FALSE
+        )
+        req(nrow(x) > 0)
+        hdr <- as.character(unlist(x[1, ], use.names = FALSE))
+        x <- x[-1, , drop = FALSE]
+        names(x) <- make.unique(make.names(hdr))
+        x
+      }),
+      input$bioplex_sheets
+    )
+  })
+
+  # Combined
+  bioplex_combined <- reactive({
+    req(bioplex_per_sheet())
+    dplyr::bind_rows(bioplex_per_sheet())
+  })
+  bioplex_combined_filtered <- reactive({
+    ps <- bioplex_per_sheet()
+    req(length(ps) >= 1)
+    dels <- bioplex$deleted_by_sheet %||% list()
+
+    filtered <- lapply(names(ps), function(nm) {
+      df <- ps[[nm]]
+      del <- dels[[nm]] %||% integer(0)
+      keep <- setdiff(seq_len(nrow(df)), del)
+      df[keep, , drop = FALSE]
+    })
+    dplyr::bind_rows(filtered)
+  })
+
+  observeEvent(input$bioplex_open_editor, {
+    # build / refresh working copies from current sheets
+    bioplex$deleted_idx <- integer(0)
+    bioplex$active <- FALSE
+
+    ps <- bioplex_per_sheet()
+    bioplex$deleted_by_sheet <- setNames(
+      replicate(length(ps), integer(0), simplify = FALSE),
+      names(ps)
+    )
+
+    # start combined working view from current sheets (no deletes yet)
+    bioplex$df <- dplyr::bind_rows(ps)
+
+    showModal(
+      modalDialog(
+        title = "Bio-Plex Editor",
+        size = "l",
+        easyClose = FALSE,
+        footer = tagList(
+          modalButton("Close"),
+          actionButton(
+            "bioplex_confirm_modal",
+            "Save & Use",
+            class = "btn-primary"
+          )
+        ),
+        uiOutput("bioplex_modal_tabs")
+      )
+    )
+  })
+
+  output$bioplex_modal_tabs <- renderUI({
+    req(bioplex$df)
+
+    mk_id <- function(x) gsub("[^A-Za-z0-9_]", "_", x)
+
+    # One tab per selected sheet, each with its own controls
+    sheet_tabs <- lapply(names(bioplex_per_sheet()), function(nm) {
+      stem <- mk_id(nm)
+      tbl_id <- paste0("bp_tbl_", stem)
+      del_id <- paste0("bp_del_", stem)
+      rst_id <- paste0("bp_rst_", stem)
+
+      # render the per-sheet table (filtered by this sheet's deletes)
+      local({
+        nm_local <- nm
+        output[[tbl_id]] <- DT::renderDT(
+          {
+            df <- bioplex_per_sheet()[[nm_local]]
+            del <- bioplex$deleted_by_sheet[[nm_local]] %||% integer(0)
+            keep <- setdiff(seq_len(nrow(df)), del)
+            DT::datatable(
+              df[keep, , drop = FALSE],
+              selection = "multiple",
+              options = list(scrollX = TRUE, scrollY = "55vh", paging = FALSE),
+              rownames = FALSE
+            )
+          },
+          server = FALSE
+        )
+
+        # DELETE rows for this sheet
+        observeEvent(
+          input[[del_id]],
+          {
+            df <- bioplex_per_sheet()[[nm_local]]
+            del <- bioplex$deleted_by_sheet[[nm_local]] %||% integer(0)
+            keep <- setdiff(seq_len(nrow(df)), del)
+            sel <- input[[paste0(tbl_id, "_rows_selected")]]
+            if (length(sel)) {
+              bioplex$deleted_by_sheet[[nm_local]] <- sort(unique(c(
+                del,
+                keep[sel]
+              )))
+              # keep Combined in sync while preserving any custom column names
+              old_names <- names(bioplex$df)
+              bioplex$df <- bioplex_combined_filtered()
+              if (
+                !is.null(old_names) && length(old_names) == ncol(bioplex$df)
+              ) {
+                names(bioplex$df) <- old_names
+              }
+              bioplex$deleted_idx <- integer(0) # reset combined-level deletes (indices changed)
+            }
+          },
+          ignoreInit = TRUE
+        )
+
+        # RESTORE all rows for this sheet
+        observeEvent(
+          input[[rst_id]],
+          {
+            bioplex$deleted_by_sheet[[nm_local]] <- integer(0)
+            old_names <- names(bioplex$df)
+            bioplex$df <- bioplex_combined_filtered()
+            if (!is.null(old_names) && length(old_names) == ncol(bioplex$df)) {
+              names(bioplex$df) <- old_names
+            }
+            bioplex$deleted_idx <- integer(0)
+          },
+          ignoreInit = TRUE
+        )
+      })
+
+      tabPanel(
+        nm,
+        div(
+          class = "d-flex justify-content-between align-items-center mb-2",
+          tags$div(
+            actionButton(
+              del_id,
+              "Delete Selected Rows",
+              class = "btn-danger btn-sm"
+            ),
+            actionButton(
+              rst_id,
+              "Restore All",
+              class = "btn-secondary btn-sm ms-2"
+            )
+          )
+        ),
+        DT::DTOutput(tbl_id)
+      )
+    })
+
+    tabsetPanel(
+      id = "bioplex_tabs",
+      tabPanel(
+        "Data to be Imported",
+        tags$label("Column names"),
+        tags$div(
+          style = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem;",
+          lapply(seq_along(names(bioplex$df)), function(i) {
+            textInput(
+              paste0("bioplex_colname_", i),
+              NULL,
+              names(bioplex$df)[i],
+              width = "100%"
+            )
+          })
+        ),
+        actionButton(
+          "bioplex_apply_names_modal",
+          "Apply Column Names",
+          class = "btn-outline-primary btn-sm mt-2"
+        ),
+        hr(),
+        div(
+          class = "d-flex justify-content-between align-items-center mb-2",
+          tags$div(
+            actionButton(
+              "bioplex_modal_delete_selected",
+              "Delete Selected Rows",
+              class = "btn-danger btn-sm"
+            ),
+            actionButton(
+              "bioplex_modal_restore_all",
+              "Restore All",
+              class = "btn-secondary btn-sm ms-2"
+            )
+          )
+        ),
+        DT::DTOutput("bioplex_modal_table_combined")
+      ),
+      !!!sheet_tabs
+    )
+  })
+
+  output$bioplex_modal_table_combined <- DT::renderDT(
+    {
+      combined_now <- bioplex_combined_filtered()
+      req(nrow(combined_now) > 0)
+      keep <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
+      # show current names (after any Apply Column Names)
+      if (!is.null(bioplex$df) && ncol(bioplex$df) == ncol(combined_now)) {
+        names(combined_now) <- names(bioplex$df)
+      }
+      DT::datatable(
+        combined_now[keep, , drop = FALSE],
+        selection = "multiple",
+        options = list(
+          scrollX = TRUE,
+          scrollY = "55vh",
+          paging = FALSE,
+          autoWidth = TRUE
+        ),
+        rownames = FALSE
+      )
+    },
+    server = FALSE
+  )
+
+  # Column-name editor (appears once df exists)
+  output$bioplex_modal_colname_editor <- renderUI({
+    req(bioplex$df)
+    tagList(
+      tags$label("Column names"),
+      tags$div(
+        style = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem;",
+        lapply(seq_along(names(bioplex$df)), function(i) {
+          textInput(
+            paste0("bioplex_colname_", i),
+            NULL,
+            names(bioplex$df)[i],
+            width = "100%"
+          )
+        })
+      ),
+      actionButton(
+        "bioplex_apply_names_modal",
+        "Apply Column Names",
+        class = "btn-outline-primary btn-sm mt-2"
+      )
+    )
+  })
+
+  observeEvent(input$bioplex_apply_names_modal, {
+    req(bioplex$df)
+    new_names <- vapply(
+      seq_along(bioplex$df),
+      function(i) {
+        val <- input[[paste0("bioplex_colname_", i)]]
+        if (is.null(val) || !nzchar(val)) names(bioplex$df)[i] else val
+      },
+      character(1)
+    )
+    new_names <- make.unique(make.names(new_names))
+    names(bioplex$df) <- new_names
+
+    # update column names in the read-only per-sheet views where columns overlap
+    ps <- bioplex_per_sheet()
+    for (nm in names(ps)) {
+      common <- intersect(names(ps[[nm]]), names(bioplex$df))
+      names(ps[[nm]])[match(common, names(ps[[nm]]))] <- common
+    }
+  })
+
+  observeEvent(input$bioplex_modal_delete_selected, {
+    combined_now <- bioplex_combined_filtered()
+    req(nrow(combined_now) > 0)
+    sel <- input$bioplex_modal_table_combined_rows_selected
+    if (length(sel)) {
+      current <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
+      bioplex$deleted_idx <- sort(unique(c(bioplex$deleted_idx, current[sel])))
+    }
+  })
+  observeEvent(input$bioplex_modal_restore_all, {
+    bioplex$deleted_idx <- integer(0)
+  })
+
+  observeEvent(input$bioplex_modal_restore_all, {
+    bioplex$deleted_idx <- integer(0)
+  })
+  # Helper: clean * and OOR for ONE column, using that column's min/max
+  .clean_bioplex_column <- function(v) {
+    if (is.numeric(v)) {
+      return(v)
+    } # already numeric
+    v_chr <- as.character(v)
+
+    # Detect OOR tokens (case-insensitive)
+    oor_gt <- grepl("(?i)\\bOOR\\s*>", v_chr, perl = TRUE)
+    oor_lt <- grepl("(?i)\\bOOR\\s*<", v_chr, perl = TRUE)
+
+    # Remove asterisks and commas; strip OOR tokens so we can parse numbers
+    base <- v_chr
+    base <- gsub("\\*", "", base) # strip asterisks
+    base <- gsub(",", "", base) # strip thousands sep
+    base <- gsub("(?i)\\bOOR\\s*[<>]", "", base, perl = TRUE) # drop OOR tokens before parsing
+
+    # Parse numeric (keep digits, sign, decimal, exponent)
+    # If you prefer strict parse: suppressWarnings(as.numeric(base))
+    num <- suppressWarnings(as.numeric(gsub("[^0-9eE+\\-\\.]", "", base)))
+
+    # Reference values for min/max (exclude rows that were OOR and failed parse)
+    ref <- num[!(oor_gt | oor_lt) & !is.na(num)]
+    if (!length(ref)) {
+      return(v)
+    } # nothing to anchor to; leave as-is
+
+    mn <- min(ref)
+    mx <- max(ref)
+
+    # Apply OOR rules
+    if (any(oor_gt)) {
+      num[oor_gt] <- round(((mx - mn) / 100) + mx, 2)
+    }
+    if (any(oor_lt)) {
+      if (isTRUE(mn > 0)) {
+        num[oor_lt] <- round(mn + (mn / 10), 2)
+      } else {
+        # if min is not positive, leave at mn (explicitly *not* adding 10%)
+        num[oor_lt] <- mn
+      }
+    }
+    num
+  }
+  # Heuristic: should this column be treated as numeric?
+  # Heuristic: should this column be treated as numeric?
+  .is_numeric_like <- function(v) {
+    if (is.numeric(v)) {
+      return(TRUE)
+    }
+
+    v_chr <- as.character(v)
+
+    # tokens like "OOR >", "OOR<", with or without spaces
+    oor_token <- grepl("(?i)\\bOOR\\s*[<>]", v_chr, perl = TRUE)
+
+    # pre-clean the obvious noise so we can probe numeric-ness
+    base <- gsub("\\*|,", "", v_chr)
+    base <- gsub("(?i)\\bOOR\\s*[<>]", "", base, perl = TRUE)
+
+    num <- suppressWarnings(as.numeric(gsub("[^0-9eE+\\-\\.]", "", base)))
+
+    # After removing OOR, check if there are still letters left.
+    # This correctly ignores the letters in "OOR" itself.
+    v_no_oor <- gsub("(?i)\\bOOR\\b", "", v_chr)
+    prop_letters <- mean(grepl("[A-Za-z]", v_no_oor))
+
+    prop_numeric <- mean(!is.na(num) & nzchar(trimws(v_chr)))
+    prop_oor <- mean(oor_token) # count OOR as “numeric-like”
+
+    # Numeric-like if (numbers + OOR) dominate and column isn't mostly other text
+    isTRUE((prop_numeric + prop_oor) >= 0.7 && prop_letters < 0.4)
+  }
+
+  # Columns to never coerce (common label/meta names; case-insensitive)
+  .always_categorical <- function(nms) {
+    deny <- c(
+      "type",
+      "well",
+      "desc",
+      "description",
+      "sample",
+      "id",
+      "group",
+      "plate",
+      "file",
+      "reader",
+      "serial",
+      "target",
+      "matrix",
+      "bead",
+      "count"
+    )
+    nms[tolower(nms) %in% deny]
+  }
+
+  # Apply cleaner only to numeric-like columns; keep others as character
+  bioplex_clean_numeric_only <- function(df) {
+    out <- df
+    deny <- .always_categorical(names(out))
+    for (nm in names(out)) {
+      if (nm %in% deny) {
+        out[[nm]] <- as.character(out[[nm]])
+      } else if (.is_numeric_like(out[[nm]])) {
+        out[[nm]] <- .clean_bioplex_column(out[[nm]])
+      } else {
+        out[[nm]] <- as.character(out[[nm]])
+      }
+    }
+    out
+  }
+  # Confirm import (activate for Step 2)
+  observeEvent(input$bioplex_confirm_modal, {
+    combined_now <- bioplex_combined_filtered()
+    req(nrow(combined_now) > 0)
+
+    # preserve column names if the user renamed them
+    if (!is.null(bioplex$df) && ncol(bioplex$df) == ncol(combined_now)) {
+      names(combined_now) <- names(bioplex$df)
+    }
+
+    # apply any deletions done on the Combined tab itself
+    keep <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
+    req(length(keep) > 0)
+    final_raw <- combined_now[keep, , drop = FALSE]
+
+    # Clean asterisks + OOR
+    final <- bioplex_clean_numeric_only(final_raw)
+
+    bioplex$final <- final
+    bioplex$active <- TRUE
+
+    removeModal()
+    showNotification(
+      "Bio-Plex data cleaned and staged. Click 'Next Step' to continue.",
+      type = "message"
     )
   })
 
@@ -3860,6 +4371,35 @@ server <- function(input, output, session) {
               ),
               uiOutput("built_in_selector"),
               hr(),
+              tags$h5("Option C: Import Bio-Plex Raw Excel"),
+              fileInput("bioplex_file", NULL, accept = c(".xls", ".xlsx")),
+
+              # show the rest only after a file exists
+              conditionalPanel(
+                condition = "output.bioplex_on",
+                selectizeInput(
+                  "bioplex_sheets",
+                  "Choose up to two sheets:",
+                  choices = NULL,
+                  multiple = TRUE,
+                  options = list(
+                    maxItems = 2,
+                    placeholder = "Select up to two sheets"
+                  )
+                ),
+                helpText("Row 1 becomes column names (you can rename below)."),
+                uiOutput("bioplex_colname_editor"),
+                div(
+                  class = "mt-2",
+                  actionButton(
+                    "bioplex_open_editor",
+                    "Open Bio-Plex Editor",
+                    # make a primary button to stand out with a different color
+                    class = "btn-primary btn-sm ms-2",
+                  )
+                )
+              ),
+              hr(),
               uiOutput("viewSummaryCheckboxes")
             ),
             card_footer(
@@ -4504,11 +5044,15 @@ server <- function(input, output, session) {
   ## ---------------------------
   shiny::observeEvent(input$next1, {
     # Check if a file has been uploaded OR if the "use built-in" box is checked
-    if (!isTruthy(input$datafile) && !isTruthy(input$use_builtin)) {
+    if (
+      !isTruthy(input$datafile) &&
+        !isTruthy(input$use_builtin) &&
+        !isTRUE(bioplex$active)
+    ) {
       # If neither is true, show a pop-up modal warning
       showModal(modalDialog(
         title = "Data Source Required",
-        "Please either upload a data file or check the 'Use built-in data' option to continue.",
+        "Please upload a data file, use built-in data, or confirm a Bio-Plex import to continue.",
         easyClose = TRUE,
         footer = actionButton("ok_no_data", "OK")
       ))
@@ -5857,7 +6401,6 @@ server <- function(input, output, session) {
                 top_labels = input$df_top_labels
               ),
               "Heatmap" = {
-                # map UI → args (keep your current inputs)
                 scale_arg <- if (
                   is.null(input$hm_scale) || input$hm_scale == "none"
                 ) {
@@ -8088,6 +8631,10 @@ server <- function(input, output, session) {
   )
   shiny::observeEvent(selected_function(), {
     userState$selected_function <- selected_function()
+  })
+  # For sheet name
+  shiny::observeEvent(input$sheet_name, {
+    userState$sheet_name <- input$sheet_name
   })
   # For Boxplots
   shiny::observeEvent(input$bp_bin_size, {

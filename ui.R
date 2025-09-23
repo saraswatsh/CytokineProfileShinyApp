@@ -186,7 +186,9 @@ ui <- fluidPage(
     @media (max-width: 576px) {
       #brand .app-version { display:none; } /* hide on very small screens */
     }
-    
+     /* Make large modals almost full width; keep a tall body with scrolling */
+    #shiny-modal .modal-dialog { max-width: 98vw; width: 98vw; }   /* more width */
+    #shiny-modal .modal-body   { max-height: 70vh; overflow-y: auto; }  /* less length (scrolls) */
   "
     )),
     tags$meta(

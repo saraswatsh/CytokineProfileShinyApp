@@ -87,15 +87,15 @@ cyt_corr <- function(
       ))
       data.frame(
         variable = v,
-        r = signif(round(unname(ct$estimate), 2), 2),
-        p = signif(round(ct$p.value, 4), 4),
+        r = round(unname(ct$estimate), 2),
+        p = round(ct$p.value, 4),
         n = n,
         method = method
       )
     })
     res <- do.call(rbind, one_vs_all)
-    res$p_bonf <- signif(round(stats::p.adjust(res$p, "bonferroni"), 4), 4)
-    res$p_bh <- signif(round(stats::p.adjust(res$p, "BH"), 4), 4)
+    res$p_bonf <- round(stats::p.adjust(res$p, "bonferroni"), 4)
+    res$p_bh <- round(stats::p.adjust(res$p, "BH"), 4)
     res <- res[order(-abs(res$r)), ]
 
     # square heatmap matrix
@@ -147,8 +147,8 @@ cyt_corr <- function(
             ))
             data.frame(
               variable = v,
-              r = signif(round(unname(ct$estimate), 2), 2),
-              p = signif(round(ct$p.value, 4), 4),
+              r = round(unname(ct$estimate), 2),
+              p = round(ct$p.value, 4),
               n = n,
               group = gl,
               method = method
@@ -157,11 +157,9 @@ cyt_corr <- function(
           do.call(rbind, rows)
         })
       )
-      groupwise$p_bonf <- signif(
-        round(stats::p.adjust(groupwise$p, "bonferroni"), 4),
-        4
-      )
-      groupwise$p_bh <- signif(round(stats::p.adjust(groupwise$p, "BH"), 4), 4)
+      groupwise$p_bonf <-
+        round(stats::p.adjust(groupwise$p, "bonferroni"), 4)
+      groupwise$p_bh <- round(stats::p.adjust(groupwise$p, "BH"), 4)
       groupwise <- groupwise[order(-abs(groupwise$r)), ]
 
       if (isTRUE(compare_groups) && length(levs) >= 2) {
