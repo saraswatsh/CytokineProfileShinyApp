@@ -212,9 +212,12 @@ server <- function(input, output, session) {
   # --- Bio-Plex import state ---
   bioplex <- reactiveValues(
     active = FALSE, # when TRUE, userData() will use the confirmed Bio-Plex data
-    df = NULL, # working table (after header-from-row1 + optional renames)
-    deleted_idx = integer(), # 1-based indices removed in the pre-import preview
-    deleted_by_sheet = list() # per-sheet deleted row indices
+    df = NULL, # working table (while editing)
+    final = NULL, # <— persisted dataset after “Save & Use”
+    editor_mode = "sheets", # <— "sheets" or "persisted"
+    deleted_idx = integer(),
+    deleted_by_sheet = list(),
+    user_columns = character(0)
   )
 
   # Reactive values to store the selection from our new custom buttons
@@ -286,6 +289,18 @@ server <- function(input, output, session) {
     df$..cyto_id.. <- 1:nrow(df)
     df
   })
+  # Hide the internal ID from any UI choices
+  safe_names <- function(df) setdiff(names(df), "..cyto_id..")
+
+  # Convenience: only numeric or only categorical user-facing cols
+  safe_num <- function(df) {
+    cn <- safe_names(df)
+    cn[sapply(df[cn], is.numeric)]
+  }
+  safe_cat <- function(df) {
+    cn <- safe_names(df)
+    cn[!sapply(df[cn], is.numeric)]
+  }
 
   ## ---------------------------
   ## UI for Sheet Selector and Built-in Data Choice
@@ -453,35 +468,25 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$bioplex_open_editor, {
-    # build / refresh working copies from current sheets
     bioplex$deleted_idx <- integer(0)
-    bioplex$active <- FALSE
 
-    ps <- bioplex_per_sheet()
-    bioplex$deleted_by_sheet <- setNames(
-      replicate(length(ps), integer(0), simplify = FALSE),
-      names(ps)
-    )
+    if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
+      bioplex$editor_mode <- "persisted"
+      bioplex$df <- bioplex$final
+    } else {
+      # Keep whatever the user has been editing, if present
+      bioplex$editor_mode <- bioplex$editor_mode %||% "sheets"
+      if (is.null(bioplex$df)) {
+        ps <- bioplex_per_sheet()
+        bioplex$deleted_by_sheet <- setNames(
+          replicate(length(ps), integer(0), simplify = FALSE),
+          names(ps)
+        )
+        bioplex$df <- dplyr::bind_rows(ps) # only when no working df exists
+      }
+    }
 
-    # start combined working view from current sheets (no deletes yet)
-    bioplex$df <- dplyr::bind_rows(ps)
-
-    showModal(
-      modalDialog(
-        title = "Bio-Plex Editor",
-        size = "l",
-        easyClose = FALSE,
-        footer = tagList(
-          modalButton("Close"),
-          actionButton(
-            "bioplex_confirm_modal",
-            "Save & Use",
-            class = "btn-primary"
-          )
-        ),
-        uiOutput("bioplex_modal_tabs")
-      )
-    )
+    show_bioplex_editor_modal()
   })
 
   output$bioplex_modal_tabs <- renderUI({
@@ -489,45 +494,67 @@ server <- function(input, output, session) {
 
     mk_id <- function(x) gsub("[^A-Za-z0-9_]", "_", x)
 
-    # One tab per selected sheet, each with its own controls
-    sheet_tabs <- lapply(names(bioplex_per_sheet()), function(nm) {
-      stem <- mk_id(nm)
-      tbl_id <- paste0("bp_tbl_", stem)
-      del_id <- paste0("bp_del_", stem)
-      rst_id <- paste0("bp_rst_", stem)
+    sheet_tabs <- if (identical(bioplex$editor_mode, "sheets")) {
+      lapply(names(bioplex_per_sheet()), function(nm) {
+        stem <- mk_id(nm)
+        tbl_id <- paste0("bp_tbl_", stem)
+        del_id <- paste0("bp_del_", stem)
+        rst_id <- paste0("bp_rst_", stem)
 
-      # render the per-sheet table (filtered by this sheet's deletes)
-      local({
-        nm_local <- nm
-        output[[tbl_id]] <- DT::renderDT(
-          {
-            df <- bioplex_per_sheet()[[nm_local]]
-            del <- bioplex$deleted_by_sheet[[nm_local]] %||% integer(0)
-            keep <- setdiff(seq_len(nrow(df)), del)
-            DT::datatable(
-              df[keep, , drop = FALSE],
-              selection = "multiple",
-              options = list(scrollX = TRUE, scrollY = "55vh", paging = FALSE),
-              rownames = FALSE
-            )
-          },
-          server = FALSE
-        )
+        # render the per-sheet table (filtered by this sheet's deletes)
+        local({
+          nm_local <- nm
+          output[[tbl_id]] <- DT::renderDT(
+            {
+              df <- bioplex_per_sheet()[[nm_local]]
+              del <- bioplex$deleted_by_sheet[[nm_local]] %||% integer(0)
+              keep <- setdiff(seq_len(nrow(df)), del)
+              DT::datatable(
+                df[keep, , drop = FALSE],
+                selection = "multiple",
+                options = list(
+                  scrollX = TRUE,
+                  scrollY = "55vh",
+                  paging = FALSE
+                ),
+                rownames = FALSE
+              )
+            },
+            server = FALSE
+          )
 
-        # DELETE rows for this sheet
-        observeEvent(
-          input[[del_id]],
-          {
-            df <- bioplex_per_sheet()[[nm_local]]
-            del <- bioplex$deleted_by_sheet[[nm_local]] %||% integer(0)
-            keep <- setdiff(seq_len(nrow(df)), del)
-            sel <- input[[paste0(tbl_id, "_rows_selected")]]
-            if (length(sel)) {
-              bioplex$deleted_by_sheet[[nm_local]] <- sort(unique(c(
-                del,
-                keep[sel]
-              )))
-              # keep Combined in sync while preserving any custom column names
+          # DELETE rows for this sheet
+          observeEvent(
+            input[[del_id]],
+            {
+              df <- bioplex_per_sheet()[[nm_local]]
+              del <- bioplex$deleted_by_sheet[[nm_local]] %||% integer(0)
+              keep <- setdiff(seq_len(nrow(df)), del)
+              sel <- input[[paste0(tbl_id, "_rows_selected")]]
+              if (length(sel)) {
+                bioplex$deleted_by_sheet[[nm_local]] <- sort(unique(c(
+                  del,
+                  keep[sel]
+                )))
+                # keep Combined in sync while preserving any custom column names
+                old_names <- names(bioplex$df)
+                bioplex$df <- bioplex_combined_filtered()
+                if (
+                  !is.null(old_names) && length(old_names) == ncol(bioplex$df)
+                ) {
+                  names(bioplex$df) <- old_names
+                }
+                bioplex$deleted_idx <- integer(0) # reset combined-level deletes (indices changed)
+              }
+            },
+            ignoreInit = TRUE
+          )
+
+          # RESTORE all rows for this sheet
+          observeEvent(
+            input[[rst_id]],
+            {
+              bioplex$deleted_by_sheet[[nm_local]] <- integer(0)
               old_names <- names(bioplex$df)
               bioplex$df <- bioplex_combined_filtered()
               if (
@@ -535,53 +562,31 @@ server <- function(input, output, session) {
               ) {
                 names(bioplex$df) <- old_names
               }
-              bioplex$deleted_idx <- integer(0) # reset combined-level deletes (indices changed)
-            }
-          },
-          ignoreInit = TRUE
-        )
-
-        # RESTORE all rows for this sheet
-        observeEvent(
-          input[[rst_id]],
-          {
-            bioplex$deleted_by_sheet[[nm_local]] <- integer(0)
-            old_names <- names(bioplex$df)
-            bioplex$df <- bioplex_combined_filtered()
-            if (!is.null(old_names) && length(old_names) == ncol(bioplex$df)) {
-              names(bioplex$df) <- old_names
-            }
-            bioplex$deleted_idx <- integer(0)
-          },
-          ignoreInit = TRUE
+              bioplex$deleted_idx <- integer(0)
+            },
+            ignoreInit = TRUE
+          )
+        })
+        tabPanel(
+          nm,
+          DT::DTOutput(tbl_id)
         )
       })
-
-      tabPanel(
-        nm,
-        div(
-          class = "d-flex justify-content-between align-items-center mb-2",
-          tags$div(
-            actionButton(
-              del_id,
-              "Delete Selected Rows",
-              class = "btn-danger btn-sm"
-            ),
-            actionButton(
-              rst_id,
-              "Restore All",
-              class = "btn-secondary btn-sm ms-2"
-            )
-          )
-        ),
-        DT::DTOutput(tbl_id)
-      )
-    })
+    } else {
+      list()
+    }
 
     tabsetPanel(
       id = "bioplex_tabs",
       tabPanel(
         "Data to be Imported",
+        # (optional) banner to make mode obvious
+        if (identical(bioplex$editor_mode, "persisted")) {
+          div(
+            class = "alert alert-info mb-2",
+            "Editing previously saved data."
+          )
+        },
         tags$label("Column names"),
         tags$div(
           style = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem;",
@@ -597,7 +602,14 @@ server <- function(input, output, session) {
         actionButton(
           "bioplex_apply_names_modal",
           "Apply Column Names",
-          class = "btn-outline-primary btn-sm mt-2"
+          icon = icon("fas fa-check"),
+          class = "btn-primary btn-sm mt-2"
+        ),
+        actionButton(
+          "bioplex_add_col",
+          "Create New Column",
+          icon = icon("fas fa-plus"),
+          class = "btn-secondary btn-sm mt-2 ms-2"
         ),
         hr(),
         div(
@@ -606,11 +618,13 @@ server <- function(input, output, session) {
             actionButton(
               "bioplex_modal_delete_selected",
               "Delete Selected Rows",
+              icon = icon("trash"),
               class = "btn-danger btn-sm"
             ),
             actionButton(
               "bioplex_modal_restore_all",
               "Restore All",
+              icon = icon("undo"),
               class = "btn-secondary btn-sm ms-2"
             )
           )
@@ -623,16 +637,24 @@ server <- function(input, output, session) {
 
   output$bioplex_modal_table_combined <- DT::renderDT(
     {
-      combined_now <- bioplex_combined_filtered()
+      combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
+        req(bioplex$df)
+        bioplex$df
+      } else {
+        bioplex_combined_filtered()
+      }
       req(nrow(combined_now) > 0)
       keep <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
+
       # show current names (after any Apply Column Names)
       if (!is.null(bioplex$df) && ncol(bioplex$df) == ncol(combined_now)) {
         names(combined_now) <- names(bioplex$df)
       }
+
       DT::datatable(
         combined_now[keep, , drop = FALSE],
         selection = "multiple",
+        editable = TRUE,
         options = list(
           scrollX = TRUE,
           scrollY = "55vh",
@@ -641,9 +663,59 @@ server <- function(input, output, session) {
         ),
         rownames = FALSE
       )
-    },
-    server = FALSE
+    }
   )
+  # Helper to ensure column names are unique
+  .bioplex_unique_name <- function(nm, existing) {
+    nm <- trimws(nm)
+    if (nm == "") {
+      return(NULL)
+    }
+    if (!(nm %in% existing)) {
+      return(nm)
+    }
+    base <- nm
+    k <- 1
+    while (paste0(base, "_", k) %in% existing) {
+      k <- k + 1
+    }
+    paste0(base, "_", k)
+  }
+
+  observeEvent(input$bioplex_add_col, {
+    showModal(modalDialog(
+      title = "Create New Column",
+      easyClose = FALSE,
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton("bioplex_newcol_confirm", "Add", class = "btn-primary")
+      ),
+      textInput("bioplex_newcol_name", "New column name", value = "")
+    ))
+  })
+
+  observeEvent(input$bioplex_newcol_confirm, {
+    req(bioplex$df)
+    nm <- .bioplex_unique_name(input$bioplex_newcol_name, names(bioplex$df))
+    if (is.null(nm)) {
+      showNotification(
+        "Please enter a non-empty column name.",
+        type = "warning"
+      )
+      return()
+    }
+
+    # Add new (character) column to the working dataset
+    bioplex$df[[nm]] <- rep(NA_character_, nrow(bioplex$df))
+    bioplex$user_columns <- unique(c(bioplex$user_columns, nm))
+
+    # Ensure the Combined tab renders from the working df (so the new column is visible)
+    bioplex$editor_mode <- "persisted"
+
+    # Close the small 'name prompt' and immediately reopen the main editor
+    removeModal()
+    show_bioplex_editor_modal()
+  })
 
   # Column-name editor (appears once df exists)
   output$bioplex_modal_colname_editor <- renderUI({
@@ -664,7 +736,8 @@ server <- function(input, output, session) {
       actionButton(
         "bioplex_apply_names_modal",
         "Apply Column Names",
-        class = "btn-outline-primary btn-sm mt-2"
+        icon = icon("fas fa-check"),
+        class = "btn-primary btn-sm mt-2"
       )
     )
   })
@@ -689,9 +762,61 @@ server <- function(input, output, session) {
       names(ps[[nm]])[match(common, names(ps[[nm]]))] <- common
     }
   })
+  observeEvent(input$bioplex_modal_table_combined_cell_edit, {
+    info <- input$bioplex_modal_table_combined_cell_edit
+
+    # Reconstruct the currently displayed data (same as in your renderDT)
+    combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
+      req(bioplex$df)
+      bioplex$df
+    } else {
+      bioplex_combined_filtered()
+    }
+    req(nrow(combined_now) > 0)
+
+    keep <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
+
+    # Map displayed row index -> absolute row index in combined_now
+    abs_row <- keep[info$row]
+    j <- info$col + 1L
+    req(j >= 1, j <= ncol(combined_now))
+    colname <- colnames(combined_now)[[j]]
+    newval <- info$value
+
+    # Write back into the *working* dataset used by the editor
+    # (bioplex$df is the working copy in both modes)
+    if (is.numeric(bioplex$df[[colname]])) {
+      bioplex$df[[colname]][abs_row] <- suppressWarnings(as.numeric(newval))
+    } else {
+      bioplex$df[[colname]][abs_row] <- newval
+    }
+  })
+  show_bioplex_editor_modal <- function() {
+    showModal(
+      modalDialog(
+        title = "Bio-Plex Editor",
+        size = "l",
+        easyClose = FALSE,
+        footer = tagList(
+          modalButton("Close"),
+          actionButton(
+            "bioplex_confirm_modal",
+            "Save & Use",
+            class = "btn-primary"
+          )
+        ),
+        uiOutput("bioplex_modal_tabs")
+      )
+    )
+  }
 
   observeEvent(input$bioplex_modal_delete_selected, {
-    combined_now <- bioplex_combined_filtered()
+    combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
+      req(bioplex$df)
+      bioplex$df
+    } else {
+      bioplex_combined_filtered()
+    }
     req(nrow(combined_now) > 0)
     sel <- input$bioplex_modal_table_combined_rows_selected
     if (length(sel)) {
@@ -699,13 +824,11 @@ server <- function(input, output, session) {
       bioplex$deleted_idx <- sort(unique(c(bioplex$deleted_idx, current[sel])))
     }
   })
-  observeEvent(input$bioplex_modal_restore_all, {
-    bioplex$deleted_idx <- integer(0)
-  })
 
   observeEvent(input$bioplex_modal_restore_all, {
     bioplex$deleted_idx <- integer(0)
   })
+
   # Helper: clean * and OOR for ONE column, using that column's min/max
   .clean_bioplex_column <- function(v) {
     if (is.numeric(v)) {
@@ -819,7 +942,12 @@ server <- function(input, output, session) {
   }
   # Confirm import (activate for Step 2)
   observeEvent(input$bioplex_confirm_modal, {
-    combined_now <- bioplex_combined_filtered()
+    combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
+      req(bioplex$df)
+      bioplex$df
+    } else {
+      bioplex_combined_filtered()
+    }
     req(nrow(combined_now) > 0)
 
     # preserve column names if the user renamed them
@@ -832,11 +960,13 @@ server <- function(input, output, session) {
     req(length(keep) > 0)
     final_raw <- combined_now[keep, , drop = FALSE]
 
-    # Clean asterisks + OOR
+    # Clean asterisks + OOR (your existing helper)
     final <- bioplex_clean_numeric_only(final_raw)
 
+    # Persist & activate
     bioplex$final <- final
     bioplex$active <- TRUE
+    bioplex$editor_mode <- "persisted"
 
     removeModal()
     showNotification(
@@ -1402,7 +1532,7 @@ server <- function(input, output, session) {
         if (is.null(df)) {
           return(NULL)
         }
-        cols <- names(df)
+        cols <- safe_names(df)
 
         ui_list <- tagList(
           fluidRow(
@@ -1518,7 +1648,7 @@ server <- function(input, output, session) {
           return(NULL)
         }
 
-        cols <- names(df)
+        cols <- safe_names(df)
         ann_choices <- c("None" = "", cols)
 
         ui_list <- tagList(
@@ -1614,7 +1744,7 @@ server <- function(input, output, session) {
           return(NULL)
         }
 
-        cols <- names(df)
+        cols <- safe_names(df)
         cols <- cols[cols != "..cyto_id.."]
         num_cols <- cols[sapply(df[cols], is.numeric)]
         none_choice <- c("None (no grouping)" = "")
@@ -1700,7 +1830,7 @@ server <- function(input, output, session) {
         if (is.null(df)) {
           return(NULL)
         }
-        cols <- names(df)
+        cols <- safe_names(df)
         ui_list <- tagList(
           # Row 1: grouping columns
           fluidRow(
@@ -1893,7 +2023,7 @@ server <- function(input, output, session) {
         if (is.null(df)) {
           return(NULL)
         }
-        cols <- names(df)
+        cols <- safe_names(df)
         cols <- cols[cols != "..cyto_id.."]
 
         # Adding a None option
@@ -2125,7 +2255,7 @@ server <- function(input, output, session) {
         if (is.null(df)) {
           return(NULL)
         }
-        cols <- names(df)
+        cols <- safe_names(df)
 
         ui_list <- tagList(
           # Row 1: grouping & ntrees
@@ -2339,7 +2469,7 @@ server <- function(input, output, session) {
         if (is.null(df)) {
           return(NULL)
         }
-        cols <- names(df)
+        cols <- safe_names(df)
 
         ui_list <- tagList(
           fluidRow(
@@ -2426,7 +2556,7 @@ server <- function(input, output, session) {
         if (!isTRUE(userState$splsda_var_num_manual)) {
           userState$splsda_var_num <- default_num_vars
         }
-        cols <- names(df)
+        cols <- safe_names(df)
         ui_list <- tagList(
           # Row 1: grouping columns
           fluidRow(
@@ -2918,7 +3048,7 @@ server <- function(input, output, session) {
         if (is.null(df)) {
           return(NULL)
         }
-        cols <- names(df)
+        cols <- safe_names(df)
 
         default_num_vars <- sum(sapply(df, is.numeric))
         if (!isTRUE(userState$mint_splsda_var_num_manual)) {
@@ -3171,7 +3301,7 @@ server <- function(input, output, session) {
         if (is.null(df)) {
           return(NULL)
         }
-        cols <- names(df)
+        cols <- safe_names(df)
 
         ui_list <- tagList(
           fluidRow(
@@ -3279,7 +3409,7 @@ server <- function(input, output, session) {
         if (is.null(df)) {
           return(NULL)
         }
-        cols <- names(df)
+        cols <- safe_names(df)
 
         ui_list <- tagList(
           # Row 1: grouping & train frac
@@ -4387,7 +4517,6 @@ server <- function(input, output, session) {
                     placeholder = "Select up to two sheets"
                   )
                 ),
-                helpText("Row 1 becomes column names (you can rename below)."),
                 uiOutput("bioplex_colname_editor"),
                 div(
                   class = "mt-2",
