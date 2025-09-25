@@ -52,6 +52,8 @@ App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
     11. Two-Sample T-Test
     12. Volcano Plot
     13. Extreme Gradient Boosting (XGBoost)
+    14. Correlation Plots
+    15. Partial Least Squares Regression
 
 - Interactive & Downloadable Outputs: View results directly within the
   app or download outputs (e.g., PDF reports, images).
@@ -99,8 +101,9 @@ The app is structured as a multi-step wizard:
 
 ## RStudio Installation
 
-A quick [installation guide](articles/R_installation.html) is available
-to use this app locally.
+A quick [installation
+guide](https://shinyinfo.cytokineprofile.org/articles/R_installation.html)
+is available to use this app locally.
 
 ## License
 
@@ -111,4 +114,4 @@ This project is licensed under the GPL (\>= 2) License - see the
 
 For questions or support, please contact the package maintainer:
 
-- Shubh Saraswat - [Email](shubh.saraswat00@gmail.com)
+- Shubh Saraswat - [Email](mailto:shubh.saraswat00@gmail.com)

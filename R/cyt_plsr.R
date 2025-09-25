@@ -5,7 +5,7 @@
 #' It automatically handles optional log2 scaling, extraction of numeric columns
 #' and grouping information, and returns a small list of recorded plots for
 #' display in Shiny.  The first plot (`indiv_plot`) is a score plot of the
-#' first two latent components coloured by a grouping variable (if provided).
+#' first two latent components colored by a grouping variable (if provided).
 #' The second plot (`pred_plot`) is a scatterplot of the observed vs predicted
 #' response values for the first response variable.  Additional plots could
 #' easily be added (e.g. loadings), but these two provide basic diagnostics.

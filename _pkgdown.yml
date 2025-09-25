@@ -22,8 +22,8 @@ navbar:
     - text: Changelog
       href: news/index.html
 articles:
-- title: Installation for RStudio
-  contents: R_installation
+- title: Installation for Locally Running the Application
+  contents: R-installation
 - title: Basic Tutorial of CytokineProfile Shiny
   contents: Basic-Tutorial-of-CytokineProfile-Shiny
 - title: Exploratory Analysis Demonstrations
