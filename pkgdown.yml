@@ -3,10 +3,10 @@ pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   Basic-Tutorial-of-CytokineProfile-Shiny: Basic-Tutorial-of-CytokineProfile-Shiny.html
-  R_installation: R_installation.html
+  R-installation: R-installation.html
   Understanding-Dual-Flashlight-Plot: Understanding-Dual-Flashlight-Plot.html
   Understanding-Volcano-Plot: Understanding-Volcano-Plot.html
-last_built: 2025-09-25T02:39Z
+last_built: 2025-09-25T14:41Z
 urls:
   reference: https://shinyinfo.cytokineprofile.org/reference
   article: https://shinyinfo.cytokineprofile.org/articles
