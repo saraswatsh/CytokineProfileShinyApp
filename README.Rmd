@@ -4,7 +4,6 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -13,94 +12,86 @@ knitr::opts_chunk$set(
 )
 ```
 
-# CytokineProfile Shiny Application <a href="https://shinyinfo.cytokineprofile.org/"><img src="man/figures/logo.png" align="right" height="134" alt="CytokineProfileShiny App website" /></a>
+<!-- badges: start -->
+[![](https://img.shields.io/badge/devel%20version-0.0.0.9000-green.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp)
+[![Last Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShinyApp.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/commits/main) 
+[![Development](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![CodeFactor](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/badge)](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp)
+<!-- badges: end -->
 
-The goal of CytokineProfile Shiny is to conduct quality control using biological
-meaningful cutoff on raw measured values of cytokines. Specifically, test on 
-distributional symmetry to suggest the adopt of transformation. 
-Conduct exploratory analysis including summary statistics, generate enriched 
-barplots, and boxplots. Further, conduct univariate analysis and 
-multivariate analysis for advance analysis. It provides an overall user-friendly
-experience for users to conduct analyses on their own data. For advanced users, 
-the CytoProfile R package is available on [Github](https://github.com/saraswatsh/CytoProfile) and 
-at [CRAN](https://cran.r-project.org/package=CytoProfile).
+# CytokineProfile Shiny Application <a href="https://shinyinfo.cytokineprofile.org/"><img src="man/figures/logo.png" alt="CytokineProfileShiny App website" align="right" height="134"/></a>
+
+The goal of CytokineProfile Shiny is to conduct quality control using biological meaningful cutoff on raw measured values of cytokines. Specifically, test on distributional symmetry to suggest the adopt of transformation. Conduct exploratory analysis including summary statistics, generate enriched barplots, and boxplots. Further, conduct univariate analysis and multivariate analysis for advance analysis. It provides an overall user-friendly experience for users to conduct analyses on their own data. For advanced users, the CytoProfile R package is available on [Github](https://github.com/saraswatsh/CytoProfile) and at [CRAN](https://cran.r-project.org/package=CytoProfile).
 
 The Shiny application is available at [CytokineProfile Shiny App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
 
-
 ## Features
 
-* Data Upload & Built-in Data Options:
-    Upload your own data files (CSV, TXT, Excel) or choose from built-in datasets.
+-   Data Upload & Built-in Data Options: Upload your own data files (CSV, TXT, Excel) or choose from built-in datasets.
 
-* Dynamic Column Selection & Filtering:
-    Easily select columns and apply filters based on categorical variables to focus your analysis.
+-   Dynamic Column Selection & Filtering: Easily select columns and apply filters based on categorical variables to focus your analysis.
 
-* Multiple Analysis Functions:
-  - Choose from several analysis functions, including:
-    1. ANOVA
-    2. Boxplots and Enhanced Boxplots
-    3. Error-Bar Plots
-    4. Dual-Flashlight Plot
-    5. Heatmap
-    6. Principal Component Analysis (PCA)
-    7. Random Forest
-    8. Skewness/Kurtosis
-    9. Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)
-    10. Multivariate INTegrative Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)
-    11. Two-Sample T-Test
-    12. Volcano Plot
-    13. Extreme Gradient Boosting (XGBoost)
+-   Multiple Analysis Functions:
 
-* Interactive & Downloadable Outputs:
-    View results directly within the app or download outputs (e.g., PDF reports, images).
+    -   Choose from several analysis functions, including:
+        1.  ANOVA
+        2.  Boxplots and Enhanced Boxplots
+        3.  Error-Bar Plots
+        4.  Dual-Flashlight Plot
+        5.  Heatmap
+        6.  Principal Component Analysis (PCA)
+        7.  Random Forest
+        8.  Skewness/Kurtosis
+        9.  Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)
+        10. Multivariate INTegrative Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)
+        11. Two-Sample T-Test
+        12. Volcano Plot
+        13. Extreme Gradient Boosting (XGBoost)
 
-* Step-by-Step Wizard Navigation:
-    A guided process takes you through data upload, column selection, configuration of analysis options, and result display.
+-   Interactive & Downloadable Outputs: View results directly within the app or download outputs (e.g., PDF reports, images).
 
-* Theme Toggle:
-    Switch between Light and Dark themes to suit your visual preference.
+-   Step-by-Step Wizard Navigation: A guided process takes you through data upload, column selection, configuration of analysis options, and result display.
 
-* Inline Help & Tooltips:
-    Detailed helper text accompanies each input field to assist with configuration and interpretation.
+-   Theme Toggle: Switch between Light and Dark themes to suit your visual preference.
+
+-   Inline Help & Tooltips: Detailed helper text accompanies each input field to assist with configuration and interpretation.
 
 ## Application Workflow
 
-The app is structured as a multi-step wizard: 
+The app is structured as a multi-step wizard:
 
 ### Step 1: Data Upload
 
-* File Input: Upload your own data file (CSV, TXT, Excel). 
-  * For Excel files, choose the desired sheet. 
-* Built-in Data: Choose from built-in data sets.
+-   File Input: Upload your own data file (CSV, TXT, Excel).
+    -   For Excel files, choose the desired sheet.
+-   Built-in Data: Choose from built-in data sets.
 
 ### Step 2: Column Selection and Filtering
 
-* Column Selection: Choose the columns to analyze.
-* Filter Data: Apply filters to categorical variables.
+-   Column Selection: Choose the columns to analyze.
+-   Filter Data: Apply filters to categorical variables.
 
 ### Step 3: Analysis Options
 
-* Select Analysis Function: Choose from a variety of analysis functions.
-* Configure Options: Adjust parameters based on the selected analysis.
-* Output Mode: Choose between interactive results display or downloadable reports.
+-   Select Analysis Function: Choose from a variety of analysis functions.
+-   Configure Options: Adjust parameters based on the selected analysis.
+-   Output Mode: Choose between interactive results display or downloadable reports.
 
 ### Step 4: Analysis Results
 
-* Results Display: The analysis results are rendered dynamically. Depending on the selected function, results may include plots (2D/3D), tables, and even downloadable reports.
-* Download Option: If the download mode is selected, the output file (PDF) is generated and made available for download 
-after re-running the analysis.
+-   Results Display: The analysis results are rendered dynamically. Depending on the selected function, results may include plots (2D/3D), tables, and even downloadable reports.
+-   Download Option: If the download mode is selected, the output file (PDF) is generated and made available for download after re-running the analysis.
 
 ## RStudio Installation
 
-A quick [installation guide](articles/R_installation.html) is available to use this app locally.  
+A quick [installation guide](articles/R_installation.html) is available to use this app locally.
 
 ## License
 
-This project is licensed under the GPL (>= 2) License - see the [LICENSE](LICENSE.md) file for details.
+This project is licensed under the GPL (\>= 2) License - see the [LICENSE](LICENSE.md) file for details.
 
 ## Contact
 
 For questions or support, please contact the package maintainer:
 
-* Shubh Saraswat - [Email](shubh.saraswat00@gmail.com)
+-   Shubh Saraswat - [Email](shubh.saraswat00@gmail.com)

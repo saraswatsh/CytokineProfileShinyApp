@@ -22,6 +22,10 @@ Imports:
     shinyhelper,
     DT,
     shinyFeedback,
+    shinyWidgets,
+    shinycssloaders,
+    fontawesome,
+    jsonlite,
     skimr, 
     mixOmics,
     dplyr,
@@ -34,13 +38,15 @@ Imports:
     pheatmap,
     e1071, 
     ggplot2,
-    ggrepel, 
+    ggcorrplot,
     gridExtra,
     Ckmeans.1d.dp,
     reshape2, 
     recipes, 
     impute,
-    plotly
+    plotly,
+    patchwork,
+    rlang
 Suggests:
     spelling,
     BiocManager,

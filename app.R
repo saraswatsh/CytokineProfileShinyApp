@@ -1,7 +1,6 @@
-library(shiny)
-
+source("libraries.R") # Sourcing packages
 source("global.R") # Sourcing built in data set R script and functions
 # Source the UI and server code
-source("ui.R") # This should create the object "ui"
-source("server.R") # This should create the object "server"
+source("ui.R")
+source("server.R")
 shiny::shinyApp(ui = ui, server = server)

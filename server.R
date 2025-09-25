@@ -1,23 +1,3 @@
-library(shiny)
-library(mixOmics)
-library(dplyr)
-library(tidyr)
-library(rlang)
-library(broom)
-library(ggplot2)
-library(ggcorrplot)
-library(readxl)
-library(bslib)
-library(shinyhelper)
-library(DT)
-library(shinyFeedback)
-library(skimr)
-library(shinycssloaders)
-library(patchwork)
-library(recipes)
-library(impute)
-library(plotly)
-
 # Define server logic
 server <- function(input, output, session) {
   # Creating a temp dir for data uploads
@@ -210,7 +190,7 @@ server <- function(input, output, session) {
     corr_by_group = FALSE
   )
   # --- Bio-Plex import state ---
-  bioplex <- reactiveValues(
+  bioplex <- shiny::reactiveValues(
     active = FALSE, # when TRUE, userData() will use the confirmed Bio-Plex data
     df = NULL, # working table (while editing)
     final = NULL, # <— persisted dataset after “Save & Use”
@@ -351,12 +331,12 @@ server <- function(input, output, session) {
   })
   # ----- Bio-Plex: multi-sheet picker (limit to 2) -----
   # flag for conditionalPanel
-  output$bioplex_on <- reactive({
+  output$bioplex_on <- shiny::reactive({
     isTruthy(input$bioplex_file) && isTruthy(input$bioplex_file$datapath)
   })
-  outputOptions(output, "bioplex_on", suspendWhenHidden = FALSE)
+  shiny::outputOptions(output, "bioplex_on", suspendWhenHidden = FALSE)
 
-  observeEvent(input$bioplex_file, {
+  shiny::observeEvent(input$bioplex_file, {
     # only proceed for Excel uploads
     req(isTruthy(input$bioplex_file$datapath))
     req(grepl("\\.xlsx?$", input$bioplex_file$name, ignore.case = TRUE))
@@ -366,7 +346,7 @@ server <- function(input, output, session) {
       error = function(e) character(0)
     )
     # update the choices (safe even if the input was just created)
-    updateSelectizeInput(
+    shiny::updateSelectizeInput(
       session,
       "bioplex_sheets",
       choices = sh,
@@ -375,7 +355,7 @@ server <- function(input, output, session) {
     )
   })
 
-  output$bioplex_sheet_selector <- renderUI({
+  output$bioplex_sheet_selector <- shiny::renderUI({
     req(input$bioplex_file)
     sheets <- tryCatch(
       readxl::excel_sheets(input$bioplex_file$datapath),
@@ -384,7 +364,7 @@ server <- function(input, output, session) {
     if (!length(sheets)) {
       return(NULL)
     }
-    selectizeInput(
+    shiny::selectizeInput(
       "bioplex_sheets",
       "Choose up to two sheets:",
       choices = sheets,
@@ -394,7 +374,7 @@ server <- function(input, output, session) {
   })
 
   # ----- Bio-Plex: build working table from selected sheet(s) -----
-  bioplex_build_df <- reactive({
+  bioplex_build_df <- shiny::reactive({
     req(isTruthy(input$bioplex_file$datapath))
     req(length(input$bioplex_sheets) >= 1) # at least one sheet picked
 
@@ -418,7 +398,7 @@ server <- function(input, output, session) {
   })
 
   # Keep working copy in reactiveValues so we can rename columns & delete rows before import
-  observeEvent(
+  shiny::observeEvent(
     bioplex_build_df(),
     {
       req(bioplex_build_df())
@@ -429,7 +409,7 @@ server <- function(input, output, session) {
     ignoreInit = TRUE
   )
   # Per-sheet data frames (row 1 -> column names)
-  bioplex_per_sheet <- reactive({
+  bioplex_per_sheet <- shiny::reactive({
     req(input$bioplex_file, length(input$bioplex_sheets) >= 1)
     setNames(
       lapply(input$bioplex_sheets, function(sh) {
@@ -449,11 +429,11 @@ server <- function(input, output, session) {
   })
 
   # Combined
-  bioplex_combined <- reactive({
+  bioplex_combined <- shiny::reactive({
     req(bioplex_per_sheet())
     dplyr::bind_rows(bioplex_per_sheet())
   })
-  bioplex_combined_filtered <- reactive({
+  bioplex_combined_filtered <- shiny::reactive({
     ps <- bioplex_per_sheet()
     req(length(ps) >= 1)
     dels <- bioplex$deleted_by_sheet %||% list()
@@ -467,7 +447,7 @@ server <- function(input, output, session) {
     dplyr::bind_rows(filtered)
   })
 
-  observeEvent(input$bioplex_open_editor, {
+  shiny::observeEvent(input$bioplex_open_editor, {
     bioplex$deleted_idx <- integer(0)
 
     if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
@@ -489,7 +469,7 @@ server <- function(input, output, session) {
     show_bioplex_editor_modal()
   })
 
-  output$bioplex_modal_tabs <- renderUI({
+  output$bioplex_modal_tabs <- shiny::renderUI({
     req(bioplex$df)
 
     mk_id <- function(x) gsub("[^A-Za-z0-9_]", "_", x)
@@ -682,7 +662,7 @@ server <- function(input, output, session) {
     paste0(base, "_", k)
   }
 
-  observeEvent(input$bioplex_add_col, {
+  shiny::observeEvent(input$bioplex_add_col, {
     showModal(modalDialog(
       title = "Create New Column",
       easyClose = FALSE,
@@ -694,7 +674,7 @@ server <- function(input, output, session) {
     ))
   })
 
-  observeEvent(input$bioplex_newcol_confirm, {
+  shiny::observeEvent(input$bioplex_newcol_confirm, {
     req(bioplex$df)
     nm <- .bioplex_unique_name(input$bioplex_newcol_name, names(bioplex$df))
     if (is.null(nm)) {
@@ -718,7 +698,7 @@ server <- function(input, output, session) {
   })
 
   # Column-name editor (appears once df exists)
-  output$bioplex_modal_colname_editor <- renderUI({
+  output$bioplex_modal_colname_editor <- shiny::renderUI({
     req(bioplex$df)
     tagList(
       tags$label("Column names"),
@@ -742,7 +722,7 @@ server <- function(input, output, session) {
     )
   })
 
-  observeEvent(input$bioplex_apply_names_modal, {
+  shiny::observeEvent(input$bioplex_apply_names_modal, {
     req(bioplex$df)
     new_names <- vapply(
       seq_along(bioplex$df),
@@ -762,7 +742,7 @@ server <- function(input, output, session) {
       names(ps[[nm]])[match(common, names(ps[[nm]]))] <- common
     }
   })
-  observeEvent(input$bioplex_modal_table_combined_cell_edit, {
+  shiny::observeEvent(input$bioplex_modal_table_combined_cell_edit, {
     info <- input$bioplex_modal_table_combined_cell_edit
 
     # Reconstruct the currently displayed data (same as in your renderDT)
@@ -792,7 +772,7 @@ server <- function(input, output, session) {
     }
   })
   show_bioplex_editor_modal <- function() {
-    showModal(
+    shiny::showModal(
       modalDialog(
         title = "Bio-Plex Editor",
         size = "l",
@@ -810,7 +790,7 @@ server <- function(input, output, session) {
     )
   }
 
-  observeEvent(input$bioplex_modal_delete_selected, {
+  shiny::observeEvent(input$bioplex_modal_delete_selected, {
     combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
       req(bioplex$df)
       bioplex$df
@@ -825,7 +805,7 @@ server <- function(input, output, session) {
     }
   })
 
-  observeEvent(input$bioplex_modal_restore_all, {
+  shiny::observeEvent(input$bioplex_modal_restore_all, {
     bioplex$deleted_idx <- integer(0)
   })
 
@@ -941,7 +921,7 @@ server <- function(input, output, session) {
     out
   }
   # Confirm import (activate for Step 2)
-  observeEvent(input$bioplex_confirm_modal, {
+  shiny::observeEvent(input$bioplex_confirm_modal, {
     combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
       req(bioplex$df)
       bioplex$df
@@ -5128,7 +5108,7 @@ server <- function(input, output, session) {
 
   # --- Logic for Custom Button Group: Machine Learning ---
   ml_choices <- c("Random Forest", "Extreme Gradient Boosting (XGBoost)")
-  output$ml_function_ui <- shiny:::renderUI({
+  output$ml_function_ui <- shiny::renderUI({
     lapply(ml_choices, function(choice) {
       actionButton(
         inputId = paste0("ml_func_", gsub("\\s|\\-", "_", choice)),
@@ -5270,7 +5250,7 @@ server <- function(input, output, session) {
     df
   })
 
-  data_after_imputation <- reactive({
+  data_after_imputation <- shiny::reactive({
     dat <- data_after_filters()
     imp <- imputed_data()
     if (!is.null(imp)) {
@@ -5298,7 +5278,7 @@ server <- function(input, output, session) {
   })
 
   # Populate the sPLS-DA "Label column" choices whenever the working data changes
-  observeEvent(data_after_filters(), {
+  shiny::observeEvent(data_after_filters(), {
     df <- data_after_filters()
     req(nrow(df) > 0)
 
@@ -5375,8 +5355,8 @@ server <- function(input, output, session) {
     }
   })
 
-  observeEvent(input$open_impute_modal, {
-    showModal(modalDialog(
+  shiny::observeEvent(input$open_impute_modal, {
+    shiny::showModal(modalDialog(
       title = "Treat Missing Values",
       size = "l",
       easyClose = TRUE,
@@ -5440,11 +5420,11 @@ server <- function(input, output, session) {
       )
     ))
   })
-  output$imp_na_before <- renderPrint({
+  output$imp_na_before <- shiny::renderPrint({
     d <- data_after_filters()
     c(NAs = sum(is.na(d)), Pct = round(100 * mean(is.na(d)), 2))
   })
-  output$imp_na_after <- renderPrint({
+  output$imp_na_after <- shiny::renderPrint({
     req(imputed_data())
     d <- imputed_data()
     c(NAs = sum(is.na(d)), Pct = round(100 * mean(is.na(d)), 2))
@@ -5485,12 +5465,12 @@ server <- function(input, output, session) {
     } else if (method == "knn_sample") {
       # mixed types via recipes::step_impute_knn (Gower)
 
-      rec <- recipe(~., data = dat)
+      rec <- recipes::recipe(~., data = dat)
       if (scale_for_knn && length(num_cols)) {
-        rec <- rec %>% step_normalize(all_of(num_cols))
+        rec <- rec %>% recipes::step_normalize(all_of(num_cols))
       }
-      rec <- rec %>% step_impute_knn(all_of(include), neighbors = k)
-      dat <- bake(prep(rec, training = dat), new_data = dat)
+      rec <- rec %>% recipes::step_impute_knn(all_of(include), neighbors = k)
+      dat <- recipes::bake(prep(rec, training = dat), new_data = dat)
     } else if (method == "knn_feature") {
       # numeric-only, neighbors across features using impute::impute.knn
       if (!length(num_cols)) {
@@ -5503,17 +5483,17 @@ server <- function(input, output, session) {
         scalev <- apply(M, 2, sd, na.rm = TRUE)
         scalev[!is.finite(scalev) | scalev == 0] <- 1
         Ms <- scale(M, center = center, scale = scalev)
-        out <- impute.knn(Ms, k = k)$data
+        out <- impute::impute.knn(Ms, k = k)$data
         out <- sweep(out, 2, scalev, "*")
         out <- sweep(out, 2, center, "+")
       } else {
-        out <- impute.knn(M, k = k)$data
+        out <- impute::impute.knn(M, k = k)$data
       }
       dat[num_cols] <- as.data.frame(out)
     }
     dat
   }
-  observeEvent(input$apply_impute, {
+  shiny::observeEvent(input$apply_impute, {
     df <- data_after_filters() # <-- impute the *filtered* data
     sel <- input$imp_cols
     if (!length(sel)) {
@@ -8983,7 +8963,7 @@ server <- function(input, output, session) {
       size = "l"
     ))
   })
-  observeEvent(input$splsda_show3d_interactive_vip, {
+  shiny::observeEvent(input$splsda_show3d_interactive_vip, {
     showModal(modalDialog(
       plotlyOutput(
         "splsda_interactive_plot_vip",

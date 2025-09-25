@@ -1,12 +1,4 @@
-# Loading libraries
-library(shiny)
-library(shinyjs)
-library(bslib)
-library(jsonlite)
-library(fontawesome)
-library(shinyWidgets)
-
-ui <- fluidPage(
+ui <- shiny::fluidPage(
   useShinyjs(),
 
   tags$head(
