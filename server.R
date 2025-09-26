@@ -4753,16 +4753,16 @@ server <- function(input, output, session) {
                 )
               ),
               actionButton(
-                "next2",
-                "Next",
-                icon = icon("arrow-right"),
-                class = "btn-primary"
-              ),
-              actionButton(
                 "open_impute_modal",
                 "Treat missing values",
                 icon = icon("fas fa-eraser"),
                 class = "btn-secondary"
+              ),
+              actionButton(
+                "next2",
+                "Next",
+                icon = icon("arrow-right"),
+                class = "btn-primary"
               )
             )
           )
@@ -5337,7 +5337,7 @@ server <- function(input, output, session) {
         length(input$selected_categorical_cols) > 0
     ) {
       card(
-        card_header(class = "bg-primary", "3. Apply Filters (Optional)"),
+        card_header(class = "bg-primary", "4. Optional: Apply Filters"),
         card_body(
           bslib::accordion(
             id = "filter_accordion",

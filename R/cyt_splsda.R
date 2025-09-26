@@ -369,6 +369,17 @@ cyt_splsda <- function(
 
     indiv_3D <- NULL
     indiv_3D_interactive <- NULL
+    # build an ID vector inline (prefer multilevel_col if present)
+    ids <- if (
+      !is.null(multilevel_col) && multilevel_col %in% names(df_subset)
+    ) {
+      as.character(df_subset[[multilevel_col]])
+    } else if (!is.null(rownames(df_subset))) {
+      rownames(df_subset)
+    } else {
+      sprintf("S%03d", seq_len(nrow(sc)))
+    }
+
     if (!is.null(style) && tolower(style) == "3d" && comp_num_eff == 3) {
       indiv_3D <- .record_plot({
         sc <- mdl$variates$X
@@ -406,7 +417,20 @@ cyt_splsda <- function(
         mode = "markers",
         color = as.factor(Y),
         colors = col_levels[levels(Y)],
-        marker = list(symbol = "circle")
+        marker = list(symbol = "circle"),
+        text = paste0(
+          "ID: ",
+          ids,
+          "<br>Group: ",
+          as.factor(Y),
+          "<br>Comp1: ",
+          sprintf("%.2f", sc[, 1]),
+          "<br>Comp2: ",
+          sprintf("%.2f", sc[, 2]),
+          "<br>Comp3: ",
+          sprintf("%.2f", sc[, 3])
+        ),
+        hoverinfo = "text"
       ) %>%
         plotly::layout(
           title = paste("Interactive 3D Plot:", label),
@@ -603,7 +627,20 @@ cyt_splsda <- function(
           mode = "markers",
           color = as.factor(Y),
           colors = col_levels[levels(Y)],
-          marker = list(symbol = "circle")
+          marker = list(symbol = "circle"),
+          text = paste0(
+            "ID: ",
+            ids,
+            "<br>Group: ",
+            as.factor(Y),
+            "<br>Comp1: ",
+            sprintf("%.2f", sc[, 1]),
+            "<br>Comp2: ",
+            sprintf("%.2f", sc[, 2]),
+            "<br>Comp3: ",
+            sprintf("%.2f", sc[, 3])
+          ),
+          hoverinfo = "text"
         ) %>%
           plotly::layout(
             title = paste("Interactive 3D Plot (VIP>1):", label),
