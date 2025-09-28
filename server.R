@@ -1141,7 +1141,7 @@ server <- function(input, output, session) {
         "Treat these columns as categorical:",
         choices = cols,
         multiple = TRUE,
-        options = list(plugins = c("remove_button")) # nice UX for multi-select
+        options = list(plugins = "remove_button")
       ),
       checkboxInput(
         "factor_order_enable",
@@ -4717,6 +4717,16 @@ server <- function(input, output, session) {
                 )
               )
             ),
+            card(
+              class = "mb-3", # nice spacing below
+              card_header(
+                class = "bg-info",
+                "2a. Treat Columns as Categorical"
+              ),
+              card_body(
+                uiOutput("step2_type_ui") # your dynamic controls render here
+              )
+            ),
             # 3) Optional: Log₂ transformation
             card(
               card_header(
@@ -4729,16 +4739,6 @@ server <- function(input, output, session) {
                   label = "Apply log₂ transformation to all selected numerical columns",
                   value = isolate(userState$step2_log2) %||% FALSE
                 )
-              )
-            ),
-            card(
-              class = "mb-3", # nice spacing below
-              card_header(
-                class = "bg-info",
-                "3a. Treat Columns as Categorical"
-              ),
-              card_body(
-                uiOutput("step2_type_ui") # your dynamic controls render here
               )
             ),
             # 4) Conditional filters UI
@@ -5403,7 +5403,7 @@ server <- function(input, output, session) {
         length(input$selected_categorical_cols) > 0
     ) {
       card(
-        card_header(class = "bg-primary", "4. Optional: Apply Filters"),
+        card_header(class = "bg-info", "4. Optional: Apply Filters"),
         card_body(
           bslib::accordion(
             id = "filter_accordion",
@@ -5495,12 +5495,18 @@ server <- function(input, output, session) {
   })
   output$imp_na_before <- shiny::renderPrint({
     d <- data_after_filters()
-    c("Total Missing Values" = sum(is.na(d)), "% Missing Values" = round(100 * mean(is.na(d)), 2))
+    c(
+      "Total Missing Values" = sum(is.na(d)),
+      "% Missing Values" = round(100 * mean(is.na(d)), 2)
+    )
   })
   output$imp_na_after <- shiny::renderPrint({
     req(imputed_data())
     d <- imputed_data()
-    c("Total Missing Values" = sum(is.na(d)), "% Missing Values" = round(100 * mean(is.na(d)), 2))
+    c(
+      "Total Missing Values" = sum(is.na(d)),
+      "% Missing Values" = round(100 * mean(is.na(d)), 2)
+    )
   })
   .stat_mode <- function(x) {
     ux <- unique(x[!is.na(x)])

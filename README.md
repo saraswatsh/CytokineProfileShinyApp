@@ -56,7 +56,7 @@ App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
     15. Partial Least Squares Regression
 
 - Interactive & Downloadable Outputs: View results directly within the
-  app or download outputs (e.g., PDF reports, images).
+  app or download outputs (e.g. PDF).
 
 - Step-by-Step Wizard Navigation: A guided process takes you through
   data upload, column selection, configuration of analysis options, and
@@ -81,28 +81,29 @@ The app is structured as a multi-step wizard:
 ### Step 2: Column Selection and Filtering
 
 - Column Selection: Choose the columns to analyze.
+- Transformation: Apply log2 transformation if needed.
+  - Preview data distribution with and without transformation.
+- Convert columns to categorical variables.
 - Filter Data: Apply filters to categorical variables.
+- Missing Value Handling: Choose to impute them using various methods.
 
-### Step 3: Analysis Options
+### Step 3: Analysis Selection
 
 - Select Analysis Function: Choose from a variety of analysis functions.
+
+### Step 4: Analysis Options
+
 - Configure Options: Adjust parameters based on the selected analysis.
-- Output Mode: Choose between interactive results display or
-  downloadable reports.
 
-### Step 4: Analysis Results
+### Step 5: Results
 
-- Results Display: The analysis results are rendered dynamically.
-  Depending on the selected function, results may include plots (2D/3D),
-  tables, and even downloadable reports.
-- Download Option: If the download mode is selected, the output file
-  (PDF) is generated and made available for download after re-running
-  the analysis.
+- View Results: Display results within the app.
+- Download Outputs: Save results as a PDF file.
 
 ## RStudio Installation
 
 A quick [installation
-guide](https://shinyinfo.cytokineprofile.org/articles/R_installation.html)
+guide](https://shinyinfo.cytokineprofile.org/articles/R-installation.html)
 is available to use this app locally.
 
 ## License
