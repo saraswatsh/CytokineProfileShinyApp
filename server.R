@@ -267,6 +267,32 @@ server <- function(input, output, session) {
       }
     }
     df$..cyto_id.. <- 1:nrow(df)
+    # --- apply user-chosen types when the button is pressed ---
+    if (!is.null(input$apply_types) && input$apply_types > 0) {
+      # read inputs without creating extra dependencies
+      fc <- isolate(input$factor_cols)
+      if (length(fc)) {
+        keep <- intersect(fc, names(df))
+        df[keep] <- lapply(df[keep], function(x) factor(as.character(x)))
+      }
+      if (
+        isTRUE(isolate(input$factor_order_enable)) &&
+          isTruthy(isolate(input$factor_order_col)) &&
+          isTruthy(isolate(input$factor_levels_csv))
+      ) {
+        target <- isolate(input$factor_order_col)
+        if (target %in% names(df)) {
+          levs <- trimws(strsplit(isolate(input$factor_levels_csv), ",")[[1]])
+          if (length(levs)) {
+            df[[target]] <- factor(
+              as.character(df[[target]]),
+              levels = levs,
+              ordered = FALSE
+            )
+          }
+        }
+      }
+    }
     df
   })
   # Hide the internal ID from any UI choices
@@ -1102,6 +1128,37 @@ server <- function(input, output, session) {
         options = list(plugins = c("remove_button", "restore_on_backspace"))
       )
     })
+  })
+
+  # ---- Step 2: Type controls ----
+  output$step2_type_ui <- shiny::renderUI({
+    df <- userData()
+    req(df)
+    cols <- safe_names(df)
+    tagList(
+      selectizeInput(
+        "factor_cols",
+        "Treat these columns as categorical:",
+        choices = cols,
+        multiple = TRUE,
+        options = list(plugins = c("remove_button")) # nice UX for multi-select
+      ),
+      checkboxInput(
+        "factor_order_enable",
+        "Specify level order for one column (optional)",
+        FALSE
+      ),
+      conditionalPanel(
+        "input.factor_order_enable",
+        selectInput("factor_order_col", "Column to order:", choices = cols),
+        textInput(
+          "factor_levels_csv",
+          "Level order (comma-separated):",
+          placeholder = "e.g. Control, Case, Unknown"
+        )
+      ),
+      actionButton("apply_types", "Apply types")
+    )
   })
 
   ## ---------------------------
@@ -4674,7 +4731,16 @@ server <- function(input, output, session) {
                 )
               )
             ),
-
+            card(
+              class = "mb-3", # nice spacing below
+              card_header(
+                class = "bg-info",
+                "3a. Treat Columns as Categorical"
+              ),
+              card_body(
+                uiOutput("step2_type_ui") # your dynamic controls render here
+              )
+            ),
             # 4) Conditional filters UI
             uiOutput("conditional_filter_ui")
           ),
@@ -5420,14 +5486,21 @@ server <- function(input, output, session) {
       )
     ))
   })
+
+  shiny::observe({
+    df <- data_after_filters()
+    req(df)
+    show_btn <- anyNA(df) # or compute prop_miss >= 0.05
+    shinyjs::toggle(id = "open_impute_modal", condition = show_btn)
+  })
   output$imp_na_before <- shiny::renderPrint({
     d <- data_after_filters()
-    c(NAs = sum(is.na(d)), Pct = round(100 * mean(is.na(d)), 2))
+    c("Total Missing Values" = sum(is.na(d)), "% Missing Values" = round(100 * mean(is.na(d)), 2))
   })
   output$imp_na_after <- shiny::renderPrint({
     req(imputed_data())
     d <- imputed_data()
-    c(NAs = sum(is.na(d)), Pct = round(100 * mean(is.na(d)), 2))
+    c("Total Missing Values" = sum(is.na(d)), "% Missing Values" = round(100 * mean(is.na(d)), 2))
   })
   .stat_mode <- function(x) {
     ux <- unique(x[!is.na(x)])
