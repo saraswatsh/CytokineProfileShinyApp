@@ -227,6 +227,15 @@ server <- function(input, output, session) {
     },
     ignoreNULL = FALSE
   )
+  apply_stamp <- shiny::reactiveVal(0)
+  shiny::observeEvent(
+    input$apply_types,
+    {
+      apply_stamp(apply_stamp() + 1)
+    },
+    ignoreInit = TRUE
+  )
+
   userData <- shiny::reactive({
     if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
       df <- bioplex$final
@@ -268,8 +277,7 @@ server <- function(input, output, session) {
     }
     df$..cyto_id.. <- 1:nrow(df)
     # --- apply user-chosen types when the button is pressed ---
-    if (!is.null(input$apply_types) && input$apply_types > 0) {
-      # read inputs without creating extra dependencies
+    if (apply_stamp() > 0) {
       fc <- isolate(input$factor_cols)
       if (length(fc)) {
         keep <- intersect(fc, names(df))
@@ -284,11 +292,7 @@ server <- function(input, output, session) {
         if (target %in% names(df)) {
           levs <- trimws(strsplit(isolate(input$factor_levels_csv), ",")[[1]])
           if (length(levs)) {
-            df[[target]] <- factor(
-              as.character(df[[target]]),
-              levels = levs,
-              ordered = FALSE
-            )
+            df[[target]] <- factor(as.character(df[[target]]), levels = levs)
           }
         }
       }
@@ -1140,6 +1144,7 @@ server <- function(input, output, session) {
         "factor_cols",
         "Treat these columns as categorical:",
         choices = cols,
+        selected = isolate(input$factor_cols),
         multiple = TRUE,
         options = list(plugins = "remove_button")
       ),
