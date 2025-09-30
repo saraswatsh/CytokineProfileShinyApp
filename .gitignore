@@ -11,5 +11,5 @@ cytoprofile_logo2.png
 /doc/
 /Meta/
 inst/doc
-server_test.R
+server_old.R
 testing_code.R
