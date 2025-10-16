@@ -66,6 +66,7 @@ between two groups using Fisher's z-transformation.</p>
 <span>  methods <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spearman"</span>, <span class="st">"pearson"</span><span class="op">)</span>,</span>
 <span>  group_var <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  compare_groups <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -98,6 +99,10 @@ variable in <code>data</code>. If provided, group-wise correlations will be calc
 least two levels, the function will compare the correlations between the
 first two levels of <code>group_var</code>.</p></dd>
 
+
+<dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
+<dd><p>Logical. If <code>TRUE</code>, the function will generate and return a correlation plot.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -119,6 +124,9 @@ between the first two groups, if <code>compare_groups</code> is <code>TRUE</code
 <code>group_var</code> has at least two levels. Includes <code>variable</code>, <code>r_diff</code>
 (difference in correlations), <code>z</code> (Fisher's z-score), <code>p_diff</code> (p-value
 for the difference), and adjusted p-values (<code>p_diff_bonf</code>, <code>p_diff_bh</code>).</p></dd>
+
+<dt>plot</dt>
+<dd><p>A correlation plot, if <code>plot</code> is <code>TRUE</code>.</p></dd>
 
 </dl></div>
 
