@@ -213,7 +213,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
                   NULL
                 } else {
                   tolower(input$plsr_cv_opt)
-                }, # "loocv" or "mfold"
+                },
                 fold_num = input$plsr_fold_num,
                 pls_colors = input$plsr_colors,
                 progress = prog
@@ -312,7 +312,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 cv_opt = if (input$splsda_cv_opt == "None") {
                   NULL
                 } else {
-                  input$splsda_cv_opt
+                  tolower(input$splsda_cv_opt)
                 },
                 fold_num = input$splsda_fold_num,
                 scale = NULL,
@@ -537,21 +537,23 @@ output$result_display <- shiny::renderUI({
                 )
               },
 
-              if (!is.null(res$overall_ROC) || !is.null(res$overall_CV)) {
+              if (!is.null(res$overall_ROC)) {
                 tabPanel(
-                  "Performance",
-                  if (!is.null(res$overall_ROC)) {
-                    shinycssloaders::withSpinner(
-                      plotOutput("splsda_overallRocPlot", height = "400px"),
-                      type = 8
-                    )
-                  },
-                  if (!is.null(res$overall_CV)) {
-                    shinycssloaders::withSpinner(
-                      plotOutput("splsda_overallCvPlot", height = "400px"),
-                      type = 8
-                    )
-                  }
+                  "ROC",
+                  shinycssloaders::withSpinner(
+                    plotOutput("splsda_overallRocPlot", height = "400px"),
+                    type = 8
+                  )
+                )
+              },
+
+              if (!is.null(res$overall_CV)) {
+                tabPanel(
+                  "Cross-Validation",
+                  shinycssloaders::withSpinner(
+                    plotOutput("splsda_overallCvPlot", height = "400px"),
+                    type = 8
+                  )
                 )
               },
               if (!is.null(res$conf_matrix)) {
@@ -665,36 +667,35 @@ output$result_display <- shiny::renderUI({
                         br(),
                       )
                     },
-                    if (
-                      !is.null(res[[trt]]$overall_ROC) ||
-                        !is.null(res[[trt]]$overall_CV)
-                    ) {
+                    if (!is.null(res[[trt]]$overall_ROC)) {
                       tabPanel(
-                        "Performance",
-                        if (!is.null(res[[trt]]$overall_ROC)) {
-                          shinycssloaders::withSpinner(
-                            plotOutput(
-                              paste0(
-                                "splsda_overallRocPlot_",
-                                trt
-                              ),
-                              height = "400px",
+                        "ROC",
+                        shinycssloaders::withSpinner(
+                          plotOutput(
+                            paste0(
+                              "splsda_overallRocPlot_",
+                              trt
                             ),
-                            type = 8
-                          )
-                        },
-                        if (!is.null(res[[trt]]$overall_CV)) {
-                          shinycssloaders::withSpinner(
-                            plotOutput(
-                              paste0(
-                                "splsda_overallCvPlot_",
-                                trt
-                              ),
-                              height = "400px"
+                            height = "400px",
+                          ),
+                          type = 8
+                        )
+                      )
+                    },
+
+                    if (!is.null(res[[trt]]$overall_CV)) {
+                      tabPanel(
+                        "Cross-Validation",
+                        shinycssloaders::withSpinner(
+                          plotOutput(
+                            paste0(
+                              "splsda_overallCvPlot_",
+                              trt
                             ),
-                            type = 8
-                          )
-                        }
+                            height = "400px"
+                          ),
+                          type = 8
+                        )
                       )
                     },
                     if (!is.null(res[[trt]]$conf_matrix)) {

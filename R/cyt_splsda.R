@@ -463,7 +463,14 @@ cyt_splsda <- function(
       if (identical(cv_opt, "loocv")) {
         set.seed(123)
         cv_res <- mixOmics::perf(mdl, validation = "loo")
-        er <- cv_res$error.rate$overall[, "max.dist"]
+        dist_use <- "max.dist"
+        er <- cv_res$error.rate$overall[, dist_use, drop = TRUE]
+        k_star <- tryCatch(
+          cv_res$choice.ncomp[[dist_use]],
+          error = function(e) {
+            length(er)
+          }
+        )
         indiv_CV <- ggplot2::ggplot(
           data.frame(Component = seq_along(er), ErrorRate = er),
           ggplot2::aes(Component, ErrorRate)
@@ -473,10 +480,16 @@ cyt_splsda <- function(
           ggplot2::labs(
             title = paste("LOOCV Error Rate:", label),
             x = "Components",
-            y = "Error rate"
+            y = "Error rate",
+            subtitle = sprintf(
+              "Chosen components = %d | CV accuracy: %.1f%%",
+              k_star,
+              100 * (1 - er[k_star])
+            )
           ) +
+          ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
           ggplot2::theme_minimal()
-      } else if (identical(cv_opt, "Mfold")) {
+      } else if (identical(cv_opt, "mfold")) {
         set.seed(123)
         folds_safe <- max(2, min(fold_num, nrow(X)))
         cv_res <- mixOmics::perf(
@@ -485,7 +498,14 @@ cyt_splsda <- function(
           folds = folds_safe,
           nrepeat = 100
         )
-        er <- cv_res$error.rate$overall[, "max.dist"]
+        dist_use <- "max.dist"
+        er <- cv_res$error.rate$overall[, dist_use, drop = TRUE]
+        k_star <- tryCatch(
+          cv_res$choice.ncomp[[dist_use]],
+          error = function(e) {
+            length(er)
+          }
+        )
         indiv_CV <- ggplot2::ggplot(
           data.frame(Component = seq_along(er), ErrorRate = er),
           ggplot2::aes(Component, ErrorRate)
@@ -495,8 +515,14 @@ cyt_splsda <- function(
           ggplot2::labs(
             title = paste("Mfold Error Rate:", label),
             x = "Components",
-            y = "Error rate"
+            y = "Error rate",
+            subtitle = sprintf(
+              "Chosen components = %d | CV accuracy: %.1f%%",
+              k_star,
+              100 * (1 - er[k_star])
+            )
           ) +
+          ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
           ggplot2::theme_minimal()
       }
     }
@@ -668,7 +694,11 @@ cyt_splsda <- function(
         if (identical(cv_opt, "loocv")) {
           set.seed(123)
           cv2 <- mixOmics::perf(mdl_vip, validation = "loo")
-          er <- cv2$error.rate$overall[, "max.dist"]
+          dist_use <- "max.dist"
+          er <- cv2$error.rate$overall[, dist_use, drop = TRUE]
+          k_star <- tryCatch(cv2$choice.ncomp[[dist_use]], error = function(e) {
+            length(er)
+          })
           vip_CV <- ggplot2::ggplot(
             data.frame(Component = seq_along(er), ErrorRate = er),
             ggplot2::aes(Component, ErrorRate)
@@ -678,10 +708,16 @@ cyt_splsda <- function(
             ggplot2::labs(
               title = paste("LOOCV Error Rate (VIP>1):", label),
               x = "Components",
-              y = "Error rate"
+              y = "Error rate",
+              subtitle = sprintf(
+                "Chosen components = %d | CV accuracy: %.1f%%",
+                k_star,
+                100 * (1 - er[k_star])
+              )
             ) +
+            ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
             ggplot2::theme_minimal()
-        } else if (identical(cv_opt, "Mfold")) {
+        } else if (identical(cv_opt, "mfold")) {
           set.seed(123)
           folds_safe <- max(2, min(fold_num, nrow(Xvip)))
           cv2 <- mixOmics::perf(
@@ -690,7 +726,11 @@ cyt_splsda <- function(
             folds = folds_safe,
             nrepeat = 100
           )
-          er <- cv2$error.rate$overall[, "max.dist"]
+          dist_use <- "max.dist"
+          er <- cv2$error.rate$overall[, dist_use, drop = TRUE]
+          k_star <- tryCatch(cv2$choice.ncomp[[dist_use]], error = function(e) {
+            length(er)
+          })
           vip_CV <- ggplot2::ggplot(
             data.frame(Component = seq_along(er), ErrorRate = er),
             ggplot2::aes(Component, ErrorRate)
@@ -700,8 +740,14 @@ cyt_splsda <- function(
             ggplot2::labs(
               title = paste("Mfold Error Rate (VIP>1):", label),
               x = "Components",
-              y = "Error rate"
+              y = "Error rate",
+              subtitle = sprintf(
+                "Chosen components = %d | CV accuracy: %.1f%%",
+                k_star,
+                100 * (1 - er[k_star])
+              )
             ) +
+            ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
             ggplot2::theme_minimal()
         }
       }
