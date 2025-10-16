@@ -254,9 +254,7 @@ resetState <- function() {
   userState$xgb_plot_roc = NULL
 }
 shiny::observeEvent(input$new_fresh, {
-  resetState()
-  currentPage("step1")
-  currentStep(1)
+  session$reload()
 })
 shiny::observeEvent(input$fresh_start, {
   shiny::showModal(
@@ -686,6 +684,8 @@ step1UI <- function() {
             ),
             helpText("Accepted Formats: '.csv', '.txt', '.xls', '.xlsx'"),
             uiOutput("sheet_selector"),
+            # Conditional panel to show the editor button once data is uploaded
+            uiOutput("open_editor_btn"),
             hr(),
             tags$h5("Option B: Use Built-in Data"),
             checkboxInput(
@@ -694,38 +694,7 @@ step1UI <- function() {
               value = isolate(userState$use_builtin) %||% FALSE
             ),
             uiOutput("built_in_selector"),
-            hr(),
-            tags$h5("Option C: Import Bio-Plex Raw Excel"),
-            fileInput("bioplex_file", NULL, accept = c(".xls", ".xlsx")),
-
-            # show the rest only after a file exists
-            conditionalPanel(
-              condition = "output.bioplex_on",
-              selectizeInput(
-                "bioplex_sheets",
-                "Choose up to two sheets:",
-                choices = NULL,
-                multiple = TRUE,
-                options = list(
-                  maxItems = 2,
-                  placeholder = "Select up to two sheets"
-                )
-              ),
-              uiOutput("bioplex_colname_editor"),
-              div(
-                class = "mt-2",
-                actionButton(
-                  "bioplex_open_editor",
-                  "Open Bio-Plex Editor",
-                  # make a primary button to stand out with a different color
-                  class = "btn-primary btn-sm ms-2",
-                )
-              )
-            ),
-            hr(),
-            uiOutput("viewSummaryCheckboxes"),
-            hr(),
-            uiOutput("fresh_start_ui")
+            uiOutput("step1_bottom_block")
           ),
           card_footer(
             div(
@@ -1235,7 +1204,7 @@ shiny::observeEvent(input$restore_all_rows, {
 
 output$viewSummaryCheckboxes <- shiny::renderUI({
   # Require either built-in data is used OR a file has been successfully uploaded
-  req(input$use_builtin || isTruthy(input$datafile) || isTRUE(bioplex$active))
+  req(input$use_builtin || isTRUE(bioplex$active))
   # If the condition above is met, render the checkboxes
   tagList(
     checkboxInput("view_data", "View Data Loaded?", FALSE),
@@ -1245,7 +1214,7 @@ output$viewSummaryCheckboxes <- shiny::renderUI({
 
 # Logic for the “Fresh Start” button
 output$fresh_start_ui <- shiny::renderUI({
-  has_data <- !is.null(userData()) ||
+  has_data <- isTRUE(bioplex$active) ||
     (isTRUE(userState$use_builtin) && !is.null(userState$built_in_choice))
 
   if (!has_data) {
@@ -1261,6 +1230,19 @@ output$fresh_start_ui <- shiny::renderUI({
     )
   )
 })
+output$step1_bottom_block <- shiny::renderUI({
+  has_confirmed_data <- isTRUE(bioplex$active) ||
+    (isTRUE(input$use_builtin) && !is.null(userState$built_in_choice))
+
+  tagList(
+    # show the view/summary toggles only after confirmed data (built-in OR Save & Use)
+    if (has_confirmed_data) hr(class = "my-2"),
+    if (has_confirmed_data) uiOutput("viewSummaryCheckboxes"),
+    if (has_confirmed_data) hr(class = "my-2"),
+    if (has_confirmed_data) uiOutput("fresh_start_ui")
+  )
+})
+
 # --- Logic for Custom Button Group: Statistical Tests ---
 stat_choices <- c("ANOVA", "Two-Sample T-Test")
 output$stat_function_ui <- shiny::renderUI({
@@ -1397,15 +1379,10 @@ shiny::observeEvent(currentStep(), {
 ## ---------------------------
 shiny::observeEvent(input$next1, {
   # Check if a file has been uploaded OR if the "use built-in" box is checked
-  if (
-    !isTruthy(input$datafile) &&
-      !isTruthy(input$use_builtin) &&
-      !isTRUE(bioplex$active)
-  ) {
-    # If neither is true, show a pop-up modal warning
+  if (!isTRUE(input$use_builtin) && !isTRUE(bioplex$active)) {
     showModal(modalDialog(
-      title = "Data Source Required",
-      "Please upload a data file, use built-in data, or confirm a Bio-Plex import to continue.",
+      title = "Confirm your data first",
+      "Please open the Data Editor and click 'Save & Use' (or choose a built-in dataset) before continuing.",
       easyClose = TRUE,
       footer = actionButton("ok_no_data", "OK")
     ))
@@ -1629,14 +1606,43 @@ shiny::observeEvent(input$open_impute_modal, {
       column(
         4,
         radioButtons(
-          "imp_method",
-          "Method",
+          "impute_method",
+          label = tagList(
+            span("Method", style = "margin-right:10px;"),
+            bslib::popover(
+              actionLink("mv_help", NULL, icon = icon("question-circle")),
+              div(
+                tags$h4("How missing values are treated", class = "mb-3"),
+                p(
+                  tags$b("Mean:"),
+                  " this method calculates the average of all non-missing values in a column and uses this mean to fill in any missing entries."
+                ),
+                p(
+                  tags$b("Median:"),
+                  " this method calculates the middle value of all non-missing entries in a column and uses this median to replace any missing values."
+                ),
+                p(
+                  tags$b("Mode:"),
+                  " this method identifies the most frequently occurring value in a column and uses it to fill in the missing data. Mode imputation is the only one of these three that can be used for categorical (non-numeric) data."
+                ),
+                p(
+                  tags$b("kNN (sample-wise):"),
+                  " this method for each missing cell, finds the k nearest rows (samples) using the other features and impute from those neighbors’ values in the same column"
+                ),
+                p(
+                  tags$b("kNN (feature-wise):"),
+                  " this method for each missing cell, finds the k most similar columns (features) based on their patterns across samples and impute from those features’ values in the same row"
+                )
+              ),
+              placement = "right",
+            )
+          ),
           choices = c(
-            "Mean (numeric)" = "mean",
-            "Median (numeric)" = "median",
-            "Mode (categorical)" = "mode",
-            "k-NN (sample-wise / mixed types)" = "knn_sample",
-            "k-NN (feature-wise / numeric only)" = "knn_feature"
+            "Mean",
+            "Median",
+            "Mode",
+            "kNN (sample-wise)",
+            "kNN (feature-wise)"
           ),
           selected = userState$impute_meta$method %||% "mean"
         ),

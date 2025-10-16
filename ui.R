@@ -188,6 +188,14 @@ ui <- shiny::fluidPage(
       content = "width=device-width, initial-scale=1"
     )
   ),
+  tags$script(HTML(
+    "
+  Shiny.addCustomMessageHandler('toggle-popover', function(id) {
+    var el = document.getElementById(id);
+    if (el) el.click();
+  });
+"
+  )),
 
   # 3) THE PERSISTENT HEADER
   div(

@@ -631,10 +631,10 @@
                 "corr_target",
                 label = helper(
                   type = "inline",
-                  title = "Target Variable",
+                  title = "Response Variable",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Target Variable</span>"
+                    "<span style='margin-right: 15px;'>Response Variable</span>"
                   ),
                   content = "Correlate this variable against all other numeric features.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
@@ -653,12 +653,12 @@
                 "corr_group_col",
                 label = helper(
                   type = "inline",
-                  title = "Grouping (optional)",
+                  title = "Stratification (optional)",
                   icon = "fas fa-question-circle",
                   shiny_tag = HTML(
-                    "<span style='margin-right: 15px;'>Grouping Variable</span>"
+                    "<span style='margin-right: 15px;'>Stratification Variable</span>"
                   ),
-                  content = "If set, you can render per-group heatmaps (first two levels) for each method.",
+                  content = "If set, you can render per-group heatmaps for each method.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -682,7 +682,7 @@
                   shiny_tag = HTML(
                     "<span style='margin-right: 15px;'>Per-group Heatmaps</span>"
                   ),
-                  content = "If a grouping column is selected, show one heatmap per (first two) levels.",
+                  content = "If a grouping column is selected, show one heatmap per categories.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {

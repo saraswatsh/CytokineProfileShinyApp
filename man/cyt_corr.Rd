@@ -10,6 +10,7 @@ cyt_corr(
   methods = c("spearman", "pearson"),
   group_var = NULL,
   compare_groups = FALSE,
+  plot = FALSE,
   progress = NULL
 )
 }
@@ -28,6 +29,8 @@ variable in \code{data}. If provided, group-wise correlations will be calculated
 \item{compare_groups}{Logical. If \code{TRUE} and \code{group_var} is provided with at
 least two levels, the function will compare the correlations between the
 first two levels of \code{group_var}.}
+
+\item{plot}{Logical. If \code{TRUE}, the function will generate and return a correlation plot.}
 }
 \value{
 A list containing:
@@ -43,6 +46,7 @@ between the first two groups, if \code{compare_groups} is \code{TRUE} and
 \code{group_var} has at least two levels. Includes \code{variable}, \code{r_diff}
 (difference in correlations), \code{z} (Fisher's z-score), \code{p_diff} (p-value
 for the difference), and adjusted p-values (\code{p_diff_bonf}, \code{p_diff_bh}).}
+\item{plot}{A correlation plot, if \code{plot} is \code{TRUE}.}
 }
 \description{
 This function computes Pearson or Spearman correlation coefficients between a

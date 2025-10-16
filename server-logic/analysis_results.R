@@ -230,48 +230,25 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 data = df,
                 target = tgt,
                 methods = c("spearman", "pearson"),
-                group_var = if (nzchar(grp)) grp else NULL,
+                group_var = if (bygrp) input$corr_group_col else NULL,
                 compare_groups = FALSE,
+                plot = TRUE,
                 progress = prog
               )
-
-              # per-group heatmaps for each method
-              group_mats <- NULL
-              if (bygrp) {
-                g <- factor(df[[grp]])
-                levs <- levels(g)
-                levs <- levs[!is.na(levs)]
-
-                build_group_mats <- function(method) {
-                  mats <- list()
-                  for (lv in levs) {
-                    sub <- df[g == lv, , drop = FALSE]
-                    mats[[lv]] <- cyt_corr(
-                      data = sub,
-                      target = tgt,
-                      methods = method,
-                      progress = prog
-                    )[[method]]$heat_mat
-                  }
-                  mats
-                }
-
-                group_mats <- list(
-                  spearman = build_group_mats("spearman"),
-                  pearson = build_group_mats("pearson")
-                )
-              }
 
               list(
                 spearman = list(
                   table = both$spearman$table,
-                  heat_mat = both$spearman$heat_mat
+                  heat_mat = both$spearman$heat_mat,
+                  plot = both$spearman$plot,
+                  group_plots = both$spearman$group_plots
                 ),
                 pearson = list(
                   table = both$pearson$table,
-                  heat_mat = both$pearson$heat_mat
+                  heat_mat = both$pearson$heat_mat,
+                  plot = both$pearson$plot,
+                  group_plots = both$pearson$group_plots
                 ),
-                group_mats = group_mats,
                 corr_target = tgt
               )
             },
@@ -1085,23 +1062,27 @@ output$result_display <- shiny::renderUI({
               "Spearman",
               tabsetPanel(
                 type = "tabs",
+                selected = "Spearman Heatmap",
                 tabPanel(
-                  "Table",
-                  shinycssloaders::withSpinner(
-                    DT::dataTableOutput("corr_tbl_spearman"),
-                    type = 8
-                  )
-                ),
-                tabPanel(
-                  "Heatmap",
+                  "Spearman Heatmap",
                   shinycssloaders::withSpinner(
                     plotOutput("corr_heatmap_spearman", height = "600px"),
                     type = 8
                   )
                 ),
-                if (!is.null(res$group_mats)) {
+                tabPanel(
+                  "Spearman Table",
+                  shinycssloaders::withSpinner(
+                    DT::dataTableOutput("corr_tbl_spearman"),
+                    type = 8
+                  )
+                ),
+                if (
+                  !is.null(res$spearman$group_plots) &&
+                    length(res$spearman$group_plots)
+                ) {
                   tabPanel(
-                    "Per-Group Heatmaps",
+                    "Spearman Per-Group Heatmaps",
                     shinycssloaders::withSpinner(
                       uiOutput("corr_group_heatmap_ui_spearman"),
                       type = 8
@@ -1114,23 +1095,27 @@ output$result_display <- shiny::renderUI({
               "Pearson",
               tabsetPanel(
                 type = "tabs",
+                selected = "Pearson Heatmap", # <- default
                 tabPanel(
-                  "Table",
-                  shinycssloaders::withSpinner(
-                    DT::dataTableOutput("corr_tbl_pearson"),
-                    type = 8
-                  )
-                ),
-                tabPanel(
-                  "Heatmap",
+                  "Pearson Heatmap",
                   shinycssloaders::withSpinner(
                     plotOutput("corr_heatmap_pearson", height = "600px"),
                     type = 8
                   )
                 ),
-                if (!is.null(res$group_mats)) {
+                tabPanel(
+                  "Pearson Table",
+                  shinycssloaders::withSpinner(
+                    DT::dataTableOutput("corr_tbl_pearson"),
+                    type = 8
+                  )
+                ),
+                if (
+                  !is.null(res$pearson$group_plots) &&
+                    length(res$pearson$group_plots)
+                ) {
                   tabPanel(
-                    "Per-Group Heatmaps",
+                    "Pearson Per-Group Heatmaps",
                     shinycssloaders::withSpinner(
                       uiOutput("corr_group_heatmap_ui_pearson"),
                       type = 8
@@ -1984,45 +1969,19 @@ shiny::observeEvent(analysisResult(), {
 
   # Heatmaps (overall)
   output$corr_heatmap_spearman <- renderPlot({
-    req(res$spearman$heat_mat)
-    ggcorrplot::ggcorrplot(
-      res$spearman$heat_mat,
-      hc.order = TRUE,
-      type = "full",
-      lab = FALSE,
-      show.diag = TRUE,
-      outline.col = "white",
-      ggtheme = ggplot2::theme_minimal()
-    ) +
-      ggplot2::labs(
-        title = paste0("Spearman: ", res$corr_target, " vs all features"),
-        x = NULL,
-        y = NULL
-      )
+    req(res$spearman$plot)
+    print(res$spearman$plot)
   })
 
   output$corr_heatmap_pearson <- renderPlot({
-    req(res$pearson$heat_mat)
-    ggcorrplot::ggcorrplot(
-      res$pearson$heat_mat,
-      hc.order = TRUE,
-      type = "full",
-      lab = FALSE,
-      show.diag = TRUE,
-      outline.col = "white",
-      ggtheme = ggplot2::theme_minimal()
-    ) +
-      ggplot2::labs(
-        title = paste0("Pearson: ", res$corr_target, " vs all features"),
-        x = NULL,
-        y = NULL
-      )
+    req(res$pearson$plot)
+    print(res$pearson$plot)
   })
 
   # Per-group heatmaps (if any) — Spearman
   output$corr_group_heatmap_ui_spearman <- renderUI({
-    req(res$group_mats$spearman)
-    tabs <- lapply(names(res$group_mats$spearman), function(lv) {
+    req(res$spearman$group_plots)
+    tabs <- lapply(names(res$spearman$group_plots), function(lv) {
       tabPanel(
         title = lv,
         plotOutput(
@@ -2034,25 +1993,15 @@ shiny::observeEvent(analysisResult(), {
     do.call(tabsetPanel, c(list(type = "tabs"), tabs))
   })
 
-  if (!is.null(res$group_mats$spearman)) {
-    for (lv in names(res$group_mats$spearman)) {
+  if (!is.null(res$spearman$group_plots)) {
+    for (lv in names(res$spearman$group_plots)) {
       local({
         lvl <- lv
         output[[paste0(
           "corr_heatmap_grp_spear_",
           gsub("\\W+", "_", lvl)
         )]] <- renderPlot({
-          mat <- res$group_mats$spearman[[lvl]]
-          ggcorrplot::ggcorrplot(
-            mat,
-            hc.order = TRUE,
-            type = "full",
-            lab = FALSE,
-            show.diag = TRUE,
-            outline.col = "white",
-            ggtheme = ggplot2::theme_minimal()
-          ) +
-            ggplot2::labs(title = paste0("Group: ", lvl), x = NULL, y = NULL)
+          print(res$spearman$group_plots[[lvl]])
         })
       })
     }
@@ -2060,8 +2009,8 @@ shiny::observeEvent(analysisResult(), {
 
   # Per-group heatmaps (if any) — Pearson
   output$corr_group_heatmap_ui_pearson <- renderUI({
-    req(res$group_mats$pearson)
-    tabs <- lapply(names(res$group_mats$pearson), function(lv) {
+    req(res$pearson$group_plots)
+    tabs <- lapply(names(res$pearson$group_plots), function(lv) {
       tabPanel(
         title = lv,
         plotOutput(
@@ -2073,25 +2022,15 @@ shiny::observeEvent(analysisResult(), {
     do.call(tabsetPanel, c(list(type = "tabs"), tabs))
   })
 
-  if (!is.null(res$group_mats$pearson)) {
-    for (lv in names(res$group_mats$pearson)) {
+  if (!is.null(res$pearson$group_plots)) {
+    for (lv in names(res$pearson$group_plots)) {
       local({
         lvl <- lv
         output[[paste0(
           "corr_heatmap_grp_pear_",
           gsub("\\W+", "_", lvl)
         )]] <- renderPlot({
-          mat <- res$group_mats$pearson[[lvl]]
-          ggcorrplot::ggcorrplot(
-            mat,
-            hc.order = TRUE,
-            type = "full",
-            lab = FALSE,
-            show.diag = TRUE,
-            outline.col = "white",
-            ggtheme = ggplot2::theme_minimal()
-          ) +
-            ggplot2::labs(title = paste0("Group: ", lvl), x = NULL, y = NULL)
+          print(res$pearson$group_plots[[lvl]])
         })
       })
     }
