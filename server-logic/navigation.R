@@ -582,7 +582,7 @@ contactUI <- function() {
       column(
         width = 6,
         h2("Shubh Saraswat"),
-        p(em("Creator and Author of CytokineProfile")),
+        p(em("Maintainer, Co-Creator, and Author of CytokineProfile")),
         p("Biomedical Data Scientist"),
         p("PhD Student in Epidemiology & Biostatistics"),
         p("University of Kentucky"),
@@ -616,7 +616,7 @@ contactUI <- function() {
       column(
         width = 6,
         h2("Xiaohua Douglas Zhang"),
-        p(em("Author of CytokineProfile")),
+        p(em("Co-Creator and Author of CytokineProfile")),
         p("Professor, Department of Biostatistics"),
         p("University of Kentucky"),
         tags$a(
@@ -633,6 +633,7 @@ contactUI <- function() {
         )
       )
     ),
+    br(),
     fluidRow(
       ## —— Column 3 —— ##
       column(
@@ -659,7 +660,7 @@ contactUI <- function() {
           href = "https://github.com/saraswatsh/CytokineProfileShinyApp/issues",
           "GitHub repository."
         ),
-        "For additional questions or concerns, contact the creator Shubh Saraswat with the provided email above."
+        "For additional questions or concerns, contact the maintainer Shubh Saraswat with the provided email above."
       )
     )
   )

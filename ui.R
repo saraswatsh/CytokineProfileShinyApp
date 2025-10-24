@@ -181,6 +181,13 @@ ui <- shiny::fluidPage(
      /* Make large modals almost full width; keep a tall body with scrolling */
     #shiny-modal .modal-dialog { max-width: 98vw; width: 98vw; }   /* more width */
     #shiny-modal .modal-body   { max-height: 70vh; overflow-y: auto; }  /* less length (scrolls) */
+    /* Highlight full selected column */
+  table.dataTable tbody td.col-selected,
+  .dataTables_scrollHeadInner th.col-selected,
+  .dataTables_scrollFootInner th.col-selected { 
+    background-color: rgba(0,123,255,.18) !important;
+  }
+  tfoot th { cursor: pointer; }
   "
     )),
     tags$meta(
@@ -235,7 +242,7 @@ ui <- shiny::fluidPage(
           "theme_choice",
           NULL,
           choices = c("Light" = "flatly", "Dark" = "darkly"),
-          selected = "darkly",
+          selected = "Light",
           width = "100px"
         ),
         style = "margin-right: 1rem; margin-top: 0.7rem;"

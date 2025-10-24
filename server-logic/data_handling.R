@@ -297,6 +297,14 @@ output$open_editor_btn <- shiny::renderUI({
   )
 })
 shiny::observeEvent(input$open_editor, {
+  if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
+    bioplex$editor_mode <- "persisted"
+    bioplex$df <- bioplex$final
+    bioplex$deleted_idx <- integer(0)
+    bioplex$cols_master <- NULL
+    show_data_editor_modal()
+    return() # <- important: don't run the file-reading path
+  }
   req(input$datafile)
   dest <- file.path(upload_dir, input$datafile$name)
   if (!file.exists(dest)) {
@@ -485,6 +493,18 @@ output$bioplex_modal_tabs <- shiny::renderUI({
             "Restore All",
             icon = icon("undo"),
             class = "btn-secondary btn-sm ms-2"
+          ),
+          actionButton(
+            "bioplex_modal_delete_cols",
+            "Delete Selected Columns",
+            icon = icon("trash"),
+            class = "btn-danger btn-sm ms-2"
+          ),
+          actionButton(
+            "bioplex_modal_restore_cols",
+            "Restore All Columns",
+            icon = icon("undo"),
+            class = "btn-secondary btn-sm ms-2"
           )
         )
       ),
@@ -494,59 +514,87 @@ output$bioplex_modal_tabs <- shiny::renderUI({
   )
 })
 
-output$bioplex_modal_table_combined <- DT::renderDT(
-  {
-    combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
-      req(bioplex$df)
-      bioplex$df
-    } else {
-      bioplex_combined_filtered()
-    }
-    req(nrow(combined_now) > 0)
-    keep <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
+output$bioplex_modal_table_combined <- DT::renderDT({
+  req(bioplex$df)
+  df <- bioplex$df
+  keep <- setdiff(seq_len(nrow(df)), bioplex$deleted_idx)
 
-    # show current names (after any Apply Column Names)
-    if (!is.null(bioplex$df) && ncol(bioplex$df) == ncol(combined_now)) {
-      names(combined_now) <- names(bioplex$df)
-    }
+  # build a container with thead + tfoot so footer clicks select columns
+  cols <- names(df)
+  sketch <- htmltools::withTags(table(
+    class = "display nowrap",
+    thead(tr(lapply(cols, th))),
+    tfoot(tr(lapply(cols, th)))
+  ))
 
-    DT::datatable(
-      combined_now[keep, , drop = FALSE],
-      selection = "multiple",
-      editable = TRUE,
-      extensions = "AutoFill",
-      options = list(
-        scrollX = TRUE,
-        scrollY = "55vh",
-        paging = FALSE,
-        autoWidth = TRUE,
-        autoFill = TRUE
-      ),
-      rownames = FALSE,
-      callback = DT::JS(
-        "
-  var tbl = $(table.table().node());
-  var id  = tbl.closest('.datatables').attr('id');   // will be 'bioplex_modal_table_combined'
-  table.on('autoFill.dt', function(e, datatable, cells) {
-    var out = [];
-    for (var i = 0; i < cells.length; ++i) {
-      var cells_i = cells[i];
-      for (var j = 0; j < cells_i.length; ++j) {
-        var c = cells_i[j];
-        var value = (c.set === null) ? '' : c.set;  // normalize nulls
-        out.push({ row: c.index.row + 1,   // 1-based for R
-                   col: c.index.column,    // keep as provided; editData handles it
-                   value: value });
+  DT::datatable(
+    df[keep, , drop = FALSE],
+    container = sketch,
+    selection = list(mode = "multiple", target = "row+column"),
+    editable = TRUE,
+    extensions = c("Buttons", "AutoFill"),
+    options = list(
+      dom = "Bfrtip",
+      buttons = list("colvis"),
+      scrollX = TRUE,
+      scrollY = "55vh",
+      paging = FALSE,
+      autoWidth = TRUE,
+      autoFill = TRUE
+    ),
+    rownames = FALSE,
+    callback = DT::JS(
+      "
+      var $container = $(table.table().container());
+      var id   = $container.closest('.datatables').attr('id');
+      var selectedDataIdx = [];
+
+      function redrawHighlights(){
+        $(table.cells().nodes()).removeClass('col-selected');
+        $container.find('.dataTables_scrollHeadInner th').removeClass('col-selected');
+        $container.find('.dataTables_scrollFootInner th').removeClass('col-selected');
+        selectedDataIdx.forEach(function(di){
+          $(table.cells(null, di).nodes()).addClass('col-selected');
+          var vis = table.column(di).index('visible');
+          if (vis != null && vis >= 0){
+            $container.find('.dataTables_scrollHeadInner th').eq(vis).addClass('col-selected');
+            $container.find('.dataTables_scrollFootInner th').eq(vis).addClass('col-selected');
+          }
+        });
       }
-    }
-    Shiny.setInputValue(id + '_cells_filled:DT.cellInfo', out, {priority: 'event'});
-    table.rows().invalidate();  // fix column type if needed
-  });
-"
-      )
+
+      // Footer click toggles column (DT: row+column uses footer)
+      $container.on('click', 'div.dataTables_scrollFootInner th', function(){
+        var visIdx  = $(this).index();
+        var dataIdx = table.column.index('fromVisible', visIdx); // convert visible -> data
+        if (dataIdx == null) return;
+        var pos = selectedDataIdx.indexOf(dataIdx);
+        if (pos === -1) selectedDataIdx.push(dataIdx); else selectedDataIdx.splice(pos,1);
+        Shiny.setInputValue(id + '_columns_selected_data', selectedDataIdx, {priority:'event'});
+        redrawHighlights();
+      });
+
+      table.on('draw.dt column-visibility.dt', function(){ redrawHighlights(); });
+
+      // your existing AutoFill handler (unchanged)
+      table.on('autoFill.dt', function(e, datatable, cells) {
+        var out = [];
+        for (var i = 0; i < cells.length; ++i) {
+          var cells_i = cells[i];
+          for (var j = 0; j < cells_i.length; ++j) {
+            var c = cells_i[j];
+            var value = (c.set === null) ? '' : c.set;
+            out.push({ row: c.index.row + 1, col: c.index.column, value: value });
+          }
+        }
+        Shiny.setInputValue(id + '_cells_filled:DT.cellInfo', out, {priority: 'event'});
+        table.rows().invalidate();
+      });
+    "
     )
-  }
-)
+  )
+})
+
 # Helper to ensure column names are unique
 .bioplex_unique_name <- function(nm, existing) {
   nm <- trimws(nm)
@@ -841,6 +889,30 @@ shiny::observeEvent(input$bioplex_modal_delete_selected, {
 
 shiny::observeEvent(input$bioplex_modal_restore_all, {
   bioplex$deleted_idx <- integer(0)
+})
+shiny::observeEvent(input$bioplex_modal_delete_cols, {
+  req(bioplex$df)
+
+  idx0 <- input$bioplex_modal_table_combined_columns_selected_data %||%
+    input$bioplex_modal_table_combined_columns_selected
+  shiny::validate(shiny::need(
+    length(idx0) > 0,
+    "Click footer cells to select column(s), then Delete."
+  ))
+
+  drop_idx <- as.integer(idx0) + 1L
+  drop_idx <- drop_idx[drop_idx >= 1 & drop_idx <= ncol(bioplex$df)]
+  shiny::validate(shiny::need(
+    length(drop_idx) > 0,
+    "No valid columns to delete."
+  ))
+
+  if (is.null(bioplex$cols_master)) {
+    bioplex$cols_master <- bioplex$df
+  }
+  keep_names <- setdiff(names(bioplex$df), names(bioplex$df)[drop_idx])
+  bioplex$df <- bioplex$df[, keep_names, drop = FALSE]
+  bioplex$deleted_idx <- integer(0) # reset row deletes on combined view
 })
 
 # Helper: clean * and OOR for ONE column, using that column's min/max
