@@ -46,3 +46,6 @@ This axis represents the statistical significance of the change observed for eac
 ### Below is a short animation on how to obtain the same result from the application: 
 
 ![](../man/figures/VolcanoPlot.gif)
+
+------------------------------------------------------------------------
+*Last updated:* `r format(Sys.Date(), "%B %d, %Y")`

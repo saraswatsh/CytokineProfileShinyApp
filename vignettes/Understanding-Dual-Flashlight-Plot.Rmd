@@ -57,3 +57,6 @@ What determines significance is if the SSMD value is greater than the provided t
 ### Below is a short animation on how to obtain the same result from the application: 
 
 ![](../man/figures/DualFlashlightPlot.gif)
+
+------------------------------------------------------------------------
+*Last updated:* `r format(Sys.Date(), "%B %d, %Y")`

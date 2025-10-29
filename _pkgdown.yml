@@ -30,6 +30,8 @@ articles:
   contents:
   - Understanding-Dual-Flashlight-Plot
   - Understanding-Volcano-Plot
+- title: Multivariate Analysis Demonstrations
+  contents: Understanding-sPLS-DA
 reference:
 - title: Exploratory Analysis
   description: |

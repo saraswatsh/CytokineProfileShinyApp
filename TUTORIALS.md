@@ -9,3 +9,6 @@
 ### Exploratory Analysis Demonstration
 * [Understanding Dual-Flashlight Plot](https://shinyinfo.cytokineprofile.org/articles/Understanding-Dual-Flashlight-Plot.html)
 * [Understanding Volcano Plot](https://shinyinfo.cytokineprofile.org/articles/Understanding-Volcano-Plot.html)
+
+### Multivariate Analysis Demonstration
+* [Understanding (s)PLS-DA](https://shinyinfo.cytokineprofile.org/articles/Understanding-sPLS-DA.html)

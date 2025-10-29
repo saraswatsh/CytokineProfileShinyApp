@@ -44,3 +44,6 @@ In step 3 and step 4 of the app, the user is given selection of different analys
 After selecting the analysis type, the results are produced and displayed within the app. There is an option to download the results in PDF format as well with a file name that is provided by the user.
 
 ![](../man/figures/Shiny_Step4.gif)
+
+------------------------------------------------------------------------
+*Last updated:* `r format(Sys.Date(), "%B %d, %Y")`
