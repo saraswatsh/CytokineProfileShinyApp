@@ -5,9 +5,11 @@ articles:
   Basic-Tutorial-of-CytokineProfile-Shiny: Basic-Tutorial-of-CytokineProfile-Shiny.html
   R-installation: R-installation.html
   Understanding-Dual-Flashlight-Plot: Understanding-Dual-Flashlight-Plot.html
+  Understanding-Random-Forest: Understanding-Random-Forest.html
   Understanding-sPLS-DA: Understanding-sPLS-DA.html
   Understanding-Volcano-Plot: Understanding-Volcano-Plot.html
-last_built: 2025-10-30T13:12Z
+  Understanding-XGBoost: Understanding-XGBoost.html
+last_built: 2025-10-30T17:21Z
 urls:
   reference: https://shinyinfo.cytokineprofile.org/reference
   article: https://shinyinfo.cytokineprofile.org/articles
