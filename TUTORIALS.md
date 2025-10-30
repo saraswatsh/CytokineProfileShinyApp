@@ -12,3 +12,7 @@
 
 ### Multivariate Analysis Demonstration
 * [Understanding (s)PLS-DA](https://shinyinfo.cytokineprofile.org/articles/Understanding-sPLS-DA.html)
+
+### Machine Learning Demonstration
+* [Understanding Random Forest](https://shinyinfo.cytokineprofile.org/articles/Understanding-Random-Forest.html)
+* [Understanding XGBoost](https://shinyinfo.cytokineprofile.org/articles/Understanding-XGBoost.html)

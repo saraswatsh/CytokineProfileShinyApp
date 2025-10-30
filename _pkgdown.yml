@@ -32,6 +32,10 @@ articles:
   - Understanding-Volcano-Plot
 - title: Multivariate Analysis Demonstrations
   contents: Understanding-sPLS-DA
+- title: Machine Learning Methods Demonstrations
+  contents:
+  - Understanding-Random-Forest
+  - Understanding-XGBoost
 reference:
 - title: Exploratory Analysis
   description: |

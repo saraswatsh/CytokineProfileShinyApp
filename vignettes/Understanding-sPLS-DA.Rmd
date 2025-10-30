@@ -46,7 +46,7 @@ The loadings plot show the variables driving the separation along the first comp
 
 VIP scores are another way to measure the most influential cytokines in the model. Once again, we can see the same cytokines that we saw in the loadings plot as the stronger contributors to have high VIP scores. A general rule of thumb is that variables with VIP scores > 1 are considered to be the most influential (Tenenhaus 1998), which are used for a second sPLS-DA model to determine if the classification is improved. The secondary model is ommitted from this tutorial. 
 
-### Reciever Operator Characteristc (ROC) Curve and Area Under the Curve (AUC) 
+### Reciever Operating Characteristc (ROC) Curve and Area Under the Curve (AUC) 
 
 ![](../man/figures/splsda_results_Page_2.png)
 
