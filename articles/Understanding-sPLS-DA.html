@@ -119,7 +119,7 @@ shows good discrimination.</p>
 <p><img src="../reference/figures/splsda_results_Page_4.png"></p>
 <p>The loadings plot show the variables driving the separation along the
 first component. The loadings plot show the magnitude of the loadings
-(seen by the sacle at the bottom). The signs, whether negative or
+(seen by the scale at the bottom). The signs, whether negative or
 positive are of direction relative to the component’s score and should
 not be interpreted as a p-value would and should be interpreted as to
 how strong the contribution of those features are in the model. To make
@@ -141,11 +141,11 @@ the loadings plot as the stronger contributors to have high VIP scores.
 A general rule of thumb is that variables with VIP scores &gt; 1 are
 considered to be the most influential (Tenenhaus 1998), which are used
 for a second sPLS-DA model to determine if the classification is
-improved. The secondary model is ommitted from this tutorial.</p>
+improved. The secondary model is omitted from this tutorial.</p>
 </div>
 <div class="section level3">
-<h3 id="reciever-operating-characteristc-roc-curve-and-area-under-the-curve-auc">Reciever Operating Characteristc (ROC) Curve and Area Under the
-Curve (AUC)<a class="anchor" aria-label="anchor" href="#reciever-operating-characteristc-roc-curve-and-area-under-the-curve-auc"></a>
+<h3 id="receiver-operating-characteristic-roc-curve-and-area-under-the-curve-auc">Receiver Operating Characteristic (ROC) Curve and Area Under the
+Curve (AUC)<a class="anchor" aria-label="anchor" href="#receiver-operating-characteristic-roc-curve-and-area-under-the-curve-auc"></a>
 </h3>
 <p><img src="../reference/figures/splsda_results_Page_2.png"></p>
 <p>The ROC curve and AUC value is a great way to evaluate the model’s
@@ -154,7 +154,11 @@ against the false positive rate (1-specificity). The AUC value provides
 a single measure of a model’s ability to discriminate between classes,
 with values closer to 1 indicating better performance. In our example,
 the comparison of PreT2D vs Others shows us the best discrimination of
-the model with an AUC value of 0.8.</p>
+the model with an AUC value of 0.8. Since it is a multiclass comparison,
+the AUC value is treated as one group versus all the others combined
+(i.e. PreT2D vs. Others (ND +T2D)). Therefore, PreT2D has a fairly
+distinct profile compared with the combined ND+T2D group and the model
+is reasonably good at discriminating PreT2D from the other groups.</p>
 </div>
 <div class="section level3">
 <h3 id="cross-validation-performance">Cross-Validation Performance<a class="anchor" aria-label="anchor" href="#cross-validation-performance"></a>
@@ -181,7 +185,7 @@ remaining fold. This process is repeated 100 times, with each fold
 serving as the validation set exactly once. The results from each fold
 are then averaged to produce a single performance estimate.</p></li>
 </ul>
-<p>In our exmaple, we can see that the LOOCV error rate is plotted
+<p>In our example, we can see that the LOOCV error rate is plotted
 across the first 2 components. The error rate is the rate of
 misclassification in the model which in our case LOOCV shows an error
 rate of approximately 49.5%. This is can be also reworded as, LOOCV
@@ -200,7 +204,7 @@ application:<a class="anchor" aria-label="anchor" href="#below-is-a-short-animat
 <p>Tenenhaus, M. (1998). La regression PLS: theorie et pratique. Paris:
 Editions Technic.</p>
 <hr>
-<p><em>Last updated:</em> October 30, 2025</p>
+<p><em>Last updated:</em> November 04, 2025</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -104,12 +104,12 @@ reduce node impurity across the forest. Higher bars imply greater
 influence on the model’s splits. There is no specific cutoff value that
 helps determine which variables are the most important, however we can
 still see that IL-122, CCL-20/MIP-3A, TNF-A and a few other cytokines
-have have a mean decrease in gini &gt; 4. These cytokines would be
+have have a mean decrease in Gini &gt; 4. These cytokines would be
 considered to be more influential than TNF-B and IL-31 for example.</p>
 </div>
 <div class="section level3">
-<h3 id="reciever-operating-characteristc-roc-curve-and-area-under-the-curve-auc">Reciever Operating Characteristc (ROC) Curve and Area Under the
-Curve (AUC)<a class="anchor" aria-label="anchor" href="#reciever-operating-characteristc-roc-curve-and-area-under-the-curve-auc"></a>
+<h3 id="receiver-operating-characteristic-roc-curve-and-area-under-the-curve-auc">Receiver Operating Characteristic (ROC) Curve and Area Under the
+Curve (AUC)<a class="anchor" aria-label="anchor" href="#receiver-operating-characteristic-roc-curve-and-area-under-the-curve-auc"></a>
 </h3>
 <p><img src="../reference/figures/rf_vignette_Page_2.png"></p>
 <p>The ROC curve and AUC value is a great way to evaluate the model’s
@@ -148,11 +148,11 @@ to consider at each split. Smaller number means more diverse trees;
 larger number means stronger individual trees but more similar to each
 other. A common default number would be roughly the square-root of the
 total number of features. For example, if we have 25 variables, we would
-enter 5 and adjust based on the results including cross-validaton
+enter 5 and adjust based on the results including cross-validation
 results.</li>
 <li>Train Fraction: How the dat are split into train and test sets. It
 requires a percentage between 0.1-0.9, so for example entering 0.7, 70%
-of the inputed data would be split into training and the remaining 30%
+of the inputted data would be split into training and the remaining 30%
 will be used for testing.</li>
 <li>Number of Folds: the number of folds used in k-fold cross-validation
 when running random forest cross-validation (RFCV).</li>
@@ -161,7 +161,7 @@ between the steps when RFCV is running. For example, with a step size of
 0.5, the variable count is approximately halved at each step.</li>
 </ul>
 <hr>
-<p><em>Last updated:</em> October 30, 2025</p>
+<p><em>Last updated:</em> November 04, 2025</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
