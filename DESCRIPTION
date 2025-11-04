@@ -46,7 +46,8 @@ Imports:
     impute,
     plotly,
     patchwork,
-    rlang
+    rlang,
+    vroom
 Suggests:
     spelling,
     BiocManager,

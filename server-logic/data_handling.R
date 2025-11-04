@@ -27,6 +27,9 @@ shiny::observeEvent(
   ignoreInit = TRUE
 )
 
+# cache for loaded Excel sheets
+excel_cache <- shiny::reactiveVal(list())
+
 userData <- shiny::reactive({
   if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
     df <- bioplex$final
@@ -43,14 +46,11 @@ userData <- shiny::reactive({
     }
     ext <- tolower(tools::file_ext(dest))
     if (ext == "csv") {
-      df <- read.csv(dest, stringsAsFactors = FALSE)
+      df <- vroom::vroom(dest, delim = ",", show_col_types = FALSE) %>%
+        as.data.frame() # convert tibble to data.frame for DT
     } else if (ext == "txt") {
-      df <- read.table(
-        dest,
-        header = TRUE,
-        sep = "\t",
-        stringsAsFactors = FALSE
-      )
+      df <- vroom::vroom(dest, delim = "\t", show_col_types = FALSE) %>%
+        as.data.frame()
     } else if (ext %in% c("xls", "xlsx")) {
       all_sheets <- readxl::excel_sheets(dest)
       sheet_to_read <- if (
@@ -235,11 +235,9 @@ shiny::observeEvent(
 )
 # Per-sheet data frames (row 1 -> column names)
 bioplex_per_sheet <- shiny::reactive({
-  # Prefer Option A (new flow)
   if (isTruthy(input$datafile) && length(input$sheet_name) >= 1) {
     path <- input$datafile$datapath
     sh <- input$sheet_name
-    # Fallback: legacy Bio-Plex inputs (if you ever re-enable Option C)
   } else if (
     isTruthy(input$bioplex_file) && length(input$bioplex_sheets) >= 1
   ) {
@@ -249,20 +247,26 @@ bioplex_per_sheet <- shiny::reactive({
     return(NULL)
   }
 
-  out <- setNames(
-    lapply(sh, function(s) {
+  cache <- excel_cache()
+  result <- list()
+  for (s in sh) {
+    key <- paste(path, s, sep = "::")
+    if (!is.null(cache[[key]])) {
+      # use cached version
+      result[[s]] <- cache[[key]]
+    } else {
       x <- readxl::read_excel(path, sheet = s, col_names = FALSE)
-      if (!nrow(x)) {
-        return(NULL)
+      if (nrow(x) > 0) {
+        hdr <- as.character(unlist(x[1, ], use.names = FALSE))
+        x <- x[-1, , drop = FALSE]
+        names(x) <- make.unique(make.names(hdr))
+        result[[s]] <- x
+        cache[[key]] <- x # update cache
       }
-      hdr <- as.character(unlist(x[1, ], use.names = FALSE))
-      x <- x[-1, , drop = FALSE]
-      names(x) <- make.unique(make.names(hdr))
-      x
-    }),
-    sh
-  )
-  Filter(Negate(is.null), out)
+    }
+  }
+  excel_cache(cache) # save updated cache
+  Filter(Negate(is.null), result)
 })
 
 
@@ -326,13 +330,10 @@ shiny::observeEvent(input$open_editor, {
     # PERSISTED MODE for csv/txt or single-sheet Excel
     df <- switch(
       ext,
-      "csv" = read.csv(dest, stringsAsFactors = FALSE),
-      "txt" = read.table(
-        dest,
-        header = TRUE,
-        sep = "\t",
-        stringsAsFactors = FALSE
-      ),
+      "csv" = vroom::vroom(dest, delim = ",", show_col_types = FALSE) %>%
+        as.data.frame(),
+      "txt" = vroom::vroom(dest, delim = "\t", show_col_types = FALSE) %>%
+        as.data.frame(),
       "xls" = as.data.frame(readxl::read_excel(
         dest,
         sheet = input$sheet_name %||% 1L

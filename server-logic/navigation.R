@@ -1461,7 +1461,9 @@ raw_filtered <- shiny::reactive({
     }
   }
   df
-})
+}) %>%
+  shiny::debounce(500)
+
 data_after_filters <- shiny::reactive({
   df <- raw_filtered()
   req(df)
@@ -1470,7 +1472,8 @@ data_after_filters <- shiny::reactive({
     df[num_cols] <- round(log2(df[num_cols]), 5)
   }
   df
-})
+}) %>%
+  shiny::debounce(500)
 
 data_after_imputation <- shiny::reactive({
   dat <- data_after_filters()
@@ -1479,7 +1482,8 @@ data_after_imputation <- shiny::reactive({
     return(imp)
   }
   dat
-})
+}) %>%
+  shiny::debounce(500)
 
 # D) The main filteredData() used by DT
 filteredData <- shiny::reactive({
@@ -1497,7 +1501,8 @@ filteredData <- shiny::reactive({
   # Always keep the internal ID for deletes
   final_cols <- union(cols_to_keep, "..cyto_id..")
   df[, intersect(names(df), final_cols), drop = FALSE]
-})
+}) %>%
+  shiny::debounce(500)
 
 # Populate the sPLS-DA "Label column" choices whenever the working data changes
 shiny::observeEvent(data_after_filters(), {
