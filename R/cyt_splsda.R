@@ -40,6 +40,7 @@
 #' @param multilevel_col A string specifying the column name that identifies
 #'   repeated measurements (e.g., patient or sample IDs). If provided, a
 #'   multilevel analysis will be performed. Default is \code{NULL}.
+#' @param font_scale Numeric. Apply a scale to font size in the figures for better readability.
 #'
 #' @return In Download mode (output_file not NULL), a PDF file is written and the function
 #'         returns NULL invisibly. In Interactive mode (output_file = NULL), a named list is
@@ -93,6 +94,7 @@ cyt_splsda <- function(
   splsda_colors = NULL,
   pch_values = NULL,
   output_file = NULL,
+  font_scale = 1,
   progress = NULL
 ) {
   `%notin%` <- function(x, y) !(x %in% y)
@@ -241,10 +243,6 @@ cyt_splsda <- function(
       # rely on rownames alignment of subset with parent
       return(ind_names[match(rn_sub, parent_rownm)])
     }
-
-    warning(
-      "`ind_names` provided but could not be reliably aligned; using default sample names."
-    )
     TRUE
   }
 
@@ -262,8 +260,8 @@ cyt_splsda <- function(
         model,
         comp.predicted = min(2, ncol(model$variates$X)),
         dist = "max.dist",
-        xlim = NULL,
-        ylim = NULL,
+        xlim = c(-15, 15),
+        ylim = c(-15, 15),
         resolution = 300
       )
     }
@@ -277,7 +275,10 @@ cyt_splsda <- function(
       title = title,
       legend.title = group_col,
       ellipse = isTRUE(ellipse),
-      background = bg_obj
+      background = bg_obj,
+      size.xlabel = rel(1 * font_scale),
+      size.ylabel = rel(1 * font_scale),
+      size.axis = rel(1 * font_scale)
     )
 
     # Key rule: labels OR shapes, never both
@@ -354,11 +355,6 @@ cyt_splsda <- function(
       nrow(data),
       rownames(data)
     )
-    if ((isTRUE(lab_res) || is.character(lab_res)) && !is.null(pch_values)) {
-      message(
-        "`ind_names` is TRUE/character; ignoring `pch_values` for plotIndiv (labels and shapes are mutually exclusive)."
-      )
-    }
 
     indiv_plot <- .record_plot(.plot_indiv(
       mdl,
@@ -488,7 +484,8 @@ cyt_splsda <- function(
             )
           ) +
           ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
-          ggplot2::theme_minimal()
+          ggplot2::theme_minimal() +
+          theme(text = element_text(size = 11 * font_scale))
       } else if (identical(cv_opt, "mfold")) {
         set.seed(123)
         folds_safe <- max(2, min(fold_num, nrow(X)))
@@ -523,7 +520,8 @@ cyt_splsda <- function(
             )
           ) +
           ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
-          ggplot2::theme_minimal()
+          ggplot2::theme_minimal() +
+          theme(text = element_text(size = 11 * font_scale))
       }
     }
 
@@ -538,9 +536,11 @@ cyt_splsda <- function(
           comp = k,
           contrib = "max",
           method = "mean",
-          size.names = 1,
-          size.legend = 1,
-          size.title = 1,
+          size.name = 1 * (font_scale - 0.5),
+          size.legend = 1 * (font_scale - 0.5),
+          size.title = 1 * font_scale,
+          size.axis = 1 * font_scale,
+          size.labs = 1 * font_scale,
           legend.color = col_levels[levels(Y)],
           title = paste("Loadings Comp", k, ":", label),
           legend = TRUE
@@ -549,13 +549,19 @@ cyt_splsda <- function(
     })
 
     vip_all <- mixOmics::vip(mdl)
+    load_mat <- mdl$loadings$X
     vip_scores <- lapply(seq_len(comp_num_eff), function(k) {
+      active_k <- rownames(load_mat)[abs(load_mat[, k]) > 0]
       v <- data.frame(
         variable = rownames(vip_all),
         score = vip_all[, k],
         row.names = NULL
       )
+      if (length(active_k)) {
+        v <- v[v$variable %in% active_k, , drop = FALSE]
+      }
       v <- v[order(v$score, decreasing = TRUE), ]
+
       ggplot2::ggplot(
         v,
         ggplot2::aes(x = stats::reorder(variable, score), y = score)
@@ -567,7 +573,8 @@ cyt_splsda <- function(
           x = "Variable",
           y = "VIP"
         ) +
-        ggplot2::theme_minimal()
+        ggplot2::theme_minimal() +
+        theme(text = element_text(size = 11 * font_scale))
     })
 
     vip_indiv_plot <- vip_loadings <- vip_3D <- vip_ROC <- vip_CV <- vip_3D_interactive <- NULL
@@ -607,9 +614,11 @@ cyt_splsda <- function(
             comp = k,
             contrib = "max",
             method = "mean",
-            size.names = 1,
-            size.legend = 1,
-            size.title = 1,
+            size.name = 1 * (font_scale - 0.5),
+            size.legend = 1 * (font_scale - 0.5),
+            size.title = 1 * font_scale,
+            size.axis = 1 * font_scale,
+            size.labs = 1 * font_scale,
             legend.color = col_levels[levels(Y)],
             title = paste("Loadings (VIP>1) Comp", k, ":", label),
             legend = TRUE
@@ -716,7 +725,8 @@ cyt_splsda <- function(
               )
             ) +
             ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
-            ggplot2::theme_minimal()
+            ggplot2::theme_minimal() +
+            theme(text = element_text(size = 11 * font_scale))
         } else if (identical(cv_opt, "mfold")) {
           set.seed(123)
           folds_safe <- max(2, min(fold_num, nrow(Xvip)))
@@ -748,7 +758,8 @@ cyt_splsda <- function(
               )
             ) +
             ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
-            ggplot2::theme_minimal()
+            ggplot2::theme_minimal() +
+            theme(text = element_text(size = 11 * font_scale))
         }
       }
     }
@@ -870,9 +881,11 @@ cyt_splsda <- function(
           comp = k,
           contrib = "max",
           method = "mean",
-          size.names = 1,
-          size.legend = 1,
-          size.title = 1,
+          size.name = 1 * (font_scale - 0.5),
+          size.legend = 1 * (font_scale - 0.5),
+          size.title = 1 * font_scale,
+          size.axis = 1 * font_scale,
+          size.labs = 1 * font_scale,
           legend.color = col_levels[levels(Y)],
           title = paste("Loadings Comp", k, ":", label),
           legend = TRUE
@@ -938,10 +951,12 @@ cyt_splsda <- function(
             comp = k,
             contrib = "max",
             method = "mean",
-            size.names = 1,
-            size.legend = 1,
-            size.title = 1,
+            size.name = 1 * (font_scale - 0.5),
+            size.legend = 1 * (font_scale - 0.5),
+            size.title = 1 * font_scale,
             legend.color = col_levels[levels(Y)],
+            size.axis = 1 * font_scale,
+            size.labs = 1 * font_scale,
             title = paste("Loadings (VIP>1) Comp", k, ":", label),
             legend = TRUE
           )

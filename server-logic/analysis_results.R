@@ -324,7 +324,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 ellipse = input$splsda_ellipse,
                 ind_names = ind_names_val,
                 bg = input$splsda_bg,
-                conf_mat = input$splsda_conf_mat
+                conf_mat = input$splsda_conf_mat,
+                font_scale = input$splsda_fontsize
               )
             },
 

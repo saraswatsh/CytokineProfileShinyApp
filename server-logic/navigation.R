@@ -219,6 +219,7 @@ resetState <- function() {
   userState$splsda_multilevel = NULL
   userState$splsda_use_batch_corr = FALSE
   userState$splsda_batch_col = NULL
+  userState$splsda_fontsize = NULL
 
   # MINT sPLS-DA options
   userState$mint_splsda_group_col = NULL
@@ -369,6 +370,8 @@ shiny::observeEvent(input$new_reuse, {
     userState$splsda_use_batch_corr = FALSE
     userState$splsda_batch_col = NULL
     userState$splsda_use_multilevel = FALSE
+    userState$splsda_fontsize = NULL
+
     # MINT sPLS-DA options
     userState$mint_splsda_group_col = NULL
     userState$mint_splsda_group_col2 = NULL
@@ -1998,6 +2001,7 @@ shiny::observeEvent(input$next3, {
       userState$splsda_bg <- input$splsda_bg
       userState$splsda_conf_mat <- input$splsda_conf_mat
       userState$splsda_colors <- input$splsda_colors
+      userState$splsda_fontsize <- input$splsda_fontsize
     }
     if (
       selected_function() ==
