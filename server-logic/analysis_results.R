@@ -379,7 +379,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
               train_fraction = input$xgb_train_fraction,
               nrounds = input$xgb_nrounds,
               max_depth = input$xgb_max_depth,
-              eta = input$xgb_eta,
+              learning_rate = input$xgb_eta,
               nfold = input$xgb_nfold,
               cv = isTRUE(input$xgb_cv),
               eval_metric = input$xgb_eval_metric,

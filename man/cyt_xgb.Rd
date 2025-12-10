@@ -10,13 +10,13 @@ cyt_xgb(
   train_fraction = 0.7,
   nrounds = 500,
   max_depth = 6,
-  eta = 0.1,
+  learning_rate = 0.1,
   nfold = 5,
   cv = FALSE,
   objective = "multi:softprob",
   early_stopping_rounds = NULL,
   eval_metric = "mlogloss",
-  gamma = 0,
+  min_split_loss = 0,
   colsample_bytree = 1,
   subsample = 1,
   min_child_weight = 1,
@@ -39,7 +39,7 @@ and the rest as numerical features.}
 
 \item{max_depth}{An integer specifying the maximum depth of the trees (default is 6).}
 
-\item{eta}{A numeric value representing the learning rate (default is 0.1).}
+\item{learning_rate}{A numeric value representing the learning rate (default is 0.1).}
 
 \item{nfold}{An integer specifying the number of folds for cross-validation (default is 5).}
 
@@ -51,7 +51,7 @@ and the rest as numerical features.}
 
 \item{eval_metric}{A string specifying the evaluation metric (default is "mlogloss").}
 
-\item{gamma}{A numeric value for the minimum loss reduction required to make a further partition (default is 0).}
+\item{min_split_loss}{A numeric value for the minimum loss reduction required to make a further partition (default is 0).}
 
 \item{colsample_bytree}{A numeric value specifying the subsample ratio of columns when constructing each tree (default is 1).}
 
@@ -88,7 +88,7 @@ data_df <- dplyr::filter(data_df, Group != "ND")
 
 cyt_xgb(
   data = data_df, group_col = "Group",
-  nrounds = 500, max_depth = 4, eta = 0.05,
+  nrounds = 500, max_depth = 4, learning_rate = 0.05,
   nfold = 5, cv = FALSE, eval_metric = "mlogloss",
   early_stopping_rounds = NULL, top_n_features = 10,
   plot_roc = TRUE
