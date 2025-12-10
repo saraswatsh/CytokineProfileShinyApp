@@ -2211,7 +2211,14 @@ output$download_ui <- shiny::renderUI({
         "Enter filename for download:",
         value = "Cytokine_Analysis_Results"
       ),
-      downloadButton("download_output", "Download Results as PDF")
+      downloadButton("download_output", "Download Results as PDF"),
+      radioButtons(
+        "download_color_mode",
+        label = "Color Mode",
+        choices = list("Color" = "color", "Black & White" = "bw"),
+        selected = "color",
+        inline = TRUE
+      )
     )
   }
 })
@@ -2222,18 +2229,17 @@ output$download_output <- shiny::downloadHandler(
     paste0(input$download_filename, ".pdf")
   },
   content = function(file) {
-    pdf(file, width = 10, height = 8)
+    colormodel_arg <- if (input$download_color_mode == "bw") "gray" else "srgb"
+    pdf(file, width = 10, height = 8, colormodel = colormodel_arg)
     plots <- reactivePlots()
     # print each ggplot in order
     for (p in plots) {
       if (inherits(p, "ggplot")) {
         print(p)
       } else if (inherits(p, "pheatmap")) {
-        # <— add
         grid::grid.newpage()
         grid::grid.draw(p$gtable)
       } else if (inherits(p, "grob") || inherits(p, "gtable")) {
-        # <— add (fallback)
         grid::grid.newpage()
         grid::grid.draw(p)
       } else {
