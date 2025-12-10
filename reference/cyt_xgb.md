@@ -13,13 +13,13 @@ cyt_xgb(
   train_fraction = 0.7,
   nrounds = 500,
   max_depth = 6,
-  eta = 0.1,
+  learning_rate = 0.1,
   nfold = 5,
   cv = FALSE,
   objective = "multi:softprob",
   early_stopping_rounds = NULL,
   eval_metric = "mlogloss",
-  gamma = 0,
+  min_split_loss = 0,
   colsample_bytree = 1,
   subsample = 1,
   min_child_weight = 1,
@@ -55,7 +55,7 @@ cyt_xgb(
 
   An integer specifying the maximum depth of the trees (default is 6).
 
-- eta:
+- learning_rate:
 
   A numeric value representing the learning rate (default is 0.1).
 
@@ -83,7 +83,7 @@ cyt_xgb(
 
   A string specifying the evaluation metric (default is "mlogloss").
 
-- gamma:
+- min_split_loss:
 
   A numeric value for the minimum loss reduction required to make a
   further partition (default is 0).
@@ -162,23 +162,21 @@ data_df <- dplyr::filter(data_df, Group != "ND")
 
 cyt_xgb(
   data = data_df, group_col = "Group",
-  nrounds = 500, max_depth = 4, eta = 0.05,
+  nrounds = 500, max_depth = 4, learning_rate = 0.05,
   nfold = 5, cv = FALSE, eval_metric = "mlogloss",
   early_stopping_rounds = NULL, top_n_features = 10,
   plot_roc = TRUE
 )
-#> Warning: Parameter 'watchlist' has been renamed to 'evals'. This warning will become an error in a future version.
-#> Setting levels: control = 0, case = 1
-#> Setting direction: controls < cases
+
 #> $summary_text
-#> [1] "### XGBOOST RESULTS ###\n\n1) Group -> Numeric Label Mapping:\nPreT2D    T2D \n     0      1 \n\n2) Best Iteration from Training (based on mlogloss ):\nNULL\n\n3) Confusion Matrix on Test Set:\n          Reference\nPrediction  0  1\n         0 14 15\n         1 15 14\n\nTest Accuracy: 0.483 \n\nSensitivity: 0.4827586 \nSpecificity: 0.4827586 \n\nAUC: 0.492 \n\n4) Top 10 Important Features:\n          Feature       Gain      Cover  Frequency\n           <char>      <num>      <num>      <num>\n 1:         TNF.A 0.18457678 0.10535233 0.09103448\n 2:         IL.22 0.15117263 0.16064281 0.09885057\n 3:     IL.12.P70 0.09955532 0.12855158 0.12321839\n 4:         IL.33 0.09384522 0.08514973 0.07908046\n 5:         IL.1B 0.07717208 0.03835908 0.05149425\n 6:          IL.9 0.07554566 0.06955229 0.07080460\n 7:         IL.15 0.04705740 0.05853239 0.03310345\n 8:         IL.23 0.04440949 0.02533791 0.02988506\n 9: CCL.20.MIP.3A 0.03678675 0.05623800 0.05287356\n10:         IL.13 0.02785650 0.02633047 0.03678161"
+#> [1] "### XGBOOST RESULTS ###\n\n1) Group -> Numeric Label Mapping:\nPreT2D    T2D \n     0      1 \n\n2) Confusion Matrix on Test Set:\n          Reference\nPrediction  0  1\n         0 25  7\n         1  4 22\n\nTest Accuracy: 0.81 \n\nSensitivity: 0.862069 \nSpecificity: 0.7586207 \n\nAUC: 0.914 \n\n3) Top 10 Important Features:\n          Feature       Gain      Cover  Frequency\n           <char>      <num>      <num>      <num>\n 1:         TNF.A 0.18457678 0.10535233 0.09103448\n 2:         IL.22 0.15117263 0.16064281 0.09885057\n 3:     IL.12.P70 0.09955532 0.12855158 0.12321839\n 4:         IL.33 0.09384522 0.08514973 0.07908046\n 5:         IL.1B 0.07717208 0.03835908 0.05149425\n 6:          IL.9 0.07554566 0.06955229 0.07080460\n 7:         IL.15 0.04705740 0.05853239 0.03310345\n 8:         IL.23 0.04440949 0.02533791 0.02988506\n 9: CCL.20.MIP.3A 0.03678675 0.05623800 0.05287356\n10:         IL.13 0.02785650 0.02633047 0.03678161"
 #> 
 #> $model
 #> ##### xgb.Booster
 #> call:
 #>   xgboost::xgb.train(params = params, data = dtrain, nrounds = nrounds, 
-#>     verbose = FALSE, early_stopping_rounds = early_stopping_rounds, 
-#>     watchlist = list(train = dtrain, test = dtest))
+#>     evals = list(train = dtrain, test = dtest), verbose = FALSE, 
+#>     early_stopping_rounds = early_stopping_rounds)
 #> # of features: 25 
 #> # of rounds:  500 
 #> callbacks:
@@ -195,8 +193,8 @@ cyt_xgb(
 #> $confusion_matrix
 #>           Reference
 #> Prediction  0  1
-#>          0 14 15
-#>          1 15 14
+#>          0 25  7
+#>          1  4 22
 #> 
 #> $importance
 #>           Feature       Gain      Cover  Frequency

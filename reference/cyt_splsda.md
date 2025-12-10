@@ -26,6 +26,7 @@ cyt_splsda(
   splsda_colors = NULL,
   pch_values = NULL,
   output_file = NULL,
+  font_scale = 1,
   progress = NULL
 )
 ```
@@ -131,6 +132,11 @@ cyt_splsda(
 
   A string specifying the file name for saving the PDF output. If set to
   NULL, the function runs in interactive mode.
+
+- font_scale:
+
+  Numeric. Apply a scale to font size in the figures for better
+  readability.
 
 ## Value
 

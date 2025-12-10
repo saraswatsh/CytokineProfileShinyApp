@@ -57,13 +57,13 @@ It allows for hyperparameter tuning, cross-validation, and visualizes feature im
 <span>  train_fraction <span class="op">=</span> <span class="fl">0.7</span>,</span>
 <span>  nrounds <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  max_depth <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  eta <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  learning_rate <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  nfold <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  cv <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  objective <span class="op">=</span> <span class="st">"multi:softprob"</span>,</span>
 <span>  early_stopping_rounds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  eval_metric <span class="op">=</span> <span class="st">"mlogloss"</span>,</span>
-<span>  gamma <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  min_split_loss <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  colsample_bytree <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  subsample <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  min_child_weight <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -100,7 +100,7 @@ and the rest as numerical features.</p></dd>
 <dd><p>An integer specifying the maximum depth of the trees (default is 6).</p></dd>
 
 
-<dt id="arg-eta">eta<a class="anchor" aria-label="anchor" href="#arg-eta"></a></dt>
+<dt id="arg-learning-rate">learning_rate<a class="anchor" aria-label="anchor" href="#arg-learning-rate"></a></dt>
 <dd><p>A numeric value representing the learning rate (default is 0.1).</p></dd>
 
 
@@ -124,7 +124,7 @@ and the rest as numerical features.</p></dd>
 <dd><p>A string specifying the evaluation metric (default is "mlogloss").</p></dd>
 
 
-<dt id="arg-gamma">gamma<a class="anchor" aria-label="anchor" href="#arg-gamma"></a></dt>
+<dt id="arg-min-split-loss">min_split_loss<a class="anchor" aria-label="anchor" href="#arg-min-split-loss"></a></dt>
 <dd><p>A numeric value for the minimum loss reduction required to make a further partition (default is 0).</p></dd>
 
 
@@ -188,23 +188,21 @@ and the rest as numerical features.</p></dd>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">cyt_xgb</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">data_df</span>, group_col <span class="op">=</span> <span class="st">"Group"</span>,</span></span>
-<span class="r-in"><span>  nrounds <span class="op">=</span> <span class="fl">500</span>, max_depth <span class="op">=</span> <span class="fl">4</span>, eta <span class="op">=</span> <span class="fl">0.05</span>,</span></span>
+<span class="r-in"><span>  nrounds <span class="op">=</span> <span class="fl">500</span>, max_depth <span class="op">=</span> <span class="fl">4</span>, learning_rate <span class="op">=</span> <span class="fl">0.05</span>,</span></span>
 <span class="r-in"><span>  nfold <span class="op">=</span> <span class="fl">5</span>, cv <span class="op">=</span> <span class="cn">FALSE</span>, eval_metric <span class="op">=</span> <span class="st">"mlogloss"</span>,</span></span>
 <span class="r-in"><span>  early_stopping_rounds <span class="op">=</span> <span class="cn">NULL</span>, top_n_features <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>  plot_roc <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Parameter 'watchlist' has been renamed to 'evals'. This warning will become an error in a future version.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Setting levels: control = 0, case = 1</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Setting direction: controls &lt; cases</span>
+<span class="r-plt img"><img src="cyt_xgb-1.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $summary_text</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "### XGBOOST RESULTS ###\n\n1) Group -&gt; Numeric Label Mapping:\nPreT2D    T2D \n     0      1 \n\n2) Best Iteration from Training (based on mlogloss ):\nNULL\n\n3) Confusion Matrix on Test Set:\n          Reference\nPrediction  0  1\n         0 14 15\n         1 15 14\n\nTest Accuracy: 0.483 \n\nSensitivity: 0.4827586 \nSpecificity: 0.4827586 \n\nAUC: 0.492 \n\n4) Top 10 Important Features:\n          Feature       Gain      Cover  Frequency\n           &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;\n 1:         TNF.A 0.18457678 0.10535233 0.09103448\n 2:         IL.22 0.15117263 0.16064281 0.09885057\n 3:     IL.12.P70 0.09955532 0.12855158 0.12321839\n 4:         IL.33 0.09384522 0.08514973 0.07908046\n 5:         IL.1B 0.07717208 0.03835908 0.05149425\n 6:          IL.9 0.07554566 0.06955229 0.07080460\n 7:         IL.15 0.04705740 0.05853239 0.03310345\n 8:         IL.23 0.04440949 0.02533791 0.02988506\n 9: CCL.20.MIP.3A 0.03678675 0.05623800 0.05287356\n10:         IL.13 0.02785650 0.02633047 0.03678161"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "### XGBOOST RESULTS ###\n\n1) Group -&gt; Numeric Label Mapping:\nPreT2D    T2D \n     0      1 \n\n2) Confusion Matrix on Test Set:\n          Reference\nPrediction  0  1\n         0 25  7\n         1  4 22\n\nTest Accuracy: 0.81 \n\nSensitivity: 0.862069 \nSpecificity: 0.7586207 \n\nAUC: 0.914 \n\n3) Top 10 Important Features:\n          Feature       Gain      Cover  Frequency\n           &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;\n 1:         TNF.A 0.18457678 0.10535233 0.09103448\n 2:         IL.22 0.15117263 0.16064281 0.09885057\n 3:     IL.12.P70 0.09955532 0.12855158 0.12321839\n 4:         IL.33 0.09384522 0.08514973 0.07908046\n 5:         IL.1B 0.07717208 0.03835908 0.05149425\n 6:          IL.9 0.07554566 0.06955229 0.07080460\n 7:         IL.15 0.04705740 0.05853239 0.03310345\n 8:         IL.23 0.04440949 0.02533791 0.02988506\n 9: CCL.20.MIP.3A 0.03678675 0.05623800 0.05287356\n10:         IL.13 0.02785650 0.02633047 0.03678161"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ##### xgb.Booster</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> call:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   xgboost::xgb.train(params = params, data = dtrain, nrounds = nrounds, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     verbose = FALSE, early_stopping_rounds = early_stopping_rounds, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     watchlist = list(train = dtrain, test = dtest))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     evals = list(train = dtrain, test = dtest), verbose = FALSE, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     early_stopping_rounds = early_stopping_rounds)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> # of features: 25 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> # of rounds:  500 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> callbacks:</span>
@@ -221,8 +219,8 @@ and the rest as numerical features.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $confusion_matrix</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           Reference</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Prediction  0  1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          0 14 15</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          1 15 14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          0 25  7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          1  4 22</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           Feature       Gain      Cover  Frequency</span>
@@ -246,10 +244,10 @@ and the rest as numerical features.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $plot</span>
-<span class="r-plt img"><img src="cyt_xgb-1.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="cyt_xgb-2.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $roc_plot</span>
-<span class="r-plt img"><img src="cyt_xgb-2.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="cyt_xgb-3.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
