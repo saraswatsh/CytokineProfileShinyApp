@@ -193,42 +193,36 @@ and the rest as numerical features.</p></dd>
 <span class="r-in"><span>  early_stopping_rounds <span class="op">=</span> <span class="cn">NULL</span>, top_n_features <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>  plot_roc <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Parameter 'watchlist' has been renamed to 'evals'. This warning will become an error in a future version.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Setting levels: control = 0, case = 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Setting direction: controls &lt; cases</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>A shallow copy of this data.table was taken so that := can add or remove 1 columns by reference. At an earlier point, this data.table was copied by R (or was created manually using structure() or similar). Avoid names&lt;- and attr&lt;- which in R currently (and oddly) may copy the whole data.table. Use set* syntax instead to avoid copying: ?set, ?setnames and ?setattr. It's also not unusual for data.table-agnostic packages to produce tables affected by this issue. If this message doesn't help, please report your use case to the data.table issue tracker so the root cause can be fixed or this message improved.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $summary_text</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "### XGBOOST RESULTS ###\n\n1) Group -&gt; Numeric Label Mapping:\nPreT2D    T2D \n     0      1 \n\n2) Best Iteration from Training (based on mlogloss ):\n    iter train_mlogloss test_mlogloss\n   &lt;num&gt;          &lt;num&gt;         &lt;num&gt;\n1:   313     0.01860717     0.4529601\n\n3) Confusion Matrix on Test Set:\n          Reference\nPrediction  0  1\n         0 25  7\n         1  4 22\n\nTest Accuracy: 0.81 \n\nSensitivity: 0.862069 \nSpecificity: 0.7586207 \n\nAUC: 0.916 \n\n4) Top 10 Important Features:\n          Feature       Gain      Cover  Frequency\n           &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;\n 1:         TNF.A 0.18457678 0.10535233 0.09103448\n 2:         IL.22 0.15117263 0.16064281 0.09885057\n 3:     IL.12.P70 0.09955532 0.12855158 0.12321839\n 4:         IL.33 0.09384522 0.08514973 0.07908046\n 5:         IL.1B 0.07717208 0.03835908 0.05149425\n 6:          IL.9 0.07554566 0.06955229 0.07080460\n 7:         IL.15 0.04705740 0.05853239 0.03310345\n 8:         IL.23 0.04440949 0.02533791 0.02988506\n 9: CCL.20.MIP.3A 0.03678675 0.05623800 0.05287356\n10:         IL.13 0.02785650 0.02633047 0.03678161"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "### XGBOOST RESULTS ###\n\n1) Group -&gt; Numeric Label Mapping:\nPreT2D    T2D \n     0      1 \n\n2) Best Iteration from Training (based on mlogloss ):\nNULL\n\n3) Confusion Matrix on Test Set:\n          Reference\nPrediction  0  1\n         0 14 15\n         1 15 14\n\nTest Accuracy: 0.483 \n\nSensitivity: 0.4827586 \nSpecificity: 0.4827586 \n\nAUC: 0.492 \n\n4) Top 10 Important Features:\n          Feature       Gain      Cover  Frequency\n           &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;\n 1:         TNF.A 0.18457678 0.10535233 0.09103448\n 2:         IL.22 0.15117263 0.16064281 0.09885057\n 3:     IL.12.P70 0.09955532 0.12855158 0.12321839\n 4:         IL.33 0.09384522 0.08514973 0.07908046\n 5:         IL.1B 0.07717208 0.03835908 0.05149425\n 6:          IL.9 0.07554566 0.06955229 0.07080460\n 7:         IL.15 0.04705740 0.05853239 0.03310345\n 8:         IL.23 0.04440949 0.02533791 0.02988506\n 9: CCL.20.MIP.3A 0.03678675 0.05623800 0.05287356\n10:         IL.13 0.02785650 0.02633047 0.03678161"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ##### xgb.Booster</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> raw: 967.1 Kb </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> call:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   xgboost::xgb.train(params = params, data = dtrain, nrounds = nrounds, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     watchlist = list(train = dtrain, test = dtest), verbose = FALSE, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     early_stopping_rounds = early_stopping_rounds)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> params (as set within xgb.train):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   objective = "multi:softprob", eval_metric = "mlogloss", num_class = "2", max_depth = "4", eta = "0.05", gamma = "0", colsample_bytree = "1", subsample = "1", min_child_weight = "1", validate_parameters = "TRUE"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> xgb.attributes:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   niter</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> callbacks:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   cb.evaluation.log()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     verbose = FALSE, early_stopping_rounds = early_stopping_rounds, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     watchlist = list(train = dtrain, test = dtest))</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> # of features: 25 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> niter: 500</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nfeatures : 25 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> # of rounds:  500 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> callbacks:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    evaluation_log </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> evaluation_log:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   iter train_mlogloss test_mlogloss</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  &lt;num&gt;          &lt;num&gt;         &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  &lt;int&gt;          &lt;num&gt;         &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      1     0.66160263     0.6754284</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      2     0.63290945     0.6599301</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    ---            ---           ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    499     0.01423204     0.4552888</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    500     0.01421502     0.4553051</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    499     0.01423204     0.4264843</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    500     0.01421502     0.4263731</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $confusion_matrix</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           Reference</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Prediction  0  1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          0 25  7</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          1  4 22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          0 14 15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          1 15 14</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           Feature       Gain      Cover  Frequency</span>
@@ -269,7 +263,7 @@ and the rest as numerical features.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
