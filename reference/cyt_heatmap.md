@@ -39,6 +39,10 @@ cyt_heatmap(
   or columns. One of "auto" (automatically determine based on length),
   "row", or "col". Default is "auto".
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 A pheatmap object representing the generated heatmap.

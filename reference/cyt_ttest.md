@@ -33,6 +33,10 @@ cyt_ttest(data, scale = NULL, format_output = FALSE, progress = NULL)
   Logical. If TRUE, returns the results as a tidy data frame. Default is
   FALSE.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 If `format_output` is FALSE, returns a list of p-values (named by

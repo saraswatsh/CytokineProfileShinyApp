@@ -123,8 +123,7 @@ visualizing key patterns.
 - [`cyt_errbp()`](https://shinyinfo.cytokineprofile.org/reference/cyt_errbp.md)
   : Error Bar Plot with P-value and Effect Size Annotations
 - [`cyt_skku()`](https://shinyinfo.cytokineprofile.org/reference/cyt_skku.md)
-  : Distribution of the Data Set Shown by Skewness and Kurtosis
-  (Revised).
+  : Distribution of the Data Set Shown by Skewness and Kurtosis.
 - [`cyt_volc()`](https://shinyinfo.cytokineprofile.org/reference/cyt_volc.md)
   : Volcano Plot.
 - [`cyt_heatmap()`](https://shinyinfo.cytokineprofile.org/reference/cyt_heatmap.md)

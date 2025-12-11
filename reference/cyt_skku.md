@@ -1,4 +1,4 @@
-# Distribution of the Data Set Shown by Skewness and Kurtosis (Revised).
+# Distribution of the Data Set Shown by Skewness and Kurtosis.
 
 This function computes summary statistics (sample size, mean, standard
 error, skewness, kurtosis) for each numeric measurement column in a data
@@ -46,6 +46,10 @@ cyt_skku(
 
   Logical. If TRUE, prints and returns the summary statistics for log2
   data.
+
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
 
 ## Value
 

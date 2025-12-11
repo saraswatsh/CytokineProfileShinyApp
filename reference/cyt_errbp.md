@@ -68,6 +68,10 @@ cyt_errbp(
 
   Character. The plot title.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 - log2:
 
   Logical. If `TRUE`, transforms numeric variables using log2

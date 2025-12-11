@@ -78,6 +78,10 @@ cyt_rf(
   PDF file. If NULL (default), the function returns a list of objects
   for interactive display.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 A list containing:

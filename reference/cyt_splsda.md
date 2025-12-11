@@ -138,6 +138,10 @@ cyt_splsda(
   Numeric. Apply a scale to font size in the figures for better
   readability.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 In Download mode (output_file not NULL), a PDF file is written and the

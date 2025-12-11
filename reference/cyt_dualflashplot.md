@@ -62,6 +62,10 @@ cyt_dualflashplot(
   Optional. A file path to save the plot as a PDF (or PNG if extension
   is .png). If NULL (default), the function returns a ggplot object.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 If output_file is NULL, a ggplot object representing the dual-flash plot

@@ -50,6 +50,10 @@ cyt_bp2(
 
   An optional numeric vector defining the y-axis limits for the plots.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 If `output_file` is NULL, returns a list of ggplot objects (named as

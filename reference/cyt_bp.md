@@ -50,6 +50,10 @@ cyt_bp(
   An optional character string. If set to "log2", numeric columns are
   log2-transformed.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 If `output_file` is NULL, a list of ggplot2 objects; otherwise, writes a

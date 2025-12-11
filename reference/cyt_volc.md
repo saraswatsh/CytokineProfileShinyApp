@@ -61,6 +61,10 @@ cyt_volc(
   Optional. A file path to save the plot. If NULL (default), the
   function returns a list of ggplot objects.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 If output_file is NULL, a list of ggplot objects (one per pair) is

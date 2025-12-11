@@ -75,8 +75,7 @@ cyt_pca(
 
 - progress:
 
-  Optional. A progress object (e.g., from shiny::Progress) to report
-  progress.
+  Optional. A Shiny `Progress` object for reporting progress updates.
 
 ## Value
 

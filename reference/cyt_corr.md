@@ -54,6 +54,10 @@ cyt_corr(
   Logical. If `TRUE`, the function will generate and return a
   correlation plot.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 A list containing:

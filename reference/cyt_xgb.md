@@ -118,6 +118,10 @@ cyt_xgb(
   Optional. A file path to save the outputs as a PDF file. If provided,
   outputs are written to the file and results are returned invisibly.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 A list containing:

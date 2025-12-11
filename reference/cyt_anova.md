@@ -28,6 +28,10 @@ cyt_anova(data, format_output = FALSE, progress = NULL)
   Logical. If TRUE, returns the results as a tidy data frame instead of
   a list. Default is FALSE.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 If `format_output` is FALSE (default), a list of adjusted p-values from

@@ -94,6 +94,10 @@ cyt_plsr(
 
   Optional. A file path to save the plots as a PDF.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 A list containing:

@@ -95,6 +95,10 @@ cyt_mint_splsda(
   Logical. Whether to compute and plot the ROC curve for the model.
   Default is `FALSE`.
 
+- progress:
+
+  Optional. A Shiny `Progress` object for reporting progress updates.
+
 ## Value
 
 In Download mode, a PDF file is written. In Interactive mode, a named
@@ -130,21 +134,21 @@ cyt_mint_splsda(data_df, group_col = "Group",
 #> NULL
 #> 
 #> $partial_loadings_plots
-#> $partial_loadings_plots$`Comp 1 — batch_col: 1`
+#> $partial_loadings_plots$`Comp 1 - batch_col: 1`
 #> 
-#> $partial_loadings_plots$`Comp 1 — batch_col: 2`
+#> $partial_loadings_plots$`Comp 1 - batch_col: 2`
 #> 
-#> $partial_loadings_plots$`Comp 1 — batch_col: 3`
+#> $partial_loadings_plots$`Comp 1 - batch_col: 3`
 #> 
-#> $partial_loadings_plots$`Comp 1 — batch_col: 4`
+#> $partial_loadings_plots$`Comp 1 - batch_col: 4`
 #> 
-#> $partial_loadings_plots$`Comp 2 — batch_col: 1`
+#> $partial_loadings_plots$`Comp 2 - batch_col: 1`
 #> 
-#> $partial_loadings_plots$`Comp 2 — batch_col: 2`
+#> $partial_loadings_plots$`Comp 2 - batch_col: 2`
 #> 
-#> $partial_loadings_plots$`Comp 2 — batch_col: 3`
+#> $partial_loadings_plots$`Comp 2 - batch_col: 3`
 #> 
-#> $partial_loadings_plots$`Comp 2 — batch_col: 4`
+#> $partial_loadings_plots$`Comp 2 - batch_col: 4`
 #> 
 #> 
 #> $roc_plot
