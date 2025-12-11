@@ -10,13 +10,22 @@ ui <- shiny::fluidPage(
       href = "logo.png"
     )
   ),
-  # 1) Apply theme (we’ll wire the selector in the header below)
-  theme = bs_theme(bootswatch = "darkly"),
+  # 1) Apply theme
+  theme = bs_theme(),
 
-  # 2) Global CSS to tighten up spacing (optional)
+  # 2) Global CSS to tighten up spacing
   tags$head(
     tags$style(HTML(
       "
+  // On load and whenever the OS theme changes, update input$system_theme
+  function updateSystemTheme(e) {
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    Shiny.setInputValue('system_theme', dark ? 'darkly' : 'flatly', {priority: 'event'});
+  }
+  // initial detection
+  updateSystemTheme();
+  // watch for changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateSystemTheme);
     /* ── App header padding & bottom border ───────────────────────── */
     .app-header {
       padding: 1rem;
@@ -241,7 +250,7 @@ ui <- shiny::fluidPage(
         selectInput(
           "theme_choice",
           NULL,
-          choices = c("Light" = "flatly", "Dark" = "darkly"),
+          choices = c("Auto" = "auto", "Light" = "flatly", "Dark" = "darkly"),
           selected = "Light",
           width = "100px"
         ),

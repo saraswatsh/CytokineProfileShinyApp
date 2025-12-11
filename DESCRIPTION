@@ -38,9 +38,9 @@ Imports:
     pheatmap,
     e1071, 
     ggplot2,
+    ggrepel,
     ggcorrplot,
     gridExtra,
-    Ckmeans.1d.dp,
     reshape2, 
     recipes, 
     impute,
@@ -55,6 +55,7 @@ Suggests:
     knitr,
     rmarkdown,
     devtools,
+    Ckmeans.1d.dp,
     learnr
 NeedsCompilation: no
 License: GPL (>= 2)
