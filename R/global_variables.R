@@ -36,6 +36,11 @@ if (getRversion() >= "4.3") {
     "es_label",
     "es_text_y",
     "p_label",
-    "p_text_y"
+    "p_text_y",
+    "group",
+    "Observed",
+    "Predicted",
+    "Fitted",
+    "Residuals"
   ))
 }

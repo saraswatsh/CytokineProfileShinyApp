@@ -16,6 +16,8 @@ a Mann-Whitney U test is performed.}
 
 \item{format_output}{Logical. If TRUE, returns the results as a tidy data frame.
 Default is FALSE.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 If \code{format_output} is FALSE, returns a list of p-values (named by Outcome and Categorical variable).

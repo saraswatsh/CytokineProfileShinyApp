@@ -89,6 +89,8 @@ to be used in the plots.}
 If set to NULL, the function runs in interactive mode.}
 
 \item{font_scale}{Numeric. Apply a scale to font size in the figures for better readability.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 In Download mode (output_file not NULL), a PDF file is written and the function

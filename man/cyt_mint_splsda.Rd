@@ -61,6 +61,8 @@ transformation is applied to the continuous variables. Default is \code{NULL}.}
 
 \item{roc}{Logical. Whether to compute and plot the ROC curve for the model.
 Default is \code{FALSE}.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 In Download mode, a PDF file is written. In Interactive mode, a named list

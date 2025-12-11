@@ -1,4 +1,4 @@
-#' Distribution of the Data Set Shown by Skewness and Kurtosis (Revised).
+#' Distribution of the Data Set Shown by Skewness and Kurtosis.
 #'
 #' This function computes summary statistics (sample size, mean, standard error, skewness, kurtosis)
 #' for each numeric measurement column in a data set, optionally grouped by columns in `group_cols`.
@@ -13,7 +13,7 @@
 #' If NULL (default), the function returns a list of two ggplot objects.
 #' @param print_res_raw Logical. If TRUE, prints and returns the summary statistics for raw data.
 #' @param print_res_log Logical. If TRUE, prints and returns the summary statistics for log2 data.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If output_file is NULL, returns a list with:
 #'   - p_skew: Overlayed histogram of raw and log2 skewness.
 #'   - p_kurt: Overlayed histogram of raw and log2 kurtosis.
@@ -42,11 +42,13 @@ cyt_skku <- function(
   print_res_log = FALSE,
   progress = NULL
 ) {
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Loading libraries and data")
+  }
 
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Determining grouping and measurement columns")
+  }
   if (!is.null(group_cols)) {
     measure_cols <- setdiff(names(data), group_cols)
     grouping <- apply(
@@ -85,8 +87,9 @@ cyt_skku <- function(
     )
   }
 
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.1, detail = "Computing metrics for raw and log2 data")
+  }
   raw_list <- list()
   log_list <- list()
   for (col in measure_cols) {
@@ -120,7 +123,9 @@ cyt_skku <- function(
     )
   )
 
-  if (!is.null(progress)) progress$inc(0.1, detail = "Generating histograms")
+  if (!is.null(progress)) {
+    progress$inc(0.1, detail = "Generating histograms")
+  }
   p_skew <- ggplot2::ggplot(df_skew, aes(x = value, fill = Transformation)) +
     ggplot2::geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
     ggplot2::labs(x = "Skewness", title = "Distribution of Skewness") +
@@ -131,20 +136,28 @@ cyt_skku <- function(
     ggplot2::labs(x = "Kurtosis", title = "Distribution of Kurtosis") +
     ggplot2::theme_minimal()
 
-  if (print_res_raw) print(raw_results)
-  if (print_res_log) print(log_results)
+  if (print_res_raw) {
+    print(raw_results)
+  }
+  if (print_res_log) {
+    print(log_results)
+  }
 
   if (!is.null(output_file)) {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Saving histograms to PDF")
+    }
     grDevices::pdf(file = output_file, width = 10, height = 5)
     gridExtra::grid.arrange(p_skew, p_kurt, ncol = 2)
     grDevices::dev.off()
-    if (!is.null(progress)) progress$inc(0.05, detail = "PDF saved")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "PDF saved")
+    }
     return(invisible(NULL))
   } else {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Returning histogram plots")
+    }
     return(list(
       p_skew = p_skew,
       p_kurt = p_kurt,

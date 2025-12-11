@@ -16,7 +16,7 @@
 #' @param top_labels An integer specifying the number of top variables (based on absolute SSMD) to label in the plot (default = 15).
 #' @param output_file Optional. A file path to save the plot as a PDF (or PNG if extension is .png). If NULL (default),
 #' the function returns a ggplot object.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If output_file is NULL, a ggplot object representing the dual-flash plot is returned;
 #' otherwise, the plot is saved to the specified file and the function returns NULL invisibly.
 #'
@@ -48,13 +48,16 @@ cyt_dualflashplot <- function(
   output_file = NULL,
   progress = NULL
 ) {
-  if (!is.null(progress)) progress$inc(0.05, detail = "Validating input data")
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Validating input data")
+  }
   if (!is.data.frame(data)) {
     stop("Input must be a data frame.")
   }
 
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Reshaping data to long format")
+  }
   data_long <- data %>%
     tidyr::pivot_longer(
       cols = -all_of(group_var),
@@ -62,8 +65,9 @@ cyt_dualflashplot <- function(
       values_to = "level"
     )
 
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.1, detail = "Calculating summary statistics")
+  }
   stats <- data_long %>%
     dplyr::group_by(cytokine, .data[[group_var]]) %>%
     dplyr::summarise(
@@ -93,11 +97,14 @@ cyt_dualflashplot <- function(
       Significant = (abs(ssmd) >= ssmd_thresh) & (abs(log2FC) >= log2fc_thresh)
     )
 
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.1, detail = "Selecting top variables for labels")
+  }
   top_stats <- dplyr::top_n(stats, n = top_labels, wt = abs(ssmd))
 
-  if (!is.null(progress)) progress$inc(0.1, detail = "Generating plot")
+  if (!is.null(progress)) {
+    progress$inc(0.1, detail = "Generating plot")
+  }
   p <- ggplot2::ggplot(stats, aes(x = log2FC, y = ssmd, label = cytokine)) +
     ggplot2::geom_point(aes(color = SSMD_Category, shape = Significant)) +
     ggrepel::geom_text_repel(
@@ -121,7 +128,9 @@ cyt_dualflashplot <- function(
     ggplot2::theme_minimal()
 
   if (!is.null(output_file)) {
-    if (!is.null(progress)) progress$inc(0.1, detail = "Saving plot to file")
+    if (!is.null(progress)) {
+      progress$inc(0.1, detail = "Saving plot to file")
+    }
     ext <- tools::file_ext(output_file)
     if (tolower(ext) == "pdf") {
       grDevices::pdf(file = output_file, width = 7, height = 5)
@@ -143,10 +152,14 @@ cyt_dualflashplot <- function(
       print(p)
       grDevices::dev.off()
     }
-    if (!is.null(progress)) progress$inc(0.05, detail = "Plot saved")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Plot saved")
+    }
     return(invisible(NULL))
   } else {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Returning plot")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Returning plot")
+    }
     return(list(plot = p, stats = top_stats))
   }
 }

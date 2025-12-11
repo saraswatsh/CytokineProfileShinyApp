@@ -26,6 +26,8 @@ Defaults to c(1, 1). (Ignored when returning ggplot objects.)}
 When set to "log2", numeric columns are transformed using the log2 function.}
 
 \item{y_lim}{An optional numeric vector defining the y-axis limits for the plots.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 If \code{output_file} is NULL, returns a list of ggplot objects (named as "num_vs_factor" for each combination).

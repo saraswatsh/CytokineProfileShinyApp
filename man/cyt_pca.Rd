@@ -40,7 +40,7 @@ If one is missing, the provided column is used for both.}
 
 \item{output_file}{Optional. A file name for the PDF output. If NULL, interactive mode is assumed.}
 
-\item{progress}{Optional. A progress object (e.g., from shiny::Progress) to report progress.}
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 In PDF mode, a PDF is created and the function returns NULL (invisibly).

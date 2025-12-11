@@ -64,6 +64,8 @@ and the rest as numerical features.}
 \item{plot_roc}{A logical value indicating whether to plot the ROC curve and calculate the AUC for binary classification (default is FALSE).}
 
 \item{output_file}{Optional. A file path to save the outputs as a PDF file. If provided, outputs are written to the file and results are returned invisibly.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 A list containing:

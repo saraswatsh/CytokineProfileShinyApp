@@ -39,6 +39,8 @@ or "Group" otherwise.}
 
 \item{title}{Character. The plot title.}
 
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
+
 \item{log2}{Logical. If \code{TRUE}, transforms numeric variables using log2 transformation. If
 \code{FALSE}, uses raw values from provided data. Default is \code{FALSE}.}
 

@@ -20,6 +20,8 @@ cyt_heatmap(
 \item{annotation_col}{Optional. A character string specifying a column name in \code{data} or a vector of annotations matching the number of rows or columns in \code{data} for adding colored annotations to the heatmap.}
 
 \item{annotation_side}{Character. Specifies whether the annotation should be applied to rows or columns. One of "auto" (automatically determine based on length), "row", or "col". Default is "auto".}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 A pheatmap object representing the generated heatmap.

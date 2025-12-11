@@ -36,6 +36,8 @@ Default is 10.}
 
 \item{output_file}{Optional. A file path to save the plot. If NULL (default), the function
 returns a list of ggplot objects.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 If output_file is NULL, a list of ggplot objects (one per pair) is returned.

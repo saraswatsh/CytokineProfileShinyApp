@@ -14,7 +14,7 @@
 #'   a Mann-Whitney U test is performed.
 #' @param format_output Logical. If TRUE, returns the results as a tidy data frame.
 #'   Default is FALSE.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If \code{format_output} is FALSE, returns a list of p-values (named by Outcome and Categorical variable).
 #'   If TRUE, returns a data frame with columns "Outcome", "Categorical", "Comparison", and "P_value".
 #'

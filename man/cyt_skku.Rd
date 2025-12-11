@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyt_skku.R
 \name{cyt_skku}
 \alias{cyt_skku}
-\title{Distribution of the Data Set Shown by Skewness and Kurtosis (Revised).}
+\title{Distribution of the Data Set Shown by Skewness and Kurtosis.}
 \usage{
 cyt_skku(
   data,
@@ -25,6 +25,8 @@ If NULL (default), the function returns a list of two ggplot objects.}
 \item{print_res_raw}{Logical. If TRUE, prints and returns the summary statistics for raw data.}
 
 \item{print_res_log}{Logical. If TRUE, prints and returns the summary statistics for log2 data.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 If output_file is NULL, returns a list with:

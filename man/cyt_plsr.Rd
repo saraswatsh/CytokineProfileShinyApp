@@ -56,6 +56,8 @@ score plot.}
 \item{pls_colors}{A character vector of colors to use for grouping.}
 
 \item{output_file}{Optional. A file path to save the plots as a PDF.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 A list containing:

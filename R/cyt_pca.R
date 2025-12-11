@@ -20,7 +20,7 @@
 #' @param scale Character. If "log2", a log2 transformation is applied (excluding factor columns).
 #' @param pch_values A vector of plotting symbols.
 #' @param style Character. If "3d" (case insensitive) and comp_num equals 3, a 3D scatter plot is generated.
-#' @param progress Optional. A progress object (e.g., from shiny::Progress) to report progress.
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #'
 #' @return In PDF mode, a PDF is created and the function returns NULL (invisibly).
 #'         In interactive mode, a (possibly nested) list of recorded plots is returned.

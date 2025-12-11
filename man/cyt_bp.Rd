@@ -28,6 +28,8 @@ output. (Not used when returning ggplot2 objects.)}
 \item{y_lim}{An optional numeric vector defining the y-axis limits for the plots.}
 
 \item{scale}{An optional character string. If set to "log2", numeric columns are log2-transformed.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 If \code{output_file} is NULL, a list of ggplot2 objects; otherwise, writes a PDF and returns NULL.

@@ -13,7 +13,7 @@
 #' output. (Not used when returning ggplot2 objects.)
 #' @param y_lim An optional numeric vector defining the y-axis limits for the plots.
 #' @param scale An optional character string. If set to "log2", numeric columns are log2-transformed.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If \code{output_file} is NULL, a list of ggplot2 objects; otherwise, writes a PDF and returns NULL.
 #'
 #' @examples
@@ -33,13 +33,15 @@ cyt_bp <- function(
   scale = NULL,
   progress = NULL
 ) {
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Converting data to data frame")
+  }
   data <- as.data.frame(data)
 
   if (!is.null(scale) && scale == "log2") {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Applying log2 transformation")
+    }
     numeric_cols <- sapply(data, is.numeric)
     for (col in names(data)[numeric_cols]) {
       data[[col]][data[[col]] <= 0] <- NA
@@ -55,7 +57,9 @@ cyt_bp <- function(
   n_chunks <- ceiling(n_col / bin_size)
   plot_list <- list()
 
-  if (!is.null(progress)) progress$inc(0.05, detail = "Generating boxplots")
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Generating boxplots")
+  }
   for (i in seq_len(n_chunks)) {
     start_idx <- (i - 1) * bin_size + 1
     end_idx <- min(i * bin_size, n_col)
@@ -87,12 +91,15 @@ cyt_bp <- function(
       p <- p + ggplot2::coord_cartesian(ylim = y_lim)
     }
     plot_list[[i]] <- p
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05 / n_chunks, detail = paste("Chunk", i, "of", n_chunks))
+    }
   }
 
   if (!is.null(output_file)) {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Saving plots to PDF")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Saving plots to PDF")
+    }
     grDevices::pdf(file = output_file, width = 7, height = 5)
     old_par <- graphics::par(no.readonly = TRUE)
     on.exit(graphics::par(old_par), add = TRUE)
@@ -100,11 +107,14 @@ cyt_bp <- function(
       print(p)
     }
     grDevices::dev.off()
-    if (!is.null(progress)) progress$inc(0.05, detail = "PDF saved")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "PDF saved")
+    }
     return(invisible(NULL))
   } else {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Returning list of plots")
+    }
     return(plot_list)
   }
 }

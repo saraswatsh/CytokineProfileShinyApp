@@ -23,7 +23,7 @@
 #' @param top_n_features An integer specifying the number of top features to display in the importance plot (default is 10).
 #' @param plot_roc A logical value indicating whether to plot the ROC curve and calculate the AUC for binary classification (default is FALSE).
 #' @param output_file Optional. A file path to save the outputs as a PDF file. If provided, outputs are written to the file and results are returned invisibly.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return A list containing:
 #'   \item{summary_text}{A character string summarizing key results (interactive mode only).}
 #'   \item{model}{The trained XGBoost model.}

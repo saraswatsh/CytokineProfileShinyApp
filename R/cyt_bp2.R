@@ -14,7 +14,7 @@
 #' @param scale Transformation option for continuous variables. Options are NULL (default) and "log2".
 #'   When set to "log2", numeric columns are transformed using the log2 function.
 #' @param y_lim An optional numeric vector defining the y-axis limits for the plots.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If `output_file` is NULL, returns a list of ggplot objects (named as "num_vs_factor" for each combination).
 #'   If `output_file` is provided, a PDF file is created and the function returns NULL invisibly.
 #'
@@ -35,29 +35,35 @@ cyt_bp2 <- function(
   y_lim = NULL,
   progress = NULL
 ) {
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Converting data to data frame")
+  }
   data <- as.data.frame(data)
   char_cols <- sapply(data, is.character)
   if (any(char_cols)) {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Converting characters to factors")
+    }
     data[char_cols] <- lapply(data[char_cols], as.factor)
   }
 
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Identifying numeric and factor columns")
+  }
   num_cols <- names(data)[sapply(data, is.numeric)]
   fac_cols <- names(data)[sapply(data, function(x) is.factor(x))]
 
-  if (length(num_cols) == 0)
+  if (length(num_cols) == 0) {
     stop("Data must contain at least one numeric column")
-  if (length(fac_cols) == 0)
+  }
+  if (length(fac_cols) == 0) {
     stop("Data must contain at least one factor column")
+  }
 
   if (!is.null(scale) && scale == "log2") {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Applying log2 transformation")
+    }
     data[num_cols] <- lapply(data[num_cols], function(x) {
       x[x <= 0] <- NA
       log2(x)
@@ -65,7 +71,9 @@ cyt_bp2 <- function(
   }
 
   plot_list <- list()
-  if (!is.null(progress)) progress$inc(0.05, detail = "Generating boxplots")
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Generating boxplots")
+  }
   for (num in num_cols) {
     for (fac in fac_cols) {
       plot_data <- data %>%
@@ -88,13 +96,16 @@ cyt_bp2 <- function(
 
       plot_name <- paste(num, "vs", fac, sep = "_")
       plot_list[[plot_name]] <- p
-      if (!is.null(progress))
+      if (!is.null(progress)) {
         progress$inc(0.01, detail = paste("Processed", plot_name))
+      }
     }
   }
 
   if (!is.null(output_file)) {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Saving plots to PDF")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Saving plots to PDF")
+    }
     grDevices::pdf(file = output_file, width = 7, height = 5)
     old_par <- graphics::par(no.readonly = TRUE)
     on.exit(graphics::par(old_par), add = TRUE)
@@ -102,11 +113,14 @@ cyt_bp2 <- function(
       print(p)
     }
     grDevices::dev.off()
-    if (!is.null(progress)) progress$inc(0.05, detail = "PDF saved")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "PDF saved")
+    }
     return(invisible(NULL))
   } else {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Returning list of plots")
+    }
     return(plot_list)
   }
 }

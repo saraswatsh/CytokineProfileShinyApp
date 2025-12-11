@@ -17,7 +17,7 @@
 #' @param run_rfcv A logical value indicating whether to run Random Forest cross-validation for feature selection (default is TRUE).
 #' @param output_file Optional. A file path to save the outputs (plots and summaries) as a PDF file.
 #' If NULL (default), the function returns a list of objects for interactive display.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return A list containing:
 #' \itemize{
 #'   \item \code{model}: the trained Random Forest model,
@@ -62,13 +62,15 @@ cyt_rf <- function(
   progress = NULL
 ) {
   # Start progress
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$set(message = "Starting Random Forest Analysis", value = 0)
+  }
 
   # Ensure the grouping variable is a factor
   data[[group_col]] <- as.factor(data[[group_col]])
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Converting grouping variable to factor")
+  }
 
   # Split data into training and test sets
   set.seed(123) # for reproducibility
@@ -79,8 +81,9 @@ cyt_rf <- function(
   )
   train_data <- data[train_indices, ]
   test_data <- data[-train_indices, ]
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.1, detail = "Splitting data into training and test sets")
+  }
 
   # Prepare formula for the random forest model
   predictors <- setdiff(colnames(data), group_col)
@@ -89,7 +92,9 @@ cyt_rf <- function(
     "~",
     paste(predictors, collapse = "+")
   ))
-  if (!is.null(progress)) progress$inc(0.05, detail = "Preparing model formula")
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Preparing model formula")
+  }
 
   # Fit the Random Forest model on training data
   rf_model <- randomForest::randomForest(
@@ -99,22 +104,25 @@ cyt_rf <- function(
     mtry = mtry,
     importance = TRUE
   )
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.1, detail = "Fitting Random Forest model")
+  }
 
   # Predict on training set for confusion matrix
   train_pred <- stats::predict(rf_model, newdata = train_data)
   train_conf_mat <- caret::confusionMatrix(train_pred, train_data[[group_col]])
   accuracy_train <- train_conf_mat$overall["Accuracy"]
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Evaluating training set performance")
+  }
 
   # Predict on the test set
   test_pred <- stats::predict(rf_model, newdata = test_data)
   test_conf_mat <- caret::confusionMatrix(test_pred, test_data[[group_col]])
   accuracy_test <- test_conf_mat$overall["Accuracy"]
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Evaluating test set performance")
+  }
 
   # Build ROC plot if binary classification
   roc_plot <- NULL
@@ -161,8 +169,9 @@ cyt_rf <- function(
     ggplot2::xlab("Features") +
     ggplot2::ylab("Importance (Gini Index)") +
     ggplot2::theme_minimal()
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Generating variable importance plot")
+  }
 
   # Run RFCV if requested
   rfcv_result <- NULL
@@ -188,8 +197,9 @@ cyt_rf <- function(
       ggplot2::xlab("Number of Variables") +
       ggplot2::ylab("Cross-Validation Error") +
       ggplot2::theme_minimal()
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Performing Random Forest cross-validation")
+    }
   }
 
   # Return interactive results or write PDF if output_file is provided
@@ -263,9 +273,13 @@ cyt_rf <- function(
     cat("\nTest Confusion Matrix:\n")
     print(test_conf_mat$table)
 
-    if (!is.null(roc_plot)) print(roc_plot)
+    if (!is.null(roc_plot)) {
+      print(roc_plot)
+    }
     print(vip_plot)
-    if (!is.null(rfcv_plot)) print(rfcv_plot)
+    if (!is.null(rfcv_plot)) {
+      print(rfcv_plot)
+    }
     grDevices::dev.off()
     return(invisible(NULL))
   }

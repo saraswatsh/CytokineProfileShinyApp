@@ -13,6 +13,8 @@ will be used as continuous outcomes.}
 
 \item{format_output}{Logical. If TRUE, returns the results as a tidy data frame instead of a list.
 Default is FALSE.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 If \code{format_output} is FALSE (default), a list of adjusted p-values from Tukey's HSD tests

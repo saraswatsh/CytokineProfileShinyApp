@@ -21,7 +21,7 @@
 #'                   Default is 10.
 #' @param output_file Optional. A file path to save the plot. If NULL (default), the function
 #'                    returns a list of ggplot objects.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If output_file is NULL, a list of ggplot objects (one per pair) is returned.
 #'         If output_file is provided, the plot(s) are written to that file and the function returns NULL invisibly.
 #'
@@ -47,7 +47,9 @@ cyt_volc <- function(
   output_file = NULL,
   progress = NULL
 ) {
-  if (!is.null(progress)) progress$inc(0.05, detail = "Validating input data")
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Validating input data")
+  }
   if (!is.data.frame(data)) {
     stop("Input data must be a data frame.")
   }
@@ -55,22 +57,26 @@ cyt_volc <- function(
   if (!is.null(cond1) && nzchar(cond1) && !is.null(cond2) && nzchar(cond2)) {
     condition_pairs <- list(c(cond1, cond2))
   } else {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Generating condition pairs")
+    }
     conditions <- unique(data[[group_col]])
     condition_pairs <- utils::combn(conditions, 2, simplify = FALSE)
   }
 
   numeric_cols <- sapply(data, is.numeric)
-  if (sum(numeric_cols) == 0) stop("No numeric columns found in data.")
+  if (sum(numeric_cols) == 0) {
+    stop("No numeric columns found in data.")
+  }
   data_numeric <- data[, numeric_cols, drop = FALSE]
 
   plot_list <- list()
   total_pairs <- length(condition_pairs)
   pair_count <- 0
 
-  if (!is.null(progress))
+  if (!is.null(progress)) {
     progress$inc(0.05, detail = "Processing condition pairs")
+  }
   for (pair in condition_pairs) {
     pair_count <- pair_count + 1
     current_cond1 <- pair[1]
@@ -90,8 +96,11 @@ cyt_volc <- function(
 
     fold_changes <- mapply(
       function(x, y) {
-        if (length(x) < 2 || length(y) < 2) NA else
+        if (length(x) < 2 || length(y) < 2) {
+          NA
+        } else {
           mean(y, na.rm = TRUE) / mean(x, na.rm = TRUE)
+        }
       },
       as.list(data_cond1[, numeric_cols, drop = FALSE]),
       as.list(data_cond2[, numeric_cols, drop = FALSE])
@@ -125,11 +134,12 @@ cyt_volc <- function(
         label = ifelse(dplyr::row_number() <= top_labels, variable, "")
       )
 
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(
         0.05,
         detail = paste("Processed pair", pair_count, "of", total_pairs)
       )
+    }
     p <- ggplot2::ggplot(plot_data, aes(x = fc_log, y = p_log, label = label)) +
       ggplot2::geom_point(aes(color = significant), size = 2) +
       ggplot2::geom_vline(
@@ -157,7 +167,9 @@ cyt_volc <- function(
   }
 
   if (!is.null(output_file)) {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Saving plots to file")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Saving plots to file")
+    }
     ext <- tools::file_ext(output_file)
     if (tolower(ext) == "pdf") {
       grDevices::pdf(file = output_file, width = 7, height = 5)
@@ -165,7 +177,9 @@ cyt_volc <- function(
         print(p)
       }
       grDevices::dev.off()
-      if (!is.null(progress)) progress$inc(0.05, detail = "File saved")
+      if (!is.null(progress)) {
+        progress$inc(0.05, detail = "File saved")
+      }
       return(invisible(NULL))
     } else if (tolower(ext) %in% c("png", "jpg", "jpeg")) {
       grDevices::png(
@@ -182,8 +196,9 @@ cyt_volc <- function(
       stop("Output file must have extension .pdf, .png, .jpg, or .jpeg")
     }
   } else {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Returning list of plots")
+    }
     return(list(plot = p, stats = plot_data[, -5]))
   }
 }

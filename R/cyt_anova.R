@@ -13,7 +13,7 @@
 #'   will be used as continuous outcomes.
 #' @param format_output Logical. If TRUE, returns the results as a tidy data frame instead of a list.
 #'   Default is FALSE.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If \code{format_output} is FALSE (default), a list of adjusted p-values from Tukey's HSD tests
 #'   for each combination of continuous outcome and categorical predictor.
 #'   If \code{format_output} is TRUE, a data frame with columns "Outcome", "Categorical", "Comparison", and "P_adj".
@@ -108,7 +108,7 @@ cyt_anova <- function(data, format_output = FALSE, progress = NULL) {
       P_adj = numeric(),
       stringsAsFactors = FALSE
     )
-    msg <- "No valid comparisons were performed. Check that your data has numeric columns and factors with 2–10 levels."
+    msg <- "No valid comparisons were performed. Check that your data has numeric columns and factors with 2-10 levels."
   }
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Done")

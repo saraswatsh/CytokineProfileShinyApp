@@ -31,6 +31,8 @@ least two levels, the function will compare the correlations between the
 first two levels of \code{group_var}.}
 
 \item{plot}{Logical. If \code{TRUE}, the function will generate and return a correlation plot.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 A list containing:

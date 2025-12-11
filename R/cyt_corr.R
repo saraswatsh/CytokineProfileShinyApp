@@ -17,7 +17,7 @@
 #'   least two levels, the function will compare the correlations between the
 #'   first two levels of `group_var`.
 #' @param plot Logical. If `TRUE`, the function will generate and return a correlation plot.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return A list containing:
 #'   \item{results}{A data frame with overall correlation results, including
 #'     variable names, correlation coefficients (`r`), p-values (`p`), sample
@@ -32,7 +32,11 @@
 #'     (difference in correlations), `z` (Fisher's z-score), `p_diff` (p-value
 #'     for the difference), and adjusted p-values (`p_diff_bonf`, `p_diff_bh`).}
 #'   \item{plot}{A correlation plot, if `plot` is `TRUE`.}
-#'
+#' @importFrom graphics legend mtext plot.new title
+#' @importFrom stats na.omit predict setNames
+#' @importFrom utils tail
+#' @import ggcorrplot
+#' @import ggplot2
 #' @export
 cyt_corr <- function(
   data,

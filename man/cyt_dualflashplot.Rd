@@ -33,6 +33,8 @@ cyt_dualflashplot(
 
 \item{output_file}{Optional. A file path to save the plot as a PDF (or PNG if extension is .png). If NULL (default),
 the function returns a ggplot object.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 If output_file is NULL, a ggplot object representing the dual-flash plot is returned;

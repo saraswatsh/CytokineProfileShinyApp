@@ -32,7 +32,7 @@
 #'   score plot.
 #' @param pls_colors A character vector of colors to use for grouping.
 #' @param output_file Optional. A file path to save the plots as a PDF.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return A list containing:
 #'   \item{scores_plot}{A recorded plot of the PLSR scores.}
 #'   \item{pred_vs_obs}{A recorded plot of predicted vs. observed response values.}
@@ -247,7 +247,7 @@ cyt_plsr <- function(
     mdl,
     groups,
     sprintf(
-      "Scores (Comp 1-%d) • R²(train)=%.2f • RMSE=%.3g",
+      "Scores (Comp 1-%d) R-Squared(train)=%.2f  RMSE=%.3g",
       comp_num_eff,
       r2_train,
       rmse_train
@@ -262,7 +262,11 @@ cyt_plsr <- function(
       ggplot2::geom_abline(slope = 1, intercept = 0, linetype = 2) +
       ggplot2::labs(
         title = "Predicted vs Observed",
-        subtitle = sprintf("R²(train)=%.2f • RMSE=%.3g", r2_train, rmse_train)
+        subtitle = sprintf(
+          "R-Squared(train)=%.2f  RMSE=%.3g",
+          r2_train,
+          rmse_train
+        )
       )
     print(p)
   })
@@ -317,8 +321,11 @@ cyt_plsr <- function(
         Component = c(seq_along(q2_vals), seq_along(rmsep_vals)),
         value = c(q2_vals, rmsep_vals),
         metric = factor(
-          c(rep("Q²", length(q2_vals)), rep("RMSEP", length(rmsep_vals))),
-          levels = c("Q²", "RMSEP")
+          c(
+            rep("Q-Squared", length(q2_vals)),
+            rep("RMSEP", length(rmsep_vals))
+          ),
+          levels = c("Q-Squared", "RMSEP")
         )
       )
       df_perf <- df_perf[is.finite(df_perf$value), , drop = FALSE]
@@ -370,7 +377,7 @@ cyt_plsr <- function(
         size.legend = 1,
         size.title = 1,
         legend = FALSE,
-        title = paste("Loadings • Comp", k)
+        title = paste("Loadings Comp", k)
       )
     })
   })
@@ -393,7 +400,7 @@ cyt_plsr <- function(
         ggplot2::geom_bar(stat = "identity") +
         ggplot2::coord_flip() +
         ggplot2::labs(
-          title = paste("VIP Scores • Comp", k),
+          title = paste("VIP Scores Comp", k),
           x = "Variable",
           y = "VIP"
         )
@@ -427,7 +434,7 @@ cyt_plsr <- function(
       vip_indiv_plot <- .record_plot(.plot_indiv(
         mdl_vip,
         groups,
-        sprintf("Scores (VIP>1) • R²(train)=%.2f", r2_vip),
+        sprintf("Scores (VIP>1) R-Squared(train)=%.2f", r2_vip),
         ind_names_resolved = lab_res
       ))
       if (!is.null(cv_opt) && sum(vip_filter) > 0) {
@@ -472,8 +479,11 @@ cyt_plsr <- function(
             Component = c(seq_along(q2_vals), seq_along(rmsep_vals)),
             value = c(q2_vals, rmsep_vals),
             metric = factor(
-              c(rep("Q²", length(q2_vals)), rep("RMSEP", length(rmsep_vals))),
-              levels = c("Q²", "RMSEP")
+              c(
+                rep("Q-Squared", length(q2_vals)),
+                rep("RMSEP", length(rmsep_vals))
+              ),
+              levels = c("Q-Squared", "RMSEP")
             )
           )
           df_vip_perf <- df_vip_perf[
@@ -522,7 +532,7 @@ cyt_plsr <- function(
       mdl,
       groups,
       sprintf(
-        "Scores (Comp 1–%d) • R²(train)=%.2f • RMSE=%.3g",
+        "Scores (Comp 1-%d) R-Squared(train)=%.2f RMSE=%.3g",
         comp_num_eff,
         r2_train,
         rmse_train
@@ -544,7 +554,7 @@ cyt_plsr <- function(
         size.legend = 1,
         size.title = 1,
         legend = FALSE,
-        title = paste("Loadings • Comp", k)
+        title = paste("Loadings Comp", k)
       )
     }
     if (!is.null(vip_indiv_plot)) {

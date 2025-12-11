@@ -24,7 +24,7 @@
 #'   \code{FALSE}, uses raw values from provided data. Default is \code{FALSE}.
 #' @param output_file Optional. A string representing the file path for the PDF file to be created.
 #'   If NULL (default), the function returns a list of ggplot objects.
-#'
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return A ggplot2 object representing the error bar plot.
 #'
 #' @import dplyr
@@ -76,8 +76,12 @@ cyt_errbp <- function(
   }
   # Identify all numeric columns, excluding the grouping column.
   num_vars <- names(data)[sapply(data, is.numeric) & names(data) != group_col]
-  if (length(num_vars) == 0) stop("No numeric columns found in the data.")
-  if (y_lab == "") y_lab <- "Value"
+  if (length(num_vars) == 0) {
+    stop("No numeric columns found in the data.")
+  }
+  if (y_lab == "") {
+    y_lab <- "Value"
+  }
 
   if (!is.null(progress)) {
     progress$inc(0.1, detail = "Reshaping data to long format...")
@@ -124,7 +128,9 @@ cyt_errbp <- function(
   for (m in unique_measures) {
     baseline_row <- metrics %>%
       dplyr::filter(Measure == m, .data[[group_col]] == baseline)
-    if (nrow(baseline_row) == 0) next
+    if (nrow(baseline_row) == 0) {
+      next
+    }
     base_mean <- baseline_row$center
     base_sd <- baseline_row$sd
     base_n <- baseline_row$n
@@ -161,12 +167,24 @@ cyt_errbp <- function(
   if (p_lab) {
     if (class_symbol) {
       significance_mark_fn <- function(p_value) {
-        if (is.na(p_value)) return(NA_character_)
-        if (p_value <= 0.00001) return("*****")
-        if (p_value <= 0.0001) return("****")
-        if (p_value <= 0.001) return("***")
-        if (p_value <= 0.01) return("**")
-        if (p_value <= 0.05) return("*")
+        if (is.na(p_value)) {
+          return(NA_character_)
+        }
+        if (p_value <= 0.00001) {
+          return("*****")
+        }
+        if (p_value <= 0.0001) {
+          return("****")
+        }
+        if (p_value <= 0.001) {
+          return("***")
+        }
+        if (p_value <= 0.01) {
+          return("**")
+        }
+        if (p_value <= 0.05) {
+          return("*")
+        }
         return("")
       }
       metrics <- metrics %>%
@@ -189,17 +207,39 @@ cyt_errbp <- function(
   if (es_lab) {
     if (class_symbol) {
       effect_size_mark_fn <- function(es) {
-        if (is.na(es)) return(NA_character_)
-        if (es >= 5) return(">>>>>")
-        if (es >= 3) return(">>>>")
-        if (es >= 1.645) return(">>>")
-        if (es >= 1) return(">>")
-        if (es > 0.25) return(">")
-        if (es >= -0.25) return(" ")
-        if (es > -1) return("<")
-        if (es > -1.645) return("<<")
-        if (es > -3) return("<<<")
-        if (es > -5) return("<<<<")
+        if (is.na(es)) {
+          return(NA_character_)
+        }
+        if (es >= 5) {
+          return(">>>>>")
+        }
+        if (es >= 3) {
+          return(">>>>")
+        }
+        if (es >= 1.645) {
+          return(">>>")
+        }
+        if (es >= 1) {
+          return(">>")
+        }
+        if (es > 0.25) {
+          return(">")
+        }
+        if (es >= -0.25) {
+          return(" ")
+        }
+        if (es > -1) {
+          return("<")
+        }
+        if (es > -1.645) {
+          return("<<")
+        }
+        if (es > -3) {
+          return("<<<")
+        }
+        if (es > -5) {
+          return("<<<<")
+        }
         return("<<<<<")
       }
       metrics <- metrics %>%
@@ -221,12 +261,15 @@ cyt_errbp <- function(
     )
 
   # Set default axis labels and title if not provided.
-  if (x_lab == "") x_lab <- group_col
-  if (is.null(title))
+  if (x_lab == "") {
+    x_lab <- group_col
+  }
+  if (is.null(title)) {
     title <- paste(
       "Error Bar Plots for",
       paste(unique_measures, collapse = ", ")
     )
+  }
 
   if (!is.null(progress)) {
     progress$inc(0.1, detail = "Generating plot...")
@@ -272,16 +315,21 @@ cyt_errbp <- function(
   }
 
   if (!is.null(output_file)) {
-    if (!is.null(progress)) progress$inc(0.05, detail = "Saving plots to PDF")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Saving plots to PDF")
+    }
     grDevices::pdf(file = output_file, width = 7, height = 5)
     print(p)
     grDevices::dev.off()
 
-    if (!is.null(progress)) progress$inc(0.05, detail = "PDF saved")
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "PDF saved")
+    }
     return(invisible(NULL))
   } else {
-    if (!is.null(progress))
+    if (!is.null(progress)) {
       progress$inc(0.05, detail = "Returning list of plots")
+    }
     return(p)
   }
 }

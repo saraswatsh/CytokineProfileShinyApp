@@ -40,6 +40,8 @@ cyt_rf(
 
 \item{output_file}{Optional. A file path to save the outputs (plots and summaries) as a PDF file.
 If NULL (default), the function returns a list of objects for interactive display.}
+
+\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
 \value{
 A list containing:

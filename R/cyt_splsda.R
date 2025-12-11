@@ -41,6 +41,7 @@
 #'   repeated measurements (e.g., patient or sample IDs). If provided, a
 #'   multilevel analysis will be performed. Default is \code{NULL}.
 #' @param font_scale Numeric. Apply a scale to font size in the figures for better readability.
+#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #'
 #' @return In Download mode (output_file not NULL), a PDF file is written and the function
 #'         returns NULL invisibly. In Interactive mode (output_file = NULL), a named list is
@@ -74,6 +75,9 @@
 #' @importFrom plot3D scatter3D
 #' @importFrom reshape2 melt
 #' @importFrom caret confusionMatrix
+#' @importFrom graphics legend mtext plot.new title
+#' @importFrom stats na.omit predict setNames
+#' @importFrom utils tail
 cyt_splsda <- function(
   data,
   group_col,
