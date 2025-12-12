@@ -43,7 +43,10 @@ shiny::observeEvent(input$nav_home, {
 shiny::observeEvent(input$nav_tutorials, {
   currentPage("tutorials")
 })
-
+shiny::observeEvent(input$nav_start_home, {
+  currentPage("step1")
+  toggle("nav_submenu")
+})
 shiny::observeEvent(input$nav_start, {
   currentPage("step1")
   toggle("nav_submenu")
@@ -556,7 +559,7 @@ homeUI <- function() {
         width = 12,
         align = "center",
         actionButton(
-          "nav_start",
+          "nav_start_home",
           "Let's get started!",
           icon = icon("arrow-right"),
           class = "btn-primary btn-lg"
@@ -905,15 +908,9 @@ step2UI <- function() {
                 class = "btn-danger me-2"
               ),
               actionButton(
-                "restore_selected_rows",
-                "Restore Selected",
-                icon = icon("undo"),
-                class = "btn-secondary me-2"
-              ),
-              actionButton(
-                "restore_all_rows",
-                "Restore All",
-                icon = icon("undo"),
+                "expand_filtered",
+                "Enlarge Window",
+                icon = icon("expand"),
                 class = "btn-secondary"
               )
             )
@@ -928,6 +925,32 @@ step2UI <- function() {
               div(
                 style = "max-height: 40vh; overflow-y: auto; padding: 1rem;",
                 DT::DTOutput("deleted_data_preview")
+              )
+            ),
+            card_footer(
+              style = "display: flex;
+                       justify-content: center;
+                       padding: 0.75rem;
+                       border-top: 1px solid #444;
+                       background: inherit;",
+              actionButton(
+                "restore_selected_rows",
+                "Restore Selected",
+                icon = icon("undo"),
+                class = "btn-secondary me-2"
+              ),
+              actionButton(
+                "restore_all_rows",
+                "Restore All",
+                icon = icon("undo"),
+                class = "btn-secondary me-2"
+              ),
+              # NEW: enlarge button for deleted samples
+              actionButton(
+                "expand_deleted",
+                "Enlarge Window",
+                icon = icon("expand"),
+                class = "btn-secondary"
               )
             )
           )
@@ -1175,7 +1198,56 @@ output$deleted_data_preview <- DT::renderDT({
     options = list(scrollX = TRUE, pageLength = 5)
   )
 })
+# --- Enlarge Deleted Samples Explorer ---
+# shiny::observeEvent(input$expand_deleted, {
+#   showModal(modalDialog(
+#     title = "Deleted Samples - Full View",
+#     DT::DTOutput("deleted_data_preview_modal"),
+#     size = "l",
+#     easyClose = TRUE,
+#     footer = NULL
+#   ))
+# })
 
+# --- Enlarge Deleted Samples Explorer ---
+shiny::observeEvent(input$expand_deleted, {
+  showModal(modalDialog(
+    title = "Deleted Samples - Full View",
+    DT::DTOutput("deleted_data_preview_modal"),
+    size = "l",
+    easyClose = TRUE,
+    footer = div(
+      class = "d-flex justify-content-center gap-2 flex-wrap w-100",
+      actionButton(
+        "restore_selected_rows_modal",
+        "Restore Selected",
+        icon = icon("undo"),
+        class = "btn-secondary"
+      ),
+      actionButton(
+        "restore_all_rows_modal",
+        "Restore All",
+        icon = icon("undo"),
+        class = "btn-secondary"
+      ),
+      modalButton("Close")
+    )
+  ))
+})
+
+
+output$deleted_data_preview_modal <- DT::renderDT({
+  all <- userData()
+  deleted_ids <- userState$deleted_row_ids %||% integer(0)
+  df_del <- all[all$..cyto_id.. %in% deleted_ids, , drop = FALSE]
+  df_del$..cyto_id.. <- NULL # Remove the internal ID column for display
+  DT::datatable(
+    df_del,
+    selection = "multiple",
+    options = list(scrollX = TRUE, pageLength = 5),
+    class = "stripe hover"
+  )
+})
 # --- Delete selected from the main table
 shiny::observeEvent(input$delete_selected_rows, {
   sel <- input$filtered_data_preview_rows_selected
@@ -1187,6 +1259,19 @@ shiny::observeEvent(input$delete_selected_rows, {
     ))
   }
 })
+
+# --- Delete selected from the MODAL filtered table
+shiny::observeEvent(input$delete_selected_rows_modal, {
+  sel <- input$filtered_data_preview_modal_rows_selected # DT convention
+  if (length(sel)) {
+    to_kill <- filteredData()$..cyto_id..[sel]
+    userState$deleted_row_ids <- unique(c(
+      userState$deleted_row_ids %||% integer(0),
+      to_kill
+    ))
+  }
+})
+
 
 # --- Restore selected from the deleted table
 shiny::observeEvent(input$restore_selected_rows, {
@@ -1205,6 +1290,24 @@ shiny::observeEvent(input$restore_selected_rows, {
 shiny::observeEvent(input$restore_all_rows, {
   userState$deleted_row_ids <- integer(0)
 })
+
+# --- Restore selected from the MODAL deleted table
+shiny::observeEvent(input$restore_selected_rows_modal, {
+  sel <- input$deleted_data_preview_modal_rows_selected # DT convention
+  if (length(sel)) {
+    all <- userData()
+    del <- userState$deleted_row_ids %||% integer(0)
+    df_del <- all[all$..cyto_id.. %in% del, , drop = FALSE]
+    to_restore <- df_del$..cyto_id..[sel]
+    userState$deleted_row_ids <- setdiff(del, to_restore)
+  }
+})
+
+# --- Restore all from the MODAL
+shiny::observeEvent(input$restore_all_rows_modal, {
+  userState$deleted_row_ids <- integer(0)
+})
+
 
 output$viewSummaryCheckboxes <- shiny::renderUI({
   # Require either built-in data is used OR a file has been successfully uploaded
@@ -1537,6 +1640,57 @@ shiny::observeEvent(data_after_filters(), {
 })
 # E) Render the table in Step 2
 output$filtered_data_preview <- DT::renderDT({
+  df <- filteredData()
+  req(nrow(df) > 0)
+
+  df$..cyto_id.. <- NULL # Remove the internal ID column for display
+  DT::datatable(
+    df,
+    selection = "multiple",
+    # remove scrollY, let it paginate
+    options = list(
+      pageLength = 5, # default rows/page
+      lengthMenu = list(
+        # rows/page dropdown
+        c(5, 10, 25, 50, -1),
+        c("5", "10", "25", "50", "All")
+      ),
+      scrollX = TRUE,
+      scrollCollapse = TRUE
+    ),
+    class = "stripe hover"
+  )
+})
+# --- Enlarge Filtered Data Explorer ---
+# shiny::observeEvent(input$expand_filtered, {
+#   showModal(modalDialog(
+#     title = "Filtered Data Explorer – Full View",
+#     DT::DTOutput("filtered_data_preview_modal"),
+#     size = "l", # large modal (alternatives: "m" or "xl")
+#     easyClose = TRUE, # allow closing by clicking outside
+#     footer = NULL # omit default footer; the 'X' in corner closes the modal
+#   ))
+# })
+
+shiny::observeEvent(input$expand_filtered, {
+  showModal(modalDialog(
+    title = "Filtered Data Explorer – Full View",
+    DT::DTOutput("filtered_data_preview_modal"),
+    size = "l",
+    easyClose = TRUE,
+    footer = div(
+      class = "d-flex justify-content-center gap-2 flex-wrap w-100",
+      actionButton(
+        "delete_selected_rows_modal",
+        "Delete Selected",
+        icon = icon("trash"),
+        class = "btn-danger"
+      ),
+      modalButton("Close")
+    )
+  ))
+})
+output$filtered_data_preview_modal <- DT::renderDT({
   df <- filteredData()
   req(nrow(df) > 0)
 
