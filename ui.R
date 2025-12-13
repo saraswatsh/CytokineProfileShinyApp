@@ -17,15 +17,17 @@ ui <- shiny::fluidPage(
   tags$head(
     tags$style(HTML(
       "
-  // On load and whenever the OS theme changes, update input$system_theme
-  function updateSystemTheme(e) {
-    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    Shiny.setInputValue('system_theme', dark ? 'darkly' : 'flatly', {priority: 'event'});
-  }
-  // initial detection
-  updateSystemTheme();
-  // watch for changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateSystemTheme);
+  // On page load, tell Shiny about a previously saved theme
+  $(document).on('shiny:connected', function() {
+    var saved = localStorage.getItem('user_theme');
+    if (saved) {
+      var el = document.getElementById('theme_choice');
+      if (el) {
+        el.value = saved;
+        $(el).trigger('change');  // ensures Shiny input binding sees it
+      }
+    }
+  });
     /* ── App header padding & bottom border ───────────────────────── */
     .app-header {
       padding: 1rem;
