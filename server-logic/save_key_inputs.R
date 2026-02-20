@@ -149,6 +149,9 @@ shiny::observeEvent(input$skku_print_log, {
 shiny::observeEvent(input$plsr_response_var, {
   userState$plsr_response_var <- input$plsr_response_var
 })
+shiny::observeEvent(input$plsr_predictor_cols, {
+  userState$plsr_predictor_cols <- input$plsr_predictor_cols
+})
 shiny::observeEvent(input$plsr_comp_num, {
   userState$plsr_comp_num <- input$plsr_comp_num
 })

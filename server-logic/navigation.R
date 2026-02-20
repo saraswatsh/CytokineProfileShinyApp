@@ -176,6 +176,7 @@ resetState <- function() {
   # PLSR options
   userState$plsr_group_col = NULL
   userState$plsr_response_col = NULL
+  userState$plsr_predictor_cols = NULL
   userState$plsr_comp_num = NULL
   userState$plsr_keepX = NULL
   userState$plsr_keepX_manual = FALSE
@@ -327,6 +328,7 @@ shiny::observeEvent(input$new_reuse, {
     # PLSR options
     userState$plsr_group_col = NULL
     userState$plsr_response_col = NULL
+    userState$plsr_predictor_cols = NULL
     userState$plsr_comp_num = NULL
     userState$plsr_keepX = NULL
     userState$plsr_keepX_manual = FALSE

@@ -200,10 +200,18 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 NULL
               }
 
+              # Resolve predictor cols — NULL means "use all"
+              pred_cols <- if (length(input$plsr_predictor_cols)) {
+                input$plsr_predictor_cols
+              } else {
+                NULL
+              }
+
               res <- cyt_plsr(
                 data = df,
                 group_col = grp,
                 response_col = input$plsr_response_col,
+                predictor_cols = pred_cols, # <-- ADD
                 comp_num = input$plsr_comp_num,
                 sparse = input$plsr_sparse,
                 var_num = input$plsr_keepX,
@@ -212,7 +220,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 cv_opt = if (input$plsr_cv_opt == "None") {
                   NULL
                 } else {
-                  tolower(input$plsr_cv_opt)
+                  input$plsr_cv_opt
                 },
                 fold_num = input$plsr_fold_num,
                 pls_colors = input$plsr_colors,

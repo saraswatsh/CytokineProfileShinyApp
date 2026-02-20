@@ -207,6 +207,10 @@ cyt_splsda <- function(
     exclude <- exclude[exclude %in% names(df)]
     X <- df[, setdiff(names(df), exclude), drop = FALSE]
     X <- X[, vapply(X, is.numeric, logical(1)), drop = FALSE]
+
+    # Remove columns that are completely NA
+    X <- X[, !vapply(X, function(x) all(is.na(x)), logical(1)), drop = FALSE]
+
     if (ncol(X) < 2) {
       stop("Need at least 2 numeric predictors after filtering/selection.")
     }

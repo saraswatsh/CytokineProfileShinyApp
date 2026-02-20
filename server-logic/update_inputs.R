@@ -216,6 +216,11 @@ shiny::observeEvent(currentStep(), {
         "plsr_response_col",
         selected = userState$plsr_response_col
       )
+      updateSelectizeInput(
+        session,
+        "plsr_predictor_cols",
+        selected = userState$plsr_predictor_cols
+      )
       updateNumericInput(
         session,
         "plsr_comp_num",

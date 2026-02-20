@@ -959,6 +959,35 @@ output$function_options_ui <- shiny::renderUI({
             )
           )
         ),
+        fluidRow(column(
+          12,
+          selectizeInput(
+            "plsr_predictor_cols",
+            label = helper(
+              type = "inline",
+              title = "Predictor Columns",
+              icon = "fas fa-question-circle",
+              shiny_tag = HTML(
+                "<span style='margin-right: 15px;'>Predictor Columns</span>"
+              ),
+              content = "Select which numeric columns to use as predictors (X matrix).
+                   Any numeric column not selected here will be excluded.
+                   Leave blank to use all numeric columns that are not the response.",
+              colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                "red"
+              } else {
+                "blue"
+              }
+            ),
+            choices = num_cols,
+            selected = isolate(userState$plsr_predictor_cols) %||% num_cols,
+            multiple = TRUE,
+            options = list(
+              placeholder = "Select predictors (default: all numeric)",
+              plugins = c("remove_button", "restore_on_backspace")
+            )
+          )
+        )),
         fluidRow(
           column(
             6,

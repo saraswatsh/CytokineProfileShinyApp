@@ -54,6 +54,7 @@
 cyt_plsr <- function(
   data,
   response_col,
+  predictor_cols = NULL,
   group_col = NULL,
   ind_names = FALSE,
   comp_num = 2,
@@ -67,6 +68,9 @@ cyt_plsr <- function(
   output_file = NULL,
   progress = NULL
 ) {
+  # normalize cv_opt input to lowercase for consistent handling
+  cv_opt <- if (!is.null(cv_opt)) tolower(cv_opt) else NULL
+
   `%notin%` <- function(x, y) !(x %in% y)
   .nzchar <- function(x) !is.null(x) && length(x) && !identical(x, "")
 
@@ -111,8 +115,15 @@ cyt_plsr <- function(
 
     X <- df[, setdiff(names(df), exclude), drop = FALSE]
     X <- X[, vapply(X, is.numeric, logical(1)), drop = FALSE]
+    # --- restrict to user-chosen predictors if provided ---
+    if (!is.null(predictor_cols) && length(predictor_cols)) {
+      X <- X[, intersect(names(X), predictor_cols), drop = FALSE]
+    }
+
     if (ncol(X) < 2) {
-      stop("Need at least 2 numeric predictors after filtering/selection.")
+      stop(
+        "Need at least 2 numeric predictors. Check your predictor column selection."
+      )
     }
     y <- df[[response_col]]
     ok <- stats::complete.cases(X) & !is.na(y)
@@ -198,7 +209,7 @@ cyt_plsr <- function(
 
   # --- fit model
   p <- ncol(X)
-  comp_num_eff <- max(1, min(comp_num, p))
+  comp_num_eff <- max(1, min(comp_num, ncol(X), nrow(X) - 1))
   if (isTRUE(sparse)) {
     if (is.null(var_num)) {
       stop("For sPLS (sparse=TRUE), please set `var_num`.")
@@ -348,7 +359,11 @@ cyt_plsr <- function(
             ) +
             ggplot2::theme_minimal() +
             ggplot2::geom_hline(
-              yintercept = 0.0975,
+              data = data.frame(
+                metric = factor("Q-Squared", levels = c("Q-Squared", "RMSEP")),
+                yint = 0
+              ),
+              ggplot2::aes(yintercept = yint),
               linetype = "dashed",
               color = "grey40"
             )
@@ -392,6 +407,7 @@ cyt_plsr <- function(
         score = vip_all[, k],
         row.names = NULL
       )
+      v <- v[v$score > 0, ]
       v <- v[order(v$score, decreasing = TRUE), ]
       ggplot2::ggplot(
         v,
@@ -467,21 +483,21 @@ cyt_plsr <- function(
           K <- comp_num_eff
 
           # Extract metrics using '$measures$METRIC$summary$mean'
-          q2_vals <- as.numeric(per2$measures$Q2.total$summary$mean)
-          msep_vals <- as.numeric(per2$measures$MSEP$summary$mean)
+          q2_vals_vip <- as.numeric(per2$measures$Q2.total$summary$mean)
+          msep_vals_vip <- as.numeric(per2$measures$MSEP$summary$mean)
 
           # Calculate RMSEP and handle cases where perf includes a "comp 0"
-          rmsep_vals <- sqrt(tail(msep_vals, K))
-          q2_vals <- tail(q2_vals, K)
+          rmsep_vals_vip <- sqrt(tail(msep_vals_vip, K))
+          q2_vals_vip <- tail(q2_vals_vip, K)
 
           # Build a tidy data frame for plotting
           df_vip_perf <- data.frame(
-            Component = c(seq_along(q2_vals), seq_along(rmsep_vals)),
-            value = c(q2_vals, rmsep_vals),
+            Component = c(seq_along(q2_vals_vip), seq_along(rmsep_vals_vip)),
+            value = c(q2_vals_vip, rmsep_vals_vip),
             metric = factor(
               c(
-                rep("Q-Squared", length(q2_vals)),
-                rep("RMSEP", length(rmsep_vals))
+                rep("Q-Squared", length(q2_vals_vip)),
+                rep("RMSEP", length(rmsep_vals_vip))
               ),
               levels = c("Q-Squared", "RMSEP")
             )
@@ -510,7 +526,14 @@ cyt_plsr <- function(
                 ) +
                 ggplot2::theme_minimal(base_size = 12) +
                 ggplot2::geom_hline(
-                  yintercept = 0.0975,
+                  data = data.frame(
+                    metric = factor(
+                      "Q-Squared",
+                      levels = c("Q-Squared", "RMSEP")
+                    ),
+                    yint = 0
+                  ),
+                  ggplot2::aes(yintercept = yint),
                   linetype = "dashed",
                   color = "grey40"
                 )
@@ -539,8 +562,8 @@ cyt_plsr <- function(
       ),
       ind_names_resolved = lab_res
     )
-    print(replayPlot(pvo))
-    print(replayPlot(res_plot))
+    print(grDevices::replayPlot(pvo))
+    print(grDevices::replayPlot(res_plot))
     if (!is.null(cv_plot)) {
       print(replayPlot(cv_plot))
     }
@@ -566,7 +589,31 @@ cyt_plsr <- function(
   if (!is.null(progress)) {
     progress$inc(0.5, detail = "Wrapping up")
   }
-
+  # --- build metrics text ---
+  metrics_text <- if (!is.null(cv_opt)) {
+    paste(
+      sprintf("Q2 (comp %d): %.3f", seq_along(q2_vals), q2_vals),
+      collapse = "\n"
+    )
+    paste(
+      sprintf("RMSEP (comp %d): %.3f", seq_along(rmsep_vals), rmsep_vals),
+      collapse = "\n"
+    )
+    paste(
+      sprintf("Q2 VIP>1 (comp %d): %.3f", seq_along(q2_vals_vip), q2_vals_vip),
+      collapse = "\n"
+    )
+    paste(
+      sprintf(
+        "RMSEP VIP>1 (comp %d): %.3f",
+        seq_along(rmsep_vals_vip),
+        rmsep_vals_vip
+      ),
+      collapse = "\n"
+    )
+  } else {
+    "No cross-validation performed."
+  }
   list(
     scores_plot = scores_plot,
     pred_vs_obs = pvo,
@@ -576,6 +623,7 @@ cyt_plsr <- function(
     vip_scores = vip_scores,
     vip_scores_indiv = vip_indiv_plot,
     vip_cv_plot = vip_cv_plot,
+    metrics_text = metrics_text,
     pdf_file = output_file
   )
 }
