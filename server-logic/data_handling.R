@@ -30,6 +30,68 @@ shiny::observeEvent(
 # cache for loaded Excel sheets
 excel_cache <- shiny::reactiveVal(list())
 
+# If the user uploads a new main data file or a new bioplex file, clear any
+# previously 'saved' Bio-Plex dataset so the editor will read the newly
+# uploaded file (instead of returning the persisted `bioplex$final`).
+shiny::observeEvent(
+  input$datafile,
+  {
+    # New upload -> clear persisted bioplex state so editor uses uploaded file
+    bioplex$active <- FALSE
+    bioplex$final <- NULL
+    bioplex$df <- NULL
+    bioplex$editor_mode <- "sheets"
+    bioplex$deleted_idx <- integer(0)
+    bioplex$deleted_by_sheet <- list()
+    bioplex$user_columns <- character(0)
+    # Also clear any excel cache entries related to this datapath so sheets re-read
+    excel_cache(list())
+
+    # Clear stored sheet selection (prevents mismatched sheet names when
+    # uploading a different workbook that doesn't contain the previously
+    # selected sheet). Also clear the saved userState sheet name so the UI
+    # doesn't re-populate with an invalid value.
+    userState$sheet_name <- NULL
+    try(
+      updateSelectizeInput(session, "sheet_name", selected = character(0)),
+      silent = TRUE
+    )
+
+    # Notify the user that previous editor state was cleared due to new upload
+    showNotification(
+      "New upload detected — previous data-editor state cleared.",
+      type = "message",
+      duration = 4
+    )
+  },
+  ignoreNULL = TRUE
+)
+
+shiny::observeEvent(
+  input$bioplex_file,
+  {
+    bioplex$active <- FALSE
+    bioplex$final <- NULL
+    bioplex$df <- NULL
+    bioplex$editor_mode <- "sheets"
+    bioplex$deleted_idx <- integer(0)
+    bioplex$deleted_by_sheet <- list()
+    bioplex$user_columns <- character(0)
+    excel_cache(list())
+    userState$sheet_name <- NULL
+    try(
+      updateSelectizeInput(session, "sheet_name", selected = character(0)),
+      silent = TRUE
+    )
+    showNotification(
+      "New Bioplex file detected — previous data-editor state cleared.",
+      type = "message",
+      duration = 4
+    )
+  },
+  ignoreNULL = TRUE
+)
+
 userData <- shiny::reactive({
   if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
     df <- bioplex$final
@@ -41,9 +103,10 @@ userData <- shiny::reactive({
   } else {
     req(input$datafile)
     dest <- file.path(upload_dir, input$datafile$name)
-    if (!file.exists(dest)) {
-      file.copy(input$datafile$datapath, dest, overwrite = TRUE)
-    }
+    # Always copy the uploaded file into our upload dir, overwriting previous
+    # copies with the same filename so re-uploading a wrong file refreshes
+    # the stored file immediately.
+    file.copy(input$datafile$datapath, dest, overwrite = TRUE)
     ext <- tolower(tools::file_ext(dest))
     if (ext == "csv") {
       df <- vroom::vroom(dest, delim = ",", show_col_types = FALSE) %>%
@@ -52,13 +115,21 @@ userData <- shiny::reactive({
       df <- vroom::vroom(dest, delim = "\t", show_col_types = FALSE) %>%
         as.data.frame()
     } else if (ext %in% c("xls", "xlsx")) {
-      all_sheets <- readxl::excel_sheets(dest)
-      sheet_to_read <- if (
-        !is.null(input$sheet_name) && length(input$sheet_name) > 0
-      ) {
-        intersect(input$sheet_name, all_sheets)[1]
-      } else {
-        all_sheets[1]
+      all_sheets <- tryCatch(readxl::excel_sheets(dest), error = function(e) {
+        character()
+      })
+      if (length(all_sheets) == 0) {
+        stop("No sheets found in uploaded Excel file.")
+      }
+      # Safely choose the requested sheet(s). If the previously selected
+      # sheet(s) don't exist in this workbook, fall back to the first sheet.
+      sheet_to_read <- NULL
+      if (!is.null(input$sheet_name) && length(input$sheet_name) > 0) {
+        valid <- intersect(input$sheet_name, all_sheets)
+        if (length(valid) >= 1) sheet_to_read <- valid[1]
+      }
+      if (is.null(sheet_to_read)) {
+        sheet_to_read <- all_sheets[1]
       }
       df <- readxl::read_excel(dest, sheet = sheet_to_read) %>%
         as.data.frame()
@@ -67,6 +138,26 @@ userData <- shiny::reactive({
     }
   }
   df$..cyto_id.. <- 1:nrow(df)
+
+  # Coerce character columns that are actually numeric-like back to numeric.
+  # This prevents columns containing NA tokens or minor noise from being
+  # treated as character and breaking downstream numeric-only flows.
+  for (nm in names(df)) {
+    if (!is.factor(df[[nm]]) && !is.numeric(df[[nm]])) {
+      # Use the existing cleaner which strips asterisks, commas and OOR tokens
+      # and returns numeric where appropriate.
+      cleaned <- tryCatch(.clean_bioplex_column(df[[nm]]), error = function(e) {
+        df[[nm]]
+      })
+      if (is.numeric(cleaned)) {
+        df[[nm]] <- cleaned
+      } else {
+        # keep as character (preserve NA strings)
+        df[[nm]] <- as.character(df[[nm]])
+      }
+    }
+  }
+
   # --- apply user-chosen types when the button is pressed ---
   if (apply_stamp() > 0) {
     fc <- isolate(input$factor_cols)
@@ -237,12 +328,27 @@ shiny::observeEvent(
 bioplex_per_sheet <- shiny::reactive({
   if (isTruthy(input$datafile) && length(input$sheet_name) >= 1) {
     path <- input$datafile$datapath
-    sh <- input$sheet_name
+    # Ensure we only attempt to read sheets that exist in this workbook
+    all_sheets <- tryCatch(readxl::excel_sheets(path), error = function(e) {
+      character()
+    })
+    if (length(all_sheets) == 0) {
+      return(NULL)
+    }
+    sh <- intersect(input$sheet_name, all_sheets)
+    if (!length(sh)) sh <- all_sheets[1]
   } else if (
     isTruthy(input$bioplex_file) && length(input$bioplex_sheets) >= 1
   ) {
     path <- input$bioplex_file$datapath
-    sh <- input$bioplex_sheets
+    all_sheets <- tryCatch(readxl::excel_sheets(path), error = function(e) {
+      character()
+    })
+    if (length(all_sheets) == 0) {
+      return(NULL)
+    }
+    sh <- intersect(input$bioplex_sheets, all_sheets)
+    if (!length(sh)) sh <- all_sheets[1]
   } else {
     return(NULL)
   }
@@ -311,9 +417,10 @@ shiny::observeEvent(input$open_editor, {
   }
   req(input$datafile)
   dest <- file.path(upload_dir, input$datafile$name)
-  if (!file.exists(dest)) {
-    file.copy(input$datafile$datapath, dest, overwrite = TRUE)
-  }
+  # Always overwrite the stored file when opening the editor so that if the
+  # user re-uploads a file with the same name (e.g. they selected the wrong
+  # file initially) the latest upload is used for editing.
+  file.copy(input$datafile$datapath, dest, overwrite = TRUE)
   ext <- tolower(tools::file_ext(dest))
 
   if (ext %in% c("xls", "xlsx") && length(input$sheet_name) >= 1) {
@@ -334,14 +441,34 @@ shiny::observeEvent(input$open_editor, {
         as.data.frame(),
       "txt" = vroom::vroom(dest, delim = "\t", show_col_types = FALSE) %>%
         as.data.frame(),
-      "xls" = as.data.frame(readxl::read_excel(
-        dest,
-        sheet = input$sheet_name %||% 1L
-      )),
-      "xlsx" = as.data.frame(readxl::read_excel(
-        dest,
-        sheet = input$sheet_name %||% 1L
-      )),
+      "xls" = {
+        all_sheets <- tryCatch(readxl::excel_sheets(dest), error = function(e) {
+          character()
+        })
+        sheet_choice <- NULL
+        if (!is.null(input$sheet_name) && length(input$sheet_name) > 0) {
+          valid <- intersect(input$sheet_name, all_sheets)
+          if (length(valid) >= 1) sheet_choice <- valid[1]
+        }
+        if (is.null(sheet_choice) || length(all_sheets) == 0) {
+          sheet_choice <- 1L
+        }
+        as.data.frame(readxl::read_excel(dest, sheet = sheet_choice))
+      },
+      "xlsx" = {
+        all_sheets <- tryCatch(readxl::excel_sheets(dest), error = function(e) {
+          character()
+        })
+        sheet_choice <- NULL
+        if (!is.null(input$sheet_name) && length(input$sheet_name) > 0) {
+          valid <- intersect(input$sheet_name, all_sheets)
+          if (length(valid) >= 1) sheet_choice <- valid[1]
+        }
+        if (is.null(sheet_choice) || length(all_sheets) == 0) {
+          sheet_choice <- 1L
+        }
+        as.data.frame(readxl::read_excel(dest, sheet = sheet_choice))
+      },
       stop("Unsupported file type.")
     )
     bioplex$editor_mode <- "persisted"
