@@ -47,7 +47,8 @@ Imports:
     plotly,
     patchwork,
     rlang,
-    vroom
+    vroom,
+    config
 Suggests:
     spelling,
     BiocManager,

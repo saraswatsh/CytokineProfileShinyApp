@@ -1,6 +1,16 @@
+cfg <- config::get() # Load configuration settings from config.yml
+announcement_banner <- function() {
+  if (!is.null(cfg$announcement)) {
+    tags$div(
+      class = "alert alert-info",
+      style = "margin: 10px;",
+      HTML(cfg$announcement)
+    )
+  }
+}
 ui <- shiny::fluidPage(
   useShinyjs(),
-
+  announcement_banner(), # shows below if there's an announcement
   tags$head(
     tags$title("CytokineProfile"),
     # 2) Point to favicon in www/

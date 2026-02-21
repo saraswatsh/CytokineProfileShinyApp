@@ -14,3 +14,4 @@ inst/doc
 server_old.R
 testing_code.R
 .vscode
+.Renviron

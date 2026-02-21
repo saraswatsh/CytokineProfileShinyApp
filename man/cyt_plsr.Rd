@@ -7,6 +7,7 @@
 cyt_plsr(
   data,
   response_col,
+  predictor_cols = NULL,
   group_col = NULL,
   ind_names = FALSE,
   comp_num = 2,
