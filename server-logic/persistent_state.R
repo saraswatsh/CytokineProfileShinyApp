@@ -166,3 +166,6 @@ selected_multivariate_func <- shiny::reactiveVal(
   "Principal Component Analysis (PCA)"
 )
 selected_ml_func <- shiny::reactiveVal("Random Forest")
+
+# Has the development notice modal been shown this session?
+dev_notice_shown <- shiny::reactiveVal(FALSE)

@@ -152,15 +152,28 @@ userData <- shiny::reactive({
   # treated as character and breaking downstream numeric-only flows.
   for (nm in names(df)) {
     if (!is.factor(df[[nm]]) && !is.numeric(df[[nm]])) {
-      # Use the existing cleaner which strips asterisks, commas and OOR tokens
-      # and returns numeric where appropriate.
-      cleaned <- tryCatch(.clean_bioplex_column(df[[nm]]), error = function(e) {
-        df[[nm]]
-      })
-      if (is.numeric(cleaned)) {
-        df[[nm]] <- cleaned
+      # Never coerce obvious metadata/label columns
+      if (nm %in% .always_categorical(names(df))) {
+        df[[nm]] <- as.character(df[[nm]])
+        next
+      }
+
+      # Only coerce when the column looks numeric-like by heuristic.
+      # This avoids turning categorical codes (e.g. "1","2") or other
+      # mostly-text columns into numeric types unintentionally.
+      if (.is_numeric_like(df[[nm]])) {
+        cleaned <- tryCatch(
+          .clean_bioplex_column(df[[nm]]),
+          error = function(e) {
+            df[[nm]]
+          }
+        )
+        if (is.numeric(cleaned)) {
+          df[[nm]] <- cleaned
+        } else {
+          df[[nm]] <- as.character(df[[nm]])
+        }
       } else {
-        # keep as character (preserve NA strings)
         df[[nm]] <- as.character(df[[nm]])
       }
     }
