@@ -53,7 +53,11 @@ shiny::observeEvent(
     # doesn't re-populate with an invalid value.
     userState$sheet_name <- NULL
     try(
-      updateSelectizeInput(session, "sheet_name", selected = character(0)),
+      shiny::updateSelectizeInput(
+        session,
+        "sheet_name",
+        selected = character(0)
+      ),
       silent = TRUE
     )
 
@@ -80,7 +84,11 @@ shiny::observeEvent(
     excel_cache(list())
     userState$sheet_name <- NULL
     try(
-      updateSelectizeInput(session, "sheet_name", selected = character(0)),
+      shiny::updateSelectizeInput(
+        session,
+        "sheet_name",
+        selected = character(0)
+      ),
       silent = TRUE
     )
     shiny::showNotification(
@@ -216,7 +224,7 @@ output$sheet_selector <- shiny::renderUI({
     return(NULL)
   }
 
-  selectizeInput(
+  shiny::selectizeInput(
     inputId = "sheet_name",
     label = "Select the desired sheets:",
     multiple = TRUE,
@@ -234,7 +242,7 @@ output$built_in_selector <- shiny::renderUI({
   }
 
   # Use radioButtons to display all options inside the card
-  radioButtons(
+  shiny::radioButtons(
     inputId = "built_in_choice",
     label = "Select a built-in dataset:",
     choices = c(
@@ -558,7 +566,7 @@ output$bioplex_modal_tabs <- shiny::renderUI({
           ignoreInit = TRUE
         )
       })
-      tabPanel(
+      shiny::tabPanel(
         nm,
         DT::DTOutput(tbl_id)
       )
@@ -567,9 +575,9 @@ output$bioplex_modal_tabs <- shiny::renderUI({
     list()
   }
 
-  tabsetPanel(
+  shiny::tabsetPanel(
     id = "bioplex_tabs",
-    tabPanel(
+    shiny::tabPanel(
       "Data to be Imported",
       # (optional) banner to make mode obvious
       if (identical(bioplex$editor_mode, "persisted")) {
@@ -582,7 +590,7 @@ output$bioplex_modal_tabs <- shiny::renderUI({
       shiny::tags$div(
         style = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem;",
         lapply(seq_along(names(bioplex$df)), function(i) {
-          textInput(
+          shiny::textInput(
             paste0("bioplex_colname_", i),
             NULL,
             names(bioplex$df)[i],
@@ -608,7 +616,7 @@ output$bioplex_modal_tabs <- shiny::renderUI({
         icon = shiny::icon("fas fa-plus"),
         class = "btn-secondary btn-sm mt-2 ms-2"
       ),
-      hr(),
+      shiny::hr(),
       shiny::div(
         class = "d-flex justify-content-between align-items-center mb-2",
         shiny::tags$div(
@@ -746,15 +754,15 @@ shiny::observeEvent(input$bioplex_add_col, {
   shiny::showModal(shiny::modalDialog(
     title = "Create New Column",
     easyClose = FALSE,
-    footer = tagList(
-      modalButton("Cancel"),
+    footer = shiny::tagList(
+      shiny::modalButton("Cancel"),
       shiny::actionButton(
         "bioplex_newcol_confirm",
         "Add",
         class = "btn-primary"
       )
     ),
-    textInput("bioplex_newcol_name", "New column name", value = "")
+    shiny::textInput("bioplex_newcol_name", "New column name", value = "")
   ))
 })
 shiny::observeEvent(input$bioplex_set_header, {
@@ -794,7 +802,7 @@ shiny::observeEvent(input$bioplex_set_header, {
 
   # Sync UI + table
   for (i in seq_along(new_names)) {
-    updateTextInput(
+    shiny::updateTextInput(
       session,
       paste0("bioplex_colname_", i),
       value = new_names[i]
@@ -898,12 +906,12 @@ shiny::observeEvent(input$bioplex_modal_table_combined_cells_filled, {
 # Column-name editor (appears once df exists)
 output$bioplex_modal_colname_editor <- shiny::renderUI({
   shiny::req(bioplex$df)
-  tagList(
+  shiny::tagList(
     shiny::tags$label("Column names"),
     shiny::tags$div(
       style = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem;",
       lapply(seq_along(names(bioplex$df)), function(i) {
-        textInput(
+        shiny::textInput(
           paste0("bioplex_colname_", i),
           NULL,
           names(bioplex$df)[i],
@@ -975,8 +983,8 @@ show_bioplex_editor_modal <- function() {
       title = "Bio-Plex Editor",
       size = "l",
       easyClose = FALSE,
-      footer = tagList(
-        modalButton("Close"),
+      footer = shiny::tagList(
+        shiny::modalButton("Close"),
         shiny::actionButton(
           "bioplex_confirm_modal",
           "Save & Use",
@@ -993,8 +1001,8 @@ show_data_editor_modal <- function(title = "Data Editor") {
       title = title,
       size = "l",
       easyClose = FALSE,
-      footer = tagList(
-        modalButton("Close"),
+      footer = shiny::tagList(
+        shiny::modalButton("Close"),
         shiny::actionButton(
           "bioplex_confirm_modal",
           "Save & Use",
@@ -1205,9 +1213,9 @@ shiny::outputOptions(output, "data_is_loaded", suspendWhenHidden = FALSE)
 output$data_summary <- shiny::renderUI({
   shiny::req(userData())
   df <- userData()
-  fluidRow(
-    column(4, shiny::tags$b("Rows:"), nrow(df)),
-    column(4, shiny::tags$b("Columns:"), ncol(df)),
+  shiny::fluidRow(
+    shiny::column(4, shiny::tags$b("Rows:"), nrow(df)),
+    shiny::column(4, shiny::tags$b("Columns:"), ncol(df)),
     column(
       4,
       shiny::tags$b("Missing %:"),

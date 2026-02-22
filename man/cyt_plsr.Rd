@@ -28,6 +28,8 @@ cyt_plsr(
 \item{response_col}{The name of the column containing the response variable.
 Must be numeric.}
 
+\item{predictor_cols}{Character vector of column names to use as predictors.}
+
 \item{group_col}{The name of the column to use for grouping samples in the
 score plot. If \code{NULL}, no grouping is applied.}
 

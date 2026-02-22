@@ -9,7 +9,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
   warningMessage(NULL)
 
   shiny::req(filteredData())
-  prog <- Progress$new()
+  prog <- shiny::Progress$new()
   on.exit(prog$close())
 
   tryCatch(
@@ -420,7 +420,7 @@ output$errorText <- shiny::renderUI({
   shiny::req(errorMessage())
   shiny::div(
     style = "color:red; padding:5px; border:1px solid red;",
-    strong("Error:"),
+    shiny::strong("Error:"),
     shiny::tags$pre(errorMessage())
   )
 })
@@ -429,7 +429,7 @@ output$warningText <- shiny::renderUI({
   shiny::req(warningMessage())
   shiny::div(
     style = "color:orange; padding:5px; border:1px solid orange;",
-    strong("Warning:"),
+    shiny::strong("Warning:"),
     shiny::tags$pre(warningMessage())
   )
 })
@@ -437,7 +437,7 @@ output$warningText <- shiny::renderUI({
 output$result_display <- shiny::renderUI({
   err <- errorMessage()
   if (shiny::isTruthy(err)) {
-    return(tagList(
+    return(shiny::tagList(
       shiny::uiOutput("errorText"),
       shiny::actionButton(
         "back6",
@@ -453,9 +453,9 @@ output$result_display <- shiny::renderUI({
   shiny::req(func_name)
 
   # Main UI container
-  tagList(
+  shiny::tagList(
     shiny::uiOutput("warningText"), # Display warnings if any
-    hr(),
+    shiny::hr(),
 
     # Interactive Mode: Use a switch to render the correct UI
     switch(
@@ -465,12 +465,12 @@ output$result_display <- shiny::renderUI({
       "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
         if ("overall_indiv_plot" %in% names(res)) {
           # Single analysis UI
-          tagList(
-            h4("sPLS-DA Results"),
-            tabsetPanel(
+          shiny::tagList(
+            shiny::h4("sPLS-DA Results"),
+            shiny::tabsetPanel(
               id = "splsda_tabs",
               type = "tabs",
-              tabPanel(
+              shiny::tabPanel(
                 "sPLS-DA Plot",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput(
@@ -480,14 +480,14 @@ output$result_display <- shiny::renderUI({
                   type = 8
                 )
               ),
-              tabPanel(
+              shiny::tabPanel(
                 "Loadings",
                 shinycssloaders::withSpinner(
                   shiny::uiOutput("splsda_loadingsUI"),
                   type = 8
                 )
               ),
-              tabPanel(
+              shiny::tabPanel(
                 "VIP Scores",
                 shinycssloaders::withSpinner(
                   shiny::uiOutput("splsda_vipScoresUI"),
@@ -495,7 +495,7 @@ output$result_display <- shiny::renderUI({
                 )
               ),
               if (!is.null(res$vip_indiv_plot)) {
-                tabPanel(
+                shiny::tabPanel(
                   "VIP Model Plot",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput("splsda_vipIndivPlot", height = "500px"),
@@ -504,7 +504,7 @@ output$result_display <- shiny::renderUI({
                 )
               },
               if (!is.null(res$vip_loadings)) {
-                tabPanel(
+                shiny::tabPanel(
                   "VIP Loadings",
                   shinycssloaders::withSpinner(
                     shiny::uiOutput("splsda_vipLoadingsUI"),
@@ -513,44 +513,44 @@ output$result_display <- shiny::renderUI({
                 )
               },
               if (!is.null(res$overall_3D)) {
-                tabPanel(
+                shiny::tabPanel(
                   "3D Plot",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput("splsda_overall3DPlot", height = "500px"),
                     type = 8
                   ),
                   # break line
-                  br(),
+                  shiny::br(),
                   shiny::actionButton(
                     "splsda_show3d_interactive",
                     "Interactive 3D",
                     icon = shiny::icon("fas fa-cube")
                   ),
                   # break line
-                  br(),
+                  shiny::br(),
                 )
               },
               if (!is.null(res$vip_3D)) {
-                tabPanel(
+                shiny::tabPanel(
                   "3D Plot (VIP>1)",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput("splsda_vip3DPlot", height = "500px"),
                     type = 8
                   ),
                   # break line
-                  br(),
+                  shiny::br(),
                   shiny::actionButton(
                     "splsda_show3d_interactive_vip",
                     "Interactive 3D (VIP)",
                     icon = shiny::icon("fas fa-cube")
                   ),
                   # break line
-                  br(),
+                  shiny::br(),
                 )
               },
 
               if (!is.null(res$overall_ROC)) {
-                tabPanel(
+                shiny::tabPanel(
                   "ROC",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput(
@@ -563,7 +563,7 @@ output$result_display <- shiny::renderUI({
               },
 
               if (!is.null(res$overall_CV)) {
-                tabPanel(
+                shiny::tabPanel(
                   "Cross-Validation",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput("splsda_overallCvPlot", height = "400px"),
@@ -572,10 +572,10 @@ output$result_display <- shiny::renderUI({
                 )
               },
               if (!is.null(res$conf_matrix)) {
-                tabPanel(
+                shiny::tabPanel(
                   "Confusion Matrix",
                   shinycssloaders::withSpinner(
-                    verbatimTextOutput("splsda_confMatrix"),
+                    shiny::verbatimTextOutput("splsda_confMatrix"),
                     type = 8
                   )
                 )
@@ -589,11 +589,11 @@ output$result_display <- shiny::renderUI({
             c(
               list(id = "splsda_multigroup_tabs"),
               lapply(names(res), function(trt) {
-                tabPanel(
+                shiny::tabPanel(
                   title = trt,
-                  tabsetPanel(
+                  shiny::tabsetPanel(
                     type = "tabs",
-                    tabPanel(
+                    shiny::tabPanel(
                       "sPLS-DA Plot",
                       shinycssloaders::withSpinner(
                         shiny::plotOutput(
@@ -603,14 +603,14 @@ output$result_display <- shiny::renderUI({
                         type = 8
                       )
                     ),
-                    tabPanel(
+                    shiny::tabPanel(
                       "Loadings",
                       shinycssloaders::withSpinner(
                         shiny::uiOutput(paste0("splsda_loadingsUI_", trt)),
                         type = 8
                       )
                     ),
-                    tabPanel(
+                    shiny::tabPanel(
                       "VIP Scores",
                       shinycssloaders::withSpinner(
                         shiny::uiOutput(paste0("splsda_vipScoresUI_", trt)),
@@ -618,7 +618,7 @@ output$result_display <- shiny::renderUI({
                       )
                     ),
                     if (!is.null(res[[trt]]$vip_indiv_plot)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "VIP Model Plot",
                         shinycssloaders::withSpinner(
                           shiny::plotOutput(
@@ -630,7 +630,7 @@ output$result_display <- shiny::renderUI({
                       )
                     },
                     if (!is.null(res[[trt]]$vip_loadings)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "VIP Loadings",
                         shinycssloaders::withSpinner(
                           shiny::uiOutput(paste0("splsda_vipLoadingsUI_", trt)),
@@ -639,7 +639,7 @@ output$result_display <- shiny::renderUI({
                       )
                     },
                     if (!is.null(res[[trt]]$overall_3D)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "3D Plot",
                         shinycssloaders::withSpinner(
                           shiny::plotOutput(
@@ -649,20 +649,20 @@ output$result_display <- shiny::renderUI({
                           type = 8
                         ),
                         # break line
-                        br(),
+                        shiny::br(),
                         shiny::actionButton(
                           paste0("splsda_show3d_interactive_", trt),
                           "Interactive 3D",
                           icon = shiny::icon("fas fa-cube")
                         ),
                         # break line
-                        br(),
+                        shiny::br(),
                       )
                     },
 
                     # VIP 3D tab per-trt (no div wrapper)
                     if (!is.null(res[[trt]]$vip_3D)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "3D Plot (VIP>1)",
                         shinycssloaders::withSpinner(
                           shiny::plotOutput(
@@ -672,18 +672,18 @@ output$result_display <- shiny::renderUI({
                           type = 8
                         ),
                         # break line
-                        br(),
+                        shiny::br(),
                         shiny::actionButton(
                           paste0("splsda_show3d_interactive_vip_", trt),
                           "Interactive 3D (VIP)",
                           icon = shiny::icon("fas fa-cube")
                         ),
                         # break line
-                        br(),
+                        shiny::br(),
                       )
                     },
                     if (!is.null(res[[trt]]$overall_ROC)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "ROC",
                         shinycssloaders::withSpinner(
                           shiny::plotOutput(
@@ -699,7 +699,7 @@ output$result_display <- shiny::renderUI({
                     },
 
                     if (!is.null(res[[trt]]$overall_CV)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "Cross-Validation",
                         shinycssloaders::withSpinner(
                           shiny::plotOutput(
@@ -714,10 +714,10 @@ output$result_display <- shiny::renderUI({
                       )
                     },
                     if (!is.null(res[[trt]]$conf_matrix)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "Confusion Matrix",
                         shinycssloaders::withSpinner(
-                          verbatimTextOutput(
+                          shiny::verbatimTextOutput(
                             paste0("splsda_confMatrix_", trt)
                           ),
                           type = 8
@@ -741,32 +741,32 @@ output$result_display <- shiny::renderUI({
 
         if (!is_nested) {
           # UI for a single analysis (original behavior)
-          tagList(
-            h4("MINT sPLS-DA Results"),
-            tabsetPanel(
+          shiny::tagList(
+            shiny::h4("MINT sPLS-DA Results"),
+            shiny::tabsetPanel(
               id = "mint_splsda_tabs",
-              tabPanel(
+              shiny::tabPanel(
                 "Global Sample Plot",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("mint_splsda_global_plot"),
                   type = 8
                 )
               ),
-              tabPanel(
+              shiny::tabPanel(
                 "Partial Sample Plots",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("mint_splsda_partial_plot"),
                   type = 8
                 )
               ),
-              tabPanel(
+              shiny::tabPanel(
                 "Variable Loadings",
                 shinycssloaders::withSpinner(
                   shiny::uiOutput("mint_splsda_loadings_ui"),
                   type = 8
                 )
               ),
-              tabPanel(
+              shiny::tabPanel(
                 "Correlation Circle",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("mint_splsda_corr_circle_plot"),
@@ -774,7 +774,7 @@ output$result_display <- shiny::renderUI({
                 )
               ),
               if (!is.null(res$cim_obj)) {
-                tabPanel(
+                shiny::tabPanel(
                   "Heatmap (CIM)",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput(
@@ -786,7 +786,7 @@ output$result_display <- shiny::renderUI({
                 )
               },
               if (!is.null(res$roc_plot)) {
-                tabPanel(
+                shiny::tabPanel(
                   "ROC Curve",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput("mint_splsda_roc_plot"),
@@ -803,11 +803,11 @@ output$result_display <- shiny::renderUI({
             c(
               list(id = "mint_splsda_multigroup_tabs"),
               lapply(names(res), function(trt) {
-                tabPanel(
+                shiny::tabPanel(
                   title = trt,
-                  tabsetPanel(
+                  shiny::tabsetPanel(
                     type = "tabs",
-                    tabPanel(
+                    shiny::tabPanel(
                       "Global Plot",
                       shinycssloaders::withSpinner(
                         shiny::plotOutput(paste0(
@@ -817,7 +817,7 @@ output$result_display <- shiny::renderUI({
                         type = 8
                       )
                     ),
-                    tabPanel(
+                    shiny::tabPanel(
                       "Partial Plots",
                       shinycssloaders::withSpinner(
                         shiny::plotOutput(paste0(
@@ -827,7 +827,7 @@ output$result_display <- shiny::renderUI({
                         type = 8
                       )
                     ),
-                    tabPanel(
+                    shiny::tabPanel(
                       "Variable Loadings",
                       shinycssloaders::withSpinner(
                         shiny::uiOutput(paste0(
@@ -837,7 +837,7 @@ output$result_display <- shiny::renderUI({
                         type = 8
                       )
                     ),
-                    tabPanel(
+                    shiny::tabPanel(
                       "Correlation",
                       shinycssloaders::withSpinner(
                         shiny::plotOutput(paste0(
@@ -848,7 +848,7 @@ output$result_display <- shiny::renderUI({
                       )
                     ),
                     if (!is.null(res[[trt]]$cim_obj)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "CIM",
                         shinycssloaders::withSpinner(
                           shiny::plotOutput(
@@ -860,7 +860,7 @@ output$result_display <- shiny::renderUI({
                       )
                     },
                     if (!is.null(res[[trt]]$roc_plot)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "ROC",
                         shinycssloaders::withSpinner(
                           shiny::plotOutput(paste0(
@@ -882,39 +882,39 @@ output$result_display <- shiny::renderUI({
       # --- PCA UI ---
       "Principal Component Analysis (PCA)" = {
         if ("overall_indiv_plot" %in% names(res)) {
-          tagList(
-            h4("PCA Results"),
-            tabsetPanel(
+          shiny::tagList(
+            shiny::h4("PCA Results"),
+            shiny::tabsetPanel(
               type = "tabs",
-              tabPanel(
+              shiny::tabPanel(
                 "PCA Plot",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("pca_indivPlot", height = "400px"),
                   type = 8
                 )
               ),
-              tabPanel(
+              shiny::tabPanel(
                 "Scree Plot",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("pca_screePlot", height = "400px"),
                   type = 8
                 )
               ),
-              tabPanel(
+              shiny::tabPanel(
                 "Loadings Plots",
                 shinycssloaders::withSpinner(
                   shiny::uiOutput("pca_loadingsUI"),
                   type = 8
                 )
               ),
-              tabPanel(
+              shiny::tabPanel(
                 "Biplot",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("pca_biplot", height = "400px"),
                   type = 8
                 )
               ),
-              tabPanel(
+              shiny::tabPanel(
                 "Correlation Circle",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("pca_corrCircle", height = "400px"),
@@ -922,7 +922,7 @@ output$result_display <- shiny::renderUI({
                 )
               ),
               if (!is.null(res$overall_3D)) {
-                tabPanel(
+                shiny::tabPanel(
                   "3D Plot",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput("pca_3DPlot", height = "400px"),
@@ -938,11 +938,11 @@ output$result_display <- shiny::renderUI({
             c(
               list(id = "pca_multigroup_tabs"),
               lapply(names(res), function(trt) {
-                tabPanel(
+                shiny::tabPanel(
                   title = trt,
-                  tabsetPanel(
+                  shiny::tabsetPanel(
                     type = "tabs",
-                    tabPanel(
+                    shiny::tabPanel(
                       "PCA Plot",
                       shinycssloaders::withSpinner(
                         shiny::plotOutput(
@@ -952,7 +952,7 @@ output$result_display <- shiny::renderUI({
                         type = 8
                       )
                     ),
-                    tabPanel(
+                    shiny::tabPanel(
                       "Scree Plot",
                       shinycssloaders::withSpinner(
                         shiny::plotOutput(
@@ -962,14 +962,14 @@ output$result_display <- shiny::renderUI({
                         type = 8
                       )
                     ),
-                    tabPanel(
+                    shiny::tabPanel(
                       "Loadings Plots",
                       shinycssloaders::withSpinner(
                         shiny::uiOutput(paste0("pca_loadingsUI_", trt)),
                         type = 8
                       )
                     ),
-                    tabPanel(
+                    shiny::tabPanel(
                       "Biplot",
                       shinycssloaders::withSpinner(
                         shiny::plotOutput(
@@ -979,7 +979,7 @@ output$result_display <- shiny::renderUI({
                         type = 8
                       )
                     ),
-                    tabPanel(
+                    shiny::tabPanel(
                       "Correlation Circle",
                       shinycssloaders::withSpinner(
                         shiny::plotOutput(
@@ -990,7 +990,7 @@ output$result_display <- shiny::renderUI({
                       )
                     ),
                     if (!is.null(res[[trt]]$overall_3D)) {
-                      tabPanel(
+                      shiny::tabPanel(
                         "3D Plot",
                         shinycssloaders::withSpinner(
                           shiny::plotOutput(
@@ -1010,39 +1010,39 @@ output$result_display <- shiny::renderUI({
       },
       # --- PLSR UI ---
       "Partial Least Squares Regression (PLSR)" = {
-        tagList(
-          h4("PLSR Results"),
-          tabsetPanel(
+        shiny::tagList(
+          shiny::h4("PLSR Results"),
+          shiny::tabsetPanel(
             type = "tabs",
-            tabPanel(
+            shiny::tabPanel(
               "Scores Plot",
               shinycssloaders::withSpinner(
                 shiny::plotOutput("plsr_indivPlot", height = "400px"),
                 type = 8
               )
             ),
-            tabPanel(
+            shiny::tabPanel(
               "Predicted vs Observed",
               shinycssloaders::withSpinner(
                 shiny::plotOutput("plsr_predPlot", height = "400px"),
                 type = 8
               )
             ),
-            tabPanel(
+            shiny::tabPanel(
               "Residuals vs Fitted",
               shinycssloaders::withSpinner(
                 shiny::plotOutput("plsr_residPlot", height = "400px"),
                 type = 8
               )
             ),
-            tabPanel(
+            shiny::tabPanel(
               "Loadings Plots",
               shinycssloaders::withSpinner(
                 shiny::uiOutput("plsr_loadingsUI"),
                 type = 8
               )
             ),
-            tabPanel(
+            shiny::tabPanel(
               "VIP Scores",
               shinycssloaders::withSpinner(
                 shiny::uiOutput("plsr_vipUI"),
@@ -1050,7 +1050,7 @@ output$result_display <- shiny::renderUI({
               )
             ),
             if (!is.null(res$cv_plot)) {
-              tabPanel(
+              shiny::tabPanel(
                 "Cross-Validation",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("plsr_cvPlot", height = "400px"),
@@ -1059,7 +1059,7 @@ output$result_display <- shiny::renderUI({
               )
             },
             if (!is.null(res$vip_scores_indiv)) {
-              tabPanel(
+              shiny::tabPanel(
                 "VIP > 1: Scores",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("plsr_vipIndivPlot", height = "400px"),
@@ -1068,7 +1068,7 @@ output$result_display <- shiny::renderUI({
               )
             },
             if (!is.null(res$vip_cv_plot)) {
-              tabPanel(
+              shiny::tabPanel(
                 "VIP > 1: Cross-Validation",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("plsr_vipCVPlot", height = "400px"),
@@ -1082,16 +1082,16 @@ output$result_display <- shiny::renderUI({
 
       # --- Correlation UI ---
       "Correlation Plots" = {
-        tagList(
-          h4("Correlation Results"),
-          tabsetPanel(
+        shiny::tagList(
+          shiny::h4("Correlation Results"),
+          shiny::tabsetPanel(
             type = "tabs",
-            tabPanel(
+            shiny::tabPanel(
               "Spearman",
-              tabsetPanel(
+              shiny::tabsetPanel(
                 type = "tabs",
                 selected = "Spearman Heatmap",
-                tabPanel(
+                shiny::tabPanel(
                   "Spearman Heatmap",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput(
@@ -1101,7 +1101,7 @@ output$result_display <- shiny::renderUI({
                     type = 8
                   )
                 ),
-                tabPanel(
+                shiny::tabPanel(
                   "Spearman Table",
                   shinycssloaders::withSpinner(
                     DT::dataTableOutput("corr_tbl_spearman"),
@@ -1112,7 +1112,7 @@ output$result_display <- shiny::renderUI({
                   !is.null(res$spearman$group_plots) &&
                     length(res$spearman$group_plots)
                 ) {
-                  tabPanel(
+                  shiny::tabPanel(
                     "Spearman Per-Group Heatmaps",
                     shinycssloaders::withSpinner(
                       shiny::uiOutput("corr_group_heatmap_ui_spearman"),
@@ -1122,19 +1122,19 @@ output$result_display <- shiny::renderUI({
                 }
               )
             ),
-            tabPanel(
+            shiny::tabPanel(
               "Pearson",
-              tabsetPanel(
+              shiny::tabsetPanel(
                 type = "tabs",
                 selected = "Pearson Heatmap", # <- default
-                tabPanel(
+                shiny::tabPanel(
                   "Pearson Heatmap",
                   shinycssloaders::withSpinner(
                     shiny::plotOutput("corr_heatmap_pearson", height = "600px"),
                     type = 8
                   )
                 ),
-                tabPanel(
+                shiny::tabPanel(
                   "Pearson Table",
                   shinycssloaders::withSpinner(
                     DT::dataTableOutput("corr_tbl_pearson"),
@@ -1145,7 +1145,7 @@ output$result_display <- shiny::renderUI({
                   !is.null(res$pearson$group_plots) &&
                     length(res$pearson$group_plots)
                 ) {
-                  tabPanel(
+                  shiny::tabPanel(
                     "Pearson Per-Group Heatmaps",
                     shinycssloaders::withSpinner(
                       shiny::uiOutput("corr_group_heatmap_ui_pearson"),
@@ -1160,12 +1160,12 @@ output$result_display <- shiny::renderUI({
       },
       # --- Random Forest UI ---
       "Random Forest" = {
-        tagList(
-          h4("Random Forest Results"),
-          tabsetPanel(
+        shiny::tagList(
+          shiny::h4("Random Forest Results"),
+          shiny::tabsetPanel(
             type = "tabs",
-            tabPanel("Summary", verbatimTextOutput("rf_summary")),
-            tabPanel(
+            shiny::tabPanel("Summary", shiny::verbatimTextOutput("rf_summary")),
+            shiny::tabPanel(
               "Variable Importance",
               shinycssloaders::withSpinner(
                 shiny::plotOutput("rf_vipPlot", height = "400px"),
@@ -1173,7 +1173,7 @@ output$result_display <- shiny::renderUI({
               )
             ),
             if (!is.null(res$roc_plot)) {
-              tabPanel(
+              shiny::tabPanel(
                 "ROC Curve",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("rf_rocPlot", height = "400px"),
@@ -1182,7 +1182,7 @@ output$result_display <- shiny::renderUI({
               )
             },
             if (!is.null(res$rfcv_plot)) {
-              tabPanel(
+              shiny::tabPanel(
                 "Cross-Validation",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("rf_rfcvPlot", height = "400px"),
@@ -1196,12 +1196,15 @@ output$result_display <- shiny::renderUI({
 
       # --- XGBoost UI ---
       "Extreme Gradient Boosting (XGBoost)" = {
-        tagList(
-          h4("XGBoost Results"),
-          tabsetPanel(
+        shiny::tagList(
+          shiny::h4("XGBoost Results"),
+          shiny::tabsetPanel(
             type = "tabs",
-            tabPanel("Summary", verbatimTextOutput("xgb_summary")),
-            tabPanel(
+            shiny::tabPanel(
+              "Summary",
+              shiny::verbatimTextOutput("xgb_summary")
+            ),
+            shiny::tabPanel(
               "Variable Importance",
               shinycssloaders::withSpinner(
                 shiny::plotOutput("xgb_vipPlot", height = "400px"),
@@ -1209,7 +1212,7 @@ output$result_display <- shiny::renderUI({
               )
             ),
             if (!is.null(res$roc_plot)) {
-              tabPanel(
+              shiny::tabPanel(
                 "ROC Curve",
                 shinycssloaders::withSpinner(
                   shiny::plotOutput("xgb_rocPlot", height = "400px"),
@@ -1223,18 +1226,18 @@ output$result_display <- shiny::renderUI({
 
       # --- Volcano Plot UI ---
       "Volcano Plot" = {
-        tagList(
-          h4("Volcano Plot Results"),
-          tabsetPanel(
+        shiny::tagList(
+          shiny::h4("Volcano Plot Results"),
+          shiny::tabsetPanel(
             type = "tabs",
-            tabPanel(
+            shiny::tabPanel(
               "Plot",
               shinycssloaders::withSpinner(
                 shiny::plotOutput("volcPlotOutput", height = "400px"),
                 type = 8
               )
             ),
-            tabPanel(
+            shiny::tabPanel(
               "Statistics Table",
               shinycssloaders::withSpinner(
                 DT::dataTableOutput("volcStats"),
@@ -1244,7 +1247,7 @@ output$result_display <- shiny::renderUI({
           ),
           shiny::div(
             style = "margin-top: .75rem;",
-            p(
+            shiny::p(
               shiny::tags$a(
                 "Learn how to interpret volcano plot results",
                 href = "https://shinyinfo.cytokineprofile.org/articles/Understanding-Volcano-Plot.html",
@@ -1258,10 +1261,10 @@ output$result_display <- shiny::renderUI({
 
       # --- Heatmap UI ---
       "Heatmap" = {
-        tagList(
-          h4("Heatmap Results"),
+        shiny::tagList(
+          shiny::h4("Heatmap Results"),
           shinycssloaders::withSpinner(
-            imageOutput("heatmapImage", height = "auto", width = "100%"),
+            shiny::imageOutput("heatmapImage", height = "auto", width = "100%"),
             type = 8
           )
         )
@@ -1269,18 +1272,18 @@ output$result_display <- shiny::renderUI({
 
       # --- Dual-Flashlight Plot UI ---
       "Dual-Flashlight Plot" = {
-        tagList(
-          h4("Dual-Flashlight Plot Results"),
-          tabsetPanel(
+        shiny::tagList(
+          shiny::h4("Dual-Flashlight Plot Results"),
+          shiny::tabsetPanel(
             type = "tabs",
-            tabPanel(
+            shiny::tabPanel(
               "Plot",
               shinycssloaders::withSpinner(
                 shiny::plotOutput("dualflashPlotOutput", height = "400px"),
                 type = 8
               )
             ),
-            tabPanel(
+            shiny::tabPanel(
               "Statistics Table",
               shinycssloaders::withSpinner(
                 DT::dataTableOutput("dualflashStats"),
@@ -1290,7 +1293,7 @@ output$result_display <- shiny::renderUI({
           ),
           shiny::div(
             style = "margin-top: .75rem;",
-            p(
+            shiny::p(
               shiny::tags$a(
                 "Learn how to interpret dualflashlight plot results",
                 href = "https://shinyinfo.cytokineprofile.org/articles/Understanding-Dual-Flashlight-Plot.html",
@@ -1302,18 +1305,18 @@ output$result_display <- shiny::renderUI({
         )
       },
       "Skewness/Kurtosis" = {
-        tagList(
-          h4("Skewness and Kurtosis Results"),
-          tabsetPanel(
+        shiny::tagList(
+          shiny::h4("Skewness and Kurtosis Results"),
+          shiny::tabsetPanel(
             type = "tabs",
-            tabPanel(
+            shiny::tabPanel(
               "Skewness Plot",
               shinycssloaders::withSpinner(
                 shiny::plotOutput("skku_skewPlot", height = "400px"),
                 type = 8
               )
             ),
-            tabPanel(
+            shiny::tabPanel(
               "Kurtosis Plot",
               shinycssloaders::withSpinner(
                 shiny::plotOutput("skku_kurtPlot", height = "400px"),
@@ -1321,7 +1324,7 @@ output$result_display <- shiny::renderUI({
               )
             ),
             if (input$skku_print_raw) {
-              tabPanel(
+              shiny::tabPanel(
                 "Raw Data",
                 shinycssloaders::withSpinner(
                   DT::dataTableOutput("skku_raw_results"),
@@ -1330,7 +1333,7 @@ output$result_display <- shiny::renderUI({
               )
             },
             if (input$skku_print_log) {
-              tabPanel(
+              shiny::tabPanel(
                 "Log-Transformed Data",
                 shinycssloaders::withSpinner(
                   DT::dataTableOutput("skku_log_results"),
@@ -1342,8 +1345,8 @@ output$result_display <- shiny::renderUI({
         )
       },
       "Error-Bar Plot" = {
-        tagList(
-          h4("Error-Bar Plot Results"),
+        shiny::tagList(
+          shiny::h4("Error-Bar Plot Results"),
           shinycssloaders::withSpinner(
             shiny::plotOutput("errorBarPlotOutput", height = "400px"),
             type = 8
@@ -1351,8 +1354,8 @@ output$result_display <- shiny::renderUI({
         )
       },
       "ANOVA" = {
-        tagList(
-          h4("ANOVA Results"),
+        shiny::tagList(
+          shiny::h4("ANOVA Results"),
           shinycssloaders::withSpinner(
             DT::dataTableOutput("anovaResults"),
             type = 8
@@ -1360,8 +1363,8 @@ output$result_display <- shiny::renderUI({
         )
       },
       "Two-Sample T-Test" = {
-        tagList(
-          h4("Two-Sample T-Test Results"),
+        shiny::tagList(
+          shiny::h4("Two-Sample T-Test Results"),
           shinycssloaders::withSpinner(
             DT::dataTableOutput("ttestResults"),
             type = 8
@@ -1481,7 +1484,7 @@ shiny::observeEvent(analysisResult(), {
         }
       })
 
-      output$splsda_loadingsUI <- renderUI({
+      output$splsda_loadingsUI <- shiny::renderUI({
         shiny::req(res$loadings)
         lapply(seq_along(res$loadings), function(i) {
           shiny::plotOutput(paste0("splsda_loading_plot_", i), height = "400px")
@@ -1493,7 +1496,7 @@ shiny::observeEvent(analysisResult(), {
         })
       })
 
-      output$splsda_vipScoresUI <- renderUI({
+      output$splsda_vipScoresUI <- shiny::renderUI({
         shiny::req(res$vip_scores)
         lapply(seq_along(res$vip_scores), function(i) {
           shiny::plotOutput(paste0("splsda_vip_plot_", i), height = "400px")
@@ -1505,7 +1508,7 @@ shiny::observeEvent(analysisResult(), {
         })
       })
 
-      output$splsda_vipLoadingsUI <- renderUI({
+      output$splsda_vipLoadingsUI <- shiny::renderUI({
         shiny::req(res$vip_loadings)
         lapply(seq_along(res$vip_loadings), function(i) {
           shiny::plotOutput(
@@ -1543,7 +1546,10 @@ shiny::observeEvent(analysisResult(), {
             }
           )
 
-          output[[paste0("splsda_loadingsUI_", current_trt)]] <- renderUI({
+          output[[paste0(
+            "splsda_loadingsUI_",
+            current_trt
+          )]] <- shiny::renderUI({
             shiny::req(sub_res$loadings)
             lapply(seq_along(sub_res$loadings), function(i) {
               shiny::plotOutput(
@@ -1563,7 +1569,10 @@ shiny::observeEvent(analysisResult(), {
             })
           })
 
-          output[[paste0("splsda_vipScoresUI_", current_trt)]] <- renderUI({
+          output[[paste0(
+            "splsda_vipScoresUI_",
+            current_trt
+          )]] <- shiny::renderUI({
             shiny::req(sub_res$vip_scores)
             lapply(seq_along(sub_res$vip_scores), function(i) {
               shiny::plotOutput(
@@ -1583,7 +1592,10 @@ shiny::observeEvent(analysisResult(), {
             })
           })
 
-          output[[paste0("splsda_vipLoadingsUI_", current_trt)]] <- renderUI({
+          output[[paste0(
+            "splsda_vipLoadingsUI_",
+            current_trt
+          )]] <- shiny::renderUI({
             shiny::req(sub_res$vip_loadings)
             lapply(seq_along(sub_res$vip_loadings), function(i) {
               shiny::plotOutput(
@@ -1715,14 +1727,17 @@ shiny::observeEvent(analysisResult(), {
         grDevices::replayPlot(res$partial_indiv_plot)
       })
       if (!is.null(res$partial_loadings_plots)) {
-        output$mint_splsda_loadings_ui <- renderUI({
+        output$mint_splsda_loadings_ui <- shiny::renderUI({
           shiny::req(res$partial_loadings_plots)
-          tagList(lapply(seq_along(res$partial_loadings_plots), function(i) {
-            shiny::plotOutput(
-              paste0("mint_splsda_loading_plot_", i),
-              height = "400px"
-            )
-          }))
+          shiny::tagList(lapply(
+            seq_along(res$partial_loadings_plots),
+            function(i) {
+              shiny::plotOutput(
+                paste0("mint_splsda_loading_plot_", i),
+                height = "400px"
+              )
+            }
+          ))
         })
 
         # Use a for loop to correctly scope the index 'i'
@@ -1775,7 +1790,7 @@ shiny::observeEvent(analysisResult(), {
             output[[paste0(
               "mint_splsda_loadings_",
               current_trt
-            )]] <- renderUI({
+            )]] <- shiny::renderUI({
               shiny::req(sub_res$partial_loadings_plots)
               lapply(seq_along(sub_res$partial_loadings_plots), function(i) {
                 shiny::plotOutput(
@@ -1852,7 +1867,7 @@ shiny::observeEvent(analysisResult(), {
 
       output$pca_loadingsUI <- shiny::renderUI({
         if (!is.null(res$loadings)) {
-          tagList(lapply(seq_along(res$loadings), function(i) {
+          shiny::tagList(lapply(seq_along(res$loadings), function(i) {
             shiny::plotOutput(paste0("pca_loadings_", i), height = "300px")
           }))
         }
@@ -1909,7 +1924,7 @@ shiny::observeEvent(analysisResult(), {
             currentGroup
           )]] <- shiny::renderUI({
             if (!is.null(subres$loadings)) {
-              tagList(lapply(seq_along(subres$loadings), function(i) {
+              shiny::tagList(lapply(seq_along(subres$loadings), function(i) {
                 safeGroup <- gsub("[^A-Za-z0-9_]+", "_", currentGroup)
                 shiny::plotOutput(
                   paste0("pca_loadings_", safeGroup, "_", i),
@@ -1966,9 +1981,9 @@ shiny::observeEvent(analysisResult(), {
     })
 
     # Per-component loadings (each element is a recordedplot)
-    output$plsr_loadingsUI <- renderUI({
+    output$plsr_loadingsUI <- shiny::renderUI({
       shiny::req(res$loadings)
-      tagList(lapply(seq_along(res$loadings), function(i) {
+      shiny::tagList(lapply(seq_along(res$loadings), function(i) {
         shiny::plotOutput(paste0("plsr_loading_plot_", i), height = "350px")
       }))
     })
@@ -1984,9 +1999,9 @@ shiny::observeEvent(analysisResult(), {
     }
 
     # VIP barplots (ggplot objects — do NOT use replayPlot)
-    output$plsr_vipUI <- renderUI({
+    output$plsr_vipUI <- shiny::renderUI({
       shiny::req(res$vip_scores)
-      tagList(lapply(seq_along(res$vip_scores), function(i) {
+      shiny::tagList(lapply(seq_along(res$vip_scores), function(i) {
         shiny::plotOutput(paste0("plsr_vip_plot_", i), height = "350px")
       }))
     })
@@ -2044,10 +2059,10 @@ shiny::observeEvent(analysisResult(), {
   })
 
   # Per-group heatmaps (if any) — Spearman
-  output$corr_group_heatmap_ui_spearman <- renderUI({
+  output$corr_group_heatmap_ui_spearman <- shiny::renderUI({
     shiny::req(res$spearman$group_plots)
     tabs <- lapply(names(res$spearman$group_plots), function(lv) {
-      tabPanel(
+      shiny::tabPanel(
         title = lv,
         shiny::plotOutput(
           paste0("corr_heatmap_grp_spear_", gsub("\\W+", "_", lv)),
@@ -2055,7 +2070,7 @@ shiny::observeEvent(analysisResult(), {
         )
       )
     })
-    do.call(tabsetPanel, c(list(type = "tabs"), tabs))
+    do.call(shiny::tabsetPanel, c(list(type = "tabs"), tabs))
   })
 
   if (!is.null(res$spearman$group_plots)) {
@@ -2073,10 +2088,10 @@ shiny::observeEvent(analysisResult(), {
   }
 
   # Per-group heatmaps (if any) — Pearson
-  output$corr_group_heatmap_ui_pearson <- renderUI({
+  output$corr_group_heatmap_ui_pearson <- shiny::renderUI({
     shiny::req(res$pearson$group_plots)
     tabs <- lapply(names(res$pearson$group_plots), function(lv) {
-      tabPanel(
+      shiny::tabPanel(
         title = lv,
         shiny::plotOutput(
           paste0("corr_heatmap_grp_pear_", gsub("\\W+", "_", lv)),
@@ -2084,7 +2099,7 @@ shiny::observeEvent(analysisResult(), {
         )
       )
     })
-    do.call(tabsetPanel, c(list(type = "tabs"), tabs))
+    do.call(shiny::tabsetPanel, c(list(type = "tabs"), tabs))
   })
 
   if (!is.null(res$pearson$group_plots)) {
@@ -2268,14 +2283,14 @@ output$download_ui <- shiny::renderUI({
       !inherits(res, "data.frame") &&
       (is.list(res) || is.character(res))
   ) {
-    tagList(
-      textInput(
+    shiny::tagList(
+      shiny::textInput(
         "download_filename",
         "Enter filename for download:",
         value = "Cytokine_Analysis_Results"
       ),
-      downloadButton("download_output", "Download Results as PDF"),
-      radioButtons(
+      shiny::downloadButton("download_output", "Download Results as PDF"),
+      shiny::radioButtons(
         "download_color_mode",
         label = "Color Mode",
         choices = list("Color" = "color", "Black & White" = "bw"),

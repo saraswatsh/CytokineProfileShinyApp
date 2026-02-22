@@ -84,9 +84,9 @@ output$function_options_ui <- shiny::renderUI({
   if (func %in% c("ANOVA", "Two-Sample T-Test")) {
     return(shiny::div(
       class = "well",
-      h4(paste(func, "options")),
-      p("No additional options for this analysis."),
-      p("Click", strong(paste("Run Analysis")), "to continue.")
+      shiny::h4(paste(func, "options")),
+      shiny::p("No additional options for this analysis."),
+      shiny::p("Click", shiny::strong(paste("Run Analysis")), "to continue.")
     ))
   }
   switch(
@@ -1114,7 +1114,7 @@ output$function_options_ui <- shiny::renderUI({
           shiny::column(
             6,
             shiny::tagList(
-              radioButtons(
+              shiny::radioButtons(
                 "plsr_cv_opt",
                 label = shinyhelper::helper(
                   type = "inline",
@@ -1735,7 +1735,7 @@ output$function_options_ui <- shiny::renderUI({
           ),
           shiny::column(
             6,
-            radioButtons(
+            shiny::radioButtons(
               "splsda_ind_names_mode",
               label = shinyhelper::helper(
                 type = "inline",
@@ -1939,7 +1939,7 @@ output$function_options_ui <- shiny::renderUI({
         shiny::fluidRow(
           shiny::column(
             6,
-            sliderInput(
+            shiny::sliderInput(
               "splsda_fontsize",
               label = shinyhelper::helper(
                 type = "inline",

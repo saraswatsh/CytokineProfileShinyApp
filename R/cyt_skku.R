@@ -126,12 +126,18 @@ cyt_skku <- function(
   if (!is.null(progress)) {
     progress$inc(0.1, detail = "Generating histograms")
   }
-  p_skew <- ggplot2::ggplot(df_skew, aes(x = value, fill = Transformation)) +
+  p_skew <- ggplot2::ggplot(
+    df_skew,
+    ggplot2::aes(x = value, fill = Transformation)
+  ) +
     ggplot2::geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
     ggplot2::labs(x = "Skewness", title = "Distribution of Skewness") +
     ggplot2::theme_minimal()
 
-  p_kurt <- ggplot2::ggplot(df_kurt, aes(x = value, fill = Transformation)) +
+  p_kurt <- ggplot2::ggplot(
+    df_kurt,
+    ggplot2::aes(x = value, fill = Transformation)
+  ) +
     ggplot2::geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
     ggplot2::labs(x = "Kurtosis", title = "Distribution of Kurtosis") +
     ggplot2::theme_minimal()

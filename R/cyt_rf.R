@@ -161,7 +161,7 @@ cyt_rf <- function(
   )
   vip_plot <- ggplot2::ggplot(
     imp_data,
-    aes(x = stats::reorder(Variable, Gini), y = Gini)
+    ggplot2::aes(x = stats::reorder(Variable, Gini), y = Gini)
   ) +
     ggplot2::geom_bar(stat = "identity", fill = "red2") +
     ggplot2::coord_flip() +
@@ -190,7 +190,10 @@ cyt_rf <- function(
       Variables = rfcv_result$n.var,
       Error = rfcv_result$error.cv
     )
-    rfcv_plot <- ggplot2::ggplot(rfcv_data, aes(x = Variables, y = Error)) +
+    rfcv_plot <- ggplot2::ggplot(
+      rfcv_data,
+      ggplot2::aes(x = Variables, y = Error)
+    ) +
       ggplot2::geom_line(color = "blue") +
       ggplot2::geom_point(color = "blue") +
       ggplot2::ggtitle("Cross-Validation Error vs. Number of Variables") +

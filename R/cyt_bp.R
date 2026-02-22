@@ -72,7 +72,7 @@ cyt_bp <- function(
       value.name = "Value"
     )
 
-    p <- ggplot2::ggplot(melted, aes(x = Variable, y = Value)) +
+    p <- ggplot2::ggplot(melted, ggplot2::aes(x = Variable, y = Value)) +
       ggplot2::geom_boxplot() +
       ggplot2::labs(
         title = paste(
@@ -84,7 +84,7 @@ cyt_bp <- function(
       ) +
       ggplot2::theme_minimal() +
       ggplot2::theme(
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+        axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1)
       )
 
     if (!is.null(y_lim)) {

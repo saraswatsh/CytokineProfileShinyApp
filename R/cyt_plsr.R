@@ -13,6 +13,7 @@
 #' @param data A data frame containing the predictor and response variables.
 #' @param response_col The name of the column containing the response variable.
 #'   Must be numeric.
+#' @param predictor_cols Character vector of column names to use as predictors.
 #' @param group_col The name of the column to use for grouping samples in the
 #'   score plot. If `NULL`, no grouping is applied.
 #' @param ind_names Logical, or a character vector. If `TRUE`, sample names are
@@ -373,7 +374,7 @@ cyt_plsr <- function(
           print(
             ggplot2::ggplot() +
               ggplot2::theme_minimal() +
-              labs(title = "CV results not available.")
+              ggplot2::labs(title = "CV results not available.")
           )
         }
       })

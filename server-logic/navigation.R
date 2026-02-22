@@ -266,7 +266,7 @@ shiny::observeEvent(input$fresh_start, {
     shiny::modalDialog(
       title = "Start fresh?",
       "This will clear uploaded/built-in data and all saved options.",
-      footer = tagList(
+      footer = shiny::tagList(
         shiny::modalButton("Cancel"),
         shiny::actionButton(
           "confirm_fresh_start",
@@ -440,7 +440,7 @@ stepHeader <- function(step) {
   shiny::tagList(
     shiny::div(
       class = "step-title",
-      h3(switch(
+      shiny::h3(switch(
         as.character(step),
         "1" = "Step 1: Upload Data",
         "2" = "Step 2: Select Columns & Apply Filters",
@@ -464,8 +464,8 @@ stepHeader <- function(step) {
 }
 homeUI <- function() {
   shiny::tagList(
-    h1("Welcome to CytokineProfile", style = "font-weight:300;"),
-    p(shiny::HTML(paste0(
+    shiny::h1("Welcome to CytokineProfile", style = "font-weight:300;"),
+    shiny::p(shiny::HTML(paste0(
       "CytokineProfile is an R Shiny Application based on the CytoProfile R package available at ",
       "<a href='https://cran.r-project.org/package=CytoProfile'>CRAN</a>. ",
       "This application is designed for advanced cytokine data analysis. ",
@@ -473,8 +473,8 @@ homeUI <- function() {
       "and multivariate analysis as well as machine learning methods tailored to your data."
     ))),
     shiny::tags$h3("Features we offer:", style = "margin-top:2rem;"),
-    fluidRow(
-      column(
+    shiny::fluidRow(
+      shiny::column(
         width = 3,
         shiny::div(
           class = "card h-100",
@@ -491,7 +491,7 @@ homeUI <- function() {
           )
         )
       ),
-      column(
+      shiny::column(
         width = 3,
         shiny::div(
           class = "card h-100",
@@ -514,7 +514,7 @@ homeUI <- function() {
           )
         )
       ),
-      column(
+      shiny::column(
         width = 3,
         shiny::div(
           class = "card h-100",
@@ -537,7 +537,7 @@ homeUI <- function() {
           )
         )
       ),
-      column(
+      shiny::column(
         width = 3,
         shiny::div(
           class = "card h-100",
@@ -555,9 +555,9 @@ homeUI <- function() {
         )
       )
     ),
-    br(),
-    fluidRow(
-      column(
+    shiny::br(),
+    shiny::fluidRow(
+      shiny::column(
         width = 12,
         align = "center",
         shiny::actionButton(
@@ -578,22 +578,24 @@ tutorialUI <- function() {
 }
 newsUI <- function() {
   shiny::tagList(
-    h1("News and Updates"),
+    shiny::h1("News and Updates"),
     shiny::includeMarkdown("NEWS.md")
   )
 }
 contactUI <- function() {
   shiny::fluidPage(
-    h1("About Us"),
-    fluidRow(
+    shiny::h1("About Us"),
+    shiny::fluidRow(
       ## —— Column 1 —— ##
-      column(
+      shiny::column(
         width = 6,
-        h2("Shubh Saraswat"),
-        p(em("Maintainer, Co-Creator, and Author of CytokineProfile")),
-        p("Biomedical Data Scientist"),
-        p("PhD Student in Epidemiology & Biostatistics"),
-        p("University of Kentucky"),
+        shiny::h2("Shubh Saraswat"),
+        shiny::p(shiny::em(
+          "Maintainer, Co-Creator, and Author of CytokineProfile"
+        )),
+        shiny::p("Biomedical Data Scientist"),
+        shiny::p("PhD Student in Epidemiology & Biostatistics"),
+        shiny::p("University of Kentucky"),
         shiny::tags$a(
           href = "mailto:shubh.saraswat@uky.edu",
           class = "btn btn-primary me-2",
@@ -621,12 +623,12 @@ contactUI <- function() {
       ),
 
       ## —— Column 2 —— ##
-      column(
+      shiny::column(
         width = 6,
-        h2("Xiaohua Douglas Zhang"),
-        p(em("Co-Creator and Author of CytokineProfile")),
-        p("Professor, Department of Biostatistics"),
-        p("University of Kentucky"),
+        shiny::h2("Xiaohua Douglas Zhang"),
+        shiny::p(shiny::em("Co-Creator and Author of CytokineProfile")),
+        shiny::p("Professor, Department of Biostatistics"),
+        shiny::p("University of Kentucky"),
         shiny::tags$a(
           href = "mailto:xiaohua.zhang@uky.edu",
           class = "btn btn-primary me-2",
@@ -641,15 +643,15 @@ contactUI <- function() {
         )
       )
     ),
-    br(),
-    fluidRow(
+    shiny::br(),
+    shiny::fluidRow(
       ## —— Column 3 —— ##
-      column(
+      shiny::column(
         width = 6,
-        h2("Bira Arumndari Nurrahma"),
-        p(em("Author of CytokineProfile")),
-        p("PhD Student in Nutritional Sciences"),
-        p("University of Kentucky"),
+        shiny::h2("Bira Arumndari Nurrahma"),
+        shiny::p(shiny::em("Author of CytokineProfile")),
+        shiny::p("PhD Student in Nutritional Sciences"),
+        shiny::p("University of Kentucky"),
         shiny::tags$a(
           href = "mailto:biraarum@uky.edu",
           class = "btn btn-primary me-2",
@@ -659,10 +661,10 @@ contactUI <- function() {
       )
     ),
     # Add a note about who to contact for application issues
-    column(
+    shiny::column(
       width = 12,
-      br(),
-      p(
+      shiny::br(),
+      shiny::p(
         "For issues related to the application, submit an issue at the ",
         shiny::tags$a(
           href = "https://github.com/saraswatsh/CytokineProfileShinyApp/issues",
@@ -678,29 +680,31 @@ step1UI <- function() {
   shiny::tagList(
     stepHeader(currentStep()),
 
-    fluidRow(
+    shiny::fluidRow(
       # --- Left Column: Upload Controls ---
-      column(
+      shiny::column(
         width = 5,
         bslib::card(
-          bslib::card_header(h4(
+          bslib::card_header(shiny::h4(
             shiny::icon("upload"),
             "Step 1: Provide Your Data"
           )),
           bslib::card_body(
             shiny::tags$h5("Option A: Upload a File"),
-            fileInput(
+            shiny::fileInput(
               "datafile",
               label = NULL,
               accept = c(".csv", ".txt", ".xls", ".xlsx")
             ),
-            helpText("Accepted Formats: '.csv', '.txt', '.xls', '.xlsx'"),
+            shiny::helpText(
+              "Accepted Formats: '.csv', '.txt', '.xls', '.xlsx'"
+            ),
             shiny::uiOutput("sheet_selector"),
             # Conditional panel to show the editor button once data is uploaded
             shiny::uiOutput("open_editor_btn"),
-            hr(),
+            shiny::hr(),
             shiny::tags$h5("Option B: Use Built-in Data"),
-            checkboxInput(
+            shiny::checkboxInput(
               "use_builtin",
               "Use a built-in dataset?",
               value = shiny::isolate(userState$use_builtin) %||% FALSE
@@ -723,7 +727,7 @@ step1UI <- function() {
       ),
 
       # --- Right Column: Data Preview & Summary ---
-      column(
+      shiny::column(
         width = 7,
         shiny::conditionalPanel(
           condition = "output.data_is_loaded == true",
@@ -741,7 +745,7 @@ step1UI <- function() {
               ),
               shiny::conditionalPanel(
                 condition = "!input.view_data",
-                p(
+                shiny::p(
                   style = "padding: 1rem;",
                   "Check 'View Data Loaded?' to see a preview of your data here."
                 )
@@ -758,7 +762,7 @@ step1UI <- function() {
               ),
               shiny::conditionalPanel(
                 condition = "!input.show_summary",
-                p(
+                shiny::p(
                   style = "padding: 1rem;",
                   "Check 'Show summary statistics' to see a summary here."
                 )
@@ -781,9 +785,9 @@ step2UI <- function() {
 
     shiny::tagList(
       stepHeader(currentStep()),
-      fluidRow(
+      shiny::fluidRow(
         # -- Left Column: Selections & Filters --
-        column(
+        shiny::column(
           width = 5,
           # 1) Categorical selector
           bslib::card(
@@ -807,7 +811,7 @@ step2UI <- function() {
               ),
               shiny::div(
                 class = "scrollable-checkbox-group",
-                checkboxGroupInput(
+                shiny::checkboxGroupInput(
                   inputId = "selected_categorical_cols",
                   label = NULL,
                   choices = categorical_cols,
@@ -850,7 +854,7 @@ step2UI <- function() {
               ),
               shiny::div(
                 class = "scrollable-checkbox-group",
-                checkboxGroupInput(
+                shiny::checkboxGroupInput(
                   inputId = "selected_numerical_cols",
                   label = NULL,
                   choices = numeric_cols,
@@ -883,7 +887,7 @@ step2UI <- function() {
               "3. Optional: Log₂ Transformation"
             ),
             bslib::card_body(
-              checkboxInput(
+              shiny::checkboxInput(
                 "step2_log2",
                 label = "Apply log₂ transformation to all selected numerical columns",
                 value = shiny::isolate(userState$step2_log2) %||% FALSE
@@ -895,11 +899,11 @@ step2UI <- function() {
         ),
 
         # -- Right Column: Data Preview & Deletion --
-        column(
+        shiny::column(
           width = 7,
           bslib::card(
             style = "height: 40vh; display: flex; flex-direction: column;",
-            bslib::card_header(h4(
+            bslib::card_header(shiny::h4(
               shiny::icon("table"),
               "Filtered Data Explorer"
             )),
@@ -936,7 +940,10 @@ step2UI <- function() {
           # wrap deleted‐samples in a card too
           bslib::card(
             style = "display: flex; flex-direction: column;",
-            bslib::card_header(h4(shiny::icon("table"), "Deleted Samples")),
+            bslib::card_header(shiny::h4(
+              shiny::icon("table"),
+              "Deleted Samples"
+            )),
             bslib::card_body(
               style = "flex: 1 1 auto; overflow-y: auto; padding: 1rem;",
               shiny::div(
@@ -974,9 +981,9 @@ step2UI <- function() {
         )
       ),
       # -- Navigation --
-      br(),
-      fluidRow(
-        column(
+      shiny::br(),
+      shiny::fluidRow(
+        shiny::column(
           12,
           shiny::div(
             style = "margin-top:0.5rem;",
@@ -1016,9 +1023,9 @@ step2UI <- function() {
 step3UI <- function() {
   shiny::tagList(
     stepHeader(currentStep()),
-    fluidRow(
+    shiny::fluidRow(
       # Statistical Tests
-      column(
+      shiny::column(
         width = 3,
         bslib::card(
           bslib::card_header("Univariate Analysis", class = "bg-info"),
@@ -1033,7 +1040,7 @@ step3UI <- function() {
         )
       ),
       # Exploratory Analysis
-      column(
+      shiny::column(
         width = 3,
         bslib::card(
           bslib::card_header("Exploratory Analysis", class = "bg-info"),
@@ -1078,7 +1085,7 @@ step3UI <- function() {
         )
       ),
       # Multivariate
-      column(
+      shiny::column(
         width = 3,
         bslib::card(
           bslib::card_header("Multivariate Analysis", class = "bg-info"),
@@ -1107,7 +1114,7 @@ step3UI <- function() {
         )
       ),
       # Machine Learning
-      column(
+      shiny::column(
         width = 3,
         bslib::card(
           bslib::card_header("Machine Learning Methods", class = "bg-info"),
@@ -1127,8 +1134,8 @@ step3UI <- function() {
       ),
 
       # # Back/Next buttons for the wizard
-      fluidRow(
-        column(
+      shiny::fluidRow(
+        shiny::column(
           12,
           shiny::div(
             style = "margin-top: 1rem; display: flex; justify-content: flex-start;",
@@ -1170,21 +1177,21 @@ step4UI <- function() {
 resultsUI <- function() {
   shiny::tagList(
     stepHeader(currentStep()),
-    fluidRow(
-      column(
+    shiny::fluidRow(
+      shiny::column(
         12,
         shiny::uiOutput("result_display")
       )
     ),
     # Add the download UI output here
-    fluidRow(
-      column(
+    shiny::fluidRow(
+      shiny::column(
         6,
         shiny::uiOutput("download_ui") # Placeholder for download button
       )
     ),
-    fluidRow(
-      column(
+    shiny::fluidRow(
+      shiny::column(
         12,
         shiny::div(
           style = "display:flex; align-items:center; margin-top:1rem;",
@@ -1249,7 +1256,7 @@ shiny::observeEvent(input$expand_deleted, {
         icon = shiny::icon("undo"),
         class = "btn-secondary"
       ),
-      modalButton("Close")
+      shiny::modalButton("Close")
     )
   ))
 })
@@ -1332,9 +1339,9 @@ output$viewSummaryCheckboxes <- shiny::renderUI({
   # Require either built-in data is used OR a file has been successfully uploaded
   shiny::req(input$use_builtin || isTRUE(bioplex$active))
   # If the condition above is met, render the checkboxes
-  tagList(
-    checkboxInput("view_data", "View Data Loaded?", FALSE),
-    checkboxInput("show_summary", "Show summary statistics", FALSE)
+  shiny::tagList(
+    shiny::checkboxInput("view_data", "View Data Loaded?", FALSE),
+    shiny::checkboxInput("show_summary", "Show summary statistics", FALSE)
   )
 })
 
@@ -1360,11 +1367,11 @@ output$step1_bottom_block <- shiny::renderUI({
   has_confirmed_data <- isTRUE(bioplex$active) ||
     (isTRUE(input$use_builtin) && !is.null(userState$built_in_choice))
 
-  tagList(
+  shiny::tagList(
     # show the view/summary toggles only after confirmed data (built-in OR Save & Use)
-    if (has_confirmed_data) hr(class = "my-2"),
+    if (has_confirmed_data) shiny::hr(class = "my-2"),
     if (has_confirmed_data) shiny::uiOutput("viewSummaryCheckboxes"),
-    if (has_confirmed_data) hr(class = "my-2"),
+    if (has_confirmed_data) shiny::hr(class = "my-2"),
     if (has_confirmed_data) shiny::uiOutput("fresh_start_ui")
   )
 })
@@ -1532,7 +1539,7 @@ shiny::observeEvent(input$select_all_cat, {
   df <- userData()
   all_cols <- setdiff(names(df), "..cyto_id..")
   cat_cols <- all_cols[!sapply(df[all_cols], is.numeric)]
-  updateCheckboxGroupInput(
+  shiny::updateCheckboxGroupInput(
     session,
     "selected_categorical_cols",
     selected = cat_cols
@@ -1542,7 +1549,7 @@ shiny::observeEvent(input$deselect_all_cat, {
   df <- userData()
   all_cols <- setdiff(names(df), "..cyto_id..")
   cat_cols <- all_cols[!sapply(df[all_cols], is.numeric)]
-  updateCheckboxGroupInput(
+  shiny::updateCheckboxGroupInput(
     session,
     "selected_categorical_cols",
     selected = character(0)
@@ -1552,7 +1559,7 @@ shiny::observeEvent(input$select_all_num, {
   df <- userData()
   all_cols <- setdiff(names(df), "..cyto_id..")
   numeric_cols <- all_cols[sapply(df[all_cols], is.numeric)]
-  updateCheckboxGroupInput(
+  shiny::updateCheckboxGroupInput(
     session,
     "selected_numerical_cols",
     selected = numeric_cols
@@ -1562,7 +1569,7 @@ shiny::observeEvent(input$deselect_all_num, {
   df <- userData()
   all_cols <- setdiff(names(df), "..cyto_id..")
   numeric_cols <- all_cols[sapply(df[all_cols], is.numeric)]
-  updateCheckboxGroupInput(
+  shiny::updateCheckboxGroupInput(
     session,
     "selected_numerical_cols",
     selected = character(0)
@@ -1649,7 +1656,7 @@ shiny::observeEvent(data_after_filters(), {
   cand <- unique(c(extra, cand))
   cand <- setdiff(cand, "..cyto_id..") # never expose internal id
 
-  updateSelectInput(
+  shiny::updateSelectInput(
     session,
     "splsda_ind_names_col",
     choices = cand,
@@ -1695,7 +1702,7 @@ shiny::observeEvent(input$expand_filtered, {
         icon = shiny::icon("trash"),
         class = "btn-danger"
       ),
-      modalButton("Close")
+      shiny::modalButton("Close")
     )
   ))
 })
@@ -1753,16 +1760,16 @@ shiny::observeEvent(input$open_impute_modal, {
     title = "Treat Missing Values",
     size = "l",
     easyClose = TRUE,
-    footer = tagList(
+    footer = shiny::tagList(
       shiny::actionButton("apply_impute", "Apply", class = "btn-primary"),
-      modalButton("Cancel")
+      shiny::modalButton("Cancel")
     ),
     # --- simple UI for 5 methods ---
-    fluidRow(
-      column(4, {
+    shiny::fluidRow(
+      shiny::column(4, {
         df <- data_after_filters()
         cols <- setdiff(names(df), c(".cyto_id.", "..cyto_id.."))
-        checkboxGroupInput(
+        shiny::checkboxGroupInput(
           "imp_cols",
           "Columns to include",
           choices = cols,
@@ -1775,14 +1782,14 @@ shiny::observeEvent(input$open_impute_modal, {
           }
         )
       }),
-      column(
+      shiny::column(
         4,
-        radioButtons(
+        shiny::radioButtons(
           "impute_method",
-          label = tagList(
-            span("Method", style = "margin-right:10px;"),
+          label = shiny::tagList(
+            shiny::span("Method", style = "margin-right:10px;"),
             bslib::popover(
-              actionLink(
+              shiny::actionLink(
                 "mv_help",
                 NULL,
                 icon = shiny::icon("question-circle")
@@ -1792,23 +1799,23 @@ shiny::observeEvent(input$open_impute_modal, {
                   "How missing values are treated",
                   class = "mb-3"
                 ),
-                p(
+                shiny::p(
                   shiny::tags$b("Mean:"),
                   " this method calculates the average of all non-missing values in a column and uses this mean to fill in any missing entries."
                 ),
-                p(
+                shiny::p(
                   shiny::tags$b("Median:"),
                   " this method calculates the middle value of all non-missing entries in a column and uses this median to replace any missing values."
                 ),
-                p(
+                shiny::p(
                   shiny::tags$b("Mode:"),
                   " this method identifies the most frequently occurring value in a column and uses it to fill in the missing data. Mode imputation is the only one of these three that can be used for categorical (non-numeric) data."
                 ),
-                p(
+                shiny::p(
                   shiny::tags$b("kNN (sample-wise):"),
                   " this method for each missing cell, finds the k nearest rows (samples) using the other features and impute from those neighbors’ values in the same column"
                 ),
-                p(
+                shiny::p(
                   shiny::tags$b("kNN (feature-wise):"),
                   " this method for each missing cell, finds the k most similar columns (features) based on their patterns across samples and impute from those features’ values in the same row"
                 )
@@ -1834,17 +1841,17 @@ shiny::observeEvent(input$open_impute_modal, {
             min = 1,
             step = 1
           ),
-          checkboxInput(
+          shiny::checkboxInput(
             "imp_scale",
             "Standardize numeric vars before k-NN",
             value = isTRUE(userState$impute_meta$scaled)
           )
         )
       ),
-      column(
+      shiny::column(
         4,
-        verbatimTextOutput("imp_na_before"),
-        verbatimTextOutput("imp_na_after")
+        shiny::verbatimTextOutput("imp_na_before"),
+        shiny::verbatimTextOutput("imp_na_after")
       )
     )
   ))
@@ -1909,9 +1916,10 @@ impute_data <- function(df, include, method, k = 5, scale_for_knn = TRUE) {
 
     rec <- recipes::recipe(~., data = dat)
     if (scale_for_knn && length(num_cols)) {
-      rec <- rec |> recipes::step_normalize(all_of(num_cols))
+      rec <- rec |> recipes::step_normalize(dplyr::all_of(num_cols))
     }
-    rec <- rec |> recipes::step_impute_knn(all_of(include), neighbors = k)
+    rec <- rec |>
+      recipes::step_impute_knn(dplyr::all_of(include), neighbors = k)
     dat <- recipes::bake(recipes::prep(rec, training = dat), new_data = dat)
   } else if (method == "knn_feature") {
     # numeric-only, neighbors across features using impute::impute.knn
@@ -1939,7 +1947,7 @@ shiny::observeEvent(input$apply_impute, {
   df <- data_after_filters() # <-- impute the *filtered* data
   sel <- input$imp_cols
   if (!length(sel)) {
-    showNotification("Select ≥1 column.", type = "error")
+    shiny::showNotification("Select ≥1 column.", type = "error")
     return()
   }
 
@@ -2076,7 +2084,7 @@ shiny::observeEvent(input$preview_transform, {
     shiny::modalDialog(
       title = "Before vs After log₂-Transformation",
       shiny::plotOutput("norm_compare", height = "600px"),
-      footer = modalButton("Close"),
+      footer = shiny::modalButton("Close"),
       size = "l"
     )
   )

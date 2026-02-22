@@ -90,7 +90,7 @@ cyt_errbp <- function(
   long_df <- data |>
     dplyr::select(dplyr::all_of(c(group_col, num_vars))) |>
     tidyr::pivot_longer(
-      cols = all_of(num_vars),
+      cols = dplyr::all_of(num_vars),
       names_to = "Measure",
       values_to = "Value"
     )
@@ -275,10 +275,13 @@ cyt_errbp <- function(
     progress$inc(0.1, detail = "Generating plot...")
   }
   # Build the faceted ggplot (one facet per numeric measure).
-  p <- ggplot2::ggplot(metrics, aes(x = .data[[group_col]], y = center)) +
+  p <- ggplot2::ggplot(
+    metrics,
+    ggplot2::aes(x = .data[[group_col]], y = center)
+  ) +
     ggplot2::geom_bar(stat = "identity", fill = "gray", width = 0.7) +
     ggplot2::geom_errorbar(
-      aes(ymin = center - spread, ymax = center + spread),
+      ggplot2::aes(ymin = center - spread, ymax = center + spread),
       width = 0.2
     ) +
     ggplot2::facet_wrap(~Measure, scales = "free_y") +
@@ -290,7 +293,7 @@ cyt_errbp <- function(
   if (p_lab) {
     p <- p +
       ggplot2::geom_text(
-        data = metrics |> filter(.data[[group_col]] != baseline),
+        data = metrics |> dplyr::filter(.data[[group_col]] != baseline),
         ggplot2::aes(x = .data[[group_col]], y = p_text_y, label = p_label),
         size = 4,
         vjust = 0
@@ -299,7 +302,7 @@ cyt_errbp <- function(
   if (es_lab) {
     p <- p +
       ggplot2::geom_text(
-        data = metrics |> filter(.data[[group_col]] != baseline),
+        data = metrics |> dplyr::filter(.data[[group_col]] != baseline),
         ggplot2::aes(
           x = .data[[group_col]],
           y = es_text_y,

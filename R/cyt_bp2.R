@@ -82,7 +82,7 @@ cyt_bp2 <- function(
 
       p <- ggplot2::ggplot(
         plot_data,
-        aes(x = Group, y = Outcome, fill = Group)
+        ggplot2::aes(x = Group, y = Outcome, fill = Group)
       ) +
         ggplot2::geom_boxplot(alpha = 0.5) +
         ggplot2::geom_jitter(width = 0.2, alpha = 0.5) +

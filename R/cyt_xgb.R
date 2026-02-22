@@ -214,10 +214,13 @@ cyt_xgb <- function(
           ) +
           ggplot2::theme_minimal() +
           ggplot2::theme(
-            panel.background = element_rect(fill = "white", color = NA),
-            plot.background = element_rect(fill = "white", color = NA),
-            panel.grid.major = element_line(color = "grey90"),
-            panel.grid.minor = element_line(color = "grey95")
+            panel.background = ggplot2::element_rect(
+              fill = "white",
+              color = NA
+            ),
+            plot.background = ggplot2::element_rect(fill = "white", color = NA),
+            panel.grid.major = ggplot2::element_line(color = "grey90"),
+            panel.grid.minor = ggplot2::element_line(color = "grey95")
           )
 
         print(roc_plot)

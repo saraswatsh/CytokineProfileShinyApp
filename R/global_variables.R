@@ -41,6 +41,7 @@ if (getRversion() >= "4.3") {
     "Observed",
     "Predicted",
     "Fitted",
-    "Residuals"
+    "Residuals",
+    "yint"
   ))
 }

@@ -1,5 +1,6 @@
 Agrawal
 Andrzej
+AutoFill
 Benjamini
 Besse
 Bharath
@@ -41,8 +42,10 @@ Marszalkowski
 Maćkiewicz
 Mfold
 Nikolajczyk
+OOR
 PLSR
 Periodontitis
+Plex
 Pre
 PreT
 RFCV
@@ -58,6 +61,7 @@ Technic
 Tenenhaus
 Tianqi
 Tooltips
+UI
 Wilk
 XD
 XGBoost
@@ -79,6 +83,7 @@ kurt
 loadings
 loocv
 metformin
+mis
 mixOmics
 mlogloss
 multiclass
@@ -92,6 +97,7 @@ pheatmap
 plotIndiv
 png
 pratique
+reactives
 recordPlot
 rfcv
 sPLS

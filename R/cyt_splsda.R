@@ -493,7 +493,7 @@ cyt_splsda <- function(
           ) +
           ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
           ggplot2::theme_minimal() +
-          theme(text = element_text(size = 11 * font_scale))
+          ggplot2::theme(text = ggplot2::element_text(size = 11 * font_scale))
       } else if (identical(cv_opt, "mfold")) {
         set.seed(123)
         folds_safe <- max(2, min(fold_num, nrow(X)))
@@ -529,7 +529,7 @@ cyt_splsda <- function(
           ) +
           ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
           ggplot2::theme_minimal() +
-          theme(text = element_text(size = 11 * font_scale))
+          ggplot2::theme(text = ggplot2::element_text(size = 11 * font_scale))
       }
     }
 
@@ -582,7 +582,7 @@ cyt_splsda <- function(
           y = "VIP"
         ) +
         ggplot2::theme_minimal() +
-        theme(text = element_text(size = 11 * font_scale))
+        ggplot2::theme(text = ggplot2::element_text(size = 11 * font_scale))
     })
 
     vip_indiv_plot <- vip_loadings <- vip_3D <- vip_ROC <- vip_CV <- vip_3D_interactive <- NULL
@@ -734,7 +734,7 @@ cyt_splsda <- function(
             ) +
             ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
             ggplot2::theme_minimal() +
-            theme(text = element_text(size = 11 * font_scale))
+            ggplot2::theme(text = ggplot2::element_text(size = 11 * font_scale))
         } else if (identical(cv_opt, "mfold")) {
           set.seed(123)
           folds_safe <- max(2, min(fold_num, nrow(Xvip)))
@@ -767,7 +767,7 @@ cyt_splsda <- function(
             ) +
             ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
             ggplot2::theme_minimal() +
-            theme(text = element_text(size = 11 * font_scale))
+            ggplot2::theme(text = ggplot2::element_text(size = 11 * font_scale))
         }
       }
     }

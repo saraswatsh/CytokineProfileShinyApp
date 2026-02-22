@@ -60,7 +60,7 @@ cyt_dualflashplot <- function(
   }
   data_long <- data |>
     tidyr::pivot_longer(
-      cols = -all_of(group_var),
+      cols = -dplyr::all_of(group_var),
       names_to = "cytokine",
       values_to = "level"
     )
@@ -76,7 +76,7 @@ cyt_dualflashplot <- function(
       .groups = "drop"
     ) |>
     tidyr::pivot_wider(
-      names_from = all_of(group_var),
+      names_from = dplyr::all_of(group_var),
       values_from = c(mean, variance)
     ) |>
     dplyr::mutate(
@@ -89,7 +89,7 @@ cyt_dualflashplot <- function(
       log2FC = log2(
         get(paste0("mean_", group1)) / get(paste0("mean_", group2))
       ),
-      SSMD_Category = case_when(
+      SSMD_Category = dplyr::case_when(
         abs(ssmd) >= 1 ~ "Strong Effect",
         abs(ssmd) >= 0.5 ~ "Moderate Effect",
         TRUE ~ "Weak Effect"
@@ -105,8 +105,14 @@ cyt_dualflashplot <- function(
   if (!is.null(progress)) {
     progress$inc(0.1, detail = "Generating plot")
   }
-  p <- ggplot2::ggplot(stats, aes(x = log2FC, y = ssmd, label = cytokine)) +
-    ggplot2::geom_point(aes(color = SSMD_Category, shape = Significant)) +
+  p <- ggplot2::ggplot(
+    stats,
+    ggplot2::aes(x = log2FC, y = ssmd, label = cytokine)
+  ) +
+    ggplot2::geom_point(ggplot2::aes(
+      color = SSMD_Category,
+      shape = Significant
+    )) +
     ggrepel::geom_text_repel(
       data = top_stats,
       size = 3,

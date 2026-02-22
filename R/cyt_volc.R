@@ -129,7 +129,7 @@ cyt_volc <- function(
         significant = (abs(fc_log) >= log2(fold_change_thresh)) &
           (p_log >= -log10(p_value_thresh))
       ) |>
-      dplyr::arrange(desc(significant), desc(p_log)) |>
+      dplyr::arrange(dplyr::desc(significant), dplyr::desc(p_log)) |>
       dplyr::mutate(
         label = ifelse(dplyr::row_number() <= top_labels, variable, "")
       )
@@ -140,8 +140,11 @@ cyt_volc <- function(
         detail = paste("Processed pair", pair_count, "of", total_pairs)
       )
     }
-    p <- ggplot2::ggplot(plot_data, aes(x = fc_log, y = p_log, label = label)) +
-      ggplot2::geom_point(aes(color = significant), size = 2) +
+    p <- ggplot2::ggplot(
+      plot_data,
+      ggplot2::aes(x = fc_log, y = p_log, label = label)
+    ) +
+      ggplot2::geom_point(ggplot2::aes(color = significant), size = 2) +
       ggplot2::geom_vline(
         xintercept = c(log2(fold_change_thresh), -log2(fold_change_thresh)),
         linetype = "dashed",
