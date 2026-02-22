@@ -1,31 +1,31 @@
 cfg <- config::get() # Load configuration settings from config.yml
 announcement_banner <- function() {
   if (!is.null(cfg$announcement)) {
-    tags$div(
+    shiny::tags$div(
       class = "alert alert-info",
       style = "margin: 10px;",
-      HTML(cfg$announcement)
+      shiny::HTML(cfg$announcement)
     )
   }
 }
 ui <- shiny::fluidPage(
-  useShinyjs(),
+  shinyjs::useShinyjs(),
   announcement_banner(), # shows below if there's an announcement
-  tags$head(
-    tags$title("CytokineProfile"),
+  shiny::tags$head(
+    shiny::tags$title("CytokineProfile"),
     # 2) Point to favicon in www/
-    tags$link(
+    shiny::tags$link(
       rel = "icon",
       type = "image/png",
       href = "logo.png"
     )
   ),
   # 1) Apply theme
-  theme = bs_theme(),
+  theme = bslib::bs_theme(),
 
   # 2) Global CSS to tighten up spacing
-  tags$head(
-    tags$style(HTML(
+  shiny::tags$head(
+    shiny::tags$style(shiny::HTML(
       "
   // On page load, tell Shiny about a previously saved theme
   $(document).on('shiny:connected', function() {
@@ -211,12 +211,12 @@ ui <- shiny::fluidPage(
   tfoot th { cursor: pointer; }
   "
     )),
-    tags$meta(
+    shiny::tags$meta(
       name = "viewport",
       content = "width=device-width, initial-scale=1"
     )
   ),
-  tags$script(HTML(
+  shiny::tags$script(shiny::HTML(
     "
   Shiny.addCustomMessageHandler('toggle-popover', function(id) {
     var el = document.getElementById(id);
@@ -226,40 +226,44 @@ ui <- shiny::fluidPage(
   )),
 
   # 3) THE PERSISTENT HEADER
-  div(
+  shiny::div(
     class = "app-header d-flex align-items-center",
     # left: title + description
-    div(
+    shiny::div(
       id = "brand",
-      tags$h1("CytokineProfile", class = "brand-title", style = "margin:0;"),
-      tags$span(class = "app-version", paste0("v0.0.0.9000")),
-      tags$img(
+      shiny::tags$h1(
+        "CytokineProfile",
+        class = "brand-title",
+        style = "margin:0;"
+      ),
+      shiny::tags$span(class = "app-version", paste0("v0.0.0.9000")),
+      shiny::tags$img(
         src = "logo.png",
         class = "brand-logo",
         alt = "CytokineProfile logo"
       )
     ),
     # ── Spacer to push the next flex item to the right
-    div(class = "flex-grow-1"),
+    shiny::div(class = "flex-grow-1"),
     # ── Right: GitHub / Website + Theme selector
-    div(
+    shiny::div(
       class = "d-flex align-items-center",
-      tags$a(
-        icon("github"),
+      shiny::tags$a(
+        shiny::icon("github"),
         "GitHub Repository",
         href = "https://github.com/saraswatsh/CytokineProfileShinyApp",
         target = "_blank",
         class = "btn btn-light btn-sm me-2"
       ),
-      tags$a(
-        icon("globe"),
+      shiny::tags$a(
+        shiny::icon("globe"),
         "Project Website",
         href = "https://shinyinfo.cytokineprofile.org",
         target = "_blank",
         class = "btn btn-light btn-sm me-4"
       ),
-      div(
-        selectInput(
+      shiny::div(
+        shiny::selectInput(
           "theme_choice",
           NULL,
           choices = c("Auto" = "auto", "Light" = "flatly", "Dark" = "darkly"),
@@ -272,62 +276,74 @@ ui <- shiny::fluidPage(
   ),
 
   # 4) SIDEBAR + MAIN PANEL
-  sidebarLayout(
+  shiny::sidebarLayout(
     # –––––– Sidebar ––––––
-    sidebarPanel(
+    shiny::sidebarPanel(
       class = "sidebar",
       width = 2,
       # small logo above the nav
-      tags$img(src = "logo.png", class = "sidebar-logo"),
+      shiny::tags$img(src = "logo.png", class = "sidebar-logo"),
 
       # nav buttons
-      actionButton(
+      shiny::actionButton(
         "nav_home",
         "Home",
-        icon = icon("home"),
+        icon = shiny::icon("home"),
         width = "100%",
         value = "home"
       ),
-      actionButton(
+      shiny::actionButton(
         "nav_tutorials",
         "Tutorials",
-        icon = icon("book"),
+        icon = shiny::icon("book"),
         width = "100%",
         value = "tutorials"
       ),
-      actionButton(
+      shiny::actionButton(
         "nav_start",
         "Start Analysis",
-        icon = icon("play-circle"),
+        icon = shiny::icon("play-circle"),
         width = "100%",
         value = "step1"
       ),
-      hidden(
-        div(
+      shinyjs::hidden(
+        shiny::div(
           id = "nav_submenu",
           style = "margin-left: 10px; margin-top: 5px;",
-          actionButton("nav_upload", "1. Upload Data", class = "submenu"),
-          actionButton(
+          shiny::actionButton(
+            "nav_upload",
+            "1. Upload Data",
+            class = "submenu"
+          ),
+          shiny::actionButton(
             "nav_filter",
             "2. Select Cytokines & Apply Filters",
             class = "submenu"
           ),
-          actionButton("nav_options", "3. Analysis Options", class = "submenu"),
-          actionButton("nav_args", "4. Analysis Arguments", class = "submenu"),
-          actionButton("nav_results", "5. Results", class = "submenu")
+          shiny::actionButton(
+            "nav_options",
+            "3. Analysis Options",
+            class = "submenu"
+          ),
+          shiny::actionButton(
+            "nav_args",
+            "4. Analysis Arguments",
+            class = "submenu"
+          ),
+          shiny::actionButton("nav_results", "5. Results", class = "submenu")
         )
       ),
-      actionButton(
+      shiny::actionButton(
         "nav_news",
         "News & Updates",
-        icon = icon("bullhorn"),
+        icon = shiny::icon("bullhorn"),
         width = "100%",
         value = "news"
       ),
-      actionButton(
+      shiny::actionButton(
         "nav_contact",
         "Contact",
-        icon = icon("envelope"),
+        icon = shiny::icon("envelope"),
         width = "100%",
         value = "contact"
       ),
@@ -338,7 +354,7 @@ ui <- shiny::fluidPage(
     ),
 
     # –––––– Main content ––––––
-    mainPanel(
+    shiny::mainPanel(
       class = "main-panel",
       style = "
     flex: 1 1 auto;         /* take all remaining width */
@@ -347,19 +363,22 @@ ui <- shiny::fluidPage(
     overflow: hidden;       /* prevent it from pushing footer off screen */
     ",
       # 1) the step header (fixed height)
-      uiOutput("stepHeader"),
+      shiny::uiOutput("stepHeader"),
 
       # 2) the progress bar (fixed height)
-      div(style = "padding:0.5rem 1rem;", uiOutput("progressBar")),
+      shiny::div(
+        style = "padding:0.5rem 1rem;",
+        shiny::uiOutput("progressBar")
+      ),
 
       # 3) the *scrollable* content area
-      div(
+      shiny::div(
         style = "
       flex: 1;
       overflow-y: auto;
       padding: 1rem;
     ",
-        uiOutput("page_content")
+        shiny::uiOutput("page_content")
       )
     )
   )

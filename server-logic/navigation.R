@@ -45,11 +45,11 @@ shiny::observeEvent(input$nav_tutorials, {
 })
 shiny::observeEvent(input$nav_start_home, {
   currentPage("step1")
-  toggle("nav_submenu")
+  shinyjs::toggle("nav_submenu")
 })
 shiny::observeEvent(input$nav_start, {
   currentPage("step1")
-  toggle("nav_submenu")
+  shinyjs::toggle("nav_submenu")
 })
 # then observe the real nav buttons as you already do
 shiny::observeEvent(input$nav_upload, {
@@ -74,9 +74,9 @@ shiny::observeEvent(input$nav_results, {
 })
 shiny::observe({
   if (currentPage() %in% paste0("step", 1:5)) {
-    show("nav_submenu")
+    shinyjs::show("nav_submenu")
   } else {
-    hide("nav_submenu")
+    shinyjs::hide("nav_submenu")
   }
 })
 
@@ -284,7 +284,7 @@ shiny::observeEvent(input$confirm_fresh_start, {
   session$reload()
 })
 shiny::observeEvent(input$new_reuse, {
-  isolate({
+  shiny::isolate({
     # Boxplots options
     userState$bp_bin_size = NULL
     userState$bp_mf_row = NULL
@@ -438,7 +438,7 @@ totalPages <- 5
 stepHeader <- function(step) {
   pct <- round((step - 1) / (totalPages - 1) * 100)
   shiny::tagList(
-    div(
+    shiny::div(
       class = "step-title",
       h3(switch(
         as.character(step),
@@ -449,7 +449,7 @@ stepHeader <- function(step) {
         "5" = "Analysis Results"
       ))
     ),
-    div(
+    shiny::div(
       class = "progress-wrapper",
       shinyWidgets::progressBar(
         id = "wizard_pb",
@@ -465,72 +465,72 @@ stepHeader <- function(step) {
 homeUI <- function() {
   shiny::tagList(
     h1("Welcome to CytokineProfile", style = "font-weight:300;"),
-    p(HTML(paste0(
+    p(shiny::HTML(paste0(
       "CytokineProfile is an R Shiny Application based on the CytoProfile R package available at ",
       "<a href='https://cran.r-project.org/package=CytoProfile'>CRAN</a>. ",
       "This application is designed for advanced cytokine data analysis. ",
       "It provides a comprehensive suite of functions for exploratory, univariate, ",
       "and multivariate analysis as well as machine learning methods tailored to your data."
     ))),
-    tags$h3("Features we offer:", style = "margin-top:2rem;"),
+    shiny::tags$h3("Features we offer:", style = "margin-top:2rem;"),
     fluidRow(
       column(
         width = 3,
-        div(
+        shiny::div(
           class = "card h-100",
-          div(
+          shiny::div(
             class = "card-header bg-primary text-white",
             "Univariate Analysis"
           ),
-          div(
+          shiny::div(
             class = "card-body",
-            tags$ul(
-              tags$li("ANOVA"),
-              tags$li("Two-Sample T-Test")
+            shiny::tags$ul(
+              shiny::tags$li("ANOVA"),
+              shiny::tags$li("Two-Sample T-Test")
             )
           )
         )
       ),
       column(
         width = 3,
-        div(
+        shiny::div(
           class = "card h-100",
-          div(
+          shiny::div(
             class = "card-header bg-primary text-white",
             "Exploratory Analysis"
           ),
-          div(
+          shiny::div(
             class = "card-body",
-            tags$ul(
-              tags$li("Boxplots"),
-              tags$li("Enhanced Boxplots"),
-              tags$li("Correlation Plots"),
-              tags$li("Error-Bar Plot"),
-              tags$li("Dual-Flashlight Plot"),
-              tags$li("Heatmap"),
-              tags$li("Skewness/Kurtosis Plots"),
-              tags$li("Volcano Plot")
+            shiny::tags$ul(
+              shiny::tags$li("Boxplots"),
+              shiny::tags$li("Enhanced Boxplots"),
+              shiny::tags$li("Correlation Plots"),
+              shiny::tags$li("Error-Bar Plot"),
+              shiny::tags$li("Dual-Flashlight Plot"),
+              shiny::tags$li("Heatmap"),
+              shiny::tags$li("Skewness/Kurtosis Plots"),
+              shiny::tags$li("Volcano Plot")
             )
           )
         )
       ),
       column(
         width = 3,
-        div(
+        shiny::div(
           class = "card h-100",
-          div(
+          shiny::div(
             class = "card-header bg-primary text-white",
             "Multivariate Analysis"
           ),
-          div(
+          shiny::div(
             class = "card-body",
-            tags$ul(
-              tags$li("Principal Component Analysis (PCA)"),
-              tags$li("Partial Least Squares Regression (PLSR)"),
-              tags$li(
+            shiny::tags$ul(
+              shiny::tags$li("Principal Component Analysis (PCA)"),
+              shiny::tags$li("Partial Least Squares Regression (PLSR)"),
+              shiny::tags$li(
                 "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
               ),
-              tags$li(
+              shiny::tags$li(
                 "Multivariate INTegrative Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
               )
             )
@@ -539,17 +539,17 @@ homeUI <- function() {
       ),
       column(
         width = 3,
-        div(
+        shiny::div(
           class = "card h-100",
-          div(
+          shiny::div(
             class = "card-header bg-primary text-white",
             "Machine Learning Methods"
           ),
-          div(
+          shiny::div(
             class = "card-body",
-            tags$ul(
-              tags$li("Random Forest"),
-              tags$li("Extreme Gradient Boosting (XGBoost)")
+            shiny::tags$ul(
+              shiny::tags$li("Random Forest"),
+              shiny::tags$li("Extreme Gradient Boosting (XGBoost)")
             )
           )
         )
@@ -560,10 +560,10 @@ homeUI <- function() {
       column(
         width = 12,
         align = "center",
-        actionButton(
+        shiny::actionButton(
           "nav_start_home",
           "Let's get started!",
-          icon = icon("arrow-right"),
+          icon = shiny::icon("arrow-right"),
           class = "btn-primary btn-lg"
         )
       )
@@ -573,13 +573,13 @@ homeUI <- function() {
 
 tutorialUI <- function() {
   shiny::tagList(
-    includeMarkdown("TUTORIALS.md")
+    shiny::includeMarkdown("TUTORIALS.md")
   )
 }
 newsUI <- function() {
   shiny::tagList(
     h1("News and Updates"),
-    includeMarkdown("NEWS.md")
+    shiny::includeMarkdown("NEWS.md")
   )
 }
 contactUI <- function() {
@@ -594,28 +594,28 @@ contactUI <- function() {
         p("Biomedical Data Scientist"),
         p("PhD Student in Epidemiology & Biostatistics"),
         p("University of Kentucky"),
-        tags$a(
+        shiny::tags$a(
           href = "mailto:shubh.saraswat@uky.edu",
           class = "btn btn-primary me-2",
-          icon("envelope"),
+          shiny::icon("envelope"),
           "Email"
         ),
-        tags$a(
+        shiny::tags$a(
           href = "https://www.linkedin.com/in/ssaraswat22",
           class = "btn btn-info me-2",
-          icon("linkedin"),
+          shiny::icon("linkedin"),
           "LinkedIn"
         ),
-        tags$a(
+        shiny::tags$a(
           href = "https://github.com/saraswatsh",
           class = "btn btn-dark me-2",
-          icon("github"),
+          shiny::icon("github"),
           "GitHub"
         ),
-        tags$a(
+        shiny::tags$a(
           href = "https://orcid.org/0009-0009-2359-1484",
           class = "btn btn-link",
-          icon("orcid"),
+          shiny::icon("orcid"),
           "ORCID"
         )
       ),
@@ -627,16 +627,16 @@ contactUI <- function() {
         p(em("Co-Creator and Author of CytokineProfile")),
         p("Professor, Department of Biostatistics"),
         p("University of Kentucky"),
-        tags$a(
+        shiny::tags$a(
           href = "mailto:xiaohua.zhang@uky.edu",
           class = "btn btn-primary me-2",
-          icon("envelope"),
+          shiny::icon("envelope"),
           "Email"
         ),
-        tags$a(
+        shiny::tags$a(
           href = "https://orcid.org/0000-0002-2486-7931",
           class = "btn btn-link",
-          icon("orcid"),
+          shiny::icon("orcid"),
           "ORCID"
         )
       )
@@ -650,10 +650,10 @@ contactUI <- function() {
         p(em("Author of CytokineProfile")),
         p("PhD Student in Nutritional Sciences"),
         p("University of Kentucky"),
-        tags$a(
+        shiny::tags$a(
           href = "mailto:biraarum@uky.edu",
           class = "btn btn-primary me-2",
-          icon("envelope"),
+          shiny::icon("envelope"),
           "Email"
         )
       )
@@ -664,7 +664,7 @@ contactUI <- function() {
       br(),
       p(
         "For issues related to the application, submit an issue at the ",
-        tags$a(
+        shiny::tags$a(
           href = "https://github.com/saraswatsh/CytokineProfileShinyApp/issues",
           "GitHub repository."
         ),
@@ -682,36 +682,39 @@ step1UI <- function() {
       # --- Left Column: Upload Controls ---
       column(
         width = 5,
-        card(
-          card_header(h4(icon("upload"), "Step 1: Provide Your Data")),
-          card_body(
-            tags$h5("Option A: Upload a File"),
+        bslib::card(
+          bslib::card_header(h4(
+            shiny::icon("upload"),
+            "Step 1: Provide Your Data"
+          )),
+          bslib::card_body(
+            shiny::tags$h5("Option A: Upload a File"),
             fileInput(
               "datafile",
               label = NULL,
               accept = c(".csv", ".txt", ".xls", ".xlsx")
             ),
             helpText("Accepted Formats: '.csv', '.txt', '.xls', '.xlsx'"),
-            uiOutput("sheet_selector"),
+            shiny::uiOutput("sheet_selector"),
             # Conditional panel to show the editor button once data is uploaded
-            uiOutput("open_editor_btn"),
+            shiny::uiOutput("open_editor_btn"),
             hr(),
-            tags$h5("Option B: Use Built-in Data"),
+            shiny::tags$h5("Option B: Use Built-in Data"),
             checkboxInput(
               "use_builtin",
               "Use a built-in dataset?",
-              value = isolate(userState$use_builtin) %||% FALSE
+              value = shiny::isolate(userState$use_builtin) %||% FALSE
             ),
-            uiOutput("built_in_selector"),
-            uiOutput("step1_bottom_block")
+            shiny::uiOutput("built_in_selector"),
+            shiny::uiOutput("step1_bottom_block")
           ),
-          card_footer(
-            div(
+          bslib::card_footer(
+            shiny::div(
               style = "text-align: right;",
-              actionButton(
+              shiny::actionButton(
                 "next1",
                 "Next Step",
-                icon = icon("arrow-right"),
+                icon = shiny::icon("arrow-right"),
                 class = "btn-primary btn-lg"
               )
             )
@@ -722,18 +725,21 @@ step1UI <- function() {
       # --- Right Column: Data Preview & Summary ---
       column(
         width = 7,
-        conditionalPanel(
+        shiny::conditionalPanel(
           condition = "output.data_is_loaded == true",
-          navset_card_tab(
+          bslib::navset_card_tab(
             id = "step1_data_tabs",
-            nav_panel(
+            bslib::nav_panel(
               "Data Preview",
-              conditionalPanel(
+              shiny::conditionalPanel(
                 condition = "input.view_data",
-                uiOutput("data_summary"),
-                shinycssloaders::withSpinner(uiOutput("preview_ui"), type = 8)
+                shiny::uiOutput("data_summary"),
+                shinycssloaders::withSpinner(
+                  shiny::uiOutput("preview_ui"),
+                  type = 8
+                )
               ),
-              conditionalPanel(
+              shiny::conditionalPanel(
                 condition = "!input.view_data",
                 p(
                   style = "padding: 1rem;",
@@ -741,16 +747,16 @@ step1UI <- function() {
                 )
               )
             ),
-            nav_panel(
+            bslib::nav_panel(
               "Summary Statistics",
-              conditionalPanel(
+              shiny::conditionalPanel(
                 condition = "input.show_summary",
                 shinycssloaders::withSpinner(
                   DT::DTOutput("summary_stats_table"),
                   type = 8
                 )
               ),
-              conditionalPanel(
+              shiny::conditionalPanel(
                 condition = "!input.show_summary",
                 p(
                   style = "padding: 1rem;",
@@ -780,23 +786,26 @@ step2UI <- function() {
         column(
           width = 5,
           # 1) Categorical selector
-          card(
-            card_header(class = "bg-info", "1. Select Categorical Columns"),
-            card_body(
-              div(
+          bslib::card(
+            bslib::card_header(
+              class = "bg-info",
+              "1. Select Categorical Columns"
+            ),
+            bslib::card_body(
+              shiny::div(
                 style = "margin-bottom: 10px;",
-                actionButton(
+                shiny::actionButton(
                   "select_all_cat",
                   "Select All",
                   class = "btn-sm"
                 ),
-                actionButton(
+                shiny::actionButton(
                   "deselect_all_cat",
                   "Deselect All",
                   class = "btn-sm"
                 )
               ),
-              div(
+              shiny::div(
                 class = "scrollable-checkbox-group",
                 checkboxGroupInput(
                   inputId = "selected_categorical_cols",
@@ -820,23 +829,26 @@ step2UI <- function() {
           ),
 
           # 2) Numerical selector
-          card(
-            card_header(class = "bg-info", "2. Select Numerical Columns"),
-            card_body(
-              div(
+          bslib::card(
+            bslib::card_header(
+              class = "bg-info",
+              "2. Select Numerical Columns"
+            ),
+            bslib::card_body(
+              shiny::div(
                 style = "margin-bottom: 6px;",
-                actionButton(
+                shiny::actionButton(
                   "select_all_num",
                   "Select All",
                   class = "btn-sm"
                 ),
-                actionButton(
+                shiny::actionButton(
                   "deselect_all_num",
                   "Deselect All",
                   class = "btn-sm"
                 )
               ),
-              div(
+              shiny::div(
                 class = "scrollable-checkbox-group",
                 checkboxGroupInput(
                   inputId = "selected_numerical_cols",
@@ -854,48 +866,51 @@ step2UI <- function() {
               )
             )
           ),
-          card(
+          bslib::card(
             class = "mb-3", # nice spacing below
-            card_header(
+            bslib::card_header(
               class = "bg-info",
               "2a. Treat Columns as Categorical"
             ),
-            card_body(
-              uiOutput("step2_type_ui") # your dynamic controls render here
+            bslib::card_body(
+              shiny::uiOutput("step2_type_ui") # your dynamic controls render here
             )
           ),
           # 3) Optional: Log₂ transformation
-          card(
-            card_header(
+          bslib::card(
+            bslib::card_header(
               class = "bg-info",
               "3. Optional: Log₂ Transformation"
             ),
-            card_body(
+            bslib::card_body(
               checkboxInput(
                 "step2_log2",
                 label = "Apply log₂ transformation to all selected numerical columns",
-                value = isolate(userState$step2_log2) %||% FALSE
+                value = shiny::isolate(userState$step2_log2) %||% FALSE
               )
             )
           ),
           # 4) Conditional filters UI
-          uiOutput("conditional_filter_ui")
+          shiny::uiOutput("conditional_filter_ui")
         ),
 
         # -- Right Column: Data Preview & Deletion --
         column(
           width = 7,
-          card(
+          bslib::card(
             style = "height: 40vh; display: flex; flex-direction: column;",
-            card_header(h4(icon("table"), "Filtered Data Explorer")),
-            card_body(
+            bslib::card_header(h4(
+              shiny::icon("table"),
+              "Filtered Data Explorer"
+            )),
+            bslib::card_body(
               style = "flex: 1 1 auto; overflow-y: auto; padding: 1rem;",
-              div(
+              shiny::div(
                 style = "max-height: 40vh; overflow-y: auto; padding: 1rem;",
                 DT::DTOutput("filtered_data_preview")
               )
             ),
-            card_footer(
+            bslib::card_footer(
               style = "
                            display: flex;
                           justify-content: center;
@@ -903,55 +918,55 @@ step2UI <- function() {
                           border-top: 1px solid #444;
                            background: inherit;
                         ",
-              actionButton(
+              shiny::actionButton(
                 "delete_selected_rows",
                 "Delete Selected",
-                icon = icon("trash"),
+                icon = shiny::icon("trash"),
                 class = "btn-danger me-2"
               ),
-              actionButton(
+              shiny::actionButton(
                 "expand_filtered",
                 "Enlarge Window",
-                icon = icon("expand"),
+                icon = shiny::icon("expand"),
                 class = "btn-secondary"
               )
             )
           ),
 
           # wrap deleted‐samples in a card too
-          card(
+          bslib::card(
             style = "display: flex; flex-direction: column;",
-            card_header(h4(icon("table"), "Deleted Samples")),
-            card_body(
+            bslib::card_header(h4(shiny::icon("table"), "Deleted Samples")),
+            bslib::card_body(
               style = "flex: 1 1 auto; overflow-y: auto; padding: 1rem;",
-              div(
+              shiny::div(
                 style = "max-height: 40vh; overflow-y: auto; padding: 1rem;",
                 DT::DTOutput("deleted_data_preview")
               )
             ),
-            card_footer(
+            bslib::card_footer(
               style = "display: flex;
                        justify-content: center;
                        padding: 0.75rem;
                        border-top: 1px solid #444;
                        background: inherit;",
-              actionButton(
+              shiny::actionButton(
                 "restore_selected_rows",
                 "Restore Selected",
-                icon = icon("undo"),
+                icon = shiny::icon("undo"),
                 class = "btn-secondary me-2"
               ),
-              actionButton(
+              shiny::actionButton(
                 "restore_all_rows",
                 "Restore All",
-                icon = icon("undo"),
+                icon = shiny::icon("undo"),
                 class = "btn-secondary me-2"
               ),
               # NEW: enlarge button for deleted samples
-              actionButton(
+              shiny::actionButton(
                 "expand_deleted",
                 "Enlarge Window",
-                icon = icon("expand"),
+                icon = shiny::icon("expand"),
                 class = "btn-secondary"
               )
             )
@@ -963,28 +978,32 @@ step2UI <- function() {
       fluidRow(
         column(
           12,
-          div(
+          shiny::div(
             style = "margin-top:0.5rem;",
-            actionButton("back2", "Back", icon = icon("arrow-left")),
-            conditionalPanel(
+            shiny::actionButton(
+              "back2",
+              "Back",
+              icon = shiny::icon("arrow-left")
+            ),
+            shiny::conditionalPanel(
               "input.step2_log2 == true",
-              actionButton(
+              shiny::actionButton(
                 "preview_transform",
                 "Preview Transformation",
-                icon = icon("magnifying-glass"),
+                icon = shiny::icon("magnifying-glass"),
                 class = "btn-secondary"
               )
             ),
-            actionButton(
+            shiny::actionButton(
               "open_impute_modal",
               "Treat missing values",
-              icon = icon("fas fa-eraser"),
+              icon = shiny::icon("fas fa-eraser"),
               class = "btn-secondary"
             ),
-            actionButton(
+            shiny::actionButton(
               "next2",
               "Next",
-              icon = icon("arrow-right"),
+              icon = shiny::icon("arrow-right"),
               class = "btn-primary"
             )
           )
@@ -1001,11 +1020,11 @@ step3UI <- function() {
       # Statistical Tests
       column(
         width = 3,
-        card(
-          card_header("Univariate Analysis", class = "bg-info"),
-          card_body(
-            actionButton("menu_ANOVA", "ANOVA", class = "menu-card"),
-            actionButton(
+        bslib::card(
+          bslib::card_header("Univariate Analysis", class = "bg-info"),
+          bslib::card_body(
+            shiny::actionButton("menu_ANOVA", "ANOVA", class = "menu-card"),
+            shiny::actionButton(
               "menu_t_test",
               "Two-Sample T-Test",
               class = "menu-card"
@@ -1016,37 +1035,41 @@ step3UI <- function() {
       # Exploratory Analysis
       column(
         width = 3,
-        card(
-          card_header("Exploratory Analysis", class = "bg-info"),
-          card_body(
-            actionButton("menu_boxplots", "Boxplots", class = "menu-card"),
-            actionButton(
+        bslib::card(
+          bslib::card_header("Exploratory Analysis", class = "bg-info"),
+          bslib::card_body(
+            shiny::actionButton(
+              "menu_boxplots",
+              "Boxplots",
+              class = "menu-card"
+            ),
+            shiny::actionButton(
               "menu_enhanced_boxplots",
               "Enhanced Boxplots",
               class = "menu-card"
             ),
-            actionButton(
+            shiny::actionButton(
               "menu_correlation",
               "Correlation Plots",
               class = "menu-card"
             ),
-            actionButton(
+            shiny::actionButton(
               "menu_skewkurt",
               "Skewness/Kurtosis",
               class = "menu-card"
             ),
-            actionButton(
+            shiny::actionButton(
               "menu_errorbp",
               "Error-Bar Plot",
               class = "menu-card"
             ),
-            actionButton(
+            shiny::actionButton(
               "menu_dualflash",
               "Dual-Flashlight Plot",
               class = "menu-card"
             ),
-            actionButton("menu_heatmap", "Heatmap", class = "menu-card"),
-            actionButton(
+            shiny::actionButton("menu_heatmap", "Heatmap", class = "menu-card"),
+            shiny::actionButton(
               "menu_volcano",
               "Volcano Plot",
               class = "menu-card"
@@ -1057,25 +1080,25 @@ step3UI <- function() {
       # Multivariate
       column(
         width = 3,
-        card(
-          card_header("Multivariate Analysis", class = "bg-info"),
-          card_body(
-            actionButton(
+        bslib::card(
+          bslib::card_header("Multivariate Analysis", class = "bg-info"),
+          bslib::card_body(
+            shiny::actionButton(
               "menu_PCA",
               "Principal Component Analysis (PCA)",
               class = "menu-card"
             ),
-            actionButton(
+            shiny::actionButton(
               "menu_PLSR",
               "Partial Least Squares Regression (PLSR)",
               class = "menu-card"
             ),
-            actionButton(
+            shiny::actionButton(
               "menu_splsda",
               "Sparse Partial Least Squares - Discriminant Analysis (sPLS‑DA)",
               class = "menu-card"
             ),
-            actionButton(
+            shiny::actionButton(
               "menu_mint_splsda",
               "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS‑DA)",
               class = "menu-card"
@@ -1086,11 +1109,15 @@ step3UI <- function() {
       # Machine Learning
       column(
         width = 3,
-        card(
-          card_header("Machine Learning Methods", class = "bg-info"),
-          card_body(
-            actionButton("menu_rf", "Random Forest", class = "menu-card"),
-            actionButton(
+        bslib::card(
+          bslib::card_header("Machine Learning Methods", class = "bg-info"),
+          bslib::card_body(
+            shiny::actionButton(
+              "menu_rf",
+              "Random Forest",
+              class = "menu-card"
+            ),
+            shiny::actionButton(
               "menu_xgb",
               "Extreme Gradient Boosting (XGBoost)",
               class = "menu-card"
@@ -1103,12 +1130,12 @@ step3UI <- function() {
       fluidRow(
         column(
           12,
-          div(
+          shiny::div(
             style = "margin-top: 1rem; display: flex; justify-content: flex-start;",
-            actionButton(
+            shiny::actionButton(
               "back3",
               "Back",
-              icon = icon("arrow-left"),
+              icon = shiny::icon("arrow-left"),
               class = "btn-secondary"
             )
           )
@@ -1121,19 +1148,19 @@ step3UI <- function() {
 step4UI <- function() {
   shiny::tagList(
     stepHeader(currentStep()),
-    uiOutput("function_options_ui"),
-    div(
+    shiny::uiOutput("function_options_ui"),
+    shiny::div(
       style = "display: flex; justify-content: space-between; margin-top: 1rem;",
-      actionButton(
+      shiny::actionButton(
         "back4",
         "Back",
-        icon = icon("arrow-left"),
+        icon = shiny::icon("arrow-left"),
         class = "btn-secondary"
       ),
-      actionButton(
+      shiny::actionButton(
         "next4",
         "Run Analysis",
-        icon = icon("play"),
+        icon = shiny::icon("play"),
         class = "btn-success"
       )
     )
@@ -1146,39 +1173,39 @@ resultsUI <- function() {
     fluidRow(
       column(
         12,
-        uiOutput("result_display")
+        shiny::uiOutput("result_display")
       )
     ),
     # Add the download UI output here
     fluidRow(
       column(
         6,
-        uiOutput("download_ui") # Placeholder for download button
+        shiny::uiOutput("download_ui") # Placeholder for download button
       )
     ),
     fluidRow(
       column(
         12,
-        div(
+        shiny::div(
           style = "display:flex; align-items:center; margin-top:1rem;",
-          actionButton(
+          shiny::actionButton(
             "back5",
             "Back",
-            icon = icon("arrow-left"),
+            icon = shiny::icon("arrow-left"),
             class = "btn-secondary"
           ),
-          div(
+          shiny::div(
             style = "margin-left:auto; display:flex; align-items:center; gap:.5rem;",
-            actionButton(
+            shiny::actionButton(
               "new_fresh",
               "Start New (fresh)",
-              icon = icon("play"),
+              icon = shiny::icon("play"),
               class = "btn-primary"
             ),
-            actionButton(
+            shiny::actionButton(
               "new_reuse",
               "Start New (reuse data)",
-              icon = icon("repeat"),
+              icon = shiny::icon("repeat"),
               class = "btn-secondary"
             )
           )
@@ -1200,36 +1227,26 @@ output$deleted_data_preview <- DT::renderDT({
     options = list(scrollX = TRUE, pageLength = 5)
   )
 })
-# --- Enlarge Deleted Samples Explorer ---
-# shiny::observeEvent(input$expand_deleted, {
-#   showModal(modalDialog(
-#     title = "Deleted Samples - Full View",
-#     DT::DTOutput("deleted_data_preview_modal"),
-#     size = "l",
-#     easyClose = TRUE,
-#     footer = NULL
-#   ))
-# })
 
 # --- Enlarge Deleted Samples Explorer ---
 shiny::observeEvent(input$expand_deleted, {
-  showModal(modalDialog(
+  shiny::showModal(shiny::modalDialog(
     title = "Deleted Samples - Full View",
     DT::DTOutput("deleted_data_preview_modal"),
     size = "l",
     easyClose = TRUE,
-    footer = div(
+    footer = shiny::div(
       class = "d-flex justify-content-center gap-2 flex-wrap w-100",
-      actionButton(
+      shiny::actionButton(
         "restore_selected_rows_modal",
         "Restore Selected",
-        icon = icon("undo"),
+        icon = shiny::icon("undo"),
         class = "btn-secondary"
       ),
-      actionButton(
+      shiny::actionButton(
         "restore_all_rows_modal",
         "Restore All",
-        icon = icon("undo"),
+        icon = shiny::icon("undo"),
         class = "btn-secondary"
       ),
       modalButton("Close")
@@ -1313,7 +1330,7 @@ shiny::observeEvent(input$restore_all_rows_modal, {
 
 output$viewSummaryCheckboxes <- shiny::renderUI({
   # Require either built-in data is used OR a file has been successfully uploaded
-  req(input$use_builtin || isTRUE(bioplex$active))
+  shiny::req(input$use_builtin || isTRUE(bioplex$active))
   # If the condition above is met, render the checkboxes
   tagList(
     checkboxInput("view_data", "View Data Loaded?", FALSE),
@@ -1330,7 +1347,7 @@ output$fresh_start_ui <- shiny::renderUI({
     return(NULL)
   }
 
-  div(
+  shiny::div(
     class = "mt-2",
     shiny::actionButton(
       "fresh_start",
@@ -1346,9 +1363,9 @@ output$step1_bottom_block <- shiny::renderUI({
   tagList(
     # show the view/summary toggles only after confirmed data (built-in OR Save & Use)
     if (has_confirmed_data) hr(class = "my-2"),
-    if (has_confirmed_data) uiOutput("viewSummaryCheckboxes"),
+    if (has_confirmed_data) shiny::uiOutput("viewSummaryCheckboxes"),
     if (has_confirmed_data) hr(class = "my-2"),
-    if (has_confirmed_data) uiOutput("fresh_start_ui")
+    if (has_confirmed_data) shiny::uiOutput("fresh_start_ui")
   )
 })
 
@@ -1356,7 +1373,7 @@ output$step1_bottom_block <- shiny::renderUI({
 stat_choices <- c("ANOVA", "Two-Sample T-Test")
 output$stat_function_ui <- shiny::renderUI({
   lapply(stat_choices, function(choice) {
-    actionButton(
+    shiny::actionButton(
       inputId = paste0("stat_func_", gsub("\\s|\\-", "_", choice)),
       label = choice,
       class = if (choice == selected_stat_func()) {
@@ -1389,7 +1406,7 @@ exploratory_choices <- c(
 )
 output$exploratory_function_ui <- shiny::renderUI({
   lapply(exploratory_choices, function(choice) {
-    actionButton(
+    shiny::actionButton(
       inputId = paste0("exp_func_", gsub("\\s|\\-", "_", choice)),
       label = choice,
       class = if (choice == selected_exploratory_func()) {
@@ -1421,7 +1438,7 @@ multivariate_choices <- c(
 )
 output$multivariate_function_ui <- shiny::renderUI({
   lapply(multivariate_choices, function(choice) {
-    actionButton(
+    shiny::actionButton(
       inputId = paste0("multi_func_", gsub("\\s|\\-", "_", choice)),
       label = choice,
       class = if (choice == selected_multivariate_func()) {
@@ -1445,7 +1462,7 @@ lapply(multivariate_choices, function(choice) {
 ml_choices <- c("Random Forest", "Extreme Gradient Boosting (XGBoost)")
 output$ml_function_ui <- shiny::renderUI({
   lapply(ml_choices, function(choice) {
-    actionButton(
+    shiny::actionButton(
       inputId = paste0("ml_func_", gsub("\\s|\\-", "_", choice)),
       label = choice,
       class = if (choice == selected_ml_func()) {
@@ -1476,7 +1493,7 @@ shiny::observeEvent(currentStep(), {
     title <- paste("Step", step_i, "of", totalSteps)
   }
 
-  updateProgressBar(
+  shinyWidgets::updateProgressBar(
     session,
     "wizard_pb",
     value = pct,
@@ -1489,11 +1506,11 @@ shiny::observeEvent(currentStep(), {
 shiny::observeEvent(input$next1, {
   # Check if a file has been uploaded OR if the "use built-in" box is checked
   if (!isTRUE(input$use_builtin) && !isTRUE(bioplex$active)) {
-    showModal(modalDialog(
+    shiny::showModal(shiny::modalDialog(
       title = "Confirm your data first",
       "Please open the Data Editor and click 'Save & Use' (or choose a built-in dataset) before continuing.",
       easyClose = TRUE,
-      footer = actionButton("ok_no_data", "OK")
+      footer = shiny::actionButton("ok_no_data", "OK")
     ))
   } else {
     currentPage("step2")
@@ -1501,7 +1518,7 @@ shiny::observeEvent(input$next1, {
   }
 })
 shiny::observeEvent(input$ok_no_data, {
-  removeModal() # close the popup
+  shiny::removeModal() # close the popup
   currentPage("step1") # navigate back to Upload Data step
 })
 
@@ -1569,18 +1586,18 @@ raw_filtered <- shiny::reactive({
     }
   }
   df
-}) %>%
+}) |>
   shiny::debounce(500)
 
 data_after_filters <- shiny::reactive({
   df <- raw_filtered()
-  req(df)
+  shiny::req(df)
   if (isTRUE(input$step2_log2)) {
     num_cols <- intersect(input$selected_numerical_cols, names(df))
     df[num_cols] <- round(log2(df[num_cols]), 5)
   }
   df
-}) %>%
+}) |>
   shiny::debounce(500)
 
 data_after_imputation <- shiny::reactive({
@@ -1590,32 +1607,32 @@ data_after_imputation <- shiny::reactive({
     return(imp)
   }
   dat
-}) %>%
+}) |>
   shiny::debounce(500)
 
 # D) The main filteredData() used by DT
 filteredData <- shiny::reactive({
   df <- data_after_imputation()
-  req(df)
+  shiny::req(df)
   cols_to_keep <-
     if (currentStep() >= 3) {
-      req(userState$selected_columns)
+      shiny::req(userState$selected_columns)
       userState$selected_columns
     } else {
-      req(selected_columns_combined())
+      shiny::req(selected_columns_combined())
       selected_columns_combined()
     }
 
   # Always keep the internal ID for deletes
   final_cols <- union(cols_to_keep, "..cyto_id..")
   df[, intersect(names(df), final_cols), drop = FALSE]
-}) %>%
+}) |>
   shiny::debounce(500)
 
 # Populate the sPLS-DA "Label column" choices whenever the working data changes
 shiny::observeEvent(data_after_filters(), {
   df <- data_after_filters()
-  req(nrow(df) > 0)
+  shiny::req(nrow(df) > 0)
 
   # Start with all non-numeric columns available after filters
   cand <- names(df)[!vapply(df, is.numeric, logical(1))]
@@ -1636,14 +1653,14 @@ shiny::observeEvent(data_after_filters(), {
     session,
     "splsda_ind_names_col",
     choices = cand,
-    selected = isolate(userState$splsda_ind_names_col) %||%
+    selected = shiny::isolate(userState$splsda_ind_names_col) %||%
       if (length(cand)) cand[1] else NULL
   )
 })
 # E) Render the table in Step 2
 output$filtered_data_preview <- DT::renderDT({
   df <- filteredData()
-  req(nrow(df) > 0)
+  shiny::req(nrow(df) > 0)
 
   df$..cyto_id.. <- NULL # Remove the internal ID column for display
   DT::datatable(
@@ -1663,29 +1680,19 @@ output$filtered_data_preview <- DT::renderDT({
     class = "stripe hover"
   )
 })
-# --- Enlarge Filtered Data Explorer ---
-# shiny::observeEvent(input$expand_filtered, {
-#   showModal(modalDialog(
-#     title = "Filtered Data Explorer – Full View",
-#     DT::DTOutput("filtered_data_preview_modal"),
-#     size = "l", # large modal (alternatives: "m" or "xl")
-#     easyClose = TRUE, # allow closing by clicking outside
-#     footer = NULL # omit default footer; the 'X' in corner closes the modal
-#   ))
-# })
 
 shiny::observeEvent(input$expand_filtered, {
-  showModal(modalDialog(
+  shiny::showModal(shiny::modalDialog(
     title = "Filtered Data Explorer – Full View",
     DT::DTOutput("filtered_data_preview_modal"),
     size = "l",
     easyClose = TRUE,
-    footer = div(
+    footer = shiny::div(
       class = "d-flex justify-content-center gap-2 flex-wrap w-100",
-      actionButton(
+      shiny::actionButton(
         "delete_selected_rows_modal",
         "Delete Selected",
-        icon = icon("trash"),
+        icon = shiny::icon("trash"),
         class = "btn-danger"
       ),
       modalButton("Close")
@@ -1694,7 +1701,7 @@ shiny::observeEvent(input$expand_filtered, {
 })
 output$filtered_data_preview_modal <- DT::renderDT({
   df <- filteredData()
-  req(nrow(df) > 0)
+  shiny::req(nrow(df) > 0)
 
   df$..cyto_id.. <- NULL # Remove the internal ID column for display
   DT::datatable(
@@ -1722,15 +1729,15 @@ output$conditional_filter_ui <- shiny::renderUI({
     !is.null(input$selected_categorical_cols) &&
       length(input$selected_categorical_cols) > 0
   ) {
-    card(
-      card_header(class = "bg-info", "4. Optional: Apply Filters"),
-      card_body(
+    bslib::card(
+      bslib::card_header(class = "bg-info", "4. Optional: Apply Filters"),
+      bslib::card_body(
         bslib::accordion(
           id = "filter_accordion",
-          open = isTruthy(input$filter_accordion),
+          open = shiny::isTruthy(input$filter_accordion),
           bslib::accordion_panel(
             "Filter by Categorical Values",
-            uiOutput("filter_ui"),
+            shiny::uiOutput("filter_ui"),
             icon = fontawesome::fa("filter")
           )
         )
@@ -1742,12 +1749,12 @@ output$conditional_filter_ui <- shiny::renderUI({
 })
 
 shiny::observeEvent(input$open_impute_modal, {
-  shiny::showModal(modalDialog(
+  shiny::showModal(shiny::modalDialog(
     title = "Treat Missing Values",
     size = "l",
     easyClose = TRUE,
     footer = tagList(
-      actionButton("apply_impute", "Apply", class = "btn-primary"),
+      shiny::actionButton("apply_impute", "Apply", class = "btn-primary"),
       modalButton("Cancel")
     ),
     # --- simple UI for 5 methods ---
@@ -1775,27 +1782,34 @@ shiny::observeEvent(input$open_impute_modal, {
           label = tagList(
             span("Method", style = "margin-right:10px;"),
             bslib::popover(
-              actionLink("mv_help", NULL, icon = icon("question-circle")),
-              div(
-                tags$h4("How missing values are treated", class = "mb-3"),
+              actionLink(
+                "mv_help",
+                NULL,
+                icon = shiny::icon("question-circle")
+              ),
+              shiny::div(
+                shiny::tags$h4(
+                  "How missing values are treated",
+                  class = "mb-3"
+                ),
                 p(
-                  tags$b("Mean:"),
+                  shiny::tags$b("Mean:"),
                   " this method calculates the average of all non-missing values in a column and uses this mean to fill in any missing entries."
                 ),
                 p(
-                  tags$b("Median:"),
+                  shiny::tags$b("Median:"),
                   " this method calculates the middle value of all non-missing entries in a column and uses this median to replace any missing values."
                 ),
                 p(
-                  tags$b("Mode:"),
+                  shiny::tags$b("Mode:"),
                   " this method identifies the most frequently occurring value in a column and uses it to fill in the missing data. Mode imputation is the only one of these three that can be used for categorical (non-numeric) data."
                 ),
                 p(
-                  tags$b("kNN (sample-wise):"),
+                  shiny::tags$b("kNN (sample-wise):"),
                   " this method for each missing cell, finds the k nearest rows (samples) using the other features and impute from those neighbors’ values in the same column"
                 ),
                 p(
-                  tags$b("kNN (feature-wise):"),
+                  shiny::tags$b("kNN (feature-wise):"),
                   " this method for each missing cell, finds the k most similar columns (features) based on their patterns across samples and impute from those features’ values in the same row"
                 )
               ),
@@ -1811,9 +1825,9 @@ shiny::observeEvent(input$open_impute_modal, {
           ),
           selected = userState$impute_meta$method %||% "mean"
         ),
-        conditionalPanel(
+        shiny::conditionalPanel(
           "input.imp_method == 'knn_sample' || input.imp_method == 'knn_feature'",
-          numericInput(
+          shiny::numericInput(
             "imp_k",
             "k neighbors",
             value = userState$impute_meta$k %||% 5,
@@ -1838,7 +1852,7 @@ shiny::observeEvent(input$open_impute_modal, {
 
 shiny::observe({
   df <- data_after_filters()
-  req(df)
+  shiny::req(df)
   show_btn <- anyNA(df) # or compute prop_miss >= 0.05
   shinyjs::toggle(id = "open_impute_modal", condition = show_btn)
 })
@@ -1850,7 +1864,7 @@ output$imp_na_before <- shiny::renderPrint({
   )
 })
 output$imp_na_after <- shiny::renderPrint({
-  req(imputed_data())
+  shiny::req(imputed_data())
   d <- imputed_data()
   c(
     "Total Missing Values" = sum(is.na(d)),
@@ -1895,10 +1909,10 @@ impute_data <- function(df, include, method, k = 5, scale_for_knn = TRUE) {
 
     rec <- recipes::recipe(~., data = dat)
     if (scale_for_knn && length(num_cols)) {
-      rec <- rec %>% recipes::step_normalize(all_of(num_cols))
+      rec <- rec |> recipes::step_normalize(all_of(num_cols))
     }
-    rec <- rec %>% recipes::step_impute_knn(all_of(include), neighbors = k)
-    dat <- recipes::bake(prep(rec, training = dat), new_data = dat)
+    rec <- rec |> recipes::step_impute_knn(all_of(include), neighbors = k)
+    dat <- recipes::bake(recipes::prep(rec, training = dat), new_data = dat)
   } else if (method == "knn_feature") {
     # numeric-only, neighbors across features using impute::impute.knn
     if (!length(num_cols)) {
@@ -1943,7 +1957,7 @@ shiny::observeEvent(input$apply_impute, {
     cols = sel,
     scaled = isTRUE(input$imp_scale)
   )
-  removeModal()
+  shiny::removeModal()
 })
 
 # ============================================================================
@@ -1959,55 +1973,64 @@ show_comparison <- shiny::reactiveVal(FALSE)
 
 # 1) Define the comparison plot output up front:
 output$norm_compare <- shiny::renderPlot({
-  req(show_comparison())
+  shiny::req(show_comparison())
   cmp <- comparison_data()
   orig <- cmp$orig
   trans <- cmp$trans
   num_cols <- cmp$num_cols
   # long data for before & after
-  df_before <- pivot_longer(
+  df_before <- tidyr::pivot_longer(
     orig[, num_cols, drop = FALSE],
     cols = everything(),
     names_to = "variable",
     values_to = "value"
   )
-  df_after <- pivot_longer(
+  df_after <- tidyr::pivot_longer(
     trans[, num_cols, drop = FALSE],
     cols = everything(),
     names_to = "variable",
     values_to = "value"
   )
   # 1) Separate density plots
-  dens_before <- ggplot(df_before, aes(x = value)) +
-    geom_density(fill = "skyblue", alpha = 0.5) +
-    labs(title = "Before log₂", x = "Value", y = "Density") +
-    theme_minimal()
+  dens_before <- ggplot2::ggplot(df_before, ggplot2::aes(x = value)) +
+    ggplot2::geom_density(fill = "skyblue", alpha = 0.5) +
+    ggplot2::labs(title = "Before log₂", x = "Value", y = "Density") +
+    ggplot2::theme_minimal()
 
-  dens_after <- ggplot(df_after, aes(x = value)) +
-    geom_density(fill = "salmon", alpha = 0.5) +
-    labs(title = "After log₂", x = "Value", y = "") +
-    theme_minimal() +
-    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
-
-  # 2) Separate boxplot grids
-  box_before <- ggplot(df_before, aes(x = variable, y = value)) +
-    geom_boxplot(fill = "skyblue", outlier.size = 0.5) +
-    labs(title = "Before log₂", x = NULL, y = "Value") +
-    theme_minimal() +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-      strip.text = element_text(size = 8)
+  dens_after <- ggplot2::ggplot(df_after, ggplot2::aes(x = value)) +
+    ggplot2::geom_density(fill = "salmon", alpha = 0.5) +
+    ggplot2::labs(title = "After log₂", x = "Value", y = "") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      axis.text.y = ggplot2::element_blank(),
+      axis.ticks.y = ggplot2::element_blank()
     )
 
-  box_after <- ggplot(df_after, aes(x = variable, y = value)) +
-    geom_boxplot(fill = "salmon", outlier.size = 0.5) +
-    labs(title = "After log₂", x = NULL, y = "") +
-    theme_minimal() +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-      strip.text = element_text(size = 8),
-      axis.text.y = element_blank(),
-      axis.ticks.y = element_blank()
+  # 2) Separate boxplot grids
+  box_before <- ggplot2::ggplot(
+    df_before,
+    ggplot2::aes(x = variable, y = value)
+  ) +
+    ggplot2::geom_boxplot(fill = "skyblue", outlier.size = 0.5) +
+    ggplot2::labs(title = "Before log₂", x = NULL, y = "Value") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8),
+      strip.text = ggplot2::element_text(size = 8)
+    )
+
+  box_after <- ggplot2::ggplot(
+    df_after,
+    ggplot2::aes(x = variable, y = value)
+  ) +
+    ggplot2::geom_boxplot(fill = "salmon", outlier.size = 0.5) +
+    ggplot2::labs(title = "After log₂", x = NULL, y = "") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8),
+      strip.text = ggplot2::element_text(size = 8),
+      axis.text.y = ggplot2::element_blank(),
+      axis.ticks.y = ggplot2::element_blank()
     )
 
   # 3) Combine with patchwork
@@ -2036,7 +2059,7 @@ shiny::observeEvent(input$next2, {
 })
 
 shiny::observeEvent(input$preview_transform, {
-  req(input$step2_log2) # only if they’ve asked for log2
+  shiny::req(input$step2_log2) # only if they’ve asked for log2
   orig <- raw_filtered()
   num_cols <- intersect(input$selected_numerical_cols, names(orig))
   trans <- orig
@@ -2049,10 +2072,10 @@ shiny::observeEvent(input$preview_transform, {
   ))
   show_comparison(TRUE)
 
-  showModal(
-    modalDialog(
+  shiny::showModal(
+    shiny::modalDialog(
       title = "Before vs After log₂-Transformation",
-      plotOutput("norm_compare", height = "600px"),
+      shiny::plotOutput("norm_compare", height = "600px"),
       footer = modalButton("Close"),
       size = "l"
     )
@@ -2061,7 +2084,7 @@ shiny::observeEvent(input$preview_transform, {
 
 # On moving from Step 3 to Step 4, save the selected function and function options
 shiny::observeEvent(input$next3, {
-  req(currentStep() == 4, !is.null(selected_function()))
+  shiny::req(currentStep() == 4, !is.null(selected_function()))
   userState$selected_function <- selected_function()
   if (currentStep() == 4 && !is.null(selected_function())) {
     if (selected_function() == "Boxplots") {

@@ -7,17 +7,17 @@ base_theme <- bslib::bs_theme(
   code_font = bslib::font_google("Roboto Mono")
 )
 
-system_theme <- reactive({
+system_theme <- shiny::reactive({
   if (is.null(input$system_theme)) "flatly" else input$system_theme
 })
 
-theme_choice_rv <- reactiveVal("auto")
+theme_choice_rv <- shiny::reactiveVal("auto")
 
 # IMPORTANT: do NOT ignore init; we want the initial value on refresh
-observeEvent(
+shiny::observeEvent(
   input$theme_choice,
   {
-    req(input$theme_choice)
+    shiny::req(input$theme_choice)
     theme_choice_rv(input$theme_choice)
 
     # persist per-browser
@@ -30,7 +30,7 @@ observeEvent(
 )
 
 # Apply theme whenever either theme_choice_rv() or system_theme() changes
-observe({
+shiny::observe({
   choice <- theme_choice_rv()
   bootswatch <- if (identical(choice, "auto")) system_theme() else choice
 

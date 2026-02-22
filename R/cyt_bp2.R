@@ -76,8 +76,8 @@ cyt_bp2 <- function(
   }
   for (num in num_cols) {
     for (fac in fac_cols) {
-      plot_data <- data %>%
-        dplyr::select(!!num, !!fac) %>%
+      plot_data <- data |>
+        dplyr::select(!!num, !!fac) |>
         dplyr::rename(Outcome = !!num, Group = !!fac)
 
       p <- ggplot2::ggplot(

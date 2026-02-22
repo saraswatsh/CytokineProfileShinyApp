@@ -3,12 +3,12 @@
 ## ---------------------------
 
 shiny::observeEvent(currentStep(), {
-  req(currentStep(), !is.null(selected_function()))
+  shiny::req(currentStep(), !is.null(selected_function()))
   if (currentStep() == 1) {
     # restore the Use built‑in” toggle
-    updateCheckboxInput(session, "use_builtin", value = userState$use_builtin)
+    shiny::updateCheckboxInput(session, "use_builtin", value = userState$use_builtin)
     if (isTRUE(userState$use_builtin) && !is.null(userState$built_in_choice)) {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "built_in_choice",
         selected = userState$built_in_choice
@@ -25,7 +25,7 @@ shiny::observeEvent(currentStep(), {
 
     # restore what they had selected
     if (!is.null(userState$selected_categorical_cols)) {
-      updateCheckboxGroupInput(
+      shiny::updateCheckboxGroupInput(
         session,
         "selected_categorical_cols",
         choices = categorical_cols,
@@ -36,7 +36,7 @@ shiny::observeEvent(currentStep(), {
       )
     }
     if (!is.null(userState$selected_numerical_cols)) {
-      updateCheckboxGroupInput(
+      shiny::updateCheckboxGroupInput(
         session,
         "selected_numerical_cols",
         choices = numerical_cols,
@@ -47,7 +47,7 @@ shiny::observeEvent(currentStep(), {
       )
     }
     # also restore the log2 box
-    updateCheckboxInput(
+    shiny::updateCheckboxInput(
       session,
       "step2_log2",
       value = userState$step2_log2
@@ -55,7 +55,7 @@ shiny::observeEvent(currentStep(), {
   }
   if (currentStep() == 3 && !is.null(userState$selected_function)) {
     if (!is.null(userState$analysis_categories)) {
-      updateRadioButtons(
+      shiny::updateRadioButtons(
         session,
         "analysis_categories",
         selected = userState$analysis_categories
@@ -63,28 +63,28 @@ shiny::observeEvent(currentStep(), {
     }
     # re‐select the dropdowns
     if (!is.null(userState$stat_function)) {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "stat_function",
         selected = userState$stat_function
       )
     }
     if (!is.null(userState$exploratory_function)) {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "exploratory_function",
         selected = userState$exploratory_function
       )
     }
     if (!is.null(userState$multivariate_function)) {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "multivariate_function",
         selected = userState$multivariate_function
       )
     }
     if (!is.null(userState$ml_function)) {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "ml_function",
         selected = userState$ml_function
@@ -92,9 +92,9 @@ shiny::observeEvent(currentStep(), {
     }
     # Boxplots
     if (userState$selected_function == "Boxplots") {
-      updateSelectInput(session, "bp_mf_row", selected = userState$bp_mf_row)
-      updateTextInput(session, "bp_y_lim", value = userState$bp_y_lim)
-      updateNumericInput(
+      shiny::updateSelectInput(session, "bp_mf_row", selected = userState$bp_mf_row)
+      shiny::updateTextInput(session, "bp_y_lim", value = userState$bp_y_lim)
+      shiny::updateNumericInput(
         session,
         "bp_bin_size",
         value = userState$bp_bin_size
@@ -103,54 +103,54 @@ shiny::observeEvent(currentStep(), {
 
     # Enhanced Boxplots
     if (userState$selected_function == "Enhanced Boxplots") {
-      updateTextInput(session, "bp2_mf_row", value = userState$bp2_mf_row)
-      updateTextInput(session, "bp2_y_lim", value = userState$bp2_y_lim)
+      shiny::updateTextInput(session, "bp2_mf_row", value = userState$bp2_mf_row)
+      shiny::updateTextInput(session, "bp2_y_lim", value = userState$bp2_y_lim)
     }
     if (userState$selected_function == "Error-Bar Plot") {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "eb_group_col",
         selected = userState$eb_group_col
       )
-      updateCheckboxInput(session, "eb_p_lab", value = userState$eb_p_lab)
-      updateCheckboxInput(session, "eb_es_lab", value = userState$eb_es_lab)
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(session, "eb_p_lab", value = userState$eb_p_lab)
+      shiny::updateCheckboxInput(session, "eb_es_lab", value = userState$eb_es_lab)
+      shiny::updateCheckboxInput(
         session,
         "eb_class_symbol",
         value = userState$eb_class_symbol
       )
-      updateTextInput(session, "eb_x_lab", value = userState$eb_x_lab)
-      updateTextInput(session, "eb_y_lab", value = userState$eb_y_lab)
-      updateTextInput(session, "eb_title", value = userState$eb_title)
+      shiny::updateTextInput(session, "eb_x_lab", value = userState$eb_x_lab)
+      shiny::updateTextInput(session, "eb_y_lab", value = userState$eb_y_lab)
+      shiny::updateTextInput(session, "eb_title", value = userState$eb_title)
     }
     # Dual-Flashlight Plot
     if (userState$selected_function == "Dual-Flashlight Plot") {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "df_group_var",
         selected = userState$df_group_var
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "df_cond1",
         selected = userState$df_cond1
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "df_cond2",
         selected = userState$df_cond2
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "df_ssmd_thresh",
         value = userState$df_ssmd_thresh
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "df_log2fc_thresh",
         value = userState$df_log2fc_thresh
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "df_top_labels",
         value = userState$df_top_labels
@@ -159,13 +159,13 @@ shiny::observeEvent(currentStep(), {
 
     # Heatmap
     if (userState$selected_function == "Heatmap") {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "hm_annotation",
         selected = userState$hm_annotation
       )
-      updateSelectInput(session, "hm_scale", selected = userState$hm_scale)
-      updateSelectInput(
+      shiny::updateSelectInput(session, "hm_scale", selected = userState$hm_scale)
+      shiny::updateSelectInput(
         session,
         "hm_ann_side",
         selected = userState$hm_ann_side
@@ -174,29 +174,29 @@ shiny::observeEvent(currentStep(), {
 
     # Principal Component Analysis (PCA)
     if (userState$selected_function == "Principal Component Analysis (PCA)") {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "pca_group_col",
         selected = userState$pca_group_col
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "pca_group_col2",
         selected = userState$pca_group_col2
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "pca_comp_num",
         value = userState$pca_comp_num
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "pca_ellipse",
         value = userState$pca_ellipse
       )
-      updateSelectInput(session, "pca_style", selected = userState$pca_style)
-      updateSelectizeInput(session, "pca_pch", selected = userState$pca_pch)
-      updateSelectizeInput(
+      shiny::updateSelectInput(session, "pca_style", selected = userState$pca_style)
+      shiny::updateSelectizeInput(session, "pca_pch", selected = userState$pca_pch)
+      shiny::updateSelectizeInput(
         session,
         "pca_colors",
         selected = userState$pca_colors
@@ -206,52 +206,52 @@ shiny::observeEvent(currentStep(), {
     if (
       userState$selected_function == "Partial Least Squares Regression (PLSR)"
     ) {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "plsr_group_col",
         selected = userState$plsr_group_col
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "plsr_response_col",
         selected = userState$plsr_response_col
       )
-      updateSelectizeInput(
+      shiny::updateSelectizeInput(
         session,
         "plsr_predictor_cols",
         selected = userState$plsr_predictor_cols
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "plsr_comp_num",
         value = userState$plsr_comp_num
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "plsr_sparse",
         value = userState$plsr_sparse
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "plsr_keepX",
         value = userState$plsr_keepX
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "plsr_cv_opt",
         value = userState$plsr_cv_opt
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "plsr_fold_num",
         value = userState$plsr_fold_num
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "plsr_ellipse",
         value = userState$plsr_ellipse
       )
-      updateSelectizeInput(
+      shiny::updateSelectizeInput(
         session,
         "plsr_colors",
         selected = userState$plsr_colors
@@ -260,17 +260,17 @@ shiny::observeEvent(currentStep(), {
 
     # Correlation Plots
     if (userState$selected_function == "Correlation Plots") {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "corr_group_col",
         selected = userState$corr_group_col
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "corr_target",
         selected = userState$corr_target
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "corr_by_group",
         value = userState$corr_by_group
@@ -279,45 +279,45 @@ shiny::observeEvent(currentStep(), {
 
     # Random Forest
     if (userState$selected_function == "Random Forest") {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "rf_group_col",
         selected = userState$rf_group_col
       )
-      updateNumericInput(session, "rf_ntree", value = userState$rf_ntree)
-      updateNumericInput(session, "rf_mtry", value = userState$rf_mtry)
-      updateNumericInput(
+      shiny::updateNumericInput(session, "rf_ntree", value = userState$rf_ntree)
+      shiny::updateNumericInput(session, "rf_mtry", value = userState$rf_mtry)
+      shiny::updateNumericInput(
         session,
         "rf_train_fraction",
         value = userState$rf_train_fraction
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "rf_plot_roc",
         value = userState$rf_plot_roc
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "rf_run_rfcv",
         value = userState$rf_run_rfcv
       )
-      updateNumericInput(session, "rf_k_folds", value = userState$rf_k_folds)
-      updateNumericInput(session, "rf_step", value = userState$rf_step)
+      shiny::updateNumericInput(session, "rf_k_folds", value = userState$rf_k_folds)
+      shiny::updateNumericInput(session, "rf_step", value = userState$rf_step)
     }
 
     # Skewness/Kurtosis
     if (userState$selected_function == "Skewness/Kurtosis") {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "skku_group_cols",
         selected = userState$skku_group_cols
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "skku_print_raw",
         value = userState$skku_print_raw
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "skku_print_log",
         value = userState$skku_print_log
@@ -329,98 +329,98 @@ shiny::observeEvent(currentStep(), {
       userState$selected_function ==
         "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
     ) {
-      df_now <- isolate(data_after_filters())
-      if (isTruthy(df_now)) {
+      df_now <- shiny::isolate(data_after_filters())
+      if (shiny::isTruthy(df_now)) {
         cand <- names(df_now)[!vapply(df_now, is.numeric, logical(1))]
         cand <- setdiff(cand, "..cyto_id..")
       } else {
         cand <- character(0)
       }
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "splsda_group_col",
         selected = userState$splsda_group_col
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "splsda_group_col2",
         selected = userState$splsda_group_col2
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "splsda_use_batch_corr",
         value = userState$splsda_use_batch_corr
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "splsda_batch_col",
         selected = userState$splsda_batch_col
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "splsda_use_multilevel",
         value = userState$splsda_use_multilevel
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "splsda_multilevel",
         selected = userState$splsda_multilevel
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "splsda_var_num",
         value = userState$splsda_var_num
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "splsda_cv_opt",
         value = userState$splsda_cv_opt
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "splsda_fold_num",
         value = userState$splsda_fold_num
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "splsda_comp_num",
         value = userState$splsda_comp_num
       )
-      updateRadioButtons(
+      shiny::updateRadioButtons(
         session,
         "splsda_ind_names_mode",
         selected = userState$splsda_ind_names_mode %||% "off"
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "splsda_ind_names_col",
         choices = cand,
         selected = userState$splsda_ind_names_col %||%
           if (length(cand)) cand[1] else NULL
       )
-      updateSelectizeInput(
+      shiny::updateSelectizeInput(
         session,
         "splsda_pch",
         selected = userState$splsda_pch
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "splsda_style",
         selected = userState$splsda_style
       )
-      updateCheckboxInput(session, "splsda_roc", value = userState$splsda_roc)
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(session, "splsda_roc", value = userState$splsda_roc)
+      shiny::updateCheckboxInput(
         session,
         "splsda_ellipse",
         value = userState$splsda_ellipse
       )
-      updateCheckboxInput(session, "splsda_bg", value = userState$splsda_bg)
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(session, "splsda_bg", value = userState$splsda_bg)
+      shiny::updateCheckboxInput(
         session,
         "splsda_conf_mat",
         value = userState$splsda_conf_mat
       )
-      updateSelectizeInput(
+      shiny::updateSelectizeInput(
         session,
         "splsda_colors",
         selected = userState$splsda_colors
@@ -433,32 +433,32 @@ shiny::observeEvent(currentStep(), {
     }
     # Volcano Plot
     if (userState$selected_function == "Volcano Plot") {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "volc_group_col",
         selected = userState$volc_group_col
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "volc_cond1",
         selected = userState$volc_cond1
       )
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "volc_cond2",
         selected = userState$volc_cond2
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "volc_fold_change_thresh",
         value = userState$volc_fold_change_thresh
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "volc_p_value_thresh",
         value = userState$volc_p_value_thresh
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "volc_top_labels",
         value = userState$volc_top_labels
@@ -467,44 +467,44 @@ shiny::observeEvent(currentStep(), {
 
     # Extreme Gradient Boosting (XGBoost)
     if (userState$selected_function == "Extreme Gradient Boosting (XGBoost)") {
-      updateSelectInput(
+      shiny::updateSelectInput(
         session,
         "xgb_group_col",
         selected = userState$xgb_group_col
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "xgb_train_fraction",
         value = userState$xgb_train_fraction
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "xgb_nrounds",
         value = userState$xgb_nrounds
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "xgb_max_depth",
         value = userState$xgb_max_depth
       )
-      updateNumericInput(session, "xgb_eta", value = userState$xgb_eta)
-      updateSelectInput(
+      shiny::updateNumericInput(session, "xgb_eta", value = userState$xgb_eta)
+      shiny::updateSelectInput(
         session,
         "xgb_eval_metric",
         selected = userState$xgb_eval_metric
       )
-      updateNumericInput(
+      shiny::updateNumericInput(
         session,
         "xgb_top_n_features",
         value = userState$xgb_top_n_features
       )
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "xgb_plot_roc",
         value = userState$xgb_plot_roc
       )
-      updateCheckboxInput(session, "xgb_cv", value = userState$xgb_cv)
-      updateNumericInput(session, "xgb_nfold", value = userState$xgb_nfold)
+      shiny::updateCheckboxInput(session, "xgb_cv", value = userState$xgb_cv)
+      shiny::updateNumericInput(session, "xgb_nfold", value = userState$xgb_nfold)
     }
   }
 })

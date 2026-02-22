@@ -58,7 +58,7 @@ cyt_dualflashplot <- function(
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Reshaping data to long format")
   }
-  data_long <- data %>%
+  data_long <- data |>
     tidyr::pivot_longer(
       cols = -all_of(group_var),
       names_to = "cytokine",
@@ -68,17 +68,17 @@ cyt_dualflashplot <- function(
   if (!is.null(progress)) {
     progress$inc(0.1, detail = "Calculating summary statistics")
   }
-  stats <- data_long %>%
-    dplyr::group_by(cytokine, .data[[group_var]]) %>%
+  stats <- data_long |>
+    dplyr::group_by(cytokine, .data[[group_var]]) |>
     dplyr::summarise(
       mean = mean(level, na.rm = TRUE),
       variance = stats::var(level, na.rm = TRUE),
       .groups = "drop"
-    ) %>%
+    ) |>
     tidyr::pivot_wider(
       names_from = all_of(group_var),
       values_from = c(mean, variance)
-    ) %>%
+    ) |>
     dplyr::mutate(
       ssmd = (get(paste0("mean_", group1)) - get(paste0("mean_", group2))) /
         sqrt(

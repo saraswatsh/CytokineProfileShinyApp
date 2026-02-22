@@ -58,7 +58,7 @@ shiny::observeEvent(
     )
 
     # Notify the user that previous editor state was cleared due to new upload
-    showNotification(
+    shiny::showNotification(
       "New upload detected — previous data-editor state cleared.",
       type = "message",
       duration = 4
@@ -83,7 +83,7 @@ shiny::observeEvent(
       updateSelectizeInput(session, "sheet_name", selected = character(0)),
       silent = TRUE
     )
-    showNotification(
+    shiny::showNotification(
       "New Bioplex file detected — previous data-editor state cleared.",
       type = "message",
       duration = 4
@@ -96,12 +96,12 @@ userData <- shiny::reactive({
   if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
     df <- bioplex$final
   } else if (isTRUE(input$use_builtin)) {
-    req(input$built_in_choice)
+    shiny::req(input$built_in_choice)
     df <- get(input$built_in_choice)
     dest <- file.path(builtins_dir, paste0(input$built_in_choice, ".rds"))
     if (!file.exists(dest)) saveRDS(df, dest)
   } else {
-    req(input$datafile)
+    shiny::req(input$datafile)
     dest <- file.path(upload_dir, input$datafile$name)
     # Always copy the uploaded file into our upload dir, overwriting previous
     # copies with the same filename so re-uploading a wrong file refreshes
@@ -109,10 +109,10 @@ userData <- shiny::reactive({
     file.copy(input$datafile$datapath, dest, overwrite = TRUE)
     ext <- tolower(tools::file_ext(dest))
     if (ext == "csv") {
-      df <- vroom::vroom(dest, delim = ",", show_col_types = FALSE) %>%
+      df <- vroom::vroom(dest, delim = ",", show_col_types = FALSE) |>
         as.data.frame() # convert tibble to data.frame for DT
     } else if (ext == "txt") {
-      df <- vroom::vroom(dest, delim = "\t", show_col_types = FALSE) %>%
+      df <- vroom::vroom(dest, delim = "\t", show_col_types = FALSE) |>
         as.data.frame()
     } else if (ext %in% c("xls", "xlsx")) {
       all_sheets <- tryCatch(readxl::excel_sheets(dest), error = function(e) {
@@ -131,7 +131,7 @@ userData <- shiny::reactive({
       if (is.null(sheet_to_read)) {
         sheet_to_read <- all_sheets[1]
       }
-      df <- readxl::read_excel(dest, sheet = sheet_to_read) %>%
+      df <- readxl::read_excel(dest, sheet = sheet_to_read) |>
         as.data.frame()
     } else {
       stop("Unsupported file type.")
@@ -160,19 +160,21 @@ userData <- shiny::reactive({
 
   # --- apply user-chosen types when the button is pressed ---
   if (apply_stamp() > 0) {
-    fc <- isolate(input$factor_cols)
+    fc <- shiny::isolate(input$factor_cols)
     if (length(fc)) {
       keep <- intersect(fc, names(df))
       df[keep] <- lapply(df[keep], function(x) factor(as.character(x)))
     }
     if (
-      isTRUE(isolate(input$factor_order_enable)) &&
-        isTruthy(isolate(input$factor_order_col)) &&
-        isTruthy(isolate(input$factor_levels_csv))
+      isTRUE(shiny::isolate(input$factor_order_enable)) &&
+        shiny::isTruthy(shiny::isolate(input$factor_order_col)) &&
+        shiny::isTruthy(shiny::isolate(input$factor_levels_csv))
     ) {
-      target <- isolate(input$factor_order_col)
+      target <- shiny::isolate(input$factor_order_col)
       if (target %in% names(df)) {
-        levs <- trimws(strsplit(isolate(input$factor_levels_csv), ",")[[1]])
+        levs <- trimws(strsplit(shiny::isolate(input$factor_levels_csv), ",")[[
+          1
+        ]])
         if (length(levs)) {
           df[[target]] <- factor(as.character(df[[target]]), levels = levs)
         }
@@ -198,7 +200,7 @@ safe_cat <- function(df) {
 ## UI for Sheet Selector and Built-in Data Choice
 ## ---------------------------
 output$sheet_selector <- shiny::renderUI({
-  req(input$datafile)
+  shiny::req(input$datafile)
   ext <- tolower(tools::file_ext(input$datafile$name))
   if (!ext %in% c("xls", "xlsx")) {
     return(NULL)
@@ -222,7 +224,7 @@ output$sheet_selector <- shiny::renderUI({
     options = list(
       placeholder = "Select sheets..."
     ),
-    selected = isolate(userState$sheet_name) %||% sheets[1]
+    selected = shiny::isolate(userState$sheet_name) %||% sheets[1]
   )
 })
 
@@ -242,20 +244,20 @@ output$built_in_selector <- shiny::renderUI({
       "ExampleData4",
       "ExampleData5"
     ), # Using example names
-    selected = isolate(userState$built_in_choice) %||% "ExampleData1"
+    selected = shiny::isolate(userState$built_in_choice) %||% "ExampleData1"
   )
 })
 # ----- Bio-Plex: multi-sheet picker -----
 # flag for conditionalPanel
 output$bioplex_on <- shiny::reactive({
-  isTruthy(input$bioplex_file) && isTruthy(input$bioplex_file$datapath)
+  shiny::isTruthy(input$bioplex_file) && isTruthy(input$bioplex_file$datapath)
 })
 shiny::outputOptions(output, "bioplex_on", suspendWhenHidden = FALSE)
 
 shiny::observeEvent(input$bioplex_file, {
   # only proceed for Excel uploads
-  req(isTruthy(input$bioplex_file$datapath))
-  req(grepl("\\.xlsx?$", input$bioplex_file$name, ignore.case = TRUE))
+  shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+  shiny::req(grepl("\\.xlsx?$", input$bioplex_file$name, ignore.case = TRUE))
 
   sh <- tryCatch(
     readxl::excel_sheets(input$bioplex_file$datapath),
@@ -272,7 +274,7 @@ shiny::observeEvent(input$bioplex_file, {
 })
 
 output$bioplex_sheet_selector <- shiny::renderUI({
-  req(input$bioplex_file)
+  shiny::req(input$bioplex_file)
   sheets <- tryCatch(
     readxl::excel_sheets(input$bioplex_file$datapath),
     error = function(e) character()
@@ -291,8 +293,8 @@ output$bioplex_sheet_selector <- shiny::renderUI({
 
 # ----- Bio-Plex: build working table from selected sheet(s) -----
 bioplex_build_df <- shiny::reactive({
-  req(isTruthy(input$bioplex_file$datapath))
-  req(length(input$bioplex_sheets) >= 1) # at least one sheet picked
+  shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+  shiny::req(length(input$bioplex_sheets) >= 1) # at least one sheet picked
 
   dfs <- lapply(input$bioplex_sheets, function(sh) {
     x <- readxl::read_excel(
@@ -309,7 +311,7 @@ bioplex_build_df <- shiny::reactive({
     x
   })
   dfs <- Filter(Negate(is.null), dfs)
-  req(length(dfs) >= 1) # ensure at least one non-empty sheet
+  shiny::req(length(dfs) >= 1) # ensure at least one non-empty sheet
   dplyr::bind_rows(dfs) # bind by names, fill NAs as needed
 })
 
@@ -317,7 +319,7 @@ bioplex_build_df <- shiny::reactive({
 shiny::observeEvent(
   bioplex_build_df(),
   {
-    req(bioplex_build_df())
+    shiny::req(bioplex_build_df())
     bioplex$df <- bioplex_build_df()
     bioplex$deleted_idx <- integer(0)
     bioplex$active <- FALSE
@@ -326,7 +328,7 @@ shiny::observeEvent(
 )
 # Per-sheet data frames (row 1 -> column names)
 bioplex_per_sheet <- shiny::reactive({
-  if (isTruthy(input$datafile) && length(input$sheet_name) >= 1) {
+  if (shiny::isTruthy(input$datafile) && length(input$sheet_name) >= 1) {
     path <- input$datafile$datapath
     # Ensure we only attempt to read sheets that exist in this workbook
     all_sheets <- tryCatch(readxl::excel_sheets(path), error = function(e) {
@@ -338,7 +340,7 @@ bioplex_per_sheet <- shiny::reactive({
     sh <- intersect(input$sheet_name, all_sheets)
     if (!length(sh)) sh <- all_sheets[1]
   } else if (
-    isTruthy(input$bioplex_file) && length(input$bioplex_sheets) >= 1
+    shiny::isTruthy(input$bioplex_file) && length(input$bioplex_sheets) >= 1
   ) {
     path <- input$bioplex_file$datapath
     all_sheets <- tryCatch(readxl::excel_sheets(path), error = function(e) {
@@ -378,12 +380,12 @@ bioplex_per_sheet <- shiny::reactive({
 
 # Combined
 bioplex_combined <- shiny::reactive({
-  req(bioplex_per_sheet())
+  shiny::req(bioplex_per_sheet())
   dplyr::bind_rows(bioplex_per_sheet())
 })
 bioplex_combined_filtered <- shiny::reactive({
   ps <- bioplex_per_sheet()
-  req(length(ps) >= 1)
+  shiny::req(length(ps) >= 1)
   dels <- bioplex$deleted_by_sheet %||% list()
 
   filtered <- lapply(names(ps), function(nm) {
@@ -396,10 +398,10 @@ bioplex_combined_filtered <- shiny::reactive({
 })
 # shows the button only when a file is uploaded
 output$open_editor_btn <- shiny::renderUI({
-  req(input$datafile) # waits until a file is selected/uploaded
-  div(
+  shiny::req(input$datafile) # waits until a file is selected/uploaded
+  shiny::div(
     class = "mt-2",
-    actionButton(
+    shiny::actionButton(
       "open_editor",
       "Open Data Editor",
       class = "btn-primary btn-sm ms-2"
@@ -415,7 +417,7 @@ shiny::observeEvent(input$open_editor, {
     show_data_editor_modal()
     return() # <- important: don't run the file-reading path
   }
-  req(input$datafile)
+  shiny::req(input$datafile)
   dest <- file.path(upload_dir, input$datafile$name)
   # Always overwrite the stored file when opening the editor so that if the
   # user re-uploads a file with the same name (e.g. they selected the wrong
@@ -427,7 +429,7 @@ shiny::observeEvent(input$open_editor, {
     # SHEETS MODE → tabs appear
     bioplex$editor_mode <- "sheets"
     ps <- bioplex_per_sheet() # now points at Option A inputs
-    req(length(ps) >= 1)
+    shiny::req(length(ps) >= 1)
     bioplex$deleted_by_sheet <- setNames(
       replicate(length(ps), integer(0), simplify = FALSE),
       names(ps)
@@ -437,9 +439,9 @@ shiny::observeEvent(input$open_editor, {
     # PERSISTED MODE for csv/txt or single-sheet Excel
     df <- switch(
       ext,
-      "csv" = vroom::vroom(dest, delim = ",", show_col_types = FALSE) %>%
+      "csv" = vroom::vroom(dest, delim = ",", show_col_types = FALSE) |>
         as.data.frame(),
-      "txt" = vroom::vroom(dest, delim = "\t", show_col_types = FALSE) %>%
+      "txt" = vroom::vroom(dest, delim = "\t", show_col_types = FALSE) |>
         as.data.frame(),
       "xls" = {
         all_sheets <- tryCatch(readxl::excel_sheets(dest), error = function(e) {
@@ -481,7 +483,7 @@ shiny::observeEvent(input$open_editor, {
 
 
 output$bioplex_modal_tabs <- shiny::renderUI({
-  req(bioplex$df)
+  shiny::req(bioplex$df)
 
   mk_id <- function(x) gsub("[^A-Za-z0-9_]", "_", x)
 
@@ -515,7 +517,7 @@ output$bioplex_modal_tabs <- shiny::renderUI({
         )
 
         # DELETE rows for this sheet
-        observeEvent(
+        shiny::observeEvent(
           input[[del_id]],
           {
             df <- bioplex_per_sheet()[[nm_local]]
@@ -542,7 +544,7 @@ output$bioplex_modal_tabs <- shiny::renderUI({
         )
 
         # RESTORE all rows for this sheet
-        observeEvent(
+        shiny::observeEvent(
           input[[rst_id]],
           {
             bioplex$deleted_by_sheet[[nm_local]] <- integer(0)
@@ -571,13 +573,13 @@ output$bioplex_modal_tabs <- shiny::renderUI({
       "Data to be Imported",
       # (optional) banner to make mode obvious
       if (identical(bioplex$editor_mode, "persisted")) {
-        div(
+        shiny::div(
           class = "alert alert-info mb-2",
           "Editing previously saved data."
         )
       },
-      tags$label("Column names"),
-      tags$div(
+      shiny::tags$label("Column names"),
+      shiny::tags$div(
         style = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem;",
         lapply(seq_along(names(bioplex$df)), function(i) {
           textInput(
@@ -588,50 +590,50 @@ output$bioplex_modal_tabs <- shiny::renderUI({
           )
         })
       ),
-      actionButton(
+      shiny::actionButton(
         "bioplex_apply_names_modal",
         "Apply Column Names",
-        icon = icon("fas fa-check"),
+        icon = shiny::icon("fas fa-check"),
         class = "btn-primary btn-sm mt-2"
       ),
-      actionButton(
+      shiny::actionButton(
         "bioplex_set_header",
         "Use Selected Row as Column Names",
-        icon = icon("fas fa-check"),
+        icon = shiny::icon("fas fa-check"),
         class = "btn-primary btn-sm mt-2"
       ),
-      actionButton(
+      shiny::actionButton(
         "bioplex_add_col",
         "Create New Column",
-        icon = icon("fas fa-plus"),
+        icon = shiny::icon("fas fa-plus"),
         class = "btn-secondary btn-sm mt-2 ms-2"
       ),
       hr(),
-      div(
+      shiny::div(
         class = "d-flex justify-content-between align-items-center mb-2",
-        tags$div(
-          actionButton(
+        shiny::tags$div(
+          shiny::actionButton(
             "bioplex_modal_delete_selected",
             "Delete Selected Rows",
-            icon = icon("trash"),
+            icon = shiny::icon("trash"),
             class = "btn-danger btn-sm"
           ),
-          actionButton(
+          shiny::actionButton(
             "bioplex_modal_restore_all",
             "Restore All",
-            icon = icon("undo"),
+            icon = shiny::icon("undo"),
             class = "btn-secondary btn-sm ms-2"
           ),
-          actionButton(
+          shiny::actionButton(
             "bioplex_modal_delete_cols",
             "Delete Selected Columns",
-            icon = icon("trash"),
+            icon = shiny::icon("trash"),
             class = "btn-danger btn-sm ms-2"
           ),
-          actionButton(
+          shiny::actionButton(
             "bioplex_modal_restore_cols",
             "Restore All Columns",
-            icon = icon("undo"),
+            icon = shiny::icon("undo"),
             class = "btn-secondary btn-sm ms-2"
           )
         )
@@ -643,7 +645,7 @@ output$bioplex_modal_tabs <- shiny::renderUI({
 })
 
 output$bioplex_modal_table_combined <- DT::renderDT({
-  req(bioplex$df)
+  shiny::req(bioplex$df)
   df <- bioplex$df
   keep <- setdiff(seq_len(nrow(df)), bioplex$deleted_idx)
 
@@ -741,18 +743,22 @@ output$bioplex_modal_table_combined <- DT::renderDT({
 }
 
 shiny::observeEvent(input$bioplex_add_col, {
-  showModal(modalDialog(
+  shiny::showModal(shiny::modalDialog(
     title = "Create New Column",
     easyClose = FALSE,
     footer = tagList(
       modalButton("Cancel"),
-      actionButton("bioplex_newcol_confirm", "Add", class = "btn-primary")
+      shiny::actionButton(
+        "bioplex_newcol_confirm",
+        "Add",
+        class = "btn-primary"
+      )
     ),
     textInput("bioplex_newcol_name", "New column name", value = "")
   ))
 })
 shiny::observeEvent(input$bioplex_set_header, {
-  req(bioplex$df)
+  shiny::req(bioplex$df)
 
   # Rebuild view and map selection -> absolute row
   combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
@@ -764,7 +770,7 @@ shiny::observeEvent(input$bioplex_set_header, {
 
   sel <- input$bioplex_modal_table_combined_rows_selected
   if (length(sel) != 1) {
-    showNotification(
+    shiny::showNotification(
       "Please select exactly one row to use as column names.",
       type = "error"
     )
@@ -804,10 +810,10 @@ shiny::observeEvent(input$bioplex_set_header, {
 
 
 shiny::observeEvent(input$bioplex_newcol_confirm, {
-  req(bioplex$df)
+  shiny::req(bioplex$df)
   nm <- .bioplex_unique_name(input$bioplex_newcol_name, names(bioplex$df))
   if (is.null(nm)) {
-    showNotification(
+    shiny::showNotification(
       "Please enter a non-empty column name.",
       type = "warning"
     )
@@ -822,13 +828,13 @@ shiny::observeEvent(input$bioplex_newcol_confirm, {
   bioplex$editor_mode <- "persisted"
 
   # Close the small 'name prompt' and immediately reopen the main editor
-  removeModal()
+  shiny::removeModal()
   show_bioplex_editor_modal()
 })
 # Observing autofill
 shiny::observeEvent(input$bioplex_modal_table_combined_cells_filled, {
   x <- input$bioplex_modal_table_combined_cells_filled
-  req(x)
+  shiny::req(x)
 
   # 1) Coerce to data.frame (DT.cellInfo should already be one, but be defensive)
   if (is.list(x) && !is.data.frame(x)) {
@@ -839,7 +845,7 @@ shiny::observeEvent(input$bioplex_modal_table_combined_cells_filled, {
     )
   }
   x <- as.data.frame(x, stringsAsFactors = FALSE)
-  req(nrow(x) > 0, all(c("row", "col", "value") %in% names(x)))
+  shiny::req(nrow(x) > 0, all(c("row", "col", "value") %in% names(x)))
 
   # 2) Rebuild the displayed data to map displayed row -> absolute row
   combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
@@ -847,7 +853,7 @@ shiny::observeEvent(input$bioplex_modal_table_combined_cells_filled, {
   } else {
     bioplex_combined_filtered()
   }
-  req(nrow(combined_now) > 0)
+  shiny::req(nrow(combined_now) > 0)
   keep <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
 
   # 3) If we're in non-persisted view, persist now so indices/columns align
@@ -891,10 +897,10 @@ shiny::observeEvent(input$bioplex_modal_table_combined_cells_filled, {
 
 # Column-name editor (appears once df exists)
 output$bioplex_modal_colname_editor <- shiny::renderUI({
-  req(bioplex$df)
+  shiny::req(bioplex$df)
   tagList(
-    tags$label("Column names"),
-    tags$div(
+    shiny::tags$label("Column names"),
+    shiny::tags$div(
       style = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.5rem;",
       lapply(seq_along(names(bioplex$df)), function(i) {
         textInput(
@@ -905,17 +911,17 @@ output$bioplex_modal_colname_editor <- shiny::renderUI({
         )
       })
     ),
-    actionButton(
+    shiny::actionButton(
       "bioplex_apply_names_modal",
       "Apply Column Names",
-      icon = icon("fas fa-check"),
+      icon = shiny::icon("fas fa-check"),
       class = "btn-primary btn-sm mt-2"
     )
   )
 })
 
 shiny::observeEvent(input$bioplex_apply_names_modal, {
-  req(bioplex$df)
+  shiny::req(bioplex$df)
   new_names <- vapply(
     seq_along(bioplex$df),
     function(i) {
@@ -939,19 +945,19 @@ shiny::observeEvent(input$bioplex_modal_table_combined_cell_edit, {
 
   # Reconstruct the currently displayed data (same as in your renderDT)
   combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
-    req(bioplex$df)
+    shiny::req(bioplex$df)
     bioplex$df
   } else {
     bioplex_combined_filtered()
   }
-  req(nrow(combined_now) > 0)
+  shiny::req(nrow(combined_now) > 0)
 
   keep <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
 
   # Map displayed row index -> absolute row index in combined_now
   abs_row <- keep[info$row]
   j <- info$col + 1L
-  req(j >= 1, j <= ncol(combined_now))
+  shiny::req(j >= 1, j <= ncol(combined_now))
   colname <- colnames(combined_now)[[j]]
   newval <- info$value
 
@@ -965,49 +971,49 @@ shiny::observeEvent(input$bioplex_modal_table_combined_cell_edit, {
 })
 show_bioplex_editor_modal <- function() {
   shiny::showModal(
-    modalDialog(
+    shiny::modalDialog(
       title = "Bio-Plex Editor",
       size = "l",
       easyClose = FALSE,
       footer = tagList(
         modalButton("Close"),
-        actionButton(
+        shiny::actionButton(
           "bioplex_confirm_modal",
           "Save & Use",
           class = "btn-primary"
         )
       ),
-      uiOutput("bioplex_modal_tabs")
+      shiny::uiOutput("bioplex_modal_tabs")
     )
   )
 }
 show_data_editor_modal <- function(title = "Data Editor") {
   shiny::showModal(
-    modalDialog(
+    shiny::modalDialog(
       title = title,
       size = "l",
       easyClose = FALSE,
       footer = tagList(
         modalButton("Close"),
-        actionButton(
+        shiny::actionButton(
           "bioplex_confirm_modal",
           "Save & Use",
           class = "btn-primary"
         )
       ),
-      uiOutput("bioplex_modal_tabs")
+      shiny::uiOutput("bioplex_modal_tabs")
     )
   )
 }
 
 shiny::observeEvent(input$bioplex_modal_delete_selected, {
   combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
-    req(bioplex$df)
+    shiny::req(bioplex$df)
     bioplex$df
   } else {
     bioplex_combined_filtered()
   }
-  req(nrow(combined_now) > 0)
+  shiny::req(nrow(combined_now) > 0)
   sel <- input$bioplex_modal_table_combined_rows_selected
   if (length(sel)) {
     current <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
@@ -1019,7 +1025,7 @@ shiny::observeEvent(input$bioplex_modal_restore_all, {
   bioplex$deleted_idx <- integer(0)
 })
 shiny::observeEvent(input$bioplex_modal_delete_cols, {
-  req(bioplex$df)
+  shiny::req(bioplex$df)
 
   idx0 <- input$bioplex_modal_table_combined_columns_selected_data %||%
     input$bioplex_modal_table_combined_columns_selected
@@ -1157,12 +1163,12 @@ bioplex_clean_numeric_only <- function(df) {
 # Confirm import (activate for Step 2)
 shiny::observeEvent(input$bioplex_confirm_modal, {
   combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
-    req(bioplex$df)
+    shiny::req(bioplex$df)
     bioplex$df
   } else {
     bioplex_combined_filtered()
   }
-  req(nrow(combined_now) > 0)
+  shiny::req(nrow(combined_now) > 0)
 
   # preserve column names if the user renamed them
   if (!is.null(bioplex$df) && ncol(bioplex$df) == ncol(combined_now)) {
@@ -1171,7 +1177,7 @@ shiny::observeEvent(input$bioplex_confirm_modal, {
 
   # apply any deletions done on the Combined tab itself
   keep <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
-  req(length(keep) > 0)
+  shiny::req(length(keep) > 0)
   final_raw <- combined_now[keep, , drop = FALSE]
 
   # Clean asterisks + OOR (your existing helper)
@@ -1182,8 +1188,8 @@ shiny::observeEvent(input$bioplex_confirm_modal, {
   bioplex$active <- TRUE
   bioplex$editor_mode <- "persisted"
 
-  removeModal()
-  showNotification(
+  shiny::removeModal()
+  shiny::showNotification(
     "Bio-Plex data cleaned and staged. Click 'Next Step' to continue.",
     type = "message"
   )
@@ -1197,14 +1203,14 @@ shiny::outputOptions(output, "data_is_loaded", suspendWhenHidden = FALSE)
 
 # Summary stats
 output$data_summary <- shiny::renderUI({
-  req(userData())
+  shiny::req(userData())
   df <- userData()
   fluidRow(
-    column(4, tags$b("Rows:"), nrow(df)),
-    column(4, tags$b("Columns:"), ncol(df)),
+    column(4, shiny::tags$b("Rows:"), nrow(df)),
+    column(4, shiny::tags$b("Columns:"), ncol(df)),
     column(
       4,
-      tags$b("Missing %:"),
+      shiny::tags$b("Missing %:"),
       paste0(
         round(100 * sum(is.na(df)) / (nrow(df) * ncol(df)), 1),
         "%"
@@ -1213,7 +1219,7 @@ output$data_summary <- shiny::renderUI({
   )
 })
 output$preview_ui <- shiny::renderUI({
-  req(input$use_builtin || isTRUE(bioplex$active))
+  shiny::req(input$use_builtin || isTRUE(bioplex$active))
   DT::dataTableOutput("data_preview")
 })
 output$data_preview <- DT::renderDT(
@@ -1231,18 +1237,18 @@ output$data_preview <- DT::renderDT(
   )
 )
 output$summary_stats_table <- DT::renderDT({
-  req(userData())
+  shiny::req(userData())
   df <- userData()
   df$..cyto_id.. <- NULL # Hide internal ID
 
   # build a “wide” skim table
-  wide <- skimr::skim(df) %>%
+  wide <- skimr::skim(df) |>
     dplyr::select(
       -character.min,
       -character.max,
       -character.empty,
       -character.whitespace
-    ) %>%
+    ) |>
     dplyr::rename(
       'Variable Type' = skim_type,
       Variable = skim_variable,
@@ -1257,7 +1263,7 @@ output$summary_stats_table <- DT::renderDT({
       Mean = numeric.mean,
       SD = numeric.sd,
       Histogram = numeric.hist
-    ) %>%
+    ) |>
     dplyr::rename_with(
       ~ tools::toTitleCase(gsub("\\.", " ", .x)),
       .cols = dplyr::everything()
@@ -1281,19 +1287,19 @@ shiny::observeEvent(userData(), {
   df <- userData()
   # Example: if no numeric column, warn
   if (all(!sapply(df, is.numeric))) {
-    feedbackWarning(
+    shinyFeedback::feedbackWarning(
       "datafile",
       TRUE,
       "No numeric columns found. Some analyses require numeric data."
     )
   } else {
-    hideFeedback("datafile")
+    shinyFeedback::hideFeedback("datafile")
   }
 
   # Example: too many missing
   pct_missing <- sum(is.na(df)) / (nrow(df) * ncol(df))
   if (pct_missing > 0.05) {
-    feedbackWarning(
+    shinyFeedback::feedbackWarning(
       "datafile",
       TRUE,
       "Over 5% of cells are missing."

@@ -124,12 +124,12 @@ cyt_volc <- function(
       stringsAsFactors = FALSE
     )
 
-    plot_data <- plot_data %>%
+    plot_data <- plot_data |>
       dplyr::mutate(
         significant = (abs(fc_log) >= log2(fold_change_thresh)) &
           (p_log >= -log10(p_value_thresh))
-      ) %>%
-      dplyr::arrange(desc(significant), desc(p_log)) %>%
+      ) |>
+      dplyr::arrange(desc(significant), desc(p_log)) |>
       dplyr::mutate(
         label = ifelse(dplyr::row_number() <= top_labels, variable, "")
       )

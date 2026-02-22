@@ -42,15 +42,19 @@ shiny::observeEvent(
       userState$splsda_var_num <- default_vars
       userState$mint_splsda_var_num <- default_vars
       try(
-        updateNumericInput(session, "plsr_keepX", value = default_vars),
+        shiny::updateNumericInput(session, "plsr_keepX", value = default_vars),
         silent = TRUE
       )
       try(
-        updateNumericInput(session, "splsda_var_num", value = default_vars),
+        shiny::updateNumericInput(
+          session,
+          "splsda_var_num",
+          value = default_vars
+        ),
         silent = TRUE
       )
       try(
-        updateNumericInput(
+        shiny::updateNumericInput(
           session,
           "mint_splsda_var_num",
           value = default_vars
@@ -209,7 +213,7 @@ shiny::observeEvent(input$plsr_sparse, {
 })
 shiny::observeEvent(input$plsr_keepX, {
   df <- filteredData()
-  req(df)
+  shiny::req(df)
   computed_default <- sum(sapply(df, is.numeric))
   # Mark as manually changed if the input does not equal the computed default.
   userState$plsr_keepX_manual <- (input$plsr_keepX != computed_default)
@@ -222,12 +226,16 @@ shiny::observeEvent(
   filteredData(),
   {
     df <- filteredData()
-    req(df)
+    shiny::req(df)
     computed_default <- sum(sapply(df, is.numeric))
     if (!isTRUE(userState$plsr_keepX_manual)) {
       userState$plsr_keepX <- computed_default
       try(
-        updateNumericInput(session, "plsr_keepX", value = computed_default),
+        shiny::updateNumericInput(
+          session,
+          "plsr_keepX",
+          value = computed_default
+        ),
         silent = TRUE
       )
     }
@@ -270,7 +278,7 @@ shiny::observeEvent(input$splsda_multilevel, {
 })
 shiny::observeEvent(input$splsda_var_num, {
   df <- filteredData()
-  req(df)
+  shiny::req(df)
   computed_default <- sum(sapply(df, is.numeric))
   # Mark as manually changed if the input does not equal the computed default.
   userState$splsda_var_num_manual <- (input$splsda_var_num != computed_default)
@@ -284,14 +292,18 @@ shiny::observeEvent(
   filteredData(),
   {
     df <- filteredData()
-    req(df)
+    shiny::req(df)
     computed_default <- sum(sapply(df, is.numeric))
     # Only update the input when the user hasn't manually overridden it.
     if (!isTRUE(userState$splsda_var_num_manual)) {
       userState$splsda_var_num <- computed_default
       # If the UI exists, update it as well so the number shown matches.
       try(
-        updateNumericInput(session, "splsda_var_num", value = computed_default),
+        shiny::updateNumericInput(
+          session,
+          "splsda_var_num",
+          value = computed_default
+        ),
         silent = TRUE
       )
     }
@@ -321,15 +333,19 @@ shiny::observeEvent(input$splsda_style, {
   userState$splsda_style <- input$splsda_style
 })
 shiny::observeEvent(input$splsda_show3d_interactive, {
-  showModal(modalDialog(
-    plotlyOutput("splsda_interactive_plot", width = "100%", height = "600px"),
+  shiny::showModal(shiny::modalDialog(
+    plotly::plotlyOutput(
+      "splsda_interactive_plot",
+      width = "100%",
+      height = "600px"
+    ),
     easyClose = TRUE,
     size = "l"
   ))
 })
 shiny::observeEvent(input$splsda_show3d_interactive_vip, {
-  showModal(modalDialog(
-    plotlyOutput(
+  shiny::showModal(shiny::modalDialog(
+    plotly::plotlyOutput(
       "splsda_interactive_plot_vip",
       width = "100%",
       height = "600px"
@@ -368,7 +384,7 @@ shiny::observeEvent(input$mint_splsda_batch_col, {
 })
 shiny::observeEvent(input$mint_splsda_var_num, {
   df <- filteredData()
-  req(df)
+  shiny::req(df)
   computed_default <- sum(sapply(df, is.numeric))
   # Mark as manually changed if the input does not equal the computed default.
   userState$mint_splsda_var_num_manual <- (input$mint_splsda_var_num !=
@@ -382,12 +398,12 @@ shiny::observeEvent(
   filteredData(),
   {
     df <- filteredData()
-    req(df)
+    shiny::req(df)
     computed_default <- sum(sapply(df, is.numeric))
     if (!isTRUE(userState$mint_splsda_var_num_manual)) {
       userState$mint_splsda_var_num <- computed_default
       try(
-        updateNumericInput(
+        shiny::updateNumericInput(
           session,
           "mint_splsda_var_num",
           value = computed_default

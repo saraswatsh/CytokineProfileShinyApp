@@ -87,8 +87,8 @@ cyt_errbp <- function(
     progress$inc(0.1, detail = "Reshaping data to long format...")
   }
   # Reshape the data into long format (one row per numeric measurement)
-  long_df <- data %>%
-    dplyr::select(dplyr::all_of(c(group_col, num_vars))) %>%
+  long_df <- data |>
+    dplyr::select(dplyr::all_of(c(group_col, num_vars))) |>
     tidyr::pivot_longer(
       cols = all_of(num_vars),
       names_to = "Measure",
@@ -99,14 +99,14 @@ cyt_errbp <- function(
     progress$inc(0.15, detail = "Calculating summary statistics...")
   }
   # Calculate summary statistics (sample size, mean, standard deviation) per group and per measure.
-  metrics <- long_df %>%
-    dplyr::group_by(.data[[group_col]], Measure) %>%
+  metrics <- long_df |>
+    dplyr::group_by(.data[[group_col]], Measure) |>
     dplyr::summarize(
       n = sum(!is.na(Value)),
       center = mean(Value, na.rm = TRUE),
       sd = stats::sd(Value, na.rm = TRUE),
       .groups = "drop"
-    ) %>%
+    ) |>
     dplyr::mutate(spread = sd / sqrt(n))
 
   # Determine the baseline group: using the first level of the grouping variable.
@@ -114,7 +114,7 @@ cyt_errbp <- function(
   baseline <- group_levels[1]
 
   # Initialize columns for p-value and effect size.
-  metrics <- metrics %>%
+  metrics <- metrics |>
     dplyr::mutate(p.value = NA_real_, effect.size = NA_real_)
 
   if (!is.null(progress)) {
@@ -126,7 +126,7 @@ cyt_errbp <- function(
   # For each measure, perform a t-test comparing each group against the baseline and compute an effect size.
   unique_measures <- unique(metrics$Measure)
   for (m in unique_measures) {
-    baseline_row <- metrics %>%
+    baseline_row <- metrics |>
       dplyr::filter(Measure == m, .data[[group_col]] == baseline)
     if (nrow(baseline_row) == 0) {
       next
@@ -141,11 +141,11 @@ cyt_errbp <- function(
     )
     for (i in non_base_idx) {
       current_group <- metrics[[group_col]][i]
-      baseline_data <- long_df %>%
-        dplyr::filter(Measure == m, .data[[group_col]] == baseline) %>%
+      baseline_data <- long_df |>
+        dplyr::filter(Measure == m, .data[[group_col]] == baseline) |>
         dplyr::pull(Value)
-      grp_data <- long_df %>%
-        dplyr::filter(Measure == m, .data[[group_col]] == current_group) %>%
+      grp_data <- long_df |>
+        dplyr::filter(Measure == m, .data[[group_col]] == current_group) |>
         dplyr::pull(Value)
 
       tt <- stats::t.test(grp_data, baseline_data)
@@ -187,10 +187,10 @@ cyt_errbp <- function(
         }
         return("")
       }
-      metrics <- metrics %>%
+      metrics <- metrics |>
         dplyr::mutate(p_label = sapply(p.value, significance_mark_fn))
     } else {
-      metrics <- metrics %>%
+      metrics <- metrics |>
         dplyr::mutate(
           p_label = paste0(
             "p=",
@@ -242,17 +242,17 @@ cyt_errbp <- function(
         }
         return("<<<<<")
       }
-      metrics <- metrics %>%
+      metrics <- metrics |>
         dplyr::mutate(es_label = sapply(effect.size, effect_size_mark_fn))
     } else {
-      metrics <- metrics %>%
+      metrics <- metrics |>
         dplyr::mutate(es_label = round(effect.size, 3))
     }
   }
 
   # Compute a rough y-range to position annotations.
   y_range <- diff(range(metrics$center + metrics$spread, na.rm = TRUE))
-  metrics <- metrics %>%
+  metrics <- metrics |>
     dplyr::mutate(
       p_text_y = center +
         ifelse(center >= 0, spread + y_range / 20, -spread - y_range / 20),
@@ -290,7 +290,7 @@ cyt_errbp <- function(
   if (p_lab) {
     p <- p +
       ggplot2::geom_text(
-        data = metrics %>% filter(.data[[group_col]] != baseline),
+        data = metrics |> filter(.data[[group_col]] != baseline),
         ggplot2::aes(x = .data[[group_col]], y = p_text_y, label = p_label),
         size = 4,
         vjust = 0
@@ -299,7 +299,7 @@ cyt_errbp <- function(
   if (es_lab) {
     p <- p +
       ggplot2::geom_text(
-        data = metrics %>% filter(.data[[group_col]] != baseline),
+        data = metrics |> filter(.data[[group_col]] != baseline),
         ggplot2::aes(
           x = .data[[group_col]],
           y = es_text_y,

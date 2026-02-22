@@ -284,9 +284,9 @@ cyt_splsda <- function(
       legend.title = group_col,
       ellipse = isTRUE(ellipse),
       background = bg_obj,
-      size.xlabel = rel(1 * font_scale),
-      size.ylabel = rel(1 * font_scale),
-      size.axis = rel(1 * font_scale)
+      size.xlabel = ggplot2::rel(1 * font_scale),
+      size.ylabel = ggplot2::rel(1 * font_scale),
+      size.axis = ggplot2::rel(1 * font_scale)
     )
 
     # Key rule: labels OR shapes, never both
@@ -435,7 +435,7 @@ cyt_splsda <- function(
           sprintf("%.2f", sc[, 3])
         ),
         hoverinfo = "text"
-      ) %>%
+      ) |>
         plotly::layout(
           title = paste("Interactive 3D Plot:", label),
           scene = list(
@@ -684,7 +684,7 @@ cyt_splsda <- function(
             sprintf("%.2f", sc[, 3])
           ),
           hoverinfo = "text"
-        ) %>%
+        ) |>
           plotly::layout(
             title = paste("Interactive 3D Plot (VIP>1):", label),
             scene = list(
