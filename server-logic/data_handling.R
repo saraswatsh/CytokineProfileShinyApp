@@ -110,7 +110,8 @@ userData <- shiny::reactive({
     if (!file.exists(dest)) saveRDS(df, dest)
   } else {
     shiny::req(input$datafile)
-    dest <- file.path(upload_dir, input$datafile$name)
+    safe_name <- basename(input$datafile$name)
+    dest <- file.path(upload_dir, safe_name)
     # Always copy the uploaded file into our upload dir, overwriting previous
     # copies with the same filename so re-uploading a wrong file refreshes
     # the stored file immediately.
@@ -439,7 +440,8 @@ shiny::observeEvent(input$open_editor, {
     return() # <- important: don't run the file-reading path
   }
   shiny::req(input$datafile)
-  dest <- file.path(upload_dir, input$datafile$name)
+  safe_name <- basename(input$datafile$name)
+  dest <- file.path(upload_dir, safe_name)
   # Always overwrite the stored file when opening the editor so that if the
   # user re-uploads a file with the same name (e.g. they selected the wrong
   # file initially) the latest upload is used for editing.
@@ -1229,7 +1231,7 @@ output$data_summary <- shiny::renderUI({
   shiny::fluidRow(
     shiny::column(4, shiny::tags$b("Rows:"), nrow(df)),
     shiny::column(4, shiny::tags$b("Columns:"), ncol(df)),
-    column(
+    shiny::column(
       4,
       shiny::tags$b("Missing %:"),
       paste0(

@@ -37,6 +37,8 @@ articles:
   - Understanding-Random-Forest
   - Understanding-XGBoost
 reference:
+- title: Running the Application
+  contents: run_app
 - title: Exploratory Analysis
   description: |
     Functions for exploring raw data, summarizing statistics,

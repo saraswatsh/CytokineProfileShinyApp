@@ -1,4 +1,3 @@
-#source("R/libraries.R") # Sourcing packages
 source("global.R") # Sourcing built in data set R script and functions
 # Source the UI and server code
 source("ui.R")

@@ -1381,7 +1381,7 @@ output$result_display <- shiny::renderUI({
         ) {
           # Handle functions that return a list of ggplot objects (like Boxplots)
           do.call(
-            tagList,
+            shiny::tagList,
             lapply(seq_along(res), function(i) {
               shinycssloaders::withSpinner(
                 shiny::plotOutput(paste0("dynamicPlot_", i), height = "400px"),

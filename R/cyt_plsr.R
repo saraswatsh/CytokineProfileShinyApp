@@ -409,6 +409,9 @@ cyt_plsr <- function(
         row.names = NULL
       )
       v <- v[v$score > 0, ]
+      if (nrow(v) == 0L) {
+        return(NULL)
+      }
       v <- v[order(v$score, decreasing = TRUE), ]
       ggplot2::ggplot(
         v,
@@ -566,7 +569,7 @@ cyt_plsr <- function(
     print(grDevices::replayPlot(pvo))
     print(grDevices::replayPlot(res_plot))
     if (!is.null(cv_plot)) {
-      print(replayPlot(cv_plot))
+      print(grDevices::replayPlot(cv_plot))
     }
     for (k in seq_len(comp_num_eff)) {
       mixOmics::plotLoadings(
@@ -582,9 +585,9 @@ cyt_plsr <- function(
       )
     }
     if (!is.null(vip_indiv_plot)) {
-      print(replayPlot(vip_indiv_plot))
+      print(grDevices::replayPlot(vip_indiv_plot))
     }
-    if (!is.null(vip_cv_plot)) print(replayPlot(vip_cv_plot))
+    if (!is.null(vip_cv_plot)) print(grDevices::replayPlot(vip_cv_plot))
   }
 
   if (!is.null(progress)) {
@@ -594,17 +597,8 @@ cyt_plsr <- function(
   metrics_text <- if (!is.null(cv_opt)) {
     paste(
       sprintf("Q2 (comp %d): %.3f", seq_along(q2_vals), q2_vals),
-      collapse = "\n"
-    )
-    paste(
       sprintf("RMSEP (comp %d): %.3f", seq_along(rmsep_vals), rmsep_vals),
-      collapse = "\n"
-    )
-    paste(
       sprintf("Q2 VIP>1 (comp %d): %.3f", seq_along(q2_vals_vip), q2_vals_vip),
-      collapse = "\n"
-    )
-    paste(
       sprintf(
         "RMSEP VIP>1 (comp %d): %.3f",
         seq_along(rmsep_vals_vip),
