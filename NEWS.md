@@ -1,6 +1,6 @@
-## CytokineProfileShinyApp (development version)
+# CytokineProfileShinyApp 0.0.0.9000
 
-The devel branch contains several quality-of-life fixes and reliability improvements focused on data upload, type handling, editor state, and initial performance profiling. Key changes:
+The development build contains several quality-of-life fixes and reliability improvements focused on data upload, type handling, editor state, and initial performance profiling. Key changes:
 
 - Upload & file handling
 	- Uploaded files are now always copied to the app upload directory with `overwrite = TRUE`, so re-uploading a file (even with the same filename) refreshes the stored copy immediately.

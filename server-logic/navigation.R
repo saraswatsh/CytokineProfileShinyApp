@@ -626,7 +626,6 @@ tutorialUI <- function() {
 }
 newsUI <- function() {
   shiny::tagList(
-    shiny::h1("News and Updates"),
     shiny::includeMarkdown("NEWS.md")
   )
 }

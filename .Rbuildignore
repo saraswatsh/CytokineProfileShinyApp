@@ -16,3 +16,5 @@
 ^doc$
 ^Meta$
 ^\.vscode$
+^server_old\.R$
+^testing_code\.R$
