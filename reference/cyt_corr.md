@@ -86,3 +86,7 @@ A list containing:
 - plot:
 
   A correlation plot, if `plot` is `TRUE`.
+
+## Author
+
+Shubh Saraswat

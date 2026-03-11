@@ -41,6 +41,22 @@
     </div>
 
     <div class="section level2">
+      <h2 id="running-the-application">Running the Application<a class="anchor" aria-label="anchor" href="#running-the-application"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="run_app.html">run_app()</a></code>
+
+        </dt>
+        <dd>Launch the CytokineProfile Shiny App</dd>
+      </dl></div><div class="section level2">
       <h2 id="exploratory-analysis">Exploratory Analysis<a class="anchor" aria-label="anchor" href="#exploratory-analysis"></a></h2>
 
       <div class="section-desc"><p>Functions for exploring raw data, summarizing statistics, and visualizing key patterns.</p></div>
@@ -55,14 +71,14 @@
           <code><a href="cyt_bp.html">cyt_bp()</a></code>
 
         </dt>
-        <dd>Boxplots for Overall Comparisons by Continuous Variables.</dd>
+        <dd>Boxplots for Continuous Variables with Optional Grouping</dd>
 
         <dt>
 
           <code><a href="cyt_bp2.html">cyt_bp2()</a></code>
 
         </dt>
-        <dd>Boxplot Function Enhanced for Specific Group Comparisons.</dd>
+        <dd>Boxplot Function Enhanced for Specific Group Comparisons. <a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a></dd>
 
         <dt>
 
@@ -76,7 +92,7 @@
           <code><a href="cyt_errbp.html">cyt_errbp()</a></code>
 
         </dt>
-        <dd>Error Bar Plot with P-value and Effect Size Annotations</dd>
+        <dd>Error-bar Plot</dd>
 
         <dt>
 
@@ -97,7 +113,7 @@
           <code><a href="cyt_heatmap.html">cyt_heatmap()</a></code>
 
         </dt>
-        <dd>Heat Map.</dd>
+        <dd>Heat Map</dd>
 
         <dt>
 
@@ -105,6 +121,13 @@
 
         </dt>
         <dd>Dual-flashlight Plot.</dd>
+
+        <dt>
+
+          <code><a href="cyt_violin.html">cyt_violin()</a></code>
+
+        </dt>
+        <dd>Violin Plots for Continuous Variables with Optional Grouping</dd>
       </dl></div><div class="section level2">
       <h2 id="univariate-analysis">Univariate Analysis<a class="anchor" aria-label="anchor" href="#univariate-analysis"></a></h2>
 
@@ -117,17 +140,31 @@
 
       <dl><dt>
 
+          <code><a href="cyt_univariate.html">cyt_univariate()</a></code>
+
+        </dt>
+        <dd>Pairwise Univariate Tests Between Two Groups</dd>
+
+        <dt>
+
+          <code><a href="cyt_univariate_multi.html">cyt_univariate_multi()</a></code>
+
+        </dt>
+        <dd>Univariate Tests for Multi‑Level Categorical Predictors</dd>
+
+        <dt>
+
           <code><a href="cyt_anova.html">cyt_anova()</a></code>
 
         </dt>
-        <dd>ANOVA Analysis on Continuous Variables.</dd>
+        <dd>ANOVA Analysis on Continuous Variables. <a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a></dd>
 
         <dt>
 
           <code><a href="cyt_ttest.html">cyt_ttest()</a></code>
 
         </dt>
-        <dd>Two Sample T-test Comparisons.</dd>
+        <dd>Two Sample T-test Comparisons. <a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a></dd>
       </dl></div><div class="section level2">
       <h2 id="multivariate-analysis">Multivariate Analysis<a class="anchor" aria-label="anchor" href="#multivariate-analysis"></a></h2>
 
@@ -180,14 +217,44 @@
           <code><a href="cyt_rf.html">cyt_rf()</a></code>
 
         </dt>
-        <dd>Run Random Forest Classification on Cytokine Data.</dd>
+        <dd>Run Random Forest Classification on Cytokine Data</dd>
 
         <dt>
 
           <code><a href="cyt_xgb.html">cyt_xgb()</a></code>
 
         </dt>
-        <dd>Run XGBoost Classification on Cytokine Data.</dd>
+        <dd>Run XGBoost Classification on Cytokine Data</dd>
+      </dl></div><div class="section level2">
+      <h2 id="utility-functions">Utility Functions<a class="anchor" aria-label="anchor" href="#utility-functions"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="cyt_export.html">cyt_export()</a></code>
+
+        </dt>
+        <dd>Generic export function for Cytokine plots</dd>
+
+        <dt>
+
+          <code><a href="adjust_p.html">adjust_p()</a></code>
+
+        </dt>
+        <dd>Adjust p-values using a specified method</dd>
+
+        <dt>
+
+          <code><a href="apply_scale.html">apply_scale()</a></code>
+
+        </dt>
+        <dd>Apply a scale transformation to numeric columns</dd>
       </dl></div><div class="section level2">
       <h2 id="datasets">Datasets<a class="anchor" aria-label="anchor" href="#datasets"></a></h2>
 

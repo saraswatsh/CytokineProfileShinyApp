@@ -72,6 +72,10 @@ If output_file is NULL, a ggplot object representing the dual-flash plot
 is returned; otherwise, the plot is saved to the specified file and the
 function returns NULL invisibly.
 
+## Author
+
+Xiaohua Douglas Zhang and Shubh Saraswat
+
 ## Examples
 
 ``` r

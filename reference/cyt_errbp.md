@@ -1,15 +1,14 @@
-# Error Bar Plot with P-value and Effect Size Annotations
+# Error-bar Plot
 
-This function automatically detects a numeric measurement column from
-the provided data and calculates group metrics (sample size, mean,
-standard deviation, standard error) and performs a t-test (comparing
-each group to the baseline) to obtain p-values and a standardized mean
-difference (as a proxy for effect size). When a grouping variable is
-provided, it is used to separate the data into groups (the first level
-is taken as the baseline). If no grouping variable is provided, the
-metrics are computed for the overall data. The function then produces a
-ggplot2 bar plot with error bars and, if requested, overlays p-value and
-effect size annotations (displayed as symbols by default).
+This function generates an error-bar plot to visually compare different
+groups against a designated baseline group. It displays the central
+tendency (mean or median) as a bar and overlays error bars to represent
+the data's spread (e.g., standard deviation, MAD, or standard error).
+The plot can also include p-value and effect size labels (based on
+SSMD), presented either as symbols or numeric values, to highlight
+significant differences and the magnitude of effects. When an output
+filename is provided the plot is saved to disk; otherwise the ggplot
+object is returned and drawn on the current graphics device.
 
 ## Usage
 
@@ -17,15 +16,21 @@ effect size annotations (displayed as symbols by default).
 cyt_errbp(
   data,
   group_col = NULL,
-  p_lab = FALSE,
-  es_lab = FALSE,
-  class_symbol = TRUE,
+  p_lab = TRUE,
+  es_lab = TRUE,
+  class_symbol = FALSE,
   x_lab = "",
   y_lab = "",
-  title = NULL,
-  progress = NULL,
-  log2 = FALSE,
-  output_file = NULL
+  title = "",
+  stat = c("mean", "median"),
+  error = c("se", "sd", "mad", "ci"),
+  scale = c("none", "log2", "log10", "zscore", "custom"),
+  custom_fn = NULL,
+  method = c("auto", "ttest", "wilcox"),
+  p_adjust_method = NULL,
+  label_size = 4,
+  output_file = NULL,
+  progress = NULL
 )
 ```
 
@@ -33,68 +38,108 @@ cyt_errbp(
 
 - data:
 
-  A data frame containing at least one numeric variable. If a grouping
-  variable is provided, it must be one of the columns.
+  A data frame containing at least one numeric column and a grouping
+  column.
 
 - group_col:
 
-  Character. (Optional) The name of the grouping (categorical) variable.
-  If not provided, metrics are calculated for the overall data.
+  Character string naming the column that defines groups. This column
+  will be coerced to a factor.
 
 - p_lab:
 
-  Logical. Whether to display p-value labels. Default is `FALSE`.
+  Logical. If `TRUE` (default) p-value labels are displayed for group
+  comparisons.
 
 - es_lab:
 
-  Logical. Whether to display effect size labels. Default is `FALSE`.
+  Logical. If `TRUE` (default) effect-size labels are displayed.
 
 - class_symbol:
 
-  Logical. If `TRUE`, p-values and effect sizes are shown as symbols; if
-  `FALSE`, numeric values are displayed. Default is `FALSE`.
+  Logical. If `TRUE`, p-value and effect-size labels are encoded using
+  symbols (e.g., `*`, `>>>`). If `FALSE` (default), numeric values are
+  shown instead.
 
 - x_lab:
 
-  Character. Label for the x-axis. Defaults to the grouping variable
-  name if provided, or "Group" otherwise.
+  Character string for the x-axis label. If empty a default label is
+  generated.
 
 - y_lab:
 
-  Character. Label for the y-axis. Defaults to the name of the selected
-  numeric variable.
+  Character string for the y-axis label. If empty a default label is
+  generated.
 
 - title:
 
-  Character. The plot title.
+  Character string for the plot title. If empty a default title is
+  generated.
+
+- stat:
+
+  Character. Central tendency statistic to use. One of `"mean"`
+  (default) or `"median"`.
+
+- error:
+
+  Character. Error measure visualized around the statistic. One of
+  `"se"` (standard error; default), `"sd"` (standard deviation), `"mad"`
+  (median absolute deviation), or `"ci"` (approximate 95% confidence
+  interval).
+
+- scale:
+
+  Character controlling data transformation before analysis. One of
+  `"none"` (default), `"log2"`, `"log10"`, `"zscore"`, or `"custom"`.
+
+- custom_fn:
+
+  A user-supplied function applied to numeric columns when
+  `scale = "custom"`.
+
+- method:
+
+  Character controlling the statistical test used for pairwise
+  comparisons. One of `"auto"` (default; choose between t-test and
+  Wilcoxon based on a normality test), `"ttest"`, or `"wilcox"`.
+
+- p_adjust_method:
+
+  Character. If non-`NULL`, specifies the method passed to
+  [`p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) to correct
+  p-values across all comparisons (e.g., `"BH"` for Benjamini-Hochberg).
+  `NULL` (default) skips adjustment.
+
+- label_size:
+
+  Numeric. Font size for p-value and effect-size labels. Default is `4`.
+
+- output_file:
+
+  Optional file path. If provided, the plot is saved using `ggsave()`;
+  otherwise the plot is returned and automatically printed.
 
 - progress:
 
   Optional. A Shiny `Progress` object for reporting progress updates.
 
-- log2:
-
-  Logical. If `TRUE`, transforms numeric variables using log2
-  transformation. If `FALSE`, uses raw values from provided data.
-  Default is `FALSE`.
-
-- output_file:
-
-  Optional. A string representing the file path for the PDF file to be
-  created. If NULL (default), the function returns a list of ggplot
-  objects.
-
 ## Value
 
-A ggplot2 object representing the error bar plot.
+A `ggplot` object. When `output_file` is specified the plot is saved to
+disk and returned invisibly.
+
+## Author
+
+Xiaohua Douglas Zhang and Shubh Saraswat
 
 ## Examples
 
 ``` r
-data <- ExampleData1
+data(ExampleData1)
+df <- ExampleData1[, c("Group", "CCL.20.MIP.3A", "IL.10")]
+cyt_errbp(df, group_col = "Group")
 
-cyt_errbp(data[,c("Group", "CCL.20.MIP.3A", "IL.10")], group_col = "Group",
-p_lab = TRUE, es_lab = TRUE, class_symbol = TRUE, x_lab = "Cytokines",
-y_lab = "Concentrations in log2 scale", log2 = TRUE)
-
+cyt_errbp(df, group_col = "Group", stat = "mean", error = "sd",
+          scale = "log2", class_symbol = TRUE, method = "ttest")
 ```

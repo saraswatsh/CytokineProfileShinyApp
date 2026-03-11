@@ -17,6 +17,7 @@ these two provide basic diagnostics.
 cyt_plsr(
   data,
   response_col,
+  predictor_cols = NULL,
   group_col = NULL,
   ind_names = FALSE,
   comp_num = 2,
@@ -42,6 +43,10 @@ cyt_plsr(
 
   The name of the column containing the response variable. Must be
   numeric.
+
+- predictor_cols:
+
+  Character vector of column names to use as predictors.
 
 - group_col:
 
@@ -144,3 +149,7 @@ A list containing:
 - pdf_file:
 
   The path to the generated PDF file, if `output_file` was provided.
+
+## Author
+
+Shubh Saraswat

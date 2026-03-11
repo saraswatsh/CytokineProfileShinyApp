@@ -1,4 +1,4 @@
-# Boxplot Function Enhanced for Specific Group Comparisons.
+# Boxplot Function Enhanced for Specific Group Comparisons. **\[deprecated\]**
 
 This function generates boxplots for each combination of numeric and
 factor variables in the provided data. Character columns are converted
@@ -67,6 +67,8 @@ PDF file is created and the function returns NULL invisibly.
 data_df <- ExampleData1[, -c(3, 5:28)]
 data_df <- dplyr::filter(data_df, Group == "T2D", Treatment == "Unstimulated")
 cyt_bp2(data_df, output_file = NULL, scale = "log2")
+#> Warning: `cyt_bp2()` was deprecated in CytokineProfileShinyApp 0.0.1.
+#> ℹ Please use `cyt_bp()` instead.
 #> $IL.17F_vs_Group
 
 #> 

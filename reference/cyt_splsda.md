@@ -157,6 +157,10 @@ plot for the VIP\>1 model (if generated) 9. vip_ROC: ROC curve plot for
 the VIP\>1 model 10. vip_CV: Cross-validation error plot for the VIP\>1
 model 11. conf_matrix: Confusion matrix text output
 
+## Author
+
+Xiaohua Douglas Zhang and Shubh Saraswat
+
 ## Examples
 
 ``` r

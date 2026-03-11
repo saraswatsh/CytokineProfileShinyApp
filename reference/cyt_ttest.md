@@ -1,4 +1,4 @@
-# Two Sample T-test Comparisons.
+# Two Sample T-test Comparisons. **\[deprecated\]**
 
 This function performs pairwise comparisons between two groups for each
 combination of a categorical predictor (with exactly two levels) and a
@@ -50,6 +50,8 @@ data_df <- ExampleData1[, -c(3)]
 data_df <- dplyr::filter(data_df, Group != "ND", Treatment != "Unstimulated")
 
 cyt_ttest(data_df[, c(1, 2, 5:6)], scale = "log2", format_output = TRUE)
+#> Warning: `cyt_ttest()` was deprecated in CytokineProfileShinyApp 0.0.1.
+#> ℹ Please use `cyt_univariate()` instead.
 #> $out_df
 #>   Outcome Categorical      Comparison
 #> 1   IFN.G       Group   PreT2D vs T2D

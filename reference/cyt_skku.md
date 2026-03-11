@@ -60,6 +60,10 @@ If output_file is NULL, returns a list with:
 - p_kurt: Overlayed histogram of raw and log2 kurtosis. Otherwise,
   writes the plots to a PDF and returns NULL invisibly.
 
+## Author
+
+Xiaohua Douglas Zhang and Shubh Saraswat
+
 ## Examples
 
 ``` r

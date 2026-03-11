@@ -38,14 +38,30 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/saraswatsh/CytokineProfileShinyApp/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/saraswatsh/CytokineProfileShinyApp/blob/devel/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="cytokineprofileshinyapp-development-version">CytokineProfileShinyApp (development version)<a class="anchor" aria-label="anchor" href="#cytokineprofileshinyapp-development-version"></a></h2>
-<p>The application is currently under development. Once version 0.0.1 is released, this file will be updated with the changes made in that version.</p>
-<p>Please refer to the documentation for more information on how to use the application and its features available at the project’s <a href="https://github.com/saraswatsh/CytokineProfileShinyApp" class="external-link">GitHub repository</a> and the project’s <a href="https://shinyinfo.cytokineprofile.org/">website</a>.</p>
-</div>
+<h2 class="pkg-version" data-toc-text="0.0.0.9000" id="cytokineprofileshinyapp-0009000">CytokineProfileShinyApp 0.0.0.9000<a class="anchor" aria-label="anchor" href="#cytokineprofileshinyapp-0009000"></a></h2>
+<p>The development build contains several quality-of-life fixes and reliability improvements focused on data upload, type handling, editor state, and initial performance profiling. Key changes:</p>
+<ul><li>Upload &amp; file handling
+<ul><li>Uploaded files are now always copied to the app upload directory with <code>overwrite = TRUE</code>, so re-uploading a file (even with the same filename) refreshes the stored copy immediately.</li>
+<li>Excel sheet selection is now robust: the app validates <code>input$sheet_name</code> against the workbook’s actual sheets and falls back to the first sheet when a previously selected sheet is not present, avoiding “Sheet ‘NA’ not found” errors.</li>
+<li>When a new file is uploaded the Bio‑Plex editor persisted state and related caches are cleared and a short notification is shown.</li>
+</ul></li>
+<li>Missing values &amp; type coercion
+<ul><li>Character columns that are numeric-like (for example containing NA tokens, asterisks, OOR markers, or commas) are now heuristically cleaned and coerced back to numeric where appropriate using the existing cleaning helper. This prevents numeric columns from being mis-classified as character and improves downstream analyses.</li>
+</ul></li>
+<li>Reactive state &amp; UI sync
+<ul><li>
+<code>userState$selected_columns</code> is updated immediately when Step 2 checkbox groups change, so downstream reactives (including variable-count defaults) reflect current selections without needing to navigate forward.</li>
+<li>Defaults for <code>plsr_keepX</code>, <code>splsda_var_num</code>, and <code>mint_splsda_var_num</code> are recomputed and pushed to the UI when column selections change, but manual user overrides are respected via <code>*_manual</code> flags.</li>
+</ul></li>
+<li>Data editor robustness
+<ul><li>The data editor now clears stale <code>sheet_name</code> selections on new uploads to prevent mismatches between previously selected sheet names and the newly uploaded workbook.</li>
+<li>The editor’s AutoFill and cell-edit path preserve numeric coercion logic for edited cells.</li>
+</ul></li>
+</ul></div>
   </main></div>
 
 

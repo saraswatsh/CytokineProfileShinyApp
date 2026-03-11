@@ -19,12 +19,15 @@
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/ExampleData3.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/ExampleData4.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/ExampleData5.html</loc></url>
+<url><loc>https://shinyinfo.cytokineprofile.org/reference/adjust_p.html</loc></url>
+<url><loc>https://shinyinfo.cytokineprofile.org/reference/apply_scale.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_anova.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_bp.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_bp2.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_corr.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_dualflashplot.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_errbp.html</loc></url>
+<url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_export.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_heatmap.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_mint_splsda.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_pca.html</loc></url>
@@ -33,8 +36,12 @@
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_skku.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_splsda.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_ttest.html</loc></url>
+<url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_univariate.html</loc></url>
+<url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_univariate_multi.html</loc></url>
+<url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_violin.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_volc.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/cyt_xgb.html</loc></url>
 <url><loc>https://shinyinfo.cytokineprofile.org/reference/index.html</loc></url>
+<url><loc>https://shinyinfo.cytokineprofile.org/reference/run_app.html</loc></url>
 </urlset>
 

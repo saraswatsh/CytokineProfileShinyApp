@@ -77,6 +77,10 @@ If both cond1 and cond2 are provided (non-empty), only that pair is
 compared. Otherwise, the function automatically generates all possible
 pairwise comparisons.
 
+## Author
+
+Xiaohua Douglas Zhang and Shubh Saraswat
+
 ## Examples
 
 ``` r

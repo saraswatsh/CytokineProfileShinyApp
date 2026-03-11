@@ -1,9 +1,9 @@
-# Run Random Forest Classification on Cytokine Data.
+# Run Random Forest Classification on Cytokine Data
 
 This function trains and evaluates a Random Forest classification model
 on cytokine data. It includes variable importance visualization,
 cross-validation for feature selection, and performance metrics such as
-accuracy, sensitivity, and specificity. For binary classification, the
+accuracy, sensitivity, and specificity. For binary classification the
 function can also plot the ROC curve and compute the AUC.
 
 ## Usage
@@ -19,6 +19,12 @@ cyt_rf(
   k_folds = 5,
   step = 0.5,
   run_rfcv = TRUE,
+  verbose = FALSE,
+  seed = 123,
+  cv = FALSE,
+  cv_folds = 5,
+  scale = c("none", "log2", "log10", "zscore", "custom"),
+  custom_fn = NULL,
   output_file = NULL,
   progress = NULL
 )
@@ -28,55 +34,83 @@ cyt_rf(
 
 - data:
 
-  A data frame containing the cytokine data, with one column as the
-  grouping variable (target variable) and the rest as numerical
-  features.
+  A data frame containing the cytokine measurements. One column should
+  correspond to the grouping variable (the outcome) and the remaining
+  columns should be numeric predictors.
 
 - group_col:
 
-  A string representing the name of the column with the grouping
+  A string naming the column in `data` that contains the grouping
   variable.
 
 - ntree:
 
-  An integer specifying the number of trees to grow in the forest
-  (default is 500).
+  Integer specifying the number of trees to grow. Default is `500`.
 
 - mtry:
 
-  An integer specifying the number of variables randomly selected at
-  each split (default is 5).
+  Integer specifying the number of variables randomly sampled at each
+  split. Default is `5`.
 
 - train_fraction:
 
-  A numeric value between 0 and 1 representing the proportion of data to
-  use for training (default is 0.7).
+  Numeric between 0 and 1 giving the proportion of data used for
+  training. Default is `0.7`.
 
 - plot_roc:
 
-  A logical value indicating whether to plot the ROC curve and compute
-  the AUC for binary classification (default is FALSE).
+  Logical. If `TRUE` and the problem is binary, an ROC curve and AUC are
+  computed and returned. Default is `FALSE`.
 
 - k_folds:
 
-  An integer specifying the number of folds for cross-validation
-  (default is 5).
+  Integer specifying the number of folds for `rfcv` when
+  `run_rfcv = TRUE`. Default is `5`.
 
 - step:
 
-  A numeric value specifying the fraction of variables to remove at each
-  step during cross-validation for feature selection (default is 0.5).
+  Numeric specifying the fraction of variables removed at each step
+  during `rfcv`. Default is `0.5`.
 
 - run_rfcv:
 
-  A logical value indicating whether to run Random Forest
-  cross-validation for feature selection (default is TRUE).
+  Logical indicating whether to run Random Forest cross-validation for
+  feature selection. Default is `TRUE`.
+
+- verbose:
+
+  Logical. When `TRUE`, training and test performance metrics, confusion
+  matrices, and cross-validation details are printed. Default is
+  `FALSE`.
+
+- seed:
+
+  Optional integer seed for reproducibility. Default is `123`.
+
+- cv:
+
+  Logical indicating whether to perform a separate k-fold classification
+  cross-validation using `caret`. Default is `FALSE`.
+
+- cv_folds:
+
+  Integer specifying the number of folds for classification
+  cross-validation when `cv = TRUE`. Default is `5`.
+
+- scale:
+
+  Character string specifying a transformation to apply to numeric
+  predictor columns prior to model fitting. One of `"none"` (default),
+  `"log2"`, `"log10"`, `"zscore"`, or `"custom"`.
+
+- custom_fn:
+
+  A custom transformation function used when `scale = "custom"`.
 
 - output_file:
 
-  Optional. A file path to save the outputs (plots and summaries) as a
-  PDF file. If NULL (default), the function returns a list of objects
-  for interactive display.
+  Optional. A file path to save outputs as a PDF. If `NULL` (default), a
+  named list is returned for interactive display.
 
 - progress:
 
@@ -84,56 +118,22 @@ cyt_rf(
 
 ## Value
 
-A list containing:
+When `output_file` is `NULL`, an invisible named list with elements
+`summary_text`, `vip_plot`, `roc_plot`, `rfcv_plot`, `rfcv_data`,
+`importance_data`, and `cv_results`. When `output_file` is provided, a
+PDF is written and the function returns `NULL` invisibly.
 
-- `model`: the trained Random Forest model,
+## Author
 
-- `train_confusion`: confusion matrix from the training set,
-
-- `accuracy_train`: overall training set accuracy,
-
-- `test_confusion`: confusion matrix from the test set,
-
-- `accuracy_test`: overall test set accuracy,
-
-- `vip_plot`: a ggplot object of variable importance,
-
-- `importance_data`: a data frame with variable importance metrics,
-
-- `roc_plot`: (if applicable) a ggplot object of the ROC curve,
-
-- `rfcv_result`: (if run_rfcv is TRUE) cross-validation results,
-
-- `rfcv_data`: (if run_rfcv is TRUE) a data frame of RF CV results,
-
-- `rfcv_plot`: (if run_rfcv is TRUE) a ggplot object of RF CV error vs.
-  number of variables.
-
-If `output_file` is provided, a PDF is generated and the function
-returns `NULL` invisibly.
+Shubh Saraswat and Xiaohua Douglas Zhang
 
 ## Examples
 
 ``` r
 data.df0 <- ExampleData1
-data.df <- data.frame(data.df0[, 1:3], log2(data.df0[, -c(1:3)]))
-data.df <- data.df[, -c(2:3)]
-data.df <- dplyr::filter(data.df, Group != "ND")
-
+data.df  <- data.frame(data.df0[, 1:3], log2(data.df0[, -c(1:3)]))
+data.df  <- data.df[, -c(2:3)]
+data.df  <- dplyr::filter(data.df, Group != "ND")
 cyt_rf(data = data.df, group_col = "Group", k_folds = 5, ntree = 1000,
-  mtry = 4, run_rfcv = TRUE, plot_roc = TRUE)
-#> Setting levels: control = PreT2D, case = T2D
-#> Setting direction: controls < cases
-#> $summary_text
-#> [1] "### RANDOM FOREST RESULTS ###\n\n--- Training Set ---\nConfusion Matrix:\n          Reference\nPrediction PreT2D T2D\n    PreT2D     70   0\n    T2D         0  70\n\nAccuracy: 1 \n\nSensitivity (train): 1 \nSpecificity (train): 1 \n\n--- Test Set ---\nConfusion Matrix:\n          Reference\nPrediction PreT2D T2D\n    PreT2D     25   7\n    T2D         4  22\n\nAccuracy: 0.81 \n\nAUC: 0.93 \n\nSensitivity (test): 0.862 \nSpecificity (test): 0.759 "
-#> 
-#> $vip_plot
-
-#> 
-#> $roc_plot
-
-#> 
-#> $rfcv_plot
-
-#> 
+       mtry = 4, run_rfcv = TRUE, plot_roc = TRUE, verbose = FALSE)
 ```

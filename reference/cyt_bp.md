@@ -1,10 +1,11 @@
-# Boxplots for Overall Comparisons by Continuous Variables.
+# Boxplots for Continuous Variables with Optional Grouping
 
-This function creates boxplots for the continuous variables in the
-provided data. If the number of columns in `data` exceeds `bin_size`,
-the plots are split across multiple chunks. If an `output_file` is
-provided, the function writes the plots to that PDF file; otherwise, it
-returns a list of ggplot2 objects.
+This function generates boxplots for numeric variables in a data frame
+or matrix. It supports optional grouping by one or more categorical
+variables. Numeric variables can be scaled using various transformations
+before plotting. When grouping is not used, boxplots are arranged in
+pages with a specified maximum number of plots per page. Plots can be
+saved to a PDF file or returned as a list of ggplot2 objects.
 
 ## Usage
 
@@ -12,10 +13,11 @@ returns a list of ggplot2 objects.
 cyt_bp(
   data,
   output_file = NULL,
+  group_by = NULL,
   bin_size = 25,
-  mf_row = c(1, 1),
   y_lim = NULL,
-  scale = NULL,
+  scale = c("none", "log2", "log10", "zscore", "custom"),
+  custom_fn = NULL,
   progress = NULL
 )
 ```
@@ -24,31 +26,40 @@ cyt_bp(
 
 - data:
 
-  A matrix or data frame containing the raw data to be plotted.
+  A matrix or data frame containing numeric and categorical variables.
 
 - output_file:
 
-  Optional. A file path to save the plots as a PDF file. If NULL, the
-  function returns a list of ggplot2 objects.
+  Optional string specifying the name of the file to be created. When
+  `NULL` (default), plots are drawn on the current graphics device.
+  Ensure the file extension matches the desired format (e.g., `".pdf"`,
+  `".png"`, `".tiff"`).
+
+- group_by:
+
+  Optional character vector specifying one or more columns to use for
+  grouping. If `NULL` (default) no grouping is applied.
 
 - bin_size:
 
-  An integer specifying the maximum number of box plots to display per
-  chunk.
-
-- mf_row:
-
-  A numeric vector of length two specifying the layout (rows and
-  columns) in the PDF output. (Not used when returning ggplot2 objects.)
+  Integer. Maximum number of boxplots per page when grouping is not
+  used. Default is `25`.
 
 - y_lim:
 
-  An optional numeric vector defining the y-axis limits for the plots.
+  Optional numeric vector giving y-axis limits for the plots. Applies to
+  all plots.
 
 - scale:
 
-  An optional character string. If set to "log2", numeric columns are
-  log2-transformed.
+  Character specifying a transformation for numeric variables. One of
+  `"none"`, `"log2"`, `"log10"`, `"zscore"`, or `"custom"`. When
+  `"custom"`, supply a function via `custom_fn`.
+
+- custom_fn:
+
+  A user-supplied function to transform numeric columns when
+  `scale = "custom"`.
 
 - progress:
 
@@ -56,16 +67,21 @@ cyt_bp(
 
 ## Value
 
-If `output_file` is NULL, a list of ggplot2 objects; otherwise, writes a
-PDF and returns NULL.
+Invisibly returns a list of `ggplot` objects. When `output_file` is
+provided, plots are written to the specified file.
+
+## Author
+
+Shubh Saraswat
 
 ## Examples
 
 ``` r
-data_df <- ExampleData1
+data("ExampleData1")
+# Boxplots without grouping
+cyt_bp(ExampleData1[, -c(1:3)], output_file = NULL, scale = "log2")
 
-cyt_bp(data_df[,-c(1:3)], output_file = NULL, scale = "log2")
-#> [[1]]
+# Boxplots grouped by Group
+cyt_bp(ExampleData1[, -c(3, 5:28)], group_by = "Group", scale = "zscore")
 
-#> 
 ```

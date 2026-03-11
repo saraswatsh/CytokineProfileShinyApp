@@ -108,37 +108,66 @@ For questions or support, please contact the package maintainer:
 
 # Package index
 
+## Running the Application
+
+- [`run_app()`](https://shinyinfo.cytokineprofile.org/reference/run_app.md)
+  : Launch the CytokineProfile Shiny App
+
 ## Exploratory Analysis
 
 Functions for exploring raw data, summarizing statistics, and
 visualizing key patterns.
 
 - [`cyt_bp()`](https://shinyinfo.cytokineprofile.org/reference/cyt_bp.md)
-  : Boxplots for Overall Comparisons by Continuous Variables.
+  : Boxplots for Continuous Variables with Optional Grouping
+
 - [`cyt_bp2()`](https://shinyinfo.cytokineprofile.org/reference/cyt_bp2.md)
-  : Boxplot Function Enhanced for Specific Group Comparisons.
+  :
+
+  Boxplot Function Enhanced for Specific Group Comparisons.
+  **\[deprecated\]**
+
 - [`cyt_corr()`](https://shinyinfo.cytokineprofile.org/reference/cyt_corr.md)
   : Calculate correlations between a target variable and all other
   numeric variables.
+
 - [`cyt_errbp()`](https://shinyinfo.cytokineprofile.org/reference/cyt_errbp.md)
-  : Error Bar Plot with P-value and Effect Size Annotations
+  : Error-bar Plot
+
 - [`cyt_skku()`](https://shinyinfo.cytokineprofile.org/reference/cyt_skku.md)
   : Distribution of the Data Set Shown by Skewness and Kurtosis.
+
 - [`cyt_volc()`](https://shinyinfo.cytokineprofile.org/reference/cyt_volc.md)
   : Volcano Plot.
+
 - [`cyt_heatmap()`](https://shinyinfo.cytokineprofile.org/reference/cyt_heatmap.md)
-  : Heat Map.
+  : Heat Map
+
 - [`cyt_dualflashplot()`](https://shinyinfo.cytokineprofile.org/reference/cyt_dualflashplot.md)
   : Dual-flashlight Plot.
+
+- [`cyt_violin()`](https://shinyinfo.cytokineprofile.org/reference/cyt_violin.md)
+  : Violin Plots for Continuous Variables with Optional Grouping
 
 ## Univariate Analysis
 
 Functions for performing univariate statistical tests.
 
+- [`cyt_univariate()`](https://shinyinfo.cytokineprofile.org/reference/cyt_univariate.md)
+  : Pairwise Univariate Tests Between Two Groups
+
+- [`cyt_univariate_multi()`](https://shinyinfo.cytokineprofile.org/reference/cyt_univariate_multi.md)
+  : Univariate Tests for Multi‑Level Categorical Predictors
+
 - [`cyt_anova()`](https://shinyinfo.cytokineprofile.org/reference/cyt_anova.md)
-  : ANOVA Analysis on Continuous Variables.
+  :
+
+  ANOVA Analysis on Continuous Variables. **\[deprecated\]**
+
 - [`cyt_ttest()`](https://shinyinfo.cytokineprofile.org/reference/cyt_ttest.md)
-  : Two Sample T-test Comparisons.
+  :
+
+  Two Sample T-test Comparisons. **\[deprecated\]**
 
 ## Multivariate Analysis
 
@@ -159,9 +188,18 @@ Functions for deeper multivariate insights.
 ## Machine Learning Methods
 
 - [`cyt_rf()`](https://shinyinfo.cytokineprofile.org/reference/cyt_rf.md)
-  : Run Random Forest Classification on Cytokine Data.
+  : Run Random Forest Classification on Cytokine Data
 - [`cyt_xgb()`](https://shinyinfo.cytokineprofile.org/reference/cyt_xgb.md)
-  : Run XGBoost Classification on Cytokine Data.
+  : Run XGBoost Classification on Cytokine Data
+
+## Utility Functions
+
+- [`cyt_export()`](https://shinyinfo.cytokineprofile.org/reference/cyt_export.md)
+  : Generic export function for Cytokine plots
+- [`adjust_p()`](https://shinyinfo.cytokineprofile.org/reference/adjust_p.md)
+  : Adjust p-values using a specified method
+- [`apply_scale()`](https://shinyinfo.cytokineprofile.org/reference/apply_scale.md)
+  : Apply a scale transformation to numeric columns
 
 ## Datasets
 

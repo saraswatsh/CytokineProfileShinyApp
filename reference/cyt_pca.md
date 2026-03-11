@@ -90,6 +90,10 @@ printed to a PDF. In interactive mode (if both output_file and
 output_file are NULL) the plots are captured using recordPlot() and
 returned as a list for display in Shiny.
 
+## Author
+
+Shubh Saraswat
+
 ## Examples
 
 ``` r
