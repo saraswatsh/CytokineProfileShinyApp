@@ -365,7 +365,19 @@ cyt_xgb <- function(
       prediction = TRUE
     )
     eval_col_cv <- paste0("test_", eval_metric, "_mean")
-    best_cv_iter <- which.min(xgb_cv$evaluation_log[[eval_col_cv]])
+    # Prefer xgb.cv's best_iteration when early stopping is enabled
+    if (!is.null(early_stopping_rounds) && !is.null(xgb_cv$best_iteration)) {
+      best_cv_iter <- xgb_cv$best_iteration
+    } else {
+      # Some metrics are better when higher (e.g. auc); others when lower (e.g. logloss)
+      higher_is_better <- eval_metric %in% c("auc", "aucpr", "map", "ndcg")
+      eval_values <- xgb_cv$evaluation_log[[eval_col_cv]]
+      best_cv_iter <- if (higher_is_better) {
+        which.max(eval_values)
+      } else {
+        which.min(eval_values)
+      }
+    }
     cv_results <- xgb_cv
 
     # CV confusion matrix

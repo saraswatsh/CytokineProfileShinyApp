@@ -181,7 +181,21 @@ cyt_univariate <- function(
     }
   }
   if (length(test_results) == 0) {
-    return("No valid tests were performed.")
+    warning("No valid tests were performed.")
+    if (!format_output) {
+      return(list())
+    } else {
+      return(data.frame(
+        Outcome = character(),
+        Categorical = character(),
+        Comparison = character(),
+        Test = character(),
+        Estimate = numeric(),
+        Statistic = numeric(),
+        P_value = numeric(),
+        stringsAsFactors = FALSE
+      ))
+    }
   }
   # Return results in tidy format if requested
   if (!format_output) {
@@ -221,33 +235,46 @@ cyt_univariate <- function(
     )
   }
 
-  # Format into data frame
+  # Format into data frame - iterate over variables directly so column names
+  # with underscores are never mis-parsed from the composite key
+  cat_var_names <- names(x1_df)[cat_preds]
+  cont_var_names <- names(x1_df)[cont_vars]
+
   out_df <- do.call(
     rbind,
-    lapply(names(test_results), function(key) {
-      tt <- normalize_test_object(test_results[[key]])
-      parts <- strsplit(key, "_")[[1]]
-      outcome <- parts[1]
-      cat_var <- parts[2]
-      lvls <- levels(x1_df[[cat_var]])
-      comp <- paste(lvls[1], "vs", lvls[2])
-      est <- safe_numeric(tt$estimate)
-      stat <- safe_numeric(tt$statistic)
-      p_value <- safe_numeric(tt$p.value)
-      test_name <- if (!is.null(tt$method)) {
-        as.character(tt$method)[1]
-      } else {
-        NA_character_
+    lapply(cat_var_names, function(cat_var) {
+      if (length(levels(x1_df[[cat_var]])) != 2L) {
+        return(NULL)
       }
-      data.frame(
-        Outcome = outcome,
-        Categorical = cat_var,
-        Comparison = comp,
-        Test = test_name,
-        Estimate = est,
-        Statistic = stat,
-        P_value = p_value,
-        stringsAsFactors = FALSE
+      do.call(
+        rbind,
+        lapply(cont_var_names, function(outcome) {
+          key <- paste(outcome, cat_var, sep = "_")
+          if (!key %in% names(test_results)) {
+            return(NULL)
+          }
+          tt <- normalize_test_object(test_results[[key]])
+          lvls <- levels(x1_df[[cat_var]])
+          comp <- paste(lvls[1], "vs", lvls[2])
+          est <- safe_numeric(tt$estimate)
+          stat <- safe_numeric(tt$statistic)
+          p_value <- safe_numeric(tt$p.value)
+          test_name <- if (!is.null(tt$method)) {
+            as.character(tt$method)[1]
+          } else {
+            NA_character_
+          }
+          data.frame(
+            Outcome = outcome,
+            Categorical = cat_var,
+            Comparison = comp,
+            Test = test_name,
+            Estimate = est,
+            Statistic = stat,
+            P_value = p_value,
+            stringsAsFactors = FALSE
+          )
+        })
       )
     })
   )

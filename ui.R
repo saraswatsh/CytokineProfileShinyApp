@@ -1,4 +1,8 @@
-cfg <- config::get() # Load configuration settings from config.yml
+cfg_file <- system.file("config.yml", package = "CytokineProfileShinyApp")
+if (!nzchar(cfg_file)) {
+  cfg_file <- "config.yml"
+} # fallback when running from source
+cfg <- config::get(file = cfg_file)
 announcement_banner <- function() {
   if (!is.null(cfg$announcement)) {
     shiny::tags$div(

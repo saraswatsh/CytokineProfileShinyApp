@@ -169,9 +169,21 @@ cyt_univariate_multi <- function(
 
   # If no tests performed
   if (length(test_results) == 0) {
-    return(
-      "No valid comparisons were performed. Check that your data has numeric columns and factors with sufficient levels."
+    warning(
+      "No valid comparisons were performed. ",
+      "Check that your data has numeric columns and factors with sufficient levels."
     )
+    if (!format_output) {
+      return(list())
+    } else {
+      return(data.frame(
+        Outcome = character(),
+        Categorical = character(),
+        Comparison = character(),
+        P_adj = numeric(),
+        stringsAsFactors = FALSE
+      ))
+    }
   }
 
   if (!format_output) {
@@ -193,23 +205,26 @@ cyt_univariate_multi <- function(
     P_adj = numeric(),
     stringsAsFactors = FALSE
   )
-  for (key in names(test_results)) {
-    parts <- strsplit(key, "_")[[1]]
-    outcome <- parts[1]
-    cat_var <- parts[2]
-    p_vec <- test_results[[key]]
-    for (comp in names(p_vec)) {
-      out_df <- rbind(
-        out_df,
-        data.frame(
-          Outcome = outcome,
-          Categorical = cat_var,
-          Comparison = comp,
-          P_adj = p_vec[comp],
-          stringsAsFactors = FALSE,
-          row.names = NULL
+  for (outcome in cont_vars) {
+    for (cat_var in cat_vars) {
+      key <- paste(outcome, cat_var, sep = "_")
+      if (!key %in% names(test_results)) {
+        next
+      }
+      p_vec <- test_results[[key]]
+      for (comp in names(p_vec)) {
+        out_df <- rbind(
+          out_df,
+          data.frame(
+            Outcome = outcome,
+            Categorical = cat_var,
+            Comparison = comp,
+            P_adj = p_vec[comp],
+            stringsAsFactors = FALSE,
+            row.names = NULL
+          )
         )
-      )
+      }
     }
   }
 

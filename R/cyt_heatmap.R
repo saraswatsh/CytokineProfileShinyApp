@@ -392,7 +392,7 @@ cyt_heatmap <- function(
     fontsize_col = fontsize_col,
     filename = filename,
     main = main,
-    silent = TRUE
+    silent = is_file
   )
 
   if (!is.null(progress)) {
