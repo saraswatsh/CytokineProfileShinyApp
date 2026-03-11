@@ -145,7 +145,7 @@ ui <- shiny::fluidPage(
     body:not([data-bs-theme='darkly']) .nav-pills .nav-link.active {
       background-color: #375a7f !important; color: #fff !important;
     }
-    scrollable-checkbox-group {
+    .scrollable-checkbox-group {
       max-height: 30vh; /* cap the height */
       overflow-y: auto; /* vertical scroll if needed */
       padding:     0.5rem; /* breathing room */

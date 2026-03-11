@@ -48,7 +48,9 @@ Imports:
     patchwork,
     rlang,
     vroom,
-    config
+    config,
+    data.table, 
+    lifecycle
 Suggests:
     spelling,
     BiocManager,

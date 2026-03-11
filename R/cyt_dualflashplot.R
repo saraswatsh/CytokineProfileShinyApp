@@ -20,6 +20,8 @@
 #' @return If output_file is NULL, a ggplot object representing the dual-flash plot is returned;
 #' otherwise, the plot is saved to the specified file and the function returns NULL invisibly.
 #'
+#' @author Xiaohua Douglas Zhang and Shubh Saraswat
+#'
 #' @examples
 #' data_df <- ExampleData1[, -c(2:3)]
 #' cyt_dualflashplot(

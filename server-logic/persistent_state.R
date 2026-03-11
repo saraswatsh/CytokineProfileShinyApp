@@ -8,6 +8,8 @@ imputed_data <- shiny::reactiveVal(NULL)
 userState <- shiny::reactiveValues(
   # General state
   selected_columns = NULL,
+  selected_categorical_cols = NULL,
+  selected_numerical_cols = NULL,
   # Built=in Data built‑in tracking:
   use_builtin = FALSE,
   built_in_choice = NULL,
@@ -17,17 +19,31 @@ userState <- shiny::reactiveValues(
   # Imputation
   impute_meta = NULL,
 
-  # Step 2 log2 transformation checkbox
-  step2_log2 = FALSE,
+  # Step 2 preprocessing
+  step2_scale = "none",
 
   # Boxplots options
   bp_bin_size = NULL,
-  bp_mf_row = NULL,
+  bp_group_by = NULL,
   bp_y_lim = NULL,
+
+  # Violin Plot options
+  vio_group_by = NULL,
+  vio_bin_size = NULL,
+  vio_y_lim = NULL,
+  vio_boxplot_overlay = NULL,
 
   # Enhanced Boxplots options
   bp2_mf_row = NULL,
   bp2_y_lim = NULL,
+
+  # Univariate Tests (T-test, Wilcoxon)
+  uv2_method = NULL,
+  uv2_p_adjust_method = NULL,
+
+  # Univariate Tests (ANOVA, Kruskal-Wallis)
+  uvm_method = NULL,
+  uvm_p_adjust_method = NULL,
 
   # Error-Bar Plot
   eb_group_col = NULL,
@@ -37,6 +53,11 @@ userState <- shiny::reactiveValues(
   eb_x_lab = NULL,
   eb_y_lab = NULL,
   eb_title = NULL,
+  eb_stat = NULL,
+  eb_error = NULL,
+  eb_method = NULL,
+  eb_p_adjust_method = NULL,
+  eb_label_size = NULL,
 
   # Dual-Flashlight Plot options
   df_group_var = NULL,
@@ -48,7 +69,6 @@ userState <- shiny::reactiveValues(
 
   # Heatmap options
   hm_annotation = NULL,
-  hm_scale = NULL,
   hm_ann_side = NULL,
 
   # PCA options
@@ -73,6 +93,7 @@ userState <- shiny::reactiveValues(
   # PLSR options
   plsr_group_col = NULL,
   plsr_response_col = NULL,
+  plsr_predictor_cols = NULL,
   plsr_comp_num = NULL,
   plsr_keepX = NULL,
   plsr_keepX_manual = FALSE,
@@ -90,7 +111,7 @@ userState <- shiny::reactiveValues(
   # sPLS-DA options
   splsda_group_col = NULL,
   splsda_group_col2 = NULL,
-  spsda_batch_col = NULL,
+  splsda_batch_col = NULL,
   splsda_var_num = NULL,
   splsda_var_num_manual = FALSE,
   splsda_cv_opt = NULL,
@@ -160,7 +181,9 @@ bioplex <- shiny::reactiveValues(
 )
 
 # Reactive values to store the selection from our new custom buttons
-selected_stat_func <- shiny::reactiveVal("ANOVA")
+selected_stat_func <- shiny::reactiveVal(
+  "Univariate Tests (T-test, Wilcoxon)"
+)
 selected_exploratory_func <- shiny::reactiveVal("Boxplots")
 selected_multivariate_func <- shiny::reactiveVal(
   "Principal Component Analysis (PCA)"

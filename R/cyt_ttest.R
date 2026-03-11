@@ -1,4 +1,4 @@
-#' Two Sample T-test Comparisons.
+#' Two Sample T-test Comparisons. `r lifecycle::badge("deprecated")`
 #'
 #' This function performs pairwise comparisons between two groups for each combination
 #' of a categorical predictor (with exactly two levels) and a continuous outcome variable.
@@ -30,6 +30,11 @@ cyt_ttest <- function(
   format_output = FALSE,
   progress = NULL
 ) {
+  lifecycle::deprecate_warn(
+    "0.0.1", # version when deprecation begins
+    "CytokineProfileShinyApp::cyt_ttest()",
+    "CytokineProfileShinyApp::cyt_univariate()"
+  )
   x1_df <- as.data.frame(data)
   # convert chars to factors
   char_cols <- sapply(x1_df, is.character)

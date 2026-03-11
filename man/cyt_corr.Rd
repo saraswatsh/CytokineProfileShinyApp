@@ -57,3 +57,6 @@ It also calculates p-values and adjusted p-values (Bonferroni and Benjamini-Hoch
 Optionally, it can perform group-wise correlation analysis and compare correlations
 between two groups using Fisher's z-transformation.
 }
+\author{
+Shubh Saraswat
+}

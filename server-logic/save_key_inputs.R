@@ -18,6 +18,9 @@ shiny::observeEvent(
 shiny::observeEvent(
   list(input$selected_categorical_cols, input$selected_numerical_cols),
   {
+    userState$selected_categorical_cols <- input$selected_categorical_cols
+    userState$selected_numerical_cols <- input$selected_numerical_cols
+
     # Combine category + numeric selections into a single vector (may be empty)
     sc <- c(
       input$selected_categorical_cols %||% character(0),
@@ -65,6 +68,9 @@ shiny::observeEvent(
   },
   ignoreNULL = FALSE
 )
+shiny::observeEvent(input$step2_scale, {
+  userState$step2_scale <- input$step2_scale
+})
 shiny::observeEvent(selected_function(), {
   userState$selected_function <- selected_function()
 })
@@ -76,11 +82,24 @@ shiny::observeEvent(input$sheet_name, {
 shiny::observeEvent(input$bp_bin_size, {
   userState$bp_bin_size <- input$bp_bin_size
 })
-shiny::observeEvent(input$bp_mf_row, {
-  userState$bp_mf_row <- input$bp_mf_row
+shiny::observeEvent(input$bp_group_by, {
+  userState$bp_group_by <- input$bp_group_by
 })
 shiny::observeEvent(input$bp_y_lim, {
   userState$bp_y_lim <- input$bp_y_lim
+})
+# For Violin Plots
+shiny::observeEvent(input$vio_group_by, {
+  userState$vio_group_by <- input$vio_group_by
+})
+shiny::observeEvent(input$vio_bin_size, {
+  userState$vio_bin_size <- input$vio_bin_size
+})
+shiny::observeEvent(input$vio_y_lim, {
+  userState$vio_y_lim <- input$vio_y_lim
+})
+shiny::observeEvent(input$vio_boxplot_overlay, {
+  userState$vio_boxplot_overlay <- input$vio_boxplot_overlay
 })
 # For Enhanced Boxplots
 shiny::observeEvent(input$bp2_mf_row, {
@@ -111,6 +130,34 @@ shiny::observeEvent(input$eb_y_lab, {
 shiny::observeEvent(input$eb_title, {
   userState$eb_title <- input$eb_title
 })
+shiny::observeEvent(input$eb_stat, {
+  userState$eb_stat <- input$eb_stat
+})
+shiny::observeEvent(input$eb_error, {
+  userState$eb_error <- input$eb_error
+})
+shiny::observeEvent(input$eb_method, {
+  userState$eb_method <- input$eb_method
+})
+shiny::observeEvent(input$eb_p_adjust_method, {
+  userState$eb_p_adjust_method <- input$eb_p_adjust_method
+})
+shiny::observeEvent(input$eb_label_size, {
+  userState$eb_label_size <- input$eb_label_size
+})
+# For Univariate Tests
+shiny::observeEvent(input$uv2_method, {
+  userState$uv2_method <- input$uv2_method
+})
+shiny::observeEvent(input$uv2_p_adjust_method, {
+  userState$uv2_p_adjust_method <- input$uv2_p_adjust_method
+})
+shiny::observeEvent(input$uvm_method, {
+  userState$uvm_method <- input$uvm_method
+})
+shiny::observeEvent(input$uvm_p_adjust_method, {
+  userState$uvm_p_adjust_method <- input$uvm_p_adjust_method
+})
 # For Dual-Flashlight Plot
 shiny::observeEvent(input$df_group_var, {
   userState$df_group_var <- input$df_group_var
@@ -133,9 +180,6 @@ shiny::observeEvent(input$df_top_labels, {
 # For Heatmap
 shiny::observeEvent(input$hm_annotation, {
   userState$hm_annotation <- input$hm_annotation
-})
-shiny::observeEvent(input$hm_scale, {
-  userState$hm_scale <- input$hm_scale
 })
 shiny::observeEvent(input$hm_ann_side, {
   userState$hm_ann_side <- input$hm_ann_side
@@ -199,8 +243,11 @@ shiny::observeEvent(input$skku_print_log, {
 })
 
 # For PLSR
-shiny::observeEvent(input$plsr_response_var, {
-  userState$plsr_response_var <- input$plsr_response_var
+shiny::observeEvent(input$plsr_group_col, {
+  userState$plsr_group_col <- input$plsr_group_col
+})
+shiny::observeEvent(input$plsr_response_col, {
+  userState$plsr_response_col <- input$plsr_response_col
 })
 shiny::observeEvent(input$plsr_predictor_cols, {
   userState$plsr_predictor_cols <- input$plsr_predictor_cols
@@ -270,8 +317,8 @@ shiny::observeEvent(input$splsda_use_batch_corr, {
 shiny::observeEvent(input$splsda_batch_col, {
   userState$splsda_batch_col <- input$splsda_batch_col
 })
-shiny::observeEvent(input$use_splsda_multilevel, {
-  userState$splsda_multilevel <- input$use_splsda_multilevel
+shiny::observeEvent(input$splsda_use_multilevel, {
+  userState$splsda_use_multilevel <- input$splsda_use_multilevel
 })
 shiny::observeEvent(input$splsda_multilevel, {
   userState$splsda_multilevel <- input$splsda_multilevel
@@ -523,18 +570,25 @@ shiny::observeEvent(
   ignoreNULL = FALSE
 )
 
-shiny::observeEvent(input$menu_ANOVA, {
-  selected_function("ANOVA")
+shiny::observeEvent(input$menu_univariate_2lvl, {
+  selected_stat_func("Univariate Tests (T-test, Wilcoxon)")
+  selected_function("Univariate Tests (T-test, Wilcoxon)")
   currentPage("step4")
   currentStep(4)
 })
-shiny::observeEvent(input$menu_t_test, {
-  selected_function("Two-Sample T-Test")
+shiny::observeEvent(input$menu_univariate_multi, {
+  selected_stat_func("Univariate Tests (ANOVA, Kruskal-Wallis)")
+  selected_function("Univariate Tests (ANOVA, Kruskal-Wallis)")
   currentPage("step4")
   currentStep(4)
 })
 shiny::observeEvent(input$menu_boxplots, {
   selected_function("Boxplots")
+  currentPage("step4")
+  currentStep(4)
+})
+shiny::observeEvent(input$menu_violin, {
+  selected_function("Violin Plots")
   currentPage("step4")
   currentStep(4)
 })

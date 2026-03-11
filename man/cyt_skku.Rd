@@ -54,3 +54,6 @@ cyt_skku(ExampleData1[, -c(2:3)], output_file = NULL,
 cyt_skku(ExampleData1[, -c(1:3)], output_file = NULL)
 
 }
+\author{
+Xiaohua Douglas Zhang and Shubh Saraswat
+}

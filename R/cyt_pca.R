@@ -29,7 +29,7 @@
 #' @importFrom mixOmics pca plotIndiv plotLoadings plotVar
 #' @import ggplot2
 #' @importFrom plot3D scatter3D
-#'
+#' @author Shubh Saraswat
 #' @examples
 #' data <- ExampleData1[, -c(3,23)]
 #' data_df <- dplyr::filter(data, Group != "ND" & Treatment != "Unstimulated")

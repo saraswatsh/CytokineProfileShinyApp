@@ -29,6 +29,7 @@
 #' @importFrom dplyr arrange mutate desc row_number
 #' @importFrom ggrepel geom_text_repel
 #' @export
+#' @author Xiaohua Douglas Zhang and Shubh Saraswat
 #' @examples
 #' # Loading data
 #' data_df <- ExampleData1[,-c(2:3)]

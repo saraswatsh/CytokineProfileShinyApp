@@ -51,6 +51,7 @@
 #'
 #' @importFrom mixOmics pls spls plotIndiv plotLoadings perf vip
 #' @import ggplot2
+#' @author Shubh Saraswat
 #' @export
 cyt_plsr <- function(
   data,
@@ -399,9 +400,13 @@ cyt_plsr <- function(
   })
 
   # --- VIP & optional VIP>1 refit preview
+  q2_vals_vip <- numeric(0)
+  rmsep_vals_vip <- numeric(0)
+
   vip_scores <- vip_indiv_plot <- vip_cv_plot <- NULL
   vip_all <- try(mixOmics::vip(mdl), silent = TRUE)
   if (!inherits(vip_all, "try-error")) {
+    vip_all <- as.matrix(vip_all)
     vip_scores <- lapply(seq_len(comp_num_eff), function(k) {
       v <- data.frame(
         variable = rownames(vip_all),
@@ -425,7 +430,8 @@ cyt_plsr <- function(
           y = "VIP"
         )
     })
-    vip_filter <- vip_all[, 1] > 1
+    vip_filter <- !is.na(vip_all[, 1]) & vip_all[, 1] > 1
+
     if (sum(vip_filter) > 0) {
       Xvip <- X[, vip_filter, drop = FALSE]
       mdl_vip <- if (isTRUE(sparse)) {
@@ -523,7 +529,6 @@ cyt_plsr <- function(
                 ggplot2::facet_wrap(~metric, scales = "free_y", nrow = 1) +
                 ggplot2::scale_x_continuous(breaks = seq_len(K)) +
                 ggplot2::labs(
-                  # Use the new dynamic title here
                   title = paste("Cross-validation (VIP > 1):", cv_title),
                   x = "Components",
                   y = NULL
@@ -598,12 +603,16 @@ cyt_plsr <- function(
     paste(
       sprintf("Q2 (comp %d): %.3f", seq_along(q2_vals), q2_vals),
       sprintf("RMSEP (comp %d): %.3f", seq_along(rmsep_vals), rmsep_vals),
-      sprintf("Q2 VIP>1 (comp %d): %.3f", seq_along(q2_vals_vip), q2_vals_vip),
-      sprintf(
-        "RMSEP VIP>1 (comp %d): %.3f",
-        seq_along(rmsep_vals_vip),
-        rmsep_vals_vip
-      ),
+      if (length(q2_vals_vip)) {
+        sprintf("Q2 VIP>1 (comp %d): %.3f", seq_along(q2_vals_vip), q2_vals_vip)
+      },
+      if (length(rmsep_vals_vip)) {
+        sprintf(
+          "RMSEP VIP>1 (comp %d): %.3f",
+          seq_along(rmsep_vals_vip),
+          rmsep_vals_vip
+        )
+      },
       collapse = "\n"
     )
   } else {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyt_bp2.R
 \name{cyt_bp2}
 \alias{cyt_bp2}
-\title{Boxplot Function Enhanced for Specific Group Comparisons.}
+\title{Boxplot Function Enhanced for Specific Group Comparisons. \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 \usage{
 cyt_bp2(
   data,

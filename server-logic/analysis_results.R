@@ -4,6 +4,70 @@
 errorMessage <- shiny::reactiveVal(NULL)
 warningMessage <- shiny::reactiveVal(NULL)
 
+parse_numeric_input <- function(x) {
+  if (is.null(x) || !nzchar(trimws(x))) {
+    return(NULL)
+  }
+
+  as.numeric(trimws(strsplit(x, ",")[[1]]))
+}
+
+null_if_blank <- function(x) {
+  if (is.null(x) || !nzchar(trimws(x))) {
+    return(NULL)
+  }
+
+  x
+}
+
+collect_exportable_plots <- function(x, prefix = "plot") {
+  if (is.null(x)) {
+    return(list())
+  }
+
+  if (inherits(x, "pheatmap")) {
+    draw_fn <- function() {
+      grid::grid.newpage()
+      grid::grid.draw(x$gtable)
+    }
+    return(stats::setNames(list(draw_fn), prefix))
+  }
+
+  if (
+    inherits(x, c("gg", "ggplot", "grob", "gtable", "recordedplot")) ||
+      is.function(x)
+  ) {
+    return(stats::setNames(list(x), prefix))
+  }
+
+  if (!is.list(x) || is.data.frame(x) || is.matrix(x)) {
+    return(list())
+  }
+
+  out <- list()
+  child_names <- names(x)
+  if (is.null(child_names)) {
+    child_names <- as.character(seq_along(x))
+  }
+
+  for (i in seq_along(x)) {
+    child_name <- child_names[[i]]
+    if (is.null(child_name) || is.na(child_name) || !nzchar(child_name)) {
+      child_name <- as.character(i)
+    }
+
+    out <- c(
+      out,
+      collect_exportable_plots(
+        x[[i]],
+        prefix = paste(prefix, child_name, sep = "_")
+      )
+    )
+  }
+
+  out
+}
+
 analysisResult <- shiny::eventReactive(input$next4, {
   errorMessage(NULL)
   warningMessage(NULL)
@@ -28,32 +92,55 @@ analysisResult <- shiny::eventReactive(input$next4, {
             func_to_run,
 
             # -- Statistical Tests --
-            "ANOVA" = cyt_anova(
+            "Univariate Tests (T-test, Wilcoxon)" = cyt_univariate(
               data = df,
+              method = input$uv2_method %||% "auto",
+              p_adjust_method = null_if_blank(input$uv2_p_adjust_method),
               progress = prog,
+              scale = NULL,
               format_output = TRUE
             ),
 
-            "Two-Sample T-Test" = cyt_ttest(
+            "Univariate Tests (ANOVA, Kruskal-Wallis)" = cyt_univariate_multi(
               data = df,
+              method = input$uvm_method %||% "anova",
+              p_adjust_method = if (
+                nzchar(input$uvm_p_adjust_method %||% "")
+              ) {
+                input$uvm_p_adjust_method
+              } else {
+                "none"
+              },
               progress = prog,
-              scale = NULL,
               format_output = TRUE
             ),
 
             # -- Exploratory Visualization --
             "Boxplots" = cyt_bp(
               data = df,
-
               progress = prog,
+              group_by = if (length(input$bp_group_by)) {
+                input$bp_group_by
+              } else {
+                NULL
+              },
               bin_size = input$bp_bin_size,
-              mf_row = if (nzchar(input$bp_mf_row)) {
-                as.numeric(strsplit(input$bp_mf_row, ",")[[1]])
+              y_lim = parse_numeric_input(input$bp_y_lim),
+              scale = "none"
+            ),
+
+            "Violin Plots" = cyt_violin(
+              data = df,
+              progress = prog,
+              group_by = if (length(input$vio_group_by)) {
+                input$vio_group_by
+              } else {
+                NULL
               },
-              y_lim = if (nzchar(input$bp_y_lim)) {
-                as.numeric(strsplit(input$bp_y_lim, ",")[[1]])
-              },
-              scale = NULL
+              bin_size = input$vio_bin_size,
+              y_lim = parse_numeric_input(input$vio_y_lim),
+              scale = "none",
+              boxplot_overlay = isTRUE(input$vio_boxplot_overlay)
             ),
 
             "Enhanced Boxplots" = cyt_bp2(
@@ -71,7 +158,6 @@ analysisResult <- shiny::eventReactive(input$next4, {
 
             "Error-Bar Plot" = cyt_errbp(
               data = df,
-
               progress = prog,
               group_col = input$eb_group_col,
               p_lab = input$eb_p_lab,
@@ -80,7 +166,12 @@ analysisResult <- shiny::eventReactive(input$next4, {
               x_lab = input$eb_x_lab,
               y_lab = input$eb_y_lab,
               title = input$eb_title,
-              log2 = FALSE
+              stat = input$eb_stat %||% "mean",
+              error = input$eb_error %||% "se",
+              scale = "none",
+              method = input$eb_method %||% "auto",
+              p_adjust_method = null_if_blank(input$eb_p_adjust_method),
+              label_size = input$eb_label_size %||% 4
             ),
 
             "Dual-Flashlight Plot" = cyt_dualflashplot(
@@ -95,13 +186,23 @@ analysisResult <- shiny::eventReactive(input$next4, {
               top_labels = input$df_top_labels
             ),
             "Heatmap" = {
-              scale_arg <- if (
-                is.null(input$hm_scale) || input$hm_scale == "none"
-              ) {
-                "none"
-              } else {
-                input$hm_scale
+              num_cols <- names(df)[vapply(df, is.numeric, logical(1))]
+              invalid_heatmap <- summarize_invalid_numeric_columns(
+                df,
+                columns = num_cols
+              )
+              if (nrow(invalid_heatmap) > 0) {
+                stop(
+                  paste(
+                    "Heatmap uses the Step 2-transformed matrix directly and calls cyt_heatmap(..., scale = NULL), so this is not a second log transformation.",
+                    "Invalid values were found in the working numeric matrix before clustering:",
+                    format_invalid_numeric_summary(invalid_heatmap),
+                    "Use Treat missing values or choose a transformation compatible with your data."
+                  ),
+                  call. = FALSE
+                )
               }
+
               ann_arg <- if (
                 !is.null(input$hm_annotation) && nzchar(input$hm_annotation)
               ) {
@@ -114,7 +215,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
               # build (silent) pheatmap object; nothing is drawn yet
               ph <- cyt_heatmap(
                 data = df,
-                scale = if (identical(scale_arg, "none")) NULL else scale_arg,
+                scale = NULL,
                 annotation_col = ann_arg,
                 annotation_side = side_arg
               )
@@ -367,7 +468,6 @@ analysisResult <- shiny::eventReactive(input$next4, {
             # -- Machine Learning --
             "Random Forest" = cyt_rf(
               data = df,
-
               progress = prog,
               group_col = input$rf_group_col,
               ntree = input$rf_ntree,
@@ -376,12 +476,12 @@ analysisResult <- shiny::eventReactive(input$next4, {
               plot_roc = isTRUE(input$rf_plot_roc),
               run_rfcv = isTRUE(input$rf_run_rfcv),
               k_folds = input$rf_k_folds,
-              step = input$rf_step
+              step = input$rf_step,
+              scale = "none"
             ),
 
             "Extreme Gradient Boosting (XGBoost)" = cyt_xgb(
               data = df,
-
               progress = prog,
               group_col = input$xgb_group_col,
               train_fraction = input$xgb_train_fraction,
@@ -392,7 +492,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
               cv = isTRUE(input$xgb_cv),
               eval_metric = input$xgb_eval_metric,
               top_n_features = input$xgb_top_n_features,
-              plot_roc = isTRUE(input$xgb_plot_roc)
+              plot_roc = isTRUE(input$xgb_plot_roc),
+              scale = "none"
             )
           ) # end switch
 
@@ -414,6 +515,43 @@ analysisResult <- shiny::eventReactive(input$next4, {
 reactivePlots <- shiny::reactive({
   shiny::req(analysisResult())
   analysisResult()
+})
+
+exportablePlots <- shiny::reactive({
+  shiny::req(analysisResult(), selected_function())
+
+  func_name <- selected_function()
+  res <- analysisResult()
+
+  switch(
+    func_name,
+    "Univariate Tests (T-test, Wilcoxon)" = list(),
+    "Univariate Tests (ANOVA, Kruskal-Wallis)" = list(),
+    "Heatmap" = collect_exportable_plots(res, "heatmap"),
+    "Random Forest" = collect_exportable_plots(
+      list(
+        vip_plot = res$vip_plot,
+        roc_plot = res$roc_plot,
+        rfcv_plot = res$rfcv_plot
+      ),
+      "rf"
+    ),
+    "Extreme Gradient Boosting (XGBoost)" = collect_exportable_plots(
+      list(
+        importance_plot = res$importance_plot,
+        roc_plot = res$roc_plot
+      ),
+      "xgb"
+    ),
+    "Skewness/Kurtosis" = collect_exportable_plots(
+      list(
+        skew_plot = res$p_skew,
+        kurt_plot = res$p_kurt
+      ),
+      "skku"
+    ),
+    collect_exportable_plots(res, gsub("[^A-Za-z0-9]+", "_", tolower(func_name)))
+  )
 })
 
 output$errorText <- shiny::renderUI({
@@ -1353,20 +1491,20 @@ output$result_display <- shiny::renderUI({
           )
         )
       },
-      "ANOVA" = {
+      "Univariate Tests (T-test, Wilcoxon)" = {
         shiny::tagList(
-          shiny::h4("ANOVA Results"),
+          shiny::h4("Univariate Test Results"),
           shinycssloaders::withSpinner(
-            DT::dataTableOutput("anovaResults"),
+            DT::dataTableOutput("univariateResults"),
             type = 8
           )
         )
       },
-      "Two-Sample T-Test" = {
+      "Univariate Tests (ANOVA, Kruskal-Wallis)" = {
         shiny::tagList(
-          shiny::h4("Two-Sample T-Test Results"),
+          shiny::h4("Univariate Test Results"),
           shinycssloaders::withSpinner(
-            DT::dataTableOutput("ttestResults"),
+            DT::dataTableOutput("univariateResults"),
             type = 8
           )
         )
@@ -2138,7 +2276,7 @@ shiny::observeEvent(analysisResult(), {
       cat(res$summary_text)
     })
     output$xgb_vipPlot <- shiny::renderPlot({
-      print(res$plot)
+      print(res$importance_plot)
     })
     output$xgb_rocPlot <- shiny::renderPlot({
       if (!is.null(res$roc_plot)) print(res$roc_plot)
@@ -2240,29 +2378,15 @@ shiny::observeEvent(analysisResult(), {
     })
   }
 })
-
-output$textResults <- shiny::renderPrint({
-  res <- analysisResult()
-  print(res)
-})
-# --- ANOVA table ---
-output$anovaResults <- DT::renderDataTable(
+# --- Univariate results table ---
+output$univariateResults <- DT::renderDataTable(
   {
     res <- analysisResult()
-    # Ensure this renderer only runs when ANOVA was the selected function
-    shiny::req(selected_function() == "ANOVA")
-    res$out_df
-  },
-  options = list(pageLength = 10, scrollX = TRUE)
-)
-
-# --- Two-Sample T-Test table ---
-output$ttestResults <- DT::renderDataTable(
-  {
-    res <- analysisResult()
-    # Ensure this renderer only runs when T-Test was the selected function
-    shiny::req(selected_function() == "Two-Sample T-Test")
-    res$out_df
+    shiny::req(selected_function() %in% c(
+      "Univariate Tests (T-test, Wilcoxon)",
+      "Univariate Tests (ANOVA, Kruskal-Wallis)"
+    ))
+    res
   },
   options = list(pageLength = 10, scrollX = TRUE)
 )
@@ -2275,28 +2399,27 @@ output$errorBarPlotOutput <- shiny::renderPlot({
 
 # Render the download UI conditionally
 output$download_ui <- shiny::renderUI({
-  res <- analysisResult()
-  # Show download button only if the result is of a type that generates a downloadable plot
-  if (
-    !is.null(res) &&
-      !selected_function() %in% c("ANOVA", "Two-Sample T-Test") &&
-      !inherits(res, "data.frame") &&
-      (is.list(res) || is.character(res))
-  ) {
+  plots <- exportablePlots()
+  if (length(plots) > 0) {
     shiny::tagList(
       shiny::textInput(
         "download_filename",
         "Enter filename for download:",
         value = "Cytokine_Analysis_Results"
       ),
-      shiny::downloadButton("download_output", "Download Results as PDF"),
-      shiny::radioButtons(
-        "download_color_mode",
-        label = "Color Mode",
-        choices = list("Color" = "color", "Black & White" = "bw"),
-        selected = "color",
-        inline = TRUE
-      )
+      shiny::selectInput(
+        "download_format",
+        "Export format",
+        choices = c(
+          "PDF" = "pdf",
+          "PNG" = "png",
+          "JPEG" = "jpeg",
+          "TIFF" = "tiff",
+          "SVG" = "svg"
+        ),
+        selected = "pdf"
+      ),
+      shiny::downloadButton("download_output", "Download Results")
     )
   }
 })
@@ -2304,26 +2427,53 @@ output$download_ui <- shiny::renderUI({
 # Download handler
 output$download_output <- shiny::downloadHandler(
   filename = function() {
-    paste0(input$download_filename, ".pdf")
+    fmt <- tolower(input$download_format %||% "pdf")
+    plot_count <- length(exportablePlots())
+    ext <- if (fmt == "pdf" || plot_count <= 1L) fmt else "zip"
+    paste0(input$download_filename %||% "Cytokine_Analysis_Results", ".", ext)
   },
   content = function(file) {
-    colormodel_arg <- if (input$download_color_mode == "bw") "gray" else "srgb"
-    pdf(file, width = 10, height = 8, colormodel = colormodel_arg)
-    plots <- reactivePlots()
-    # print each ggplot in order
-    for (p in plots) {
-      if (inherits(p, "ggplot")) {
-        print(p)
-      } else if (inherits(p, "pheatmap")) {
-        grid::grid.newpage()
-        grid::grid.draw(p$gtable)
-      } else if (inherits(p, "grob") || inherits(p, "gtable")) {
-        grid::grid.newpage()
-        grid::grid.draw(p)
-      } else {
-        print(p)
-      }
+    plots <- exportablePlots()
+    shiny::req(length(plots) > 0)
+
+    fmt <- tolower(input$download_format %||% "pdf")
+    base_file <- tools::file_path_sans_ext(file)
+
+    if (fmt == "pdf") {
+      cyt_export(
+        plots = plots,
+        filename = base_file,
+        format = fmt
+      )
+      return(invisible(NULL))
     }
-    dev.off()
+
+    cyt_export(
+      plots = plots,
+      filename = base_file,
+      format = fmt
+    )
+
+    if (length(plots) == 1L) {
+      generated_file <- paste0(base_file, "_001.", fmt)
+      if (!file.rename(generated_file, file)) {
+        file.copy(generated_file, file, overwrite = TRUE)
+      }
+      return(invisible(NULL))
+    }
+
+    generated_files <- list.files(
+      path = dirname(file),
+      pattern = paste0("^", basename(base_file), "_[0-9]{3}\\.", fmt, "$"),
+      full.names = TRUE
+    )
+    if (!length(generated_files)) {
+      stop("No export files were generated.")
+    }
+
+    old_wd <- getwd()
+    on.exit(setwd(old_wd), add = TRUE)
+    setwd(dirname(file))
+    utils::zip(zipfile = file, files = basename(generated_files))
   }
 )

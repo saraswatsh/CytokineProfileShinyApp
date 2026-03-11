@@ -24,6 +24,7 @@
 #' @importFrom gridExtra grid.arrange
 #' @import dplyr
 #' @export
+#' @author Xiaohua Douglas Zhang and Shubh Saraswat
 #' @examples
 #' # Example with grouping columns (e.g., "Group" and "Treatment")
 #' data(ExampleData1)

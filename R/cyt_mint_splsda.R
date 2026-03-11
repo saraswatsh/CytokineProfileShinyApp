@@ -36,6 +36,12 @@
 #' @return In Download mode, a PDF file is written. In Interactive mode, a named list
 #'         (`results_list`) of plots and results is returned. If `group_col2` is used,
 #'         a nested list is returned, with each element corresponding to a level of `group_col2`.
+#' @author Shubh Saraswat
+#' @references Rohart F, Eslami A, Matigian, N, Bougeard S, Lê Cao K-A (2017).
+#' MINT: A multivariate integrative approach to identify a reproducible
+#' biomarker signature across multiple experiments and platforms. BMC
+#' Bioinformatics 18:128.
+#'
 #' @examples
 #' # Loading ExampleData5 dataset with batch column
 #' data_df <- ExampleData5[,-c(2,4)]

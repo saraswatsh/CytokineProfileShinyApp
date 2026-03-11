@@ -1,4 +1,4 @@
-#' Boxplot Function Enhanced for Specific Group Comparisons.
+#' Boxplot Function Enhanced for Specific Group Comparisons. `r lifecycle::badge("deprecated")`
 #'
 #' This function generates boxplots for each combination of numeric and factor variables in the provided data.
 #' Character columns are converted to factors and the function checks that the data contains at least one numeric
@@ -35,6 +35,11 @@ cyt_bp2 <- function(
   y_lim = NULL,
   progress = NULL
 ) {
+  lifecycle::deprecate_warn(
+    "0.0.1", # version when deprecation begins
+    "CytokineProfileShinyApp::cyt_bp2()",
+    "CytokineProfileShinyApp::cyt_bp()"
+  )
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Converting data to data frame")
   }

@@ -52,10 +52,13 @@ reference:
   - cyt_volc
   - cyt_heatmap
   - cyt_dualflashplot
+  - cyt_violin
 - title: Univariate Analysis
   description: |
     Functions for performing univariate statistical tests.
   contents:
+  - cyt_univariate
+  - cyt_univariate_multi
   - cyt_anova
   - cyt_ttest
 - title: Multivariate Analysis
@@ -70,6 +73,11 @@ reference:
   contents:
   - cyt_rf
   - cyt_xgb
+- title: Utility Functions
+  contents:
+  - cyt_export
+  - adjust_p
+  - apply_scale
 - title: Datasets
   contents:
   - ExampleData1

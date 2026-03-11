@@ -120,22 +120,36 @@ shiny::observeEvent(input$back5, {
 resetState <- function() {
   # General state
   userState$selected_columns = NULL
+  userState$selected_categorical_cols = NULL
+  userState$selected_numerical_cols = NULL
 
   # Built=in Data built‑in tracking:
   userState$use_builtin = FALSE
   userState$built_in_choice = NULL
 
-  # Step 2 log2 checkbox
-  userState$step2_log2 = FALSE
+  # Step 2 preprocessing
+  userState$step2_scale = "none"
 
   # Boxplots options
   userState$bp_bin_size = NULL
-  userState$bp_mf_row = NULL
+  userState$bp_group_by = NULL
   userState$bp_y_lim = NULL
+
+  # Violin Plot options
+  userState$vio_group_by = NULL
+  userState$vio_bin_size = NULL
+  userState$vio_y_lim = NULL
+  userState$vio_boxplot_overlay = NULL
 
   # Enhanced Boxplots options
   userState$bp2_mf_row = NULL
   userState$bp2_y_lim = NULL
+
+  # Univariate test options
+  userState$uv2_method = NULL
+  userState$uv2_p_adjust_method = NULL
+  userState$uvm_method = NULL
+  userState$uvm_p_adjust_method = NULL
 
   # Error-Bar Plot
   userState$eb_group_col = NULL
@@ -145,6 +159,11 @@ resetState <- function() {
   userState$eb_x_lab = NULL
   userState$eb_y_lab = NULL
   userState$eb_title = NULL
+  userState$eb_stat = NULL
+  userState$eb_error = NULL
+  userState$eb_method = NULL
+  userState$eb_p_adjust_method = NULL
+  userState$eb_label_size = NULL
 
   # Dual-Flashlight Plot options
   userState$df_group_var = NULL
@@ -156,7 +175,6 @@ resetState <- function() {
 
   # Heatmap options
   userState$hm_annotation = NULL
-  userState$hm_scale = NULL
   userState$hm_ann_side = NULL
 
   # Correlation options
@@ -204,7 +222,7 @@ resetState <- function() {
   # sPLS-DA options
   userState$splsda_group_col = NULL
   userState$splsda_group_col2 = NULL
-  userState$spsda_batch_col = NULL
+  userState$splsda_batch_col = NULL
   userState$splsda_var_num = NULL
   userState$splsda_var_num_manual = FALSE
   userState$splsda_cv_opt = NULL
@@ -218,7 +236,7 @@ resetState <- function() {
   userState$splsda_ellipse = NULL
   userState$splsda_bg = NULL
   userState$splsda_conf_mat = NULL
-  userState$plsda_colors = NULL
+  userState$splsda_colors = NULL
   userState$splsda_use_multilevel = FALSE
   userState$splsda_multilevel = NULL
   userState$splsda_use_batch_corr = FALSE
@@ -287,12 +305,24 @@ shiny::observeEvent(input$new_reuse, {
   shiny::isolate({
     # Boxplots options
     userState$bp_bin_size = NULL
-    userState$bp_mf_row = NULL
+    userState$bp_group_by = NULL
     userState$bp_y_lim = NULL
+
+    # Violin Plot options
+    userState$vio_group_by = NULL
+    userState$vio_bin_size = NULL
+    userState$vio_y_lim = NULL
+    userState$vio_boxplot_overlay = NULL
 
     # Enhanced Boxplots options
     userState$bp2_mf_row = NULL
     userState$bp2_y_lim = NULL
+
+    # Univariate test options
+    userState$uv2_method = NULL
+    userState$uv2_p_adjust_method = NULL
+    userState$uvm_method = NULL
+    userState$uvm_p_adjust_method = NULL
 
     # Error-Bar Plot
     userState$eb_group_col = NULL
@@ -302,6 +332,11 @@ shiny::observeEvent(input$new_reuse, {
     userState$eb_x_lab = NULL
     userState$eb_y_lab = NULL
     userState$eb_title = NULL
+    userState$eb_stat = NULL
+    userState$eb_error = NULL
+    userState$eb_method = NULL
+    userState$eb_p_adjust_method = NULL
+    userState$eb_label_size = NULL
 
     # Dual-Flashlight Plot options
     userState$df_group_var = NULL
@@ -313,7 +348,6 @@ shiny::observeEvent(input$new_reuse, {
 
     # Heatmap options
     userState$hm_annotation = NULL
-    userState$hm_scale = NULL
     userState$hm_ann_side = NULL
 
     # PCA options
@@ -332,7 +366,7 @@ shiny::observeEvent(input$new_reuse, {
     userState$plsr_comp_num = NULL
     userState$plsr_keepX = NULL
     userState$plsr_keepX_manual = FALSE
-    userState$sparse = FALSE
+    userState$plsr_sparse = FALSE
     userState$plsr_cv_opt = NULL
     userState$plsr_fold_num = NULL
     userState$plsr_ellipse = FALSE
@@ -356,7 +390,7 @@ shiny::observeEvent(input$new_reuse, {
     # sPLS-DA options
     userState$splsda_group_col = NULL
     userState$splsda_group_col2 = NULL
-    userState$spsda_batch_col = NULL
+    userState$splsda_batch_col = NULL
     userState$splsda_var_num = NULL
     userState$splsda_var_num_manual = FALSE
     userState$splsda_cv_opt = NULL
@@ -370,7 +404,7 @@ shiny::observeEvent(input$new_reuse, {
     userState$splsda_ellipse = NULL
     userState$splsda_bg = NULL
     userState$splsda_conf_mat = NULL
-    userState$plsda_colors = NULL
+    userState$splsda_colors = NULL
     userState$splsda_multilevel = NULL
     userState$splsda_use_batch_corr = FALSE
     userState$splsda_batch_col = NULL
@@ -533,8 +567,8 @@ homeUI <- function() {
           shiny::div(
             class = "card-body",
             shiny::tags$ul(
-              shiny::tags$li("ANOVA"),
-              shiny::tags$li("Two-Sample T-Test")
+              shiny::tags$li("Univariate Tests (T-test, Wilcoxon)"),
+              shiny::tags$li("Univariate Tests (ANOVA, Kruskal-Wallis)")
             )
           )
         )
@@ -551,6 +585,7 @@ homeUI <- function() {
             class = "card-body",
             shiny::tags$ul(
               shiny::tags$li("Boxplots"),
+              shiny::tags$li("Violin Plots"),
               shiny::tags$li("Enhanced Boxplots"),
               shiny::tags$li("Correlation Plots"),
               shiny::tags$li("Error-Bar Plot"),
@@ -927,17 +962,39 @@ step2UI <- function() {
               shiny::uiOutput("step2_type_ui") # your dynamic controls render here
             )
           ),
-          # 3) Optional: Log₂ transformation
+          # 3) Optional: data transformation
           bslib::card(
             bslib::card_header(
               class = "bg-info",
-              "3. Optional: Log₂ Transformation"
+              "3. Optional: Data Transformation"
             ),
             bslib::card_body(
-              shiny::checkboxInput(
-                "step2_log2",
-                label = "Apply log₂ transformation to all selected numerical columns",
-                value = shiny::isolate(userState$step2_log2) %||% FALSE
+              style = "overflow: visible; min-height: 8rem;",
+              shiny::selectInput(
+                "step2_scale",
+                label = shinyhelper::helper(
+                  type = "inline",
+                  title = "Data Transformation",
+                  icon = "fas fa-question-circle",
+                  shiny_tag = shiny::HTML(
+                    "<span style='margin-right: 15px;'>Apply a preprocessing method to selected numerical columns</span>"
+                  ),
+                  content = "Apply one preprocessing method to the selected numerical columns before imputation and downstream analysis. Log transforms require all non-missing selected values to be finite and greater than zero.",
+                  colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                    "red"
+                  } else {
+                    "blue"
+                  }
+                ),
+                choices = c(
+                  "None" = "none",
+                  "log2" = "log2",
+                  "log10" = "log10",
+                  "Z-score" = "zscore"
+                ),
+                selected = shiny::isolate(userState$step2_scale) %||% "none",
+                selectize = FALSE,
+                width = "100%"
               )
             )
           ),
@@ -1040,7 +1097,7 @@ step2UI <- function() {
               icon = shiny::icon("arrow-left")
             ),
             shiny::conditionalPanel(
-              "input.step2_log2 == true",
+              "input.step2_scale && input.step2_scale !== 'none'",
               shiny::actionButton(
                 "preview_transform",
                 "Preview Transformation",
@@ -1077,10 +1134,14 @@ step3UI <- function() {
         bslib::card(
           bslib::card_header("Univariate Analysis", class = "bg-info"),
           bslib::card_body(
-            shiny::actionButton("menu_ANOVA", "ANOVA", class = "menu-card"),
             shiny::actionButton(
-              "menu_t_test",
-              "Two-Sample T-Test",
+              "menu_univariate_2lvl",
+              "Univariate Tests (T-test, Wilcoxon)",
+              class = "menu-card"
+            ),
+            shiny::actionButton(
+              "menu_univariate_multi",
+              "Univariate Tests (ANOVA, Kruskal-Wallis)",
               class = "menu-card"
             ),
           )
@@ -1095,6 +1156,11 @@ step3UI <- function() {
             shiny::actionButton(
               "menu_boxplots",
               "Boxplots",
+              class = "menu-card"
+            ),
+            shiny::actionButton(
+              "menu_violin",
+              "Violin Plots",
               class = "menu-card"
             ),
             shiny::actionButton(
@@ -1424,7 +1490,10 @@ output$step1_bottom_block <- shiny::renderUI({
 })
 
 # --- Logic for Custom Button Group: Statistical Tests ---
-stat_choices <- c("ANOVA", "Two-Sample T-Test")
+stat_choices <- c(
+  "Univariate Tests (T-test, Wilcoxon)",
+  "Univariate Tests (ANOVA, Kruskal-Wallis)"
+)
 output$stat_function_ui <- shiny::renderUI({
   lapply(stat_choices, function(choice) {
     shiny::actionButton(
@@ -1450,6 +1519,7 @@ lapply(stat_choices, function(choice) {
 # --- Logic for Custom Button Group: Exploratory Vis ---
 exploratory_choices <- c(
   "Boxplots",
+  "Violin Plots",
   "Enhanced Boxplots",
   "Correlation Plots",
   "Error-Bar Plot",
@@ -1643,12 +1713,34 @@ raw_filtered <- shiny::reactive({
 }) |>
   shiny::debounce(500)
 
+step2_scale_label <- function(scale_choice) {
+  switch(
+    scale_choice,
+    log2 = "log2",
+    log10 = "log10",
+    zscore = "Z-score",
+    "Transformation"
+  )
+}
+
 data_after_filters <- shiny::reactive({
   df <- raw_filtered()
   shiny::req(df)
-  if (isTRUE(input$step2_log2)) {
+  scale_choice <- input$step2_scale %||% "none"
+  if (!identical(scale_choice, "none")) {
     num_cols <- intersect(input$selected_numerical_cols, names(df))
-    df[num_cols] <- round(log2(df[num_cols]), 5)
+    if (length(num_cols)) {
+      df <- tryCatch(
+        apply_scale(
+          data = df,
+          columns = num_cols,
+          scale = scale_choice
+        ),
+        error = function(e) {
+          shiny::validate(shiny::need(FALSE, conditionMessage(e)))
+        }
+      )
+    }
   }
   df
 }) |>
@@ -2021,7 +2113,9 @@ shiny::observeEvent(input$apply_impute, {
 comparison_data <- shiny::reactiveVal(list(
   orig = NULL,
   trans = NULL,
-  num_cols = character()
+  num_cols = character(),
+  scale_key = "none",
+  scale_label = "None"
 ))
 
 show_comparison <- shiny::reactiveVal(FALSE)
@@ -2033,64 +2127,146 @@ output$norm_compare <- shiny::renderPlot({
   orig <- cmp$orig
   trans <- cmp$trans
   num_cols <- cmp$num_cols
-  # long data for before & after
-  df_before <- tidyr::pivot_longer(
-    orig[, num_cols, drop = FALSE],
-    cols = everything(),
-    names_to = "variable",
-    values_to = "value"
-  )
-  df_after <- tidyr::pivot_longer(
-    trans[, num_cols, drop = FALSE],
-    cols = everything(),
-    names_to = "variable",
-    values_to = "value"
-  )
-  # 1) Separate density plots
-  dens_before <- ggplot2::ggplot(df_before, ggplot2::aes(x = value)) +
-    ggplot2::geom_density(fill = "skyblue", alpha = 0.5) +
-    ggplot2::labs(title = "Before log₂", x = "Value", y = "Density") +
-    ggplot2::theme_minimal()
+  scale_label <- cmp$scale_label %||% "Transformation"
+  shiny::req(length(num_cols) > 0)
 
-  dens_after <- ggplot2::ggplot(df_after, ggplot2::aes(x = value)) +
-    ggplot2::geom_density(fill = "salmon", alpha = 0.5) +
-    ggplot2::labs(title = "After log₂", x = "Value", y = "") +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(
-      axis.text.y = ggplot2::element_blank(),
-      axis.ticks.y = ggplot2::element_blank()
+  # ── Cap variables shown in boxplots for readability ──────────────────────
+  MAX_BOX_VARS <- 40
+  box_cols <- if (length(num_cols) > MAX_BOX_VARS) {
+    num_cols[seq_len(MAX_BOX_VARS)]
+  } else {
+    num_cols
+  }
+
+  # ── Long-format data ──────────────────────────────────────────────────────
+  make_long <- function(df, cols) {
+    out <- tidyr::pivot_longer(
+      df[, cols, drop = FALSE],
+      cols = tidyr::everything(),
+      names_to = "variable",
+      values_to = "value"
     )
+    out$variable <- factor(out$variable, levels = cols)
+    out[!is.na(out$value), , drop = FALSE]
+  }
 
-  # 2) Separate boxplot grids
+  df_before_hist <- make_long(orig, num_cols)
+  df_after_hist <- make_long(trans, num_cols)
+  df_before_box <- make_long(orig, box_cols)
+  df_after_box <- make_long(trans, box_cols)
+
+  shiny::req(nrow(df_before_hist) > 0, nrow(df_after_hist) > 0)
+
+  # ── Shared theme ──────────────────────────────────────────────────────────
+  base_theme <- ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(size = 12, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 8, colour = "grey50"),
+      panel.grid.minor = ggplot2::element_blank()
+    )
+  # Helper: trim x-axis to 1st–99th percentile for display only
+  trim_limits <- function(x, lo = 0.01, hi = 0.99) {
+    qs <- quantile(x, probs = c(lo, hi), na.rm = TRUE)
+    list(lo = qs[[1]], hi = qs[[2]])
+  }
+  before_lims <- trim_limits(df_before_hist$value)
+  after_lims <- trim_limits(df_after_hist$value)
+  # ── 1. Density plots (top row) ────────────────────────────────────────────
+  dens_before <- ggplot2::ggplot(
+    df_before_hist,
+    ggplot2::aes(x = value)
+  ) +
+    ggplot2::geom_density(
+      colour = "steelblue4",
+      fill = "steelblue",
+      alpha = 0.25,
+      adjust = 1.5, # smoother curve
+      na.rm = TRUE
+    ) +
+    ggplot2::coord_cartesian(
+      xlim = c(before_lims$lo, before_lims$hi) # zoom without dropping data
+    ) +
+    ggplot2::labs(
+      title = paste("Pooled Distribution Before", scale_label),
+      subtitle = "Showing 1st\u201399th percentile range. All values used for density estimation.",
+      x = "Value",
+      y = "Density"
+    ) +
+    base_theme
+
+  dens_after <- ggplot2::ggplot(
+    df_after_hist,
+    ggplot2::aes(x = value)
+  ) +
+    ggplot2::geom_density(
+      colour = "tomato3",
+      fill = "tomato",
+      alpha = 0.25,
+      adjust = 1.5,
+      na.rm = TRUE
+    ) +
+    ggplot2::coord_cartesian(
+      xlim = c(after_lims$lo, after_lims$hi)
+    ) +
+    ggplot2::labs(
+      title = paste("Pooled Distribution After", scale_label),
+      subtitle = "Showing 1st\u201399th percentile range. All values used for density estimation.",
+      x = "Value",
+      y = "Density"
+    ) +
+    base_theme
+
+  # ── 2. Horizontal boxplots (bottom row) ───────────────────────────────────
   box_before <- ggplot2::ggplot(
-    df_before,
+    df_before_box,
     ggplot2::aes(x = variable, y = value)
   ) +
-    ggplot2::geom_boxplot(fill = "skyblue", outlier.size = 0.5) +
-    ggplot2::labs(title = "Before log₂", x = NULL, y = "Value") +
-    ggplot2::theme_minimal() +
+    ggplot2::geom_boxplot(
+      fill = "steelblue",
+      colour = "steelblue4",
+      alpha = 0.7,
+      outlier.size = 0.8,
+      outlier.alpha = 0.5,
+      na.rm = TRUE
+    ) +
+    ggplot2::coord_flip() + # <-- horizontal
+    ggplot2::labs(
+      title = paste("Before", scale_label),
+      x = NULL,
+      y = "Value"
+    ) +
+    base_theme +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8),
-      strip.text = ggplot2::element_text(size = 8)
+      axis.text.y = ggplot2::element_text(size = 8),
+      axis.text.x = ggplot2::element_text(size = 8)
     )
 
   box_after <- ggplot2::ggplot(
-    df_after,
+    df_after_box,
     ggplot2::aes(x = variable, y = value)
   ) +
-    ggplot2::geom_boxplot(fill = "salmon", outlier.size = 0.5) +
-    ggplot2::labs(title = "After log₂", x = NULL, y = "") +
-    ggplot2::theme_minimal() +
+    ggplot2::geom_boxplot(
+      fill = "tomato",
+      colour = "tomato4",
+      alpha = 0.7,
+      outlier.size = 0.8,
+      outlier.alpha = 0.5,
+      na.rm = TRUE
+    ) +
+    ggplot2::coord_flip() + # <-- horizontal
+    ggplot2::labs(
+      title = paste("After", scale_label),
+      x = NULL,
+      y = "Value"
+    ) +
+    base_theme +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8),
-      strip.text = ggplot2::element_text(size = 8),
-      axis.text.y = ggplot2::element_blank(),
-      axis.ticks.y = ggplot2::element_blank()
+      axis.text.y = ggplot2::element_blank(), # shared y with left panel
+      axis.ticks.y = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(size = 8)
     )
 
-  # 3) Combine with patchwork
-  # Top row: two densities
-  # Bottom row: two boxplot facets
+  # ── 3. Compose ────────────────────────────────────────────────────────────
   comparison_plot <- patchwork::wrap_plots(
     dens_before,
     dens_after,
@@ -2098,9 +2274,16 @@ output$norm_compare <- shiny::renderPlot({
     box_after,
     ncol = 2,
     nrow = 2,
-    heights = c(0.3, 0.7),
+    heights = c(0.3, 0.7), # give more space to boxplots
     widths = c(0.5, 0.5)
-  )
+  ) +
+    patchwork::plot_annotation(
+      title = paste("Before vs After", scale_label),
+      theme = ggplot2::theme(
+        plot.title = ggplot2::element_text(size = 14, face = "bold")
+      )
+    )
+
   print(comparison_plot)
 })
 
@@ -2108,44 +2291,83 @@ output$norm_compare <- shiny::renderPlot({
 shiny::observeEvent(input$next2, {
   # save state
   userState$selected_columns <- selected_columns_combined()
-  userState$step2_log2 <- input$step2_log2
+  userState$selected_categorical_cols <- input$selected_categorical_cols
+  userState$selected_numerical_cols <- input$selected_numerical_cols
+  userState$step2_scale <- input$step2_scale
   currentPage("step3")
   currentStep(3)
 })
 
 shiny::observeEvent(input$preview_transform, {
-  shiny::req(input$step2_log2) # only if they’ve asked for log2
+  scale_choice <- input$step2_scale %||% "none"
+  if (identical(scale_choice, "none")) {
+    shiny::showNotification(
+      "Select a preprocessing method before previewing the transformation.",
+      type = "message"
+    )
+    return()
+  }
+
   orig <- raw_filtered()
   num_cols <- intersect(input$selected_numerical_cols, names(orig))
-  trans <- orig
-  trans[num_cols] <- round(log2(orig[num_cols]), 5)
+  shiny::req(length(num_cols) > 0)
+
+  trans <- tryCatch(
+    apply_scale(
+      data = orig,
+      columns = num_cols,
+      scale = scale_choice
+    ),
+    error = function(e) {
+      shiny::showNotification(conditionMessage(e), type = "error")
+      return(NULL)
+    }
+  )
+  shiny::req(!is.null(trans))
+  scale_label <- step2_scale_label(scale_choice)
 
   comparison_data(list(
     orig = orig,
     trans = trans,
-    num_cols = num_cols
+    num_cols = num_cols,
+    scale_key = scale_choice,
+    scale_label = scale_label
   ))
   show_comparison(TRUE)
 
   shiny::showModal(
     shiny::modalDialog(
-      title = "Before vs After log₂-Transformation",
-      shiny::plotOutput("norm_compare", height = "600px"),
+      title = paste("Before vs After", scale_label, "Transformation"),
+      shiny::plotOutput("norm_compare", height = "700px"),
       footer = shiny::modalButton("Close"),
       size = "l"
     )
   )
 })
 
-# On moving from Step 3 to Step 4, save the selected function and function options
-shiny::observeEvent(input$next3, {
+# Save Step 4 inputs before running the analysis so unchanged defaults persist
+shiny::observeEvent(input$next4, {
   shiny::req(currentStep() == 4, !is.null(selected_function()))
   userState$selected_function <- selected_function()
   if (currentStep() == 4 && !is.null(selected_function())) {
+    if (selected_function() == "Univariate Tests (T-test, Wilcoxon)") {
+      userState$uv2_method <- input$uv2_method
+      userState$uv2_p_adjust_method <- input$uv2_p_adjust_method
+    }
+    if (selected_function() == "Univariate Tests (ANOVA, Kruskal-Wallis)") {
+      userState$uvm_method <- input$uvm_method
+      userState$uvm_p_adjust_method <- input$uvm_p_adjust_method
+    }
     if (selected_function() == "Boxplots") {
-      userState$bp_mf_row <- input$bp_mf_row
+      userState$bp_group_by <- input$bp_group_by
       userState$bp_y_lim <- input$bp_y_lim
       userState$bp_bin_size <- input$bp_bin_size
+    }
+    if (selected_function() == "Violin Plots") {
+      userState$vio_group_by <- input$vio_group_by
+      userState$vio_bin_size <- input$vio_bin_size
+      userState$vio_y_lim <- input$vio_y_lim
+      userState$vio_boxplot_overlay <- input$vio_boxplot_overlay
     }
     if (selected_function() == "Enhanced Boxplots") {
       userState$bp2_mf_row <- input$bp2_mf_row
@@ -2159,6 +2381,11 @@ shiny::observeEvent(input$next3, {
       userState$eb_x_lab <- input$eb_x_lab
       userState$eb_y_lab <- input$eb_y_lab
       userState$eb_title <- input$eb_title
+      userState$eb_stat <- input$eb_stat
+      userState$eb_error <- input$eb_error
+      userState$eb_method <- input$eb_method
+      userState$eb_p_adjust_method <- input$eb_p_adjust_method
+      userState$eb_label_size <- input$eb_label_size
     }
     if (selected_function() == "Dual-Flashlight Plot") {
       userState$df_group_var <- input$df_group_var
@@ -2170,7 +2397,6 @@ shiny::observeEvent(input$next3, {
     }
     if (selected_function() == "Heatmap") {
       userState$hm_annotation <- input$hm_annotation
-      userState$hm_scale <- input$hm_scale
       userState$hm_ann_side <- input$hm_ann_side
     }
     if (selected_function() == "Correlation Plots") {
@@ -2190,6 +2416,7 @@ shiny::observeEvent(input$next3, {
     if (selected_function() == "Partial Least Squares Regression (PLSR)") {
       userState$plsr_group_col <- input$plsr_group_col
       userState$plsr_response_col <- input$plsr_response_col
+      userState$plsr_predictor_cols <- input$plsr_predictor_cols
       userState$plsr_comp_num <- input$plsr_comp_num
       userState$plsr_sparse <- input$plsr_sparse
       userState$plsr_keepX <- input$plsr_keepX
@@ -2218,9 +2445,10 @@ shiny::observeEvent(input$next3, {
         "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
     ) {
       userState$splsda_group_col <- input$splsda_group_col
-      userState$splsda_group_col2 <- input$splsda_group_col
+      userState$splsda_group_col2 <- input$splsda_group_col2
       userState$splsda_use_batch_corr <- input$splsda_use_batch_corr
       userState$splsda_batch_col <- input$splsda_batch_col
+      userState$splsda_use_multilevel <- input$splsda_use_multilevel
       userState$splsda_multilevel <- input$splsda_multilevel
       userState$splsda_var_num <- input$splsda_var_num
       userState$splsda_cv_opt <- input$splsda_cv_opt
@@ -2246,7 +2474,7 @@ shiny::observeEvent(input$next3, {
       userState$mint_splsda_batch_col <- input$mint_splsda_batch_col
       userState$mint_splsda_var_num <- input$mint_splsda_var_num
       userState$mint_splsda_comp_num <- input$mint_splsda_comp_num
-      userstate$mint_splsda_cim <- input$mint_splsda_cim
+      userState$mint_splsda_cim <- input$mint_splsda_cim
       userState$mint_splsda_ellipse <- input$mint_splsda_ellipse
       userState$mint_splsda_bg <- input$mint_splsda_bg
       userState$mint_splsda_roc <- input$mint_splsda_roc
@@ -2273,8 +2501,6 @@ shiny::observeEvent(input$next3, {
       userState$xgb_plot_roc <- input$xgb_plot_roc
     }
   }
-  currentPage("step4")
-  currentStep(4)
 })
 # For error message screen.
 shiny::observeEvent(input$back6, {

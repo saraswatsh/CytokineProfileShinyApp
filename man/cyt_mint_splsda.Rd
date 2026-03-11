@@ -85,3 +85,12 @@ cyt_mint_splsda(data_df, group_col = "Group",
  ellipse = TRUE, var_num = 25, comp_num = 2,
  scale = "log2")
 }
+\references{
+Rohart F, Eslami A, Matigian, N, Bougeard S, Lê Cao K-A (2017).
+MINT: A multivariate integrative approach to identify a reproducible
+biomarker signature across multiple experiments and platforms. BMC
+Bioinformatics 18:128.
+}
+\author{
+Shubh Saraswat
+}

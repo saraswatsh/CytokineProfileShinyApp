@@ -89,3 +89,6 @@ The second plot (\code{pred_plot}) is a scatterplot of the observed vs predicted
 response values for the first response variable.  Additional plots could
 easily be added (e.g. loadings), but these two provide basic diagnostics.
 }
+\author{
+Shubh Saraswat
+}

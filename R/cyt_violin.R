@@ -1,12 +1,14 @@
-#' Boxplots for Continuous Variables with Optional Grouping
+#' Violin Plots for Continuous Variables with Optional Grouping
 #'
 #' @description
-#' This function generates boxplots for numeric variables in a data frame or
-#' matrix.  It supports optional grouping by one or more categorical variables.
-#' Numeric variables can be scaled using various transformations before
-#' plotting.  When grouping is not used, boxplots are arranged in pages with a
-#' specified maximum number of plots per page.  Plots can be saved to a PDF
-#' file or returned as a list of ggplot2 objects.
+#' \code{cyt_violin} produces violin plots for each numeric variable in
+#' \code{data}, optionally grouped by one or more categorical variables.
+#' When grouping is not specified, the function behaves similarly to
+#' \code{cyt_bp} but uses violins instead of boxplots and supports
+#' pagination via the \code{bin_size} argument.  When grouping is provided,
+#' a separate violin is drawn for each level (or interaction of levels) of
+#' the grouping variables.  Users may optionally overlay boxplots within
+#' each violin to visualize the median and interquartile range.
 #'
 #' @param data A matrix or data frame containing numeric and categorical
 #'   variables.
@@ -14,36 +16,38 @@
 #'   created.  When \code{NULL} (default), plots are drawn on the current
 #'   graphics device.  Ensure the file extension matches the desired format
 #'   (e.g., \code{".pdf"}, \code{".png"}, \code{".tiff"}).
-#' @param group_by Optional character vector specifying one or more columns to
-#'   use for grouping.  If \code{NULL} (default) no grouping is applied.
-#' @param bin_size Integer.  Maximum number of boxplots per page when grouping
-#'   is not used.  Default is \code{25}.
+#' @param group_by Optional character vector specifying one or more columns
+#'   to use for grouping.  If \code{NULL} (default) no grouping is applied.
+#' @param bin_size Integer.  Maximum number of violins per page when grouping
+#'   is not used.  Default is \code{25}, mirroring \code{cyt_bp}.
 #' @param y_lim Optional numeric vector giving y-axis limits for the plots.
 #'   Applies to all plots.
 #' @param scale Character specifying a transformation for numeric variables.
-#'   One of \code{"none"}, \code{"log2"}, \code{"log10"}, \code{"zscore"}, or
-#'   \code{"custom"}.  When \code{"custom"}, supply a function via
+#'   One of \code{"none"}, \code{"log2"}, \code{"log10"}, \code{"zscore"},
+#'   or \code{"custom"}.  When \code{"custom"}, supply a function via
 #'   \code{custom_fn}.
-#' @param custom_fn A user-supplied function to transform numeric columns when
-#'   \code{scale = "custom"}.
+#' @param custom_fn A user-supplied function to transform numeric columns
+#'   when \code{scale = "custom"}.
+#' @param boxplot_overlay Logical.  When \code{TRUE}, a narrow boxplot is
+#'   drawn inside each violin to summarize the median and quartiles.
+#'   Default is \code{FALSE}.
 #' @param progress Optional.  A Shiny \code{Progress} object for reporting
 #'   progress updates.
 #'
 #' @return Invisibly returns a list of \code{ggplot} objects.  When
 #'   \code{output_file} is provided, plots are written to the specified file.
 #' @author Shubh Saraswat
-#'
 #' @examples
-#' data("ExampleData1")
-#' # Boxplots without grouping
-#' cyt_bp(ExampleData1[, -c(1:3)], output_file = NULL, scale = "log2")
-#' # Boxplots grouped by Group
-#' cyt_bp(ExampleData1[, -c(3, 5:28)], group_by = "Group", scale = "zscore")
+#' # Violin plots without grouping
+#' cyt_violin(ExampleData1[, -c(1:3)], output_file = NULL, scale = "zscore")
+#' # Violin plots grouped by Group with boxplot overlay
+#' cyt_violin(ExampleData1[, -c(3, 5:28)], group_by = "Group",
+#'            boxplot_overlay = TRUE, scale = "log2")
 #'
 #' @import ggplot2
 #' @importFrom reshape2 melt
 #' @export
-cyt_bp <- function(
+cyt_violin <- function(
   data,
   output_file = NULL,
   group_by = NULL,
@@ -51,11 +55,12 @@ cyt_bp <- function(
   y_lim = NULL,
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
+  boxplot_overlay = FALSE,
   progress = NULL
 ) {
   # ── 0. Initialise ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Boxplots: initialising...", value = 0)
+    progress$set(message = "Violin plots: initialising...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -133,8 +138,14 @@ cyt_bp <- function(
           fill = .data[[grp_col]]
         )
       ) +
-        ggplot2::geom_boxplot(alpha = 0.6) +
-        ggplot2::geom_jitter(width = 0.2, alpha = 0.5, size = 0.8) +
+        ggplot2::geom_violin(trim = FALSE, alpha = 0.6)
+
+      if (boxplot_overlay) {
+        p <- p +
+          ggplot2::geom_boxplot(width = 0.1, alpha = 0.5, outlier.shape = NA)
+      }
+
+      p <- p +
         ggplot2::labs(
           title = paste0(var, " by ", paste(group_by, collapse = ":")),
           x = paste(group_by, collapse = ":"),
@@ -160,7 +171,7 @@ cyt_bp <- function(
     iter_inc <- 0.65 / n_chunks
 
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Generating boxplot pages")
+      progress$inc(0.05, detail = "Generating violin plot pages")
     }
 
     y_label <- if (scale == "none") {
@@ -185,9 +196,16 @@ cyt_bp <- function(
         melted,
         ggplot2::aes(x = Variable, y = Value)
       ) +
-        ggplot2::geom_boxplot() +
+        ggplot2::geom_violin(trim = FALSE, fill = "lightblue", alpha = 0.7)
+
+      if (boxplot_overlay) {
+        p <- p +
+          ggplot2::geom_boxplot(width = 0.1, alpha = 0.5, outlier.shape = NA)
+      }
+
+      p <- p +
         ggplot2::labs(
-          title = "Boxplots for Variables:",
+          title = "Violin Plots for Variables:",
           x = "Variable",
           y = y_label
         ) +

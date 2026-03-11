@@ -122,3 +122,6 @@ pch_values = c(16, 4), style = NULL, ellipse = TRUE,
 group_col = "Group", group_col2 = "Treatment", roc = FALSE)
 
 }
+\author{
+Xiaohua Douglas Zhang and Shubh Saraswat
+}

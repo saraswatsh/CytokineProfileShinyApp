@@ -1,52 +1,71 @@
-#' Run Random Forest Classification on Cytokine Data.
+#' Run Random Forest Classification on Cytokine Data
 #'
-#' This function trains and evaluates a Random Forest classification model on cytokine data.
-#' It includes variable importance visualization, cross-validation for feature selection,
-#' and performance metrics such as accuracy, sensitivity, and specificity. For binary classification,
-#' the function can also plot the ROC curve and compute the AUC.
+#' @description
+#' This function trains and evaluates a Random Forest classification model on
+#' cytokine data.  It includes variable importance visualization,
+#' cross-validation for feature selection, and performance metrics such as
+#' accuracy, sensitivity, and specificity.  For binary classification the
+#' function can also plot the ROC curve and compute the AUC.
 #'
-#' @param data A data frame containing the cytokine data, with one column as the grouping variable
-#' (target variable) and the rest as numerical features.
-#' @param group_col A string representing the name of the column with the grouping variable.
-#' @param ntree An integer specifying the number of trees to grow in the forest (default is 500).
-#' @param mtry An integer specifying the number of variables randomly selected at each split (default is 5).
-#' @param train_fraction A numeric value between 0 and 1 representing the proportion of data to use for training (default is 0.7).
-#' @param plot_roc A logical value indicating whether to plot the ROC curve and compute the AUC for binary classification (default is FALSE).
-#' @param k_folds An integer specifying the number of folds for cross-validation (default is 5).
-#' @param step A numeric value specifying the fraction of variables to remove at each step during cross-validation for feature selection (default is 0.5).
-#' @param run_rfcv A logical value indicating whether to run Random Forest cross-validation for feature selection (default is TRUE).
-#' @param output_file Optional. A file path to save the outputs (plots and summaries) as a PDF file.
-#' If NULL (default), the function returns a list of objects for interactive display.
-#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
-#' @return A list containing:
-#' \itemize{
-#'   \item \code{model}: the trained Random Forest model,
-#'   \item \code{train_confusion}: confusion matrix from the training set,
-#'   \item \code{accuracy_train}: overall training set accuracy,
-#'   \item \code{test_confusion}: confusion matrix from the test set,
-#'   \item \code{accuracy_test}: overall test set accuracy,
-#'   \item \code{vip_plot}: a ggplot object of variable importance,
-#'   \item \code{importance_data}: a data frame with variable importance metrics,
-#'   \item \code{roc_plot}: (if applicable) a ggplot object of the ROC curve,
-#'   \item \code{rfcv_result}: (if run_rfcv is TRUE) cross-validation results,
-#'   \item \code{rfcv_data}: (if run_rfcv is TRUE) a data frame of RF CV results,
-#'   \item \code{rfcv_plot}: (if run_rfcv is TRUE) a ggplot object of RF CV error vs. number of variables.
-#' }
-#' If \code{output_file} is provided, a PDF is generated and the function returns \code{NULL} invisibly.
+#' @param data A data frame containing the cytokine measurements.  One column
+#'   should correspond to the grouping variable (the outcome) and the
+#'   remaining columns should be numeric predictors.
+#' @param group_col A string naming the column in \code{data} that contains
+#'   the grouping variable.
+#' @param ntree Integer specifying the number of trees to grow.  Default is
+#'   \code{500}.
+#' @param mtry Integer specifying the number of variables randomly sampled at
+#'   each split.  Default is \code{5}.
+#' @param train_fraction Numeric between 0 and 1 giving the proportion of
+#'   data used for training.  Default is \code{0.7}.
+#' @param plot_roc Logical.  If \code{TRUE} and the problem is binary, an ROC
+#'   curve and AUC are computed and returned.  Default is \code{FALSE}.
+#' @param k_folds Integer specifying the number of folds for \code{rfcv} when
+#'   \code{run_rfcv = TRUE}.  Default is \code{5}.
+#' @param step Numeric specifying the fraction of variables removed at each
+#'   step during \code{rfcv}.  Default is \code{0.5}.
+#' @param run_rfcv Logical indicating whether to run Random Forest
+#'   cross-validation for feature selection.  Default is \code{TRUE}.
+#' @param verbose Logical.  When \code{TRUE}, training and test performance
+#'   metrics, confusion matrices, and cross-validation details are printed.
+#'   Default is \code{FALSE}.
+#' @param seed Optional integer seed for reproducibility.  Default is
+#'   \code{123}.
+#' @param cv Logical indicating whether to perform a separate k-fold
+#'   classification cross-validation using \code{caret}.  Default is
+#'   \code{FALSE}.
+#' @param cv_folds Integer specifying the number of folds for classification
+#'   cross-validation when \code{cv = TRUE}.  Default is \code{5}.
+#' @param scale Character string specifying a transformation to apply to
+#'   numeric predictor columns prior to model fitting.  One of \code{"none"}
+#'   (default), \code{"log2"}, \code{"log10"}, \code{"zscore"}, or
+#'   \code{"custom"}.
+#' @param custom_fn A custom transformation function used when
+#'   \code{scale = "custom"}.
+#' @param output_file Optional.  A file path to save outputs as a PDF.  If
+#'   \code{NULL} (default), a named list is returned for interactive display.
+#' @param progress Optional.  A Shiny \code{Progress} object for reporting
+#'   progress updates.
 #'
+#' @return When \code{output_file} is \code{NULL}, an invisible named list
+#'   with elements \code{summary_text}, \code{vip_plot}, \code{roc_plot},
+#'   \code{rfcv_plot}, \code{rfcv_data}, \code{importance_data}, and
+#'   \code{cv_results}.  When \code{output_file} is provided, a PDF is
+#'   written and the function returns \code{NULL} invisibly.
+#' @author Shubh Saraswat and Xiaohua Douglas Zhang
 #' @examples
 #' data.df0 <- ExampleData1
-#' data.df <- data.frame(data.df0[, 1:3], log2(data.df0[, -c(1:3)]))
-#' data.df <- data.df[, -c(2:3)]
-#' data.df <- dplyr::filter(data.df, Group != "ND")
-#'
+#' data.df  <- data.frame(data.df0[, 1:3], log2(data.df0[, -c(1:3)]))
+#' data.df  <- data.df[, -c(2:3)]
+#' data.df  <- dplyr::filter(data.df, Group != "ND")
 #' cyt_rf(data = data.df, group_col = "Group", k_folds = 5, ntree = 1000,
-#'   mtry = 4, run_rfcv = TRUE, plot_roc = TRUE)
+#'        mtry = 4, run_rfcv = TRUE, plot_roc = TRUE, verbose = FALSE)
 #'
 #' @import ggplot2
 #' @importFrom randomForest randomForest rfcv importance
-#' @importFrom caret createDataPartition confusionMatrix
+#' @importFrom caret createDataPartition confusionMatrix trainControl train
 #' @importFrom pROC roc auc ggroc
+#' @importFrom utils capture.output
 #' @export
 cyt_rf <- function(
   data,
@@ -58,78 +77,147 @@ cyt_rf <- function(
   k_folds = 5,
   step = 0.5,
   run_rfcv = TRUE,
+  verbose = FALSE,
+  seed = 123,
+  cv = FALSE,
+  cv_folds = 5,
+  scale = c("none", "log2", "log10", "zscore", "custom"),
+  custom_fn = NULL,
   output_file = NULL,
   progress = NULL
 ) {
-  # Start progress
+  # ── 0. Initialise ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Starting Random Forest Analysis", value = 0)
+    progress$set(message = "Random Forest: initialising...", value = 0)
   }
 
-  # Ensure the grouping variable is a factor
-  data[[group_col]] <- as.factor(data[[group_col]])
+  names(data) <- make.names(names(data), unique = TRUE)
+  scale <- match.arg(scale)
+
+  if (!group_col %in% colnames(data)) {
+    stop(sprintf("Column '%s' not found in data.", group_col))
+  }
+
+  # ── 1. Scaling via shared utility ──────────────────────────────────────────
+  numeric_cols <- setdiff(names(data)[sapply(data, is.numeric)], group_col)
+  if (scale != "none" && length(numeric_cols) > 0L) {
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = paste("Applying", scale, "transformation"))
+    }
+    data <- apply_scale(
+      data = data,
+      columns = numeric_cols,
+      scale = scale,
+      custom_fn = custom_fn
+    )
+  }
+
+  # ── 2. Coerce grouping variable ────────────────────────────────────────────
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Converting grouping variable to factor")
   }
+  data[[group_col]] <- as.factor(data[[group_col]])
+  if (length(levels(data[[group_col]])) < 2L) {
+    stop("Grouping variable must have at least two levels.")
+  }
 
-  # Split data into training and test sets
-  set.seed(123) # for reproducibility
-  train_indices <- caret::createDataPartition(
+  # ── 3. Train / test split ──────────────────────────────────────────────────
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Splitting data into training and test sets")
+  }
+  set.seed(seed)
+  train_idx <- caret::createDataPartition(
     data[[group_col]],
     p = train_fraction,
     list = FALSE
   )
-  train_data <- data[train_indices, ]
-  test_data <- data[-train_indices, ]
-  if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Splitting data into training and test sets")
-  }
+  train_data <- data[train_idx, , drop = FALSE]
+  test_data <- data[-train_idx, , drop = FALSE]
 
-  # Prepare formula for the random forest model
-  predictors <- setdiff(colnames(data), group_col)
-  formula_rf <- stats::as.formula(paste(
-    group_col,
-    "~",
-    paste(predictors, collapse = "+")
-  ))
+  # ── 4. Fit Random Forest ───────────────────────────────────────────────────
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Preparing model formula")
   }
+  predictors <- setdiff(colnames(data), group_col)
+  rf_formula <- stats::as.formula(
+    paste(group_col, "~", paste(predictors, collapse = "+"))
+  )
 
-  # Fit the Random Forest model on training data
+  if (!is.null(progress)) {
+    progress$inc(0.15, detail = "Fitting Random Forest model")
+  }
   rf_model <- randomForest::randomForest(
-    formula_rf,
+    rf_formula,
     data = train_data,
     ntree = ntree,
     mtry = mtry,
-    importance = TRUE
+    importance = TRUE,
+    do.trace = FALSE
   )
-  if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Fitting Random Forest model")
+
+  if (verbose) {
+    cat("\n### RANDOM FOREST RESULTS ON TRAINING SET ###\n")
+    cat(paste(utils::capture.output(rf_model), collapse = "\n"), "\n")
   }
 
-  # Predict on training set for confusion matrix
-  train_pred <- stats::predict(rf_model, newdata = train_data)
-  train_conf_mat <- caret::confusionMatrix(train_pred, train_data[[group_col]])
-  accuracy_train <- train_conf_mat$overall["Accuracy"]
+  # ── 5. Training set performance ────────────────────────────────────────────
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Evaluating training set performance")
   }
+  train_pred <- stats::predict(rf_model, newdata = train_data)
+  train_conf_mat <- caret::confusionMatrix(train_pred, train_data[[group_col]])
+  accuracy_train <- train_conf_mat$overall["Accuracy"]
 
-  # Predict on the test set
-  test_pred <- stats::predict(rf_model, newdata = test_data)
-  test_conf_mat <- caret::confusionMatrix(test_pred, test_data[[group_col]])
-  accuracy_test <- test_conf_mat$overall["Accuracy"]
+  if (verbose) {
+    cat("\nAccuracy on training set:", round(accuracy_train, 3), "\n")
+    train_conf <- train_conf_mat$table
+    for (i in seq_len(nrow(train_conf))) {
+      tp <- train_conf[i, i]
+      fn <- sum(train_conf[i, ]) - tp
+      fp <- sum(train_conf[, i]) - tp
+      tn <- sum(train_conf) - (tp + fn + fp)
+      sens <- tp / (tp + fn)
+      spec <- tn / (tn + fp)
+      cat(sprintf(
+        "\nTraining - Class '%s': Sensitivity=%.3f  Specificity=%.3f\n",
+        rownames(train_conf)[i],
+        sens,
+        spec
+      ))
+    }
+  }
+
+  # ── 6. Test set performance ────────────────────────────────────────────────
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Evaluating test set performance")
   }
+  test_pred <- stats::predict(rf_model, newdata = test_data)
+  test_conf_mat <- caret::confusionMatrix(test_pred, test_data[[group_col]])
+  accuracy_test <- test_conf_mat$overall["Accuracy"]
 
-  # Build ROC plot if binary classification
+  if (verbose) {
+    cat("\n### PREDICTIONS ON TEST SET ###\n")
+    cat(
+      paste(utils::capture.output(print(test_conf_mat$table)), collapse = "\n"),
+      "\n"
+    )
+    cat("\nAccuracy on test set:", round(accuracy_test, 3), "\n")
+  }
+
+  # ── 7. ROC curve (binary only) ─────────────────────────────────────────────
   roc_plot <- NULL
-  if (plot_roc && length(levels(data[[group_col]])) == 2) {
+  auc_value <- NA_real_
+  if (plot_roc && length(levels(data[[group_col]])) == 2L) {
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Building ROC curve")
+    }
     rf_prob <- stats::predict(rf_model, newdata = test_data, type = "prob")[, 2]
-    roc_obj <- pROC::roc(test_data[[group_col]], rf_prob)
+    roc_obj <- pROC::roc(test_data[[group_col]], rf_prob, quiet = TRUE)
     auc_value <- pROC::auc(roc_obj)
+    if (verbose) {
+      cat("\nAUC:", round(auc_value, 3), "\n")
+    }
+
     roc_plot <- pROC::ggroc(
       roc_obj,
       color = "blue",
@@ -151,10 +239,12 @@ cyt_rf <- function(
         color = "blue"
       ) +
       ggplot2::theme_minimal()
-    if (!is.null(progress)) progress$inc(0.05, detail = "Building ROC curve")
   }
 
-  # Variable importance
+  # ── 8. Variable importance ─────────────────────────────────────────────────
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Generating variable importance plot")
+  }
   imp_data <- data.frame(
     Variable = rownames(randomForest::importance(rf_model)),
     Gini = randomForest::importance(rf_model)[, "MeanDecreaseGini"]
@@ -169,22 +259,26 @@ cyt_rf <- function(
     ggplot2::xlab("Features") +
     ggplot2::ylab("Importance (Gini Index)") +
     ggplot2::theme_minimal()
-  if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Generating variable importance plot")
-  }
 
-  # Run RFCV if requested
+  # ── 9. RFCV ───────────────────────────────────────────────────────────────
   rfcv_result <- NULL
   rfcv_data <- NULL
   rfcv_plot <- NULL
   if (run_rfcv) {
+    if (!is.null(progress)) {
+      progress$inc(
+        0.05,
+        detail = "Running Random Forest cross-validation (rfcv)"
+      )
+    }
     x_train <- train_data[, predictors, drop = FALSE]
     y_train <- train_data[[group_col]]
     rfcv_result <- randomForest::rfcv(
       x_train,
       y_train,
       cv.fold = k_folds,
-      step = step
+      step = step,
+      do.trace = FALSE
     )
     rfcv_data <- data.frame(
       Variables = rfcv_result$n.var,
@@ -200,23 +294,49 @@ cyt_rf <- function(
       ggplot2::xlab("Number of Variables") +
       ggplot2::ylab("Cross-Validation Error") +
       ggplot2::theme_minimal()
+    if (verbose) cat("Random Forest CV completed for feature selection.\n")
+  }
+
+  # ── 10. Optional caret k-fold CV ──────────────────────────────────────────
+  cv_results <- NULL
+  if (cv) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Performing Random Forest cross-validation")
+      progress$inc(0.05, detail = "Running caret k-fold cross-validation")
+    }
+    tr_ctrl <- caret::trainControl(
+      method = "cv",
+      number = cv_folds,
+      classProbs = TRUE
+    )
+    cv_results <- caret::train(
+      x = data[, predictors, drop = FALSE],
+      y = data[[group_col]],
+      method = "rf",
+      trControl = tr_ctrl,
+      tuneGrid = data.frame(mtry = mtry),
+      ntree = ntree
+    )
+    if (verbose) {
+      cat(
+        "Cross-validation Accuracy:",
+        round(max(cv_results$results$Accuracy), 3),
+        "\n"
+      )
     }
   }
 
-  # Return interactive results or write PDF if output_file is provided
-  if (is.null(output_file)) {
-    # Build summary text
-    summary_text <- utils::capture.output({
+  # ── 11. Build summary text ─────────────────────────────────────────────────
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Compiling summary")
+  }
+  summary_text <- paste(
+    utils::capture.output({
       cat("### RANDOM FOREST RESULTS ###\n\n")
-
       cat("--- Training Set ---\n")
       cat("Confusion Matrix:\n")
       print(train_conf_mat$table)
       cat("\nAccuracy:", round(accuracy_train, 3), "\n")
-
-      if (nlevels(data[[group_col]]) == 2) {
+      if (nlevels(data[[group_col]]) == 2L) {
         cat(
           "\nSensitivity (train):",
           round(train_conf_mat$byClass["Sensitivity"], 3),
@@ -233,16 +353,14 @@ cyt_rf <- function(
         cat("\nPer-Class Specificity (train):\n")
         print(round(train_conf_mat$byClass[, "Specificity"], 3))
       }
-
       cat("\n--- Test Set ---\n")
       cat("Confusion Matrix:\n")
       print(test_conf_mat$table)
       cat("\nAccuracy:", round(accuracy_test, 3), "\n")
-
-      if (plot_roc) {
+      if (plot_roc && !is.na(auc_value)) {
         cat("\nAUC:", round(auc_value, 3), "\n")
       }
-      if (nlevels(data[[group_col]]) == 2) {
+      if (nlevels(data[[group_col]]) == 2L) {
         cat(
           "\nSensitivity (test):",
           round(test_conf_mat$byClass["Sensitivity"], 3),
@@ -259,31 +377,46 @@ cyt_rf <- function(
         cat("\nPer-Class Specificity (test):\n")
         print(round(test_conf_mat$byClass[, "Specificity"], 3))
       }
-    })
-    summary_text <- paste(summary_text, collapse = "\n")
+      if (cv && !is.null(cv_results)) {
+        cat("\n--- Caret k-Fold CV ---\n")
+        cat("CV Accuracy:", round(max(cv_results$results$Accuracy), 3), "\n")
+      }
+    }),
+    collapse = "\n"
+  )
 
-    return(list(
-      summary_text = summary_text,
-      vip_plot = vip_plot,
-      roc_plot = roc_plot,
-      rfcv_plot = rfcv_plot
-    ))
-  } else {
-    # PDF mode: print outputs to PDF
+  # ── 12. Output ─────────────────────────────────────────────────────────────
+  if (!is.null(output_file)) {
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Saving outputs to PDF")
+    }
     grDevices::pdf(file = output_file, width = 8, height = 8)
-    cat("Training Confusion Matrix:\n")
-    print(train_conf_mat$table)
-    cat("\nTest Confusion Matrix:\n")
-    print(test_conf_mat$table)
-
+    on.exit(grDevices::dev.off(), add = TRUE)
+    cat(summary_text)
+    print(vip_plot)
     if (!is.null(roc_plot)) {
       print(roc_plot)
     }
-    print(vip_plot)
     if (!is.null(rfcv_plot)) {
       print(rfcv_plot)
     }
-    grDevices::dev.off()
+    if (!is.null(progress)) {
+      progress$inc(0.02, detail = "PDF saved")
+    }
     return(invisible(NULL))
   }
+
+  if (!is.null(progress)) {
+    progress$inc(0.03, detail = "Complete")
+  }
+
+  invisible(list(
+    summary_text = summary_text,
+    vip_plot = vip_plot,
+    roc_plot = roc_plot,
+    rfcv_plot = rfcv_plot,
+    rfcv_data = rfcv_data,
+    importance_data = imp_data,
+    cv_results = cv_results
+  ))
 }

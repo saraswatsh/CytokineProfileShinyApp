@@ -1,57 +1,87 @@
-#' Run XGBoost Classification on Cytokine Data.
+#' Run XGBoost Classification on Cytokine Data
 #'
-#' This function trains and evaluates an XGBoost classification model on cytokine data.
-#' It allows for hyperparameter tuning, cross-validation, and visualizes feature importance.
+#' @description
+#' This function trains and evaluates an XGBoost classification model on
+#' cytokine data.  It allows for hyperparameter tuning, cross-validation,
+#' and visualizes feature importance.
 #'
-#' @param data A data frame containing the cytokine data, with one column as the grouping variable
-#'   and the rest as numerical features.
-#' @param group_col A string representing the name of the column with the grouping variable
-#'   (i.e., the target variable for classification).
-#' @param train_fraction A numeric value between 0 and 1 representing the proportion of data to use for training (default is 0.7).
-#' @param nrounds An integer specifying the number of boosting rounds (default is 500).
-#' @param max_depth An integer specifying the maximum depth of the trees (default is 6).
-#' @param learning_rate A numeric value representing the learning rate (default is 0.1).
-#' @param nfold An integer specifying the number of folds for cross-validation (default is 5).
-#' @param cv A logical value indicating whether to perform cross-validation (default is FALSE).
-#' @param objective A string specifying the XGBoost objective function (default is "multi:softprob" for multi-class classification).
-#' @param early_stopping_rounds An integer specifying the number of rounds with no improvement to stop training early (default is NULL).
-#' @param eval_metric A string specifying the evaluation metric (default is "mlogloss").
-#' @param min_split_loss A numeric value for the minimum loss reduction required to make a further partition (default is 0).
-#' @param colsample_bytree A numeric value specifying the subsample ratio of columns when constructing each tree (default is 1).
-#' @param subsample A numeric value specifying the subsample ratio of the training instances (default is 1).
-#' @param min_child_weight A numeric value specifying the minimum sum of instance weight needed in a child (default is 1).
-#' @param top_n_features An integer specifying the number of top features to display in the importance plot (default is 10).
-#' @param plot_roc A logical value indicating whether to plot the ROC curve and calculate the AUC for binary classification (default is FALSE).
-#' @param output_file Optional. A file path to save the outputs as a PDF file. If provided, outputs are written to the file and results are returned invisibly.
-#' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
-#' @return A list containing:
-#'   \item{summary_text}{A character string summarizing key results (interactive mode only).}
-#'   \item{model}{The trained XGBoost model.}
-#'   \item{confusion_matrix}{The confusion matrix (test set).}
-#'   \item{importance}{The feature importance data for the top features.}
-#'   \item{class_mapping}{A named vector showing the mapping from class labels to numeric values used for training.}
-#'   \item{cv_results}{Cross-validation results if performed (otherwise NULL).}
-#'   \item{plot}{A ggplot object showing the feature importance plot.}
+#' @param data A data frame containing numeric predictor variables and one
+#'   grouping column.  Non-numeric predictor columns will be coerced to
+#'   numeric if possible.
+#' @param group_col Character string naming the column that contains the class
+#'   labels (target variable).  Required.
+#' @param train_fraction Numeric between 0 and 1 specifying the proportion of
+#'   samples used for model training.  Default is \code{0.7}.
+#' @param nrounds Integer specifying the number of boosting rounds.  Default
+#'   is \code{500}.
+#' @param max_depth Integer specifying the maximum depth of each tree.
+#'   Default is \code{6}.
+#' @param learning_rate Numeric specifying the learning rate.  Default is
+#'   \code{0.1}.
+#' @param nfold Integer specifying the number of folds for cross-validation
+#'   when \code{cv = TRUE}.  Default is \code{5}.
+#' @param cv Logical indicating whether to perform cross-validation using
+#'   \code{xgb.cv}.  Default is \code{FALSE}.
+#' @param objective Character string specifying the objective function.
+#'   Default is \code{"multi:softprob"}.
+#' @param early_stopping_rounds Integer.  Number of rounds without improvement
+#'   before training stops early.  Default is \code{NULL}.
+#' @param eval_metric Character specifying the evaluation metric.  Default is
+#'   \code{"mlogloss"}.
+#' @param min_split_loss Numeric.  Minimum loss reduction required to make a
+#'   further partition.  Default is \code{0}.
+#' @param colsample_bytree Numeric.  Subsample ratio of columns per tree.
+#'   Default is \code{1}.
+#' @param subsample Numeric.  Subsample ratio of training instances.  Default
+#'   is \code{1}.
+#' @param min_child_weight Numeric.  Minimum sum of instance weight in a
+#'   child.  Default is \code{1}.
+#' @param top_n_features Integer.  Number of top features to display in the
+#'   importance plot.  Default is \code{10}.
+#' @param verbose Integer (0, 1, or 2) controlling verbosity of
+#'   \code{xgb.train}.  Default is \code{0}.
+#' @param plot_roc Logical.  Whether to plot the ROC curve and compute AUC
+#'   for binary classification.  Default is \code{FALSE}.
+#' @param print_results Logical.  If \code{TRUE}, prints the confusion matrix,
+#'   top features, and cross-validation metrics to the console.  Default is
+#'   \code{FALSE}.
+#' @param seed Optional integer seed for reproducibility.  Default is
+#'   \code{123}.
+#' @param scale Character string specifying a transformation to apply to
+#'   numeric predictors prior to model fitting.  One of \code{"none"}
+#'   (default), \code{"log2"}, \code{"log10"}, \code{"zscore"}, or
+#'   \code{"custom"}.
+#' @param custom_fn A custom transformation function used when
+#'   \code{scale = "custom"}.  Ignored otherwise.
+#' @param output_file Optional.  A file path to save outputs as a PDF.  If
+#'   \code{NULL} (default), a named list is returned for interactive display.
+#' @param progress Optional.  A Shiny \code{Progress} object for reporting
+#'   progress updates.
 #'
+#' @return When \code{output_file} is \code{NULL}, an invisible named list
+#'   with elements \code{summary_text}, \code{model}, \code{confusion_matrix},
+#'   \code{importance}, \code{class_mapping}, \code{cv_results},
+#'   \code{importance_plot}, and \code{roc_plot}.  When \code{output_file} is
+#'   provided, a PDF is written and the function returns \code{NULL}
+#'   invisibly.
 #' @examples
-#' # Example usage:
 #' data_df0 <- ExampleData1
-#' data_df <- data.frame(data_df0[, 1:3], log2(data_df0[, -c(1:3)]))
-#' data_df <- data_df[, -c(2,3)]
-#' data_df <- dplyr::filter(data_df, Group != "ND")
+#' data_df  <- data.frame(data_df0[, 1:3], log2(data_df0[, -c(1:3)]))
+#' data_df  <- data_df[, -c(2:3)]
+#' data_df  <- dplyr::filter(data_df, Group != "ND")
+#' cyt_xgb(data = data_df, group_col = "Group", nrounds = 250,
+#'         max_depth = 4, learning_rate = 0.05, nfold = 5,
+#'         cv = FALSE, objective = "multi:softprob",
+#'         eval_metric = "auc", plot_roc = TRUE, print_results = FALSE)
 #'
-#' cyt_xgb(
-#'   data = data_df, group_col = "Group",
-#'   nrounds = 500, max_depth = 4, learning_rate = 0.05,
-#'   nfold = 5, cv = FALSE, eval_metric = "mlogloss",
-#'   early_stopping_rounds = NULL, top_n_features = 10,
-#'   plot_roc = TRUE
-#' )
-#'
-#' @importFrom xgboost xgb.DMatrix xgb.train xgb.importance xgb.ggplot.importance xgb.cv
+#' @importFrom xgboost xgb.DMatrix xgb.train xgb.importance xgb.ggplot.importance xgb.cv getinfo
 #' @importFrom caret createDataPartition confusionMatrix
+#' @importFrom data.table copy
 #' @import ggplot2
 #' @importFrom pROC roc auc ggroc
+#' @importFrom utils capture.output head
+#' @importFrom stats reorder setNames predict
+#' @author Shubh Saraswat and Xiaohua Douglas Zhang
 #' @export
 cyt_xgb <- function(
   data,
@@ -70,63 +100,84 @@ cyt_xgb <- function(
   subsample = 1,
   min_child_weight = 1,
   top_n_features = 10,
+  verbose = 0,
   plot_roc = FALSE,
+  print_results = FALSE,
+  seed = 123,
+  scale = c("none", "log2", "log10", "zscore", "custom"),
+  custom_fn = NULL,
   output_file = NULL,
   progress = NULL
 ) {
-  # Start progress if provided
+  # ── 0. Initialise ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Starting XGBoost analysis", value = 0)
+    progress$set(message = "XGBoost: initialising...", value = 0)
   }
 
-  # Make sure group_col is a factor
+  names(data) <- make.names(names(data), unique = TRUE)
+  data <- as.data.frame(data)
+  scale <- match.arg(scale)
+
+  if (!group_col %in% names(data)) {
+    stop(sprintf("Column '%s' not found in data.", group_col))
+  }
+
+  # ── 1. Scaling via shared utility ──────────────────────────────────────────
+  numeric_cols <- setdiff(names(data)[sapply(data, is.numeric)], group_col)
+  if (scale != "none" && length(numeric_cols) > 0L) {
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = paste("Applying", scale, "transformation"))
+    }
+    data <- apply_scale(
+      data = data,
+      columns = numeric_cols,
+      scale = scale,
+      custom_fn = custom_fn
+    )
+  }
+
+  # ── 2. Class mapping & numeric encoding ────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Setting up data...")
+    progress$inc(0.05, detail = "Setting up class mapping")
   }
   data[[group_col]] <- as.factor(data[[group_col]])
-
-  # Create mapping from group names to numeric labels
   class_labels <- levels(data[[group_col]])
-  class_mapping <- stats::setNames(0:(length(class_labels) - 1), class_labels)
+  class_mapping <- stats::setNames(seq_along(class_labels) - 1L, class_labels)
 
-  # Convert grouping variable to numeric for xgboost
-  data[[group_col]] <- as.numeric(data[[group_col]]) - 1
-
-  # Prepare dataset
-  if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Preparing dataset...")
+  if (print_results) {
+    cat("\nGroup to Numeric Label Mapping\n")
+    print(class_mapping)
   }
-  X <- as.matrix(data[, setdiff(colnames(data), group_col)])
+
+  data[[group_col]] <- as.numeric(data[[group_col]]) - 1L
+
+  # ── 3. Prepare matrices ────────────────────────────────────────────────────
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Preparing predictor matrix")
+  }
+  X <- as.matrix(data[, setdiff(names(data), group_col), drop = FALSE])
   y <- data[[group_col]]
+  num_class <- length(unique(y))
 
-  # Train/test split
+  # ── 4. Train / test split ──────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Splitting data into train and test sets...")
+    progress$inc(0.05, detail = "Splitting data into training and test sets")
   }
-  set.seed(123)
-  train_indices <- caret::createDataPartition(
-    y,
-    p = train_fraction,
-    list = FALSE
-  )
-  X_train <- X[train_indices, ]
-  y_train <- y[train_indices]
-  X_test <- X[-train_indices, ]
-  y_test <- y[-train_indices]
-
-  num_class = length(unique(y))
+  set.seed(seed)
+  train_idx <- caret::createDataPartition(y, p = train_fraction, list = FALSE)
+  X_train <- X[train_idx, ]
+  y_train <- y[train_idx]
+  X_test <- X[-train_idx, ]
+  y_test <- y[-train_idx]
 
   dtrain <- xgboost::xgb.DMatrix(data = X_train, label = y_train)
   dtest <- xgboost::xgb.DMatrix(data = X_test, label = y_test)
 
-  # Set xgboost parameters
-  if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Setting XGBoost parameters...")
-  }
+  # ── 5. Hyperparameter list ─────────────────────────────────────────────────
   params <- list(
     objective = objective,
     eval_metric = eval_metric,
-    num_class = length(unique(y)),
+    num_class = num_class,
     max_depth = max_depth,
     learning_rate = learning_rate,
     min_split_loss = min_split_loss,
@@ -135,58 +186,123 @@ cyt_xgb <- function(
     min_child_weight = min_child_weight
   )
 
-  # Train model
+  # ── 6. Train model ─────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Training XGBoost model...")
+    progress$inc(0.15, detail = "Training XGBoost model")
   }
+  if (print_results) {
+    cat("\nTRAINING XGBOOST MODEL\n")
+  }
+
   xgb_model <- xgboost::xgb.train(
     params = params,
     data = dtrain,
     nrounds = nrounds,
     evals = list(train = dtrain, test = dtest),
     early_stopping_rounds = early_stopping_rounds,
-    verbose = FALSE
+    verbose = verbose
   )
 
+  # ── 7. Predictions & confusion matrix ─────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Evaluating model...")
-  }
-  # Best iteration
-  eval_col_name <- paste0("test_", eval_metric)
-  best_iter <- which.min(xgb_model$evaluation_log[[eval_col_name]])
-
-  # Predictions and confusion matrix
-  if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Making predictions on test set...")
+    progress$inc(0.05, detail = "Making predictions on test set")
   }
   preds <- stats::predict(xgb_model, X_test)
 
-  if (is.matrix(preds)) {
-    preds_matrix <- preds
+  preds_matrix <- if (is.matrix(preds)) {
+    preds
   } else {
-    preds_matrix <- matrix(preds, ncol = num_class, byrow = TRUE)
+    matrix(preds, ncol = num_class, byrow = TRUE)
+  }
+  pred_labels <- max.col(preds_matrix) - 1L
+
+  test_levels <- sort(unique(y))
+  confusion_mat <- caret::confusionMatrix(
+    factor(pred_labels, levels = test_levels),
+    factor(y_test, levels = test_levels)
+  )
+  accuracy_test <- confusion_mat$overall["Accuracy"]
+
+  if (print_results) {
+    cat("\nConfusion Matrix on Test Set\n")
+    print(confusion_mat)
   }
 
-  # Hard labels for confusion matrix (0 .. num_class-1)
-  pred_labels <- max.col(preds_matrix) - 1
+  # ── 8. Feature importance plot ─────────────────────────────────────────────
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Computing feature importance")
+  }
+  importance_matrix <- xgboost::xgb.importance(
+    feature_names = colnames(X_train),
+    model = xgb_model
+  )
+  top_features <- utils::head(importance_matrix, top_n_features)
 
-  # Build ROC plot if applicable (for binary classification)
-  roc_plot <- NULL
-  auc_value <- NA
+  if (print_results) {
+    cat("\nTop", top_n_features, "Important Features\n")
+    print(top_features)
+  }
 
-  if (plot_roc) {
-    if (num_class == 2) {
-      # probability of class "1" (label 1)
-      xgb_prob <- preds_matrix[, 2]
-
-      if (length(xgb_prob) != length(y_test)) {
-        warning(
-          "Length mismatch between predicted probabilities and true labels; ",
-          "skipping ROC/AUC."
+  if (!requireNamespace("Ckmeans.1d.dp", quietly = TRUE)) {
+    warning(
+      "Install 'Ckmeans.1d.dp' for a clustered importance plot. ",
+      "Falling back to a basic bar chart."
+    )
+    imp_plot <- ggplot2::ggplot(
+      top_features,
+      ggplot2::aes(x = reorder(Feature, Gain), y = Gain)
+    ) +
+      ggplot2::geom_bar(stat = "identity", fill = "red2") +
+      ggplot2::coord_flip() +
+      ggplot2::labs(
+        title = "Top Features by Gain",
+        x = "Features",
+        y = "Importance (Gain)"
+      ) +
+      ggplot2::theme_minimal()
+  } else {
+    imp_plot <- xgboost::xgb.ggplot.importance(
+      importance_matrix = data.table::copy(top_features),
+      top_n = top_n_features
+    ) +
+      ggplot2::geom_bar(stat = "identity", fill = "red2", show.legend = FALSE) +
+      ggplot2::ggtitle("Top Features by Gain") +
+      ggplot2::ylab("Importance (Gain)") +
+      ggplot2::xlab("Features") +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(
+        legend.position = "none",
+        panel.background = ggplot2::element_rect(
+          fill = "white",
+          colour = "white"
+        ),
+        plot.background = ggplot2::element_rect(
+          fill = "white",
+          colour = "white"
+        ),
+        axis.title = ggplot2::element_text(
+          color = "black",
+          size = 12,
+          face = "bold"
         )
-      } else {
+      )
+  }
+
+  # ── 9. ROC curve (binary only) ─────────────────────────────────────────────
+  roc_plot <- NULL
+  auc_value <- NA_real_
+  if (plot_roc) {
+    if (num_class == 2L) {
+      if (!is.null(progress)) {
+        progress$inc(0.05, detail = "Building ROC curve")
+      }
+      xgb_prob <- preds_matrix[, 2]
+      if (length(xgb_prob) == length(y_test)) {
         roc_obj <- pROC::roc(y_test, xgb_prob, quiet = TRUE)
         auc_value <- pROC::auc(roc_obj)
+        if (print_results) {
+          cat("\nAUC:", round(auc_value, 3), "\n")
+        }
 
         roc_plot <- pROC::ggroc(
           roc_obj,
@@ -222,45 +338,22 @@ cyt_xgb <- function(
             panel.grid.major = ggplot2::element_line(color = "grey90"),
             panel.grid.minor = ggplot2::element_line(color = "grey95")
           )
-
-        print(roc_plot)
+      } else {
+        warning(
+          "Length mismatch between predicted probabilities and true labels; skipping ROC/AUC."
+        )
       }
+    } else {
+      warning("ROC curve is only available for binary classification.")
     }
   }
-  test_levels <- sort(unique(y)) # global class set
 
-  test_pred <- factor(pred_labels, levels = test_levels)
-  test_ref <- factor(y_test, levels = test_levels)
-
-  confusion_mat <- caret::confusionMatrix(test_pred, test_ref)
-
-  accuracy_test <- confusion_mat$overall["Accuracy"]
-
-  # Feature importance
-  if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Calculating feature importance...")
-  }
-  importance_matrix <- xgboost::xgb.importance(
-    feature_names = colnames(X),
-    model = xgb_model
-  )
-  top_features <- utils::head(importance_matrix, top_n_features)
-  vip_plot <- xgboost::xgb.ggplot.importance(
-    importance_matrix = top_features,
-    top_n = top_n_features
-  ) +
-    ggplot2::geom_bar(stat = "identity", fill = "red2", show.legend = FALSE) +
-    ggplot2::ggtitle("Top Features by Gain") +
-    ggplot2::ylab("Importance (Gain)") +
-    ggplot2::xlab("Features") +
-    ggplot2::theme_minimal()
-
-  # Cross-validation (if requested)
+  # ── 10. xgb.cv cross-validation ────────────────────────────────────────────
   cv_results <- NULL
   best_cv_iter <- NULL
   if (cv) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Performing cross-validation...")
+      progress$inc(0.05, detail = "Running xgb.cv cross-validation")
     }
     xgb_cv <- xgboost::xgb.cv(
       params = params,
@@ -268,79 +361,104 @@ cyt_xgb <- function(
       nrounds = nrounds,
       nfold = nfold,
       early_stopping_rounds = early_stopping_rounds,
-      verbose = FALSE,
+      verbose = verbose,
       prediction = TRUE
     )
-    eval_col_name_cv <- paste0("test_", eval_metric, "_mean")
-    best_cv_iter <- which.min(xgb_cv$evaluation_log[[eval_col_name_cv]])
+    eval_col_cv <- paste0("test_", eval_metric, "_mean")
+    best_cv_iter <- which.min(xgb_cv$evaluation_log[[eval_col_cv]])
     cv_results <- xgb_cv
+
+    # CV confusion matrix
+    cv_preds <- xgb_cv$pred
+    if (is.matrix(cv_preds)) {
+      cv_pred_labels <- max.col(cv_preds) - 1L
+    } else {
+      cv_pred_labels <- ifelse(cv_preds > 0.5, 1L, 0L)
+    }
+    actual_labels <- xgboost::getinfo(dtrain, "label")
+    if (length(cv_pred_labels) == length(actual_labels)) {
+      class_levels <- 0L:(num_class - 1L)
+      cv_confusion_mat <- caret::confusionMatrix(
+        factor(cv_pred_labels, levels = class_levels),
+        factor(actual_labels, levels = class_levels)
+      )
+      if (print_results) {
+        cat("\nCross-Validation Confusion Matrix\n")
+        print(cv_confusion_mat)
+        cv_acc <- sum(cv_pred_labels == actual_labels) / length(actual_labels)
+        cat("\nCross-Validation Accuracy:", round(cv_acc, 3), "\n")
+      }
+    }
   }
 
-  # If in interactive mode, build a summary text and return results
-  if (is.null(output_file)) {
-    if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Finalizing interactive results...")
-    }
-    summary_text <- utils::capture.output({
+  # ── 11. Build summary text ─────────────────────────────────────────────────
+  if (!is.null(progress)) {
+    progress$inc(0.05, detail = "Compiling summary")
+  }
+  summary_text <- paste(
+    utils::capture.output({
       cat("### XGBOOST RESULTS ###\n\n")
       cat("1) Group -> Numeric Label Mapping:\n")
       print(class_mapping)
       cat("\n2) Confusion Matrix on Test Set:\n")
       print(confusion_mat$table)
       cat("\nTest Accuracy:", round(accuracy_test, 3), "\n")
-      if (length(unique(y_test)) == 2) {
-        cat("\nSensitivity:", confusion_mat$byClass["Sensitivity"], "\n")
-        cat("Specificity:", confusion_mat$byClass["Specificity"], "\n")
-        if (plot_roc) {
-          cat(
-            "\nAUC:",
-            ifelse(is.na(auc_value), "N/A", round(auc_value, 3)),
-            "\n"
-          )
+      if (num_class == 2L) {
+        cat(
+          "\nSensitivity:",
+          round(confusion_mat$byClass["Sensitivity"], 3),
+          "\n"
+        )
+        cat(
+          "Specificity:",
+          round(confusion_mat$byClass["Specificity"], 3),
+          "\n"
+        )
+        if (plot_roc && !is.na(auc_value)) {
+          cat("\nAUC:", round(auc_value, 3), "\n")
         }
       }
       cat("\n3) Top", top_n_features, "Important Features:\n")
       print(top_features)
       if (cv && !is.null(cv_results)) {
-        cat("\n4) CROSS-VALIDATION RESULTS:\n")
-        cat("Best iteration from cross-validation:\n")
-        if (!is.null(best_cv_iter)) {
-          print(cv_results$evaluation_log[best_cv_iter, ])
-        }
+        cat("\n4) Cross-Validation Results:\n")
+        cat("Best iteration:\n")
+        print(cv_results$evaluation_log[best_cv_iter, ])
       }
-    })
-    summary_text <- paste(summary_text, collapse = "\n")
+    }),
+    collapse = "\n"
+  )
 
-    return(list(
-      summary_text = summary_text,
-      model = xgb_model,
-      confusion_matrix = confusion_mat$table,
-      importance = top_features,
-      class_mapping = class_mapping,
-      cv_results = cv_results,
-      plot = vip_plot,
-      roc_plot = roc_plot
-    ))
-  } else {
-    # PDF mode: print outputs to PDF
+  # ── 12. Output ─────────────────────────────────────────────────────────────
+  if (!is.null(output_file)) {
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Saving outputs to PDF")
+    }
     grDevices::pdf(file = output_file, width = 8, height = 8)
-    cat("### XGBOOST RESULTS ###\n\n")
-    cat("Group -> Numeric Label Mapping:\n")
-    print(class_mapping)
-    cat("\nBest Iteration:\n")
-    print(xgb_model$evaluation_log[best_iter, ])
-    cat("\nConfusion Matrix on Test Set:\n")
-    print(confusion_mat$table)
-    cat("\nTest Accuracy:", round(accuracy_test, 3), "\n")
+    on.exit(grDevices::dev.off(), add = TRUE)
+    cat(summary_text)
+    print(imp_plot)
     if (!is.null(roc_plot)) {
       print(roc_plot)
     }
-    print(vip_plot)
-    if (cv && !is.null(best_cv_iter)) {
-      cat("\nCross-Validation Best Iteration:\n")
-      print(cv_results$evaluation_log[best_cv_iter, ])
+    if (!is.null(progress)) {
+      progress$inc(0.02, detail = "PDF saved")
     }
-    grDevices::dev.off()
     return(invisible(NULL))
   }
+
+  if (!is.null(progress)) {
+    progress$inc(0.03, detail = "Complete")
+  }
+
+  invisible(list(
+    summary_text = summary_text,
+    model = xgb_model,
+    confusion_matrix = confusion_mat$table,
+    importance = top_features,
+    class_mapping = class_mapping,
+    cv_results = cv_results,
+    importance_plot = imp_plot,
+    roc_plot = roc_plot
+  ))
 }

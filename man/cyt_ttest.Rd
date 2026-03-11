@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyt_ttest.R
 \name{cyt_ttest}
 \alias{cyt_ttest}
-\title{Two Sample T-test Comparisons.}
+\title{Two Sample T-test Comparisons. \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 \usage{
 cyt_ttest(data, scale = NULL, format_output = FALSE, progress = NULL)
 }

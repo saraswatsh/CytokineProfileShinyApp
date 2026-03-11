@@ -3,7 +3,7 @@
 ## ---------------------------
 
 shiny::observeEvent(currentStep(), {
-  shiny::req(currentStep(), !is.null(selected_function()))
+  shiny::req(currentStep())
   if (currentStep() == 1) {
     # restore the Use built‑in” toggle
     shiny::updateCheckboxInput(session, "use_builtin", value = userState$use_builtin)
@@ -17,43 +17,41 @@ shiny::observeEvent(currentStep(), {
   }
   if (currentStep() == 2) {
     # recompute the same choices used in step2UI()
-    df <- data_after_filters()
-    all_cols <- names(df)
-    is_numeric_col <- vapply(df, is.numeric, logical(1))
+    df <- userData()
+    shiny::req(df)
+    all_cols <- setdiff(names(df), "..cyto_id..")
+    is_numeric_col <- vapply(df[all_cols], is.numeric, logical(1))
     categorical_cols <- all_cols[!is_numeric_col]
     numerical_cols <- all_cols[is_numeric_col]
 
-    # restore what they had selected
-    if (!is.null(userState$selected_categorical_cols)) {
-      shiny::updateCheckboxGroupInput(
-        session,
-        "selected_categorical_cols",
-        choices = categorical_cols,
-        selected = intersect(
-          userState$selected_categorical_cols,
-          categorical_cols
-        )
-      )
-    }
-    if (!is.null(userState$selected_numerical_cols)) {
-      shiny::updateCheckboxGroupInput(
-        session,
-        "selected_numerical_cols",
-        choices = numerical_cols,
-        selected = intersect(
-          userState$selected_numerical_cols,
-          numerical_cols
-        )
-      )
-    }
-    # also restore the log2 box
-    shiny::updateCheckboxInput(
+    cat_selected <- intersect(
+      userState$selected_categorical_cols %||% categorical_cols,
+      categorical_cols
+    )
+    num_selected <- intersect(
+      userState$selected_numerical_cols %||% numerical_cols,
+      numerical_cols
+    )
+    shiny::updateCheckboxGroupInput(
       session,
-      "step2_log2",
-      value = userState$step2_log2
+      "selected_categorical_cols",
+      choices = categorical_cols,
+      selected = cat_selected
+    )
+    shiny::updateCheckboxGroupInput(
+      session,
+      "selected_numerical_cols",
+      choices = numerical_cols,
+      selected = num_selected
+    )
+    # restore the preprocessing selector
+    shiny::updateSelectInput(
+      session,
+      "step2_scale",
+      selected = userState$step2_scale %||% "none"
     )
   }
-  if (currentStep() == 3 && !is.null(userState$selected_function)) {
+  if (currentStep() == 3) {
     if (!is.null(userState$analysis_categories)) {
       shiny::updateRadioButtons(
         session,
@@ -90,14 +88,39 @@ shiny::observeEvent(currentStep(), {
         selected = userState$ml_function
       )
     }
+  }
+  if (currentStep() == 4 && !is.null(userState$selected_function)) {
     # Boxplots
     if (userState$selected_function == "Boxplots") {
-      shiny::updateSelectInput(session, "bp_mf_row", selected = userState$bp_mf_row)
       shiny::updateTextInput(session, "bp_y_lim", value = userState$bp_y_lim)
       shiny::updateNumericInput(
         session,
         "bp_bin_size",
         value = userState$bp_bin_size
+      )
+      shiny::updateSelectizeInput(
+        session,
+        "bp_group_by",
+        selected = userState$bp_group_by
+      )
+    }
+
+    if (userState$selected_function == "Violin Plots") {
+      shiny::updateSelectizeInput(
+        session,
+        "vio_group_by",
+        selected = userState$vio_group_by
+      )
+      shiny::updateNumericInput(
+        session,
+        "vio_bin_size",
+        value = userState$vio_bin_size
+      )
+      shiny::updateTextInput(session, "vio_y_lim", value = userState$vio_y_lim)
+      shiny::updateCheckboxInput(
+        session,
+        "vio_boxplot_overlay",
+        value = userState$vio_boxplot_overlay
       )
     }
 
@@ -105,6 +128,36 @@ shiny::observeEvent(currentStep(), {
     if (userState$selected_function == "Enhanced Boxplots") {
       shiny::updateTextInput(session, "bp2_mf_row", value = userState$bp2_mf_row)
       shiny::updateTextInput(session, "bp2_y_lim", value = userState$bp2_y_lim)
+    }
+    if (
+      userState$selected_function ==
+        "Univariate Tests (T-test, Wilcoxon)"
+    ) {
+      shiny::updateSelectInput(
+        session,
+        "uv2_method",
+        selected = userState$uv2_method
+      )
+      shiny::updateSelectInput(
+        session,
+        "uv2_p_adjust_method",
+        selected = userState$uv2_p_adjust_method %||% ""
+      )
+    }
+    if (
+      userState$selected_function ==
+        "Univariate Tests (ANOVA, Kruskal-Wallis)"
+    ) {
+      shiny::updateSelectInput(
+        session,
+        "uvm_method",
+        selected = userState$uvm_method
+      )
+      shiny::updateSelectInput(
+        session,
+        "uvm_p_adjust_method",
+        selected = userState$uvm_p_adjust_method %||% ""
+      )
     }
     if (userState$selected_function == "Error-Bar Plot") {
       shiny::updateSelectInput(
@@ -122,6 +175,23 @@ shiny::observeEvent(currentStep(), {
       shiny::updateTextInput(session, "eb_x_lab", value = userState$eb_x_lab)
       shiny::updateTextInput(session, "eb_y_lab", value = userState$eb_y_lab)
       shiny::updateTextInput(session, "eb_title", value = userState$eb_title)
+      shiny::updateSelectInput(session, "eb_stat", selected = userState$eb_stat)
+      shiny::updateSelectInput(session, "eb_error", selected = userState$eb_error)
+      shiny::updateSelectInput(
+        session,
+        "eb_method",
+        selected = userState$eb_method
+      )
+      shiny::updateSelectInput(
+        session,
+        "eb_p_adjust_method",
+        selected = userState$eb_p_adjust_method %||% ""
+      )
+      shiny::updateNumericInput(
+        session,
+        "eb_label_size",
+        value = userState$eb_label_size
+      )
     }
     # Dual-Flashlight Plot
     if (userState$selected_function == "Dual-Flashlight Plot") {
@@ -164,7 +234,6 @@ shiny::observeEvent(currentStep(), {
         "hm_annotation",
         selected = userState$hm_annotation
       )
-      shiny::updateSelectInput(session, "hm_scale", selected = userState$hm_scale)
       shiny::updateSelectInput(
         session,
         "hm_ann_side",
@@ -236,10 +305,10 @@ shiny::observeEvent(currentStep(), {
         "plsr_keepX",
         value = userState$plsr_keepX
       )
-      shiny::updateCheckboxInput(
+      shiny::updateRadioButtons(
         session,
         "plsr_cv_opt",
-        value = userState$plsr_cv_opt
+        selected = userState$plsr_cv_opt
       )
       shiny::updateNumericInput(
         session,
@@ -371,10 +440,10 @@ shiny::observeEvent(currentStep(), {
         "splsda_var_num",
         value = userState$splsda_var_num
       )
-      shiny::updateCheckboxInput(
+      shiny::updateRadioButtons(
         session,
         "splsda_cv_opt",
-        value = userState$splsda_cv_opt
+        selected = userState$splsda_cv_opt
       )
       shiny::updateNumericInput(
         session,
@@ -518,12 +587,24 @@ analysis_inputs <- shiny::reactive({
     args = list(
       # Boxplots
       bp_bin_size = input$bp_bin_size,
-      bp_mf_row = input$bp_mf_row,
+      bp_group_by = input$bp_group_by,
       bp_y_lim = input$bp_y_lim,
+
+      # Violin Plots
+      vio_group_by = input$vio_group_by,
+      vio_bin_size = input$vio_bin_size,
+      vio_y_lim = input$vio_y_lim,
+      vio_boxplot_overlay = input$vio_boxplot_overlay,
 
       # Enhanced Boxplots
       bp2_mf_row = input$bp2_mf_row,
       bp2_y_lim = input$bp2_y_lim,
+
+      # Univariate Tests
+      uv2_method = input$uv2_method,
+      uv2_p_adjust_method = input$uv2_p_adjust_method,
+      uvm_method = input$uvm_method,
+      uvm_p_adjust_method = input$uvm_p_adjust_method,
 
       # Error-Bar Plot
       eb_group_col = input$eb_group_col,
@@ -533,6 +614,11 @@ analysis_inputs <- shiny::reactive({
       eb_x_lab = input$eb_x_lab,
       eb_y_lab = input$eb_y_lab,
       eb_title = input$eb_title,
+      eb_stat = input$eb_stat,
+      eb_error = input$eb_error,
+      eb_method = input$eb_method,
+      eb_p_adjust_method = input$eb_p_adjust_method,
+      eb_label_size = input$eb_label_size,
 
       # Dual-Flashlight Plot
       df_group_var = input$df_group_var,
@@ -544,7 +630,6 @@ analysis_inputs <- shiny::reactive({
 
       # Heatmap
       hm_annotation = input$hm_annotation,
-      hm_scale = input$hm_scale,
       hm_ann_side = input$hm_ann_side,
 
       # Correlation Plots
@@ -564,6 +649,7 @@ analysis_inputs <- shiny::reactive({
       # PLSR
       plsr_group_col = input$plsr_group_col,
       plsr_response_col = input$plsr_response_col,
+      plsr_predictor_cols = input$plsr_predictor_cols,
       plsr_comp_num = input$plsr_comp_num,
       plsr_sparse = input$plsr_sparse,
       plsr_keepX = input$plsr_keepX,

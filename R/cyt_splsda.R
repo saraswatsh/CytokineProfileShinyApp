@@ -57,7 +57,7 @@
 #'         9. vip_ROC: ROC curve plot for the VIP>1 model
 #'         10. vip_CV: Cross-validation error plot for the VIP>1 model
 #'         11. conf_matrix: Confusion matrix text output
-#'
+#' @author Xiaohua Douglas Zhang and Shubh Saraswat
 #' @examples
 #' data_df <- ExampleData1[,-c(3)]
 #' data_df <- dplyr::filter(data_df, Group != "ND", Treatment != "Unstimulated")

@@ -15,6 +15,27 @@ allowed_colors <- c(
   "black"
 )
 
+p_adjust_choices <- c(
+  "None" = "",
+  "Bonferroni" = "bonferroni",
+  "Holm" = "holm",
+  "Hochberg" = "hochberg",
+  "Hommel" = "hommel",
+  "Benjamini-Hochberg" = "BH",
+  "Benjamini-Yekutieli" = "BY"
+)
+
+p_adjust_help <- shiny::HTML(paste(
+  "Choose one multiple-testing correction method for the reported p-values.<br><br>",
+  "<b>None</b>: report raw p-values without adjustment.<br>",
+  "<b>Bonferroni</b>: strict family-wise error control.<br>",
+  "<b>Holm</b>: step-down family-wise error control, less conservative than Bonferroni.<br>",
+  "<b>Hochberg</b>: step-up family-wise error control.<br>",
+  "<b>Hommel</b>: family-wise error control with more power but more complexity.<br>",
+  "<b>Benjamini-Hochberg</b>: false discovery rate control.<br>",
+  "<b>Benjamini-Yekutieli</b>: false discovery rate control under arbitrary dependence."
+))
+
 # PCH Values
 pch_choices <- c(
   "Square" = 0,
@@ -79,24 +100,112 @@ output$function_options_ui <- shiny::renderUI({
 
   userState$selected_function <- func
   func_name <- func
-  ui_list <- list()
-  # For ANOVA / Two-Sample T-Test we show no options, just a short hint.
-  if (func %in% c("ANOVA", "Two-Sample T-Test")) {
-    return(shiny::div(
-      class = "well",
-      shiny::h4(paste(func, "options")),
-      shiny::p("No additional options for this analysis."),
-      shiny::p("Click", shiny::strong(paste("Run Analysis")), "to continue.")
-    ))
+  helper_colour <- if (input$theme_choice %in% c("darkly", "cyborg")) {
+    "red"
+  } else {
+    "blue"
   }
+  helper_label <- function(text, title, content, icon = "fas fa-question-circle") {
+    shinyhelper::helper(
+      type = "inline",
+      title = title,
+      icon = icon,
+      shiny_tag = shiny::HTML(
+        sprintf("<span style='margin-right: 15px;'>%s</span>", text)
+      ),
+      content = content,
+      colour = helper_colour
+    )
+  }
+  ui_list <- list()
   switch(
     func_name,
+    # ------------------------
+    # Univariate Tests (T-test, Wilcoxon)
+    # ------------------------
+    "Univariate Tests (T-test, Wilcoxon)" = {
+      ui_list <- shiny::tagList(
+        shiny::fluidRow(
+          shiny::column(
+            6,
+            shiny::selectInput(
+              "uv2_method",
+              label = helper_label(
+                "Test Method",
+                "Two-Level Test Method",
+                "Choose automatic selection, a two-sample t-test, or a Wilcoxon rank-sum test for each numeric outcome."
+              ),
+              choices = c(
+                "Auto" = "auto",
+                "T-test" = "ttest",
+                "Wilcoxon" = "wilcox"
+              ),
+              selected = shiny::isolate(userState$uv2_method) %||% "auto"
+            )
+          ),
+          shiny::column(
+            6,
+            shiny::selectInput(
+              "uv2_p_adjust_method",
+              label = helper_label(
+                "P-Value Adjustment",
+                "Multiple-Testing Correction",
+                p_adjust_help
+              ),
+              choices = p_adjust_choices,
+              selected = shiny::isolate(userState$uv2_p_adjust_method) %||% ""
+            )
+          )
+        )
+      )
+    },
+    # ------------------------
+    # Univariate Tests (ANOVA, Kruskal-Wallis)
+    # ------------------------
+    "Univariate Tests (ANOVA, Kruskal-Wallis)" = {
+      ui_list <- shiny::tagList(
+        shiny::fluidRow(
+          shiny::column(
+            6,
+            shiny::selectInput(
+              "uvm_method",
+              label = helper_label(
+                "Global Test Method",
+                "Multi-Level Test Method",
+                "Use ANOVA for parametric group comparisons or Kruskal-Wallis for a non-parametric global test."
+              ),
+              choices = c("ANOVA" = "anova", "Kruskal-Wallis" = "kruskal"),
+              selected = shiny::isolate(userState$uvm_method) %||% "anova"
+            )
+          ),
+          shiny::column(
+            6,
+            shiny::selectInput(
+              "uvm_p_adjust_method",
+              label = helper_label(
+                "P-Value Adjustment",
+                "Multiple-Testing Correction",
+                p_adjust_help
+              ),
+              choices = p_adjust_choices,
+              selected = shiny::isolate(userState$uvm_p_adjust_method) %||% ""
+            )
+          )
+        )
+      )
+    },
     # ------------------------
     # Boxplots
     # ------------------------
     "Boxplots" = {
+      df <- filteredData()
+      if (is.null(df)) {
+        return(NULL)
+      }
+      group_choices <- names(df)[!sapply(df, is.numeric)]
+      group_choices <- setdiff(group_choices, "..cyto_id..")
+
       ui_list <- shiny::tagList(
-        # first row: Bin size + Graphs per row/col
         shiny::fluidRow(
           shiny::column(
             width = 6,
@@ -122,29 +231,19 @@ output$function_options_ui <- shiny::renderUI({
           ),
           shiny::column(
             width = 6,
-            shiny::textInput(
-              "bp_mf_row",
-              label = shinyhelper::helper(
-                type = "inline",
-                title = "Graphs per Row and Column",
-                icon = "fas fa-question-circle",
-                shiny_tag = shiny::HTML(
-                  "<span style='margin-right: 15px;'>Graphs per Row and Columns</span><br>(rows, cols; comma-separated)"
-                ),
-                content = "Specify the layout of multiple box plots on the plotting area, defined as (rows, cols). 
-                         For example, '2,2' will arrange up to 4 box plots in a 2x2 grid.",
-                colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                  "red"
-                } else {
-                  "blue"
-                }
-              ),
-              value = shiny::isolate(userState$bp_mf_row) %||% "1,1"
+            shiny::selectizeInput(
+              "bp_group_by",
+              label = "Grouping columns (optional)",
+              choices = group_choices,
+              selected = shiny::isolate(userState$bp_group_by),
+              multiple = TRUE,
+              options = list(
+                placeholder = "Leave blank for ungrouped boxplots",
+                plugins = c("remove_button", "restore_on_backspace")
+              )
             )
           )
         ),
-
-        # second row: Y-axis limits + log2 checkbox
         shiny::fluidRow(
           shiny::column(
             width = 6,
@@ -166,6 +265,79 @@ output$function_options_ui <- shiny::renderUI({
                 }
               ),
               value = shiny::isolate(userState$bp_y_lim) %||% ""
+            )
+          )
+        )
+      )
+    },
+    # ------------------------
+    # Violin Plots
+    # ------------------------
+    "Violin Plots" = {
+      df <- filteredData()
+      if (is.null(df)) {
+        return(NULL)
+      }
+      group_choices <- names(df)[!sapply(df, is.numeric)]
+      group_choices <- setdiff(group_choices, "..cyto_id..")
+
+      ui_list <- shiny::tagList(
+        shiny::fluidRow(
+          shiny::column(
+            width = 6,
+            shiny::numericInput(
+              "vio_bin_size",
+              label = helper_label(
+                "Bin Size",
+                "Violin Plot Bin Size",
+                "Controls how many numeric variables are plotted in each violin-plot panel group."
+              ),
+              value = shiny::isolate(userState$vio_bin_size) %||% 25,
+              min = 1
+            )
+          ),
+          shiny::column(
+            width = 6,
+            shiny::selectizeInput(
+              "vio_group_by",
+              label = helper_label(
+                "Grouping Columns (Optional)",
+                "Violin Plot Grouping",
+                "Optionally split violin plots by one or more categorical columns from the working dataset."
+              ),
+              choices = group_choices,
+              selected = shiny::isolate(userState$vio_group_by),
+              multiple = TRUE,
+              options = list(
+                placeholder = "Leave blank for ungrouped violin plots",
+                plugins = c("remove_button", "restore_on_backspace")
+              )
+            )
+          )
+        ),
+        shiny::fluidRow(
+          shiny::column(
+            width = 6,
+            shiny::textInput(
+              "vio_y_lim",
+              label = helper_label(
+                "Y-Axis Limits",
+                "Violin Plot Y-Axis Limits",
+                "Optionally set the minimum and maximum y-axis values as a comma-separated pair such as 0,100."
+              ),
+              value = shiny::isolate(userState$vio_y_lim) %||% ""
+            )
+          ),
+          shiny::column(
+            width = 6,
+            shiny::checkboxInput(
+              "vio_boxplot_overlay",
+              label = helper_label(
+                "Show Boxplot Overlay",
+                "Violin Plot Overlay",
+                "Overlay a boxplot on top of each violin to show medians and quartiles."
+              ),
+              value = shiny::isolate(userState$vio_boxplot_overlay) %||% FALSE
             )
           )
         )
@@ -395,6 +567,85 @@ output$function_options_ui <- shiny::renderUI({
               value = shiny::isolate(userState$eb_title) %||% "Error-Bar Plot"
             )
           )
+        ),
+        shiny::fluidRow(
+          shiny::column(
+            4,
+            shiny::selectInput(
+              "eb_stat",
+              label = helper_label(
+                "Statistic",
+                "Error-Bar Summary Statistic",
+                "Choose whether each bar summarizes the mean or the median for each cytokine and group."
+              ),
+              choices = c("Mean" = "mean", "Median" = "median"),
+              selected = shiny::isolate(userState$eb_stat) %||% "mean"
+            )
+          ),
+          shiny::column(
+            4,
+            shiny::selectInput(
+              "eb_error",
+              label = helper_label(
+                "Error Metric",
+                "Error-Bar Metric",
+                "Choose the uncertainty band to plot: standard error, standard deviation, MAD, or a 95% confidence interval."
+              ),
+              choices = c(
+                "Standard error" = "se",
+                "Standard deviation" = "sd",
+                "MAD" = "mad",
+                "95% CI" = "ci"
+              ),
+              selected = shiny::isolate(userState$eb_error) %||% "se"
+            )
+          ),
+          shiny::column(
+            4,
+            shiny::selectInput(
+              "eb_method",
+              label = helper_label(
+                "Test Method",
+                "Error-Bar Statistical Test",
+                "Choose automatic selection, a two-sample t-test, or a Wilcoxon rank-sum test for pairwise comparisons."
+              ),
+              choices = c(
+                "Auto" = "auto",
+                "T-test" = "ttest",
+                "Wilcoxon" = "wilcox"
+              ),
+              selected = shiny::isolate(userState$eb_method) %||% "auto"
+            )
+          )
+        ),
+        shiny::fluidRow(
+          shiny::column(
+            6,
+            shiny::selectInput(
+              "eb_p_adjust_method",
+              label = helper_label(
+                "P-Value Adjustment",
+                "Error-Bar Multiple-Testing Correction",
+                p_adjust_help
+              ),
+              choices = p_adjust_choices,
+              selected = shiny::isolate(userState$eb_p_adjust_method) %||% ""
+            )
+          ),
+          shiny::column(
+            6,
+            shiny::numericInput(
+              "eb_label_size",
+              label = helper_label(
+                "Label Size",
+                "Annotation Label Size",
+                "Controls the size of p-value or effect-size labels drawn on the error-bar plot."
+              ),
+              value = shiny::isolate(userState$eb_label_size) %||% 4,
+              min = 1,
+              step = 0.5
+            )
+          )
         )
       )
     },
@@ -527,38 +778,7 @@ output$function_options_ui <- shiny::renderUI({
       ann_choices <- c("None" = "", cols)
 
       ui_list <- shiny::tagList(
-        # Row 1: Scale + Annotation col
         shiny::fluidRow(
-          shiny::column(
-            width = 6,
-            shiny::selectInput(
-              "hm_scale",
-              label = shinyhelper::helper(
-                type = "inline",
-                title = "Scaling / Transform",
-                icon = "fas fa-question-circle",
-                shiny_tag = shiny::HTML(
-                  "<span style='margin-right: 15px;'>Scale</span>"
-                ),
-                content = paste(
-                  "Choose none (raw), log2 transform, or Z-scores across rows/columns.",
-                  "Z-scores standardize to mean 0, SD 1."
-                ),
-                colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                  "red"
-                } else {
-                  "blue"
-                }
-              ),
-              choices = c(
-                "None" = "none",
-                "log2" = "log2",
-                "Row Z-score" = "row_zscore",
-                "Column Z-score" = "col_zscore"
-              ),
-              selected = shiny::isolate(userState$hm_scale) %||% "none"
-            )
-          ),
           shiny::column(
             width = 6,
             shiny::selectizeInput(
@@ -583,7 +803,6 @@ output$function_options_ui <- shiny::renderUI({
             )
           )
         ),
-        # Row 2: Annotation side + Title/Filename
         shiny::fluidRow(
           shiny::column(
             width = 6,

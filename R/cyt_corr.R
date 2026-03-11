@@ -37,6 +37,7 @@
 #' @importFrom utils tail
 #' @import ggcorrplot
 #' @import ggplot2
+#' @author Shubh Saraswat
 #' @export
 cyt_corr <- function(
   data,
