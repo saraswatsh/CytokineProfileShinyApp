@@ -48,6 +48,14 @@
 #'   adjustment.
 #' @param label_size Numeric. Font size for p-value and effect-size labels.
 #'   Default is \code{4}.
+#' @param n_col Integer. Number of columns in the facet grid. If \code{NULL}
+#'   (default), uses \code{min(3, number_of_cytokines)}.
+#' @param base_size Numeric. Base font size for the plot theme. Default is
+#'   \code{11}.
+#' @param fill_palette Character vector of colours for the group bars. If
+#'   \code{NULL} (default), all bars are filled with \code{"grey80"}.
+#'   Supply one colour per group level (e.g. \code{c("#4E79A7", "#F28E2B",
+#'   "#E15759")}).
 #' @param output_file Optional file path. If provided, the plot is saved
 #'   using \code{ggsave()}; otherwise the plot is returned and automatically
 #'   printed.
@@ -86,6 +94,9 @@ cyt_errbp <- function(
   method = c("auto", "ttest", "wilcox"),
   p_adjust_method = NULL,
   label_size = 4,
+  n_col = NULL,
+  base_size = 11,
+  fill_palette = NULL,
   output_file = NULL,
   progress = NULL
 ) {
@@ -446,11 +457,37 @@ cyt_errbp <- function(
     progress$inc(0.05, detail = "Building plot")
   }
 
+  # Resolve ncol for facet grid
+  n_facets_total <- length(unique(summarised$Measure))
+  facet_ncol <- if (!is.null(n_col) && n_col > 0L) {
+    as.integer(n_col)
+  } else {
+    min(3L, n_facets_total)
+  }
+
+  # Resolve fill: group-coloured or flat grey
+  if (!is.null(fill_palette)) {
+    group_levels <- levels(factor(summarised[[group_col]]))
+    fill_map <- stats::setNames(
+      rep_len(fill_palette, length(group_levels)),
+      group_levels
+    )
+    col_aes <- ggplot2::aes(fill = .data[[group_col]])
+    fill_scale <- ggplot2::scale_fill_manual(values = fill_map)
+  } else {
+    col_aes <- ggplot2::aes()
+    fill_scale <- ggplot2::scale_fill_manual(values = NULL)
+  }
+
   p <- ggplot2::ggplot(
     summarised,
     ggplot2::aes(x = .data[[group_col]], y = center)
   ) +
-    ggplot2::geom_col(fill = "grey80") +
+    (if (!is.null(fill_palette)) {
+      ggplot2::geom_col(ggplot2::aes(fill = .data[[group_col]]))
+    } else {
+      ggplot2::geom_col(fill = "grey80")
+    }) +
     ggplot2::geom_errorbar(
       ggplot2::aes(ymin = center - spread, ymax = center + spread),
       width = 0.2
@@ -458,12 +495,15 @@ cyt_errbp <- function(
     ggplot2::facet_wrap(
       ~Measure,
       scales = "free_y",
-      ncol = min(3L, length(unique(summarised$Measure)))
+      ncol = facet_ncol
     ) +
     ggplot2::labs(x = x_lab, y = y_lab, title = title) +
-    ggplot2::theme_minimal() +
+    (if (!is.null(fill_palette)) fill_scale else ggplot2::guides()) +
+    ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
+      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+      strip.text = ggplot2::element_text(face = "bold"),
+      legend.position = if (!is.null(fill_palette)) "bottom" else "none"
     )
 
   if (p_lab) {
@@ -498,7 +538,7 @@ cyt_errbp <- function(
       progress$inc(0.05, detail = "Saving plot to file")
     }
     n_facets <- length(unique(summarised$Measure))
-    n_cols <- min(3L, n_facets)
+    n_cols <- facet_ncol
     n_rows <- ceiling(n_facets / n_cols)
     out_width <- n_cols * 4
     out_height <- n_rows * 4

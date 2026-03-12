@@ -141,10 +141,6 @@ resetState <- function() {
   userState$vio_y_lim = NULL
   userState$vio_boxplot_overlay = NULL
 
-  # Enhanced Boxplots options
-  userState$bp2_mf_row = NULL
-  userState$bp2_y_lim = NULL
-
   # Univariate test options
   userState$uv2_method = NULL
   userState$uv2_p_adjust_method = NULL
@@ -314,10 +310,6 @@ shiny::observeEvent(input$new_reuse, {
     userState$vio_y_lim = NULL
     userState$vio_boxplot_overlay = NULL
 
-    # Enhanced Boxplots options
-    userState$bp2_mf_row = NULL
-    userState$bp2_y_lim = NULL
-
     # Univariate test options
     userState$uv2_method = NULL
     userState$uv2_p_adjust_method = NULL
@@ -337,6 +329,9 @@ shiny::observeEvent(input$new_reuse, {
     userState$eb_method = NULL
     userState$eb_p_adjust_method = NULL
     userState$eb_label_size = NULL
+    userState$eb_n_col = NULL
+    userState$eb_base_size = NULL
+    userState$eb_fill_palette = NULL
 
     # Dual-Flashlight Plot options
     userState$df_group_var = NULL
@@ -586,7 +581,6 @@ homeUI <- function() {
             shiny::tags$ul(
               shiny::tags$li("Boxplots"),
               shiny::tags$li("Violin Plots"),
-              shiny::tags$li("Enhanced Boxplots"),
               shiny::tags$li("Correlation Plots"),
               shiny::tags$li("Error-Bar Plot"),
               shiny::tags$li("Dual-Flashlight Plot"),
@@ -1164,11 +1158,6 @@ step3UI <- function() {
               class = "menu-card"
             ),
             shiny::actionButton(
-              "menu_enhanced_boxplots",
-              "Enhanced Boxplots",
-              class = "menu-card"
-            ),
-            shiny::actionButton(
               "menu_correlation",
               "Correlation Plots",
               class = "menu-card"
@@ -1520,7 +1509,6 @@ lapply(stat_choices, function(choice) {
 exploratory_choices <- c(
   "Boxplots",
   "Violin Plots",
-  "Enhanced Boxplots",
   "Correlation Plots",
   "Error-Bar Plot",
   "Dual-Flashlight Plot",
@@ -2369,10 +2357,6 @@ shiny::observeEvent(input$next4, {
       userState$vio_y_lim <- input$vio_y_lim
       userState$vio_boxplot_overlay <- input$vio_boxplot_overlay
     }
-    if (selected_function() == "Enhanced Boxplots") {
-      userState$bp2_mf_row <- input$bp2_mf_row
-      userState$bp2_y_lim <- input$bp2_y_lim
-    }
     if (selected_function() == "Error-Bar Plot") {
       userState$eb_group_col <- input$eb_group_col
       userState$eb_p_lab <- input$eb_p_lab
@@ -2386,6 +2370,9 @@ shiny::observeEvent(input$next4, {
       userState$eb_method <- input$eb_method
       userState$eb_p_adjust_method <- input$eb_p_adjust_method
       userState$eb_label_size <- input$eb_label_size
+      userState$eb_n_col <- input$eb_n_col
+      userState$eb_base_size <- input$eb_base_size
+      userState$eb_fill_palette <- input$eb_fill_palette
     }
     if (selected_function() == "Dual-Flashlight Plot") {
       userState$df_group_var <- input$df_group_var

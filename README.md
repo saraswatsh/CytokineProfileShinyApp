@@ -7,7 +7,7 @@
 [![Last
 Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShinyApp.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/commits/main)
 [![Development](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![CodeFactor](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/badge)](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp)
+[![CodeFactor](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/badge/devel)](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/overview/devel)
 <!-- badges: end -->
 
 # CytokineProfile Shiny Application <a href="https://shinyinfo.cytokineprofile.org/"><img src="man/figures/logo.png" alt="CytokineProfileShiny App website" align="right" height="134"/></a>
@@ -37,9 +37,10 @@ App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
 
 - Multiple Analysis Functions:
 
-  - Choose from several analysis functions, including:
-    1.  ANOVA
-    2.  Boxplots and Enhanced Boxplots
+  - Choose from several analysis functions, including but not limited
+    to:
+    1.  Univariate Analysis (e.g., T-test/Wilcoxon/ANOVA/Kruskal-Wallis)
+    2.  Boxplots
     3.  Error-Bar Plots
     4.  Dual-Flashlight Plot
     5.  Heatmap

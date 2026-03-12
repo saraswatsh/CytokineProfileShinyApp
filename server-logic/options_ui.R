@@ -105,7 +105,12 @@ output$function_options_ui <- shiny::renderUI({
   } else {
     "blue"
   }
-  helper_label <- function(text, title, content, icon = "fas fa-question-circle") {
+  helper_label <- function(
+    text,
+    title,
+    content,
+    icon = "fas fa-question-circle"
+  ) {
     shinyhelper::helper(
       type = "inline",
       title = title,
@@ -344,57 +349,6 @@ output$function_options_ui <- shiny::renderUI({
       )
     },
     # ------------------------
-    # Enhanced Boxplots
-    # ------------------------
-    "Enhanced Boxplots" = {
-      ui_list <- shiny::tagList(
-        shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::textInput(
-              "bp2_mf_row",
-              label = shinyhelper::helper(
-                type = "inline",
-                title = "Graphs per Row and Column",
-                icon = "fas fa-question-circle",
-                shiny_tag = shiny::HTML(
-                  "<span style='margin-right:15px;'>Graphs per Row & Columns</span><br>(rows, cols; comma-separated)"
-                ),
-                content = "Specify the layout of multiple enhanced box plots on the plotting area, defined as (rows, cols).",
-                colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                  "red"
-                } else {
-                  "blue"
-                }
-              ),
-              value = shiny::isolate(userState$bp2_mf_row) %||% "1,1"
-            )
-          ),
-          shiny::column(
-            6,
-            shiny::textInput(
-              "bp2_y_lim",
-              label = shinyhelper::helper(
-                type = "inline",
-                title = "Y-axis Limits",
-                icon = "fas fa-question-circle",
-                shiny_tag = shiny::HTML(
-                  "<span style='margin-right:15px;'>Y-axis Limits</span><br>(min, max; leave blank for auto)"
-                ),
-                content = "Set the vertical bounds for the plot as (min, max).",
-                colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                  "red"
-                } else {
-                  "blue"
-                }
-              ),
-              value = shiny::isolate(userState$bp2_y_lim) %||% ""
-            )
-          )
-        )
-      )
-    },
-    # ------------------------
     # Error-Bar Plot
     # ------------------------
     "Error-Bar Plot" = {
@@ -429,11 +383,28 @@ output$function_options_ui <- shiny::renderUI({
               choices = cat_vars,
               selected = shiny::isolate(userState$eb_group_col) %||% cat_vars[1]
             )
+          ),
+          shiny::column(
+            6,
+            shiny::selectInput(
+              "eb_method",
+              label = helper_label(
+                "Test Method",
+                "Error-Bar Statistical Test",
+                "Choose automatic selection, a two-sample t-test, or a Wilcoxon rank-sum test for pairwise comparisons."
+              ),
+              choices = c(
+                "Auto" = "auto",
+                "T-test" = "ttest",
+                "Wilcoxon" = "wilcox"
+              ),
+              selected = shiny::isolate(userState$eb_method) %||% "auto"
+            )
           )
         ),
         shiny::fluidRow(
           shiny::column(
-            6,
+            3,
             shiny::checkboxInput(
               "eb_p_lab",
               label = shinyhelper::helper(
@@ -454,7 +425,7 @@ output$function_options_ui <- shiny::renderUI({
             )
           ),
           shiny::column(
-            6,
+            3,
             shiny::checkboxInput(
               "eb_es_lab",
               label = shinyhelper::helper(
@@ -478,11 +449,9 @@ output$function_options_ui <- shiny::renderUI({
               ),
               value = shiny::isolate(userState$eb_es_lab) %||% FALSE
             )
-          )
-        ),
-        shiny::fluidRow(
+          ),
           shiny::column(
-            6,
+            3,
             shiny::checkboxInput(
               "eb_class_symbol",
               label = shinyhelper::helper(
@@ -501,32 +470,11 @@ output$function_options_ui <- shiny::renderUI({
               ),
               value = shiny::isolate(userState$eb_class_symbol) %||% FALSE
             )
-          ),
-          shiny::column(
-            6,
-            shiny::textInput(
-              "eb_x_lab",
-              label = shinyhelper::helper(
-                type = "inline",
-                title = "X-Axis Label",
-                icon = "fas fa-exclamation-circle",
-                shiny_tag = shiny::HTML(
-                  "<span style='margin-right:15px;'>X-Axis Label</span>"
-                ),
-                content = "The label to use on the X axis (e.g., 'Cytokine').",
-                colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                  "red"
-                } else {
-                  "blue"
-                }
-              ),
-              value = shiny::isolate(userState$eb_x_lab) %||% "Cytokines"
-            )
           )
         ),
         shiny::fluidRow(
           shiny::column(
-            6,
+            3,
             shiny::textInput(
               "eb_y_lab",
               label = shinyhelper::helper(
@@ -547,7 +495,28 @@ output$function_options_ui <- shiny::renderUI({
             )
           ),
           shiny::column(
-            6,
+            3,
+            shiny::textInput(
+              "eb_x_lab",
+              label = shinyhelper::helper(
+                type = "inline",
+                title = "X-Axis Label",
+                icon = "fas fa-exclamation-circle",
+                shiny_tag = shiny::HTML(
+                  "<span style='margin-right:15px;'>X-Axis Label</span>"
+                ),
+                content = "The label to use on the X axis (e.g., 'Cytokine').",
+                colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
+                  "red"
+                } else {
+                  "blue"
+                }
+              ),
+              value = shiny::isolate(userState$eb_x_lab) %||% "Cytokines"
+            )
+          ),
+          shiny::column(
+            3,
             shiny::textInput(
               "eb_title",
               label = shinyhelper::helper(
@@ -570,7 +539,7 @@ output$function_options_ui <- shiny::renderUI({
         ),
         shiny::fluidRow(
           shiny::column(
-            4,
+            3,
             shiny::selectInput(
               "eb_stat",
               label = helper_label(
@@ -583,7 +552,7 @@ output$function_options_ui <- shiny::renderUI({
             )
           ),
           shiny::column(
-            4,
+            3,
             shiny::selectInput(
               "eb_error",
               label = helper_label(
@@ -601,25 +570,6 @@ output$function_options_ui <- shiny::renderUI({
             )
           ),
           shiny::column(
-            4,
-            shiny::selectInput(
-              "eb_method",
-              label = helper_label(
-                "Test Method",
-                "Error-Bar Statistical Test",
-                "Choose automatic selection, a two-sample t-test, or a Wilcoxon rank-sum test for pairwise comparisons."
-              ),
-              choices = c(
-                "Auto" = "auto",
-                "T-test" = "ttest",
-                "Wilcoxon" = "wilcox"
-              ),
-              selected = shiny::isolate(userState$eb_method) %||% "auto"
-            )
-          )
-        ),
-        shiny::fluidRow(
-          shiny::column(
             6,
             shiny::selectInput(
               "eb_p_adjust_method",
@@ -631,7 +581,9 @@ output$function_options_ui <- shiny::renderUI({
               choices = p_adjust_choices,
               selected = shiny::isolate(userState$eb_p_adjust_method) %||% ""
             )
-          ),
+          )
+        ),
+        shiny::fluidRow(
           shiny::column(
             6,
             shiny::numericInput(
@@ -644,6 +596,56 @@ output$function_options_ui <- shiny::renderUI({
               value = shiny::isolate(userState$eb_label_size) %||% 4,
               min = 1,
               step = 0.5
+            )
+          ),
+          shiny::column(
+            6,
+            shiny::sliderInput(
+              "eb_base_size",
+              label = helper_label(
+                "Base Font Size",
+                "Plot Font Size",
+                "Controls the base font size for all text in the plot (axis labels, strip titles, etc.). Increase if text is too small."
+              ),
+              min = 8,
+              max = 20,
+              value = shiny::isolate(userState$eb_base_size) %||% 11,
+              step = 1
+            )
+          )
+        ),
+        shiny::fluidRow(
+          shiny::column(
+            6,
+            shiny::numericInput(
+              "eb_n_col",
+              label = helper_label(
+                "Columns",
+                "Facet Grid Columns",
+                "Number of columns in the cytokine facet grid. With many cytokines, increase this to reduce the number of rows and prevent crowding."
+              ),
+              value = shiny::isolate(userState$eb_n_col) %||% 3,
+              min = 1,
+              max = 10,
+              step = 1
+            )
+          ),
+          shiny::column(
+            6,
+            shiny::selectInput(
+              "eb_fill_palette",
+              label = helper_label(
+                "Bar Colour",
+                "Bar Fill Palette",
+                "Choose a colour scheme for the group bars. 'Grey (default)' uses a flat grey fill. The other options colour each group distinctly using a named palette."
+              ),
+              choices = c(
+                "Grey (default)" = "grey",
+                "Tableau 10" = "tableau",
+                "Colorblind-safe" = "colorblind",
+                "Pastel" = "pastel"
+              ),
+              selected = shiny::isolate(userState$eb_fill_palette) %||% "grey"
             )
           )
         )

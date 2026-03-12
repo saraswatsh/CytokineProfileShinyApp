@@ -101,13 +101,6 @@ shiny::observeEvent(input$vio_y_lim, {
 shiny::observeEvent(input$vio_boxplot_overlay, {
   userState$vio_boxplot_overlay <- input$vio_boxplot_overlay
 })
-# For Enhanced Boxplots
-shiny::observeEvent(input$bp2_mf_row, {
-  userState$bp2_mf_row <- input$bp2_mf_row
-})
-shiny::observeEvent(input$bp2_y_lim, {
-  userState$bp2_y_lim <- input$bp2_y_lim
-})
 # For Error-Bar Plot
 shiny::observeEvent(input$eb_group_col, {
   userState$eb_group_col <- input$eb_group_col
@@ -144,6 +137,15 @@ shiny::observeEvent(input$eb_p_adjust_method, {
 })
 shiny::observeEvent(input$eb_label_size, {
   userState$eb_label_size <- input$eb_label_size
+})
+shiny::observeEvent(input$eb_n_col, {
+  userState$eb_n_col <- input$eb_n_col
+})
+shiny::observeEvent(input$eb_base_size, {
+  userState$eb_base_size <- input$eb_base_size
+})
+shiny::observeEvent(input$eb_fill_palette, {
+  userState$eb_fill_palette <- input$eb_fill_palette
 })
 # For Univariate Tests
 shiny::observeEvent(input$uv2_method, {
@@ -589,11 +591,6 @@ shiny::observeEvent(input$menu_boxplots, {
 })
 shiny::observeEvent(input$menu_violin, {
   selected_function("Violin Plots")
-  currentPage("step4")
-  currentStep(4)
-})
-shiny::observeEvent(input$menu_enhanced_boxplots, {
-  selected_function("Enhanced Boxplots")
   currentPage("step4")
   currentStep(4)
 })

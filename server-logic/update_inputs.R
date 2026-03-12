@@ -6,7 +6,11 @@ shiny::observeEvent(currentStep(), {
   shiny::req(currentStep())
   if (currentStep() == 1) {
     # restore the Use built‑in” toggle
-    shiny::updateCheckboxInput(session, "use_builtin", value = userState$use_builtin)
+    shiny::updateCheckboxInput(
+      session,
+      "use_builtin",
+      value = userState$use_builtin
+    )
     if (isTRUE(userState$use_builtin) && !is.null(userState$built_in_choice)) {
       shiny::updateSelectInput(
         session,
@@ -123,16 +127,7 @@ shiny::observeEvent(currentStep(), {
         value = userState$vio_boxplot_overlay
       )
     }
-
-    # Enhanced Boxplots
-    if (userState$selected_function == "Enhanced Boxplots") {
-      shiny::updateTextInput(session, "bp2_mf_row", value = userState$bp2_mf_row)
-      shiny::updateTextInput(session, "bp2_y_lim", value = userState$bp2_y_lim)
-    }
-    if (
-      userState$selected_function ==
-        "Univariate Tests (T-test, Wilcoxon)"
-    ) {
+    if (userState$selected_function == "Univariate Tests (T-test, Wilcoxon)") {
       shiny::updateSelectInput(
         session,
         "uv2_method",
@@ -145,8 +140,7 @@ shiny::observeEvent(currentStep(), {
       )
     }
     if (
-      userState$selected_function ==
-        "Univariate Tests (ANOVA, Kruskal-Wallis)"
+      userState$selected_function == "Univariate Tests (ANOVA, Kruskal-Wallis)"
     ) {
       shiny::updateSelectInput(
         session,
@@ -165,8 +159,16 @@ shiny::observeEvent(currentStep(), {
         "eb_group_col",
         selected = userState$eb_group_col
       )
-      shiny::updateCheckboxInput(session, "eb_p_lab", value = userState$eb_p_lab)
-      shiny::updateCheckboxInput(session, "eb_es_lab", value = userState$eb_es_lab)
+      shiny::updateCheckboxInput(
+        session,
+        "eb_p_lab",
+        value = userState$eb_p_lab
+      )
+      shiny::updateCheckboxInput(
+        session,
+        "eb_es_lab",
+        value = userState$eb_es_lab
+      )
       shiny::updateCheckboxInput(
         session,
         "eb_class_symbol",
@@ -176,7 +178,11 @@ shiny::observeEvent(currentStep(), {
       shiny::updateTextInput(session, "eb_y_lab", value = userState$eb_y_lab)
       shiny::updateTextInput(session, "eb_title", value = userState$eb_title)
       shiny::updateSelectInput(session, "eb_stat", selected = userState$eb_stat)
-      shiny::updateSelectInput(session, "eb_error", selected = userState$eb_error)
+      shiny::updateSelectInput(
+        session,
+        "eb_error",
+        selected = userState$eb_error
+      )
       shiny::updateSelectInput(
         session,
         "eb_method",
@@ -191,6 +197,21 @@ shiny::observeEvent(currentStep(), {
         session,
         "eb_label_size",
         value = userState$eb_label_size
+      )
+      shiny::updateNumericInput(
+        session,
+        "eb_n_col",
+        value = userState$eb_n_col %||% 3
+      )
+      shiny::updateSliderInput(
+        session,
+        "eb_base_size",
+        value = userState$eb_base_size %||% 11
+      )
+      shiny::updateSelectInput(
+        session,
+        "eb_fill_palette",
+        selected = userState$eb_fill_palette %||% "grey"
       )
     }
     # Dual-Flashlight Plot
@@ -263,8 +284,16 @@ shiny::observeEvent(currentStep(), {
         "pca_ellipse",
         value = userState$pca_ellipse
       )
-      shiny::updateSelectInput(session, "pca_style", selected = userState$pca_style)
-      shiny::updateSelectizeInput(session, "pca_pch", selected = userState$pca_pch)
+      shiny::updateSelectInput(
+        session,
+        "pca_style",
+        selected = userState$pca_style
+      )
+      shiny::updateSelectizeInput(
+        session,
+        "pca_pch",
+        selected = userState$pca_pch
+      )
       shiny::updateSelectizeInput(
         session,
         "pca_colors",
@@ -370,7 +399,11 @@ shiny::observeEvent(currentStep(), {
         "rf_run_rfcv",
         value = userState$rf_run_rfcv
       )
-      shiny::updateNumericInput(session, "rf_k_folds", value = userState$rf_k_folds)
+      shiny::updateNumericInput(
+        session,
+        "rf_k_folds",
+        value = userState$rf_k_folds
+      )
       shiny::updateNumericInput(session, "rf_step", value = userState$rf_step)
     }
 
@@ -477,13 +510,21 @@ shiny::observeEvent(currentStep(), {
         "splsda_style",
         selected = userState$splsda_style
       )
-      shiny::updateCheckboxInput(session, "splsda_roc", value = userState$splsda_roc)
+      shiny::updateCheckboxInput(
+        session,
+        "splsda_roc",
+        value = userState$splsda_roc
+      )
       shiny::updateCheckboxInput(
         session,
         "splsda_ellipse",
         value = userState$splsda_ellipse
       )
-      shiny::updateCheckboxInput(session, "splsda_bg", value = userState$splsda_bg)
+      shiny::updateCheckboxInput(
+        session,
+        "splsda_bg",
+        value = userState$splsda_bg
+      )
       shiny::updateCheckboxInput(
         session,
         "splsda_conf_mat",
@@ -573,7 +614,11 @@ shiny::observeEvent(currentStep(), {
         value = userState$xgb_plot_roc
       )
       shiny::updateCheckboxInput(session, "xgb_cv", value = userState$xgb_cv)
-      shiny::updateNumericInput(session, "xgb_nfold", value = userState$xgb_nfold)
+      shiny::updateNumericInput(
+        session,
+        "xgb_nfold",
+        value = userState$xgb_nfold
+      )
     }
   }
 })
@@ -596,10 +641,6 @@ analysis_inputs <- shiny::reactive({
       vio_y_lim = input$vio_y_lim,
       vio_boxplot_overlay = input$vio_boxplot_overlay,
 
-      # Enhanced Boxplots
-      bp2_mf_row = input$bp2_mf_row,
-      bp2_y_lim = input$bp2_y_lim,
-
       # Univariate Tests
       uv2_method = input$uv2_method,
       uv2_p_adjust_method = input$uv2_p_adjust_method,
@@ -619,7 +660,9 @@ analysis_inputs <- shiny::reactive({
       eb_method = input$eb_method,
       eb_p_adjust_method = input$eb_p_adjust_method,
       eb_label_size = input$eb_label_size,
-
+      eb_n_col = input$eb_n_col,
+      eb_base_size = input$eb_base_size,
+      eb_fill_palette = input$eb_fill_palette,
       # Dual-Flashlight Plot
       df_group_var = input$df_group_var,
       df_cond1 = input$df_cond1,

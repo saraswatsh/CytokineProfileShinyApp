@@ -33,10 +33,6 @@ userState <- shiny::reactiveValues(
   vio_y_lim = NULL,
   vio_boxplot_overlay = NULL,
 
-  # Enhanced Boxplots options
-  bp2_mf_row = NULL,
-  bp2_y_lim = NULL,
-
   # Univariate Tests (T-test, Wilcoxon)
   uv2_method = NULL,
   uv2_p_adjust_method = NULL,
@@ -58,6 +54,9 @@ userState <- shiny::reactiveValues(
   eb_method = NULL,
   eb_p_adjust_method = NULL,
   eb_label_size = NULL,
+  eb_n_col = NULL,
+  eb_base_size = NULL,
+  eb_fill_palette = NULL,
 
   # Dual-Flashlight Plot options
   df_group_var = NULL,

@@ -20,6 +20,9 @@ cyt_errbp(
   method = c("auto", "ttest", "wilcox"),
   p_adjust_method = NULL,
   label_size = 4,
+  n_col = NULL,
+  base_size = 11,
+  fill_palette = NULL,
   output_file = NULL,
   progress = NULL
 )
@@ -76,6 +79,17 @@ adjustment.}
 
 \item{label_size}{Numeric. Font size for p-value and effect-size labels.
 Default is \code{4}.}
+
+\item{n_col}{Integer. Number of columns in the facet grid. If \code{NULL}
+(default), uses \code{min(3, number_of_cytokines)}.}
+
+\item{base_size}{Numeric. Base font size for the plot theme. Default is
+\code{11}.}
+
+\item{fill_palette}{Character vector of colours for the group bars. If
+\code{NULL} (default), all bars are filled with \code{"grey80"}.
+Supply one colour per group level (e.g. \code{c("#4E79A7", "#F28E2B",
+  "#E15759")}).}
 
 \item{output_file}{Optional file path. If provided, the plot is saved
 using \code{ggsave()}; otherwise the plot is returned and automatically

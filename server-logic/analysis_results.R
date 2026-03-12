@@ -95,7 +95,12 @@ analysisResult <- shiny::eventReactive(input$next4, {
             "Univariate Tests (T-test, Wilcoxon)" = cyt_univariate(
               data = df,
               method = input$uv2_method %||% "auto",
-              p_adjust_method = null_if_blank(input$uv2_p_adjust_method),
+              p_adjust_method = if (nzchar(input$uv2_p_adjust_method %||% "")) {
+                input$uv2_p_adjust_method
+              } else {
+                "none"
+              },
+              ,
               progress = prog,
               scale = NULL,
               format_output = TRUE
@@ -104,9 +109,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
             "Univariate Tests (ANOVA, Kruskal-Wallis)" = cyt_univariate_multi(
               data = df,
               method = input$uvm_method %||% "anova",
-              p_adjust_method = if (
-                nzchar(input$uvm_p_adjust_method %||% "")
-              ) {
+              p_adjust_method = if (nzchar(input$uvm_p_adjust_method %||% "")) {
                 input$uvm_p_adjust_method
               } else {
                 "none"
@@ -143,19 +146,6 @@ analysisResult <- shiny::eventReactive(input$next4, {
               boxplot_overlay = isTRUE(input$vio_boxplot_overlay)
             ),
 
-            "Enhanced Boxplots" = cyt_bp2(
-              data = df,
-
-              progress = prog,
-              mf_row = if (nzchar(input$bp2_mf_row)) {
-                as.numeric(strsplit(input$bp2_mf_row, ",")[[1]])
-              },
-              y_lim = if (nzchar(input$bp2_y_lim)) {
-                as.numeric(strsplit(input$bp2_y_lim, ",")[[1]])
-              },
-              scale = NULL
-            ),
-
             "Error-Bar Plot" = cyt_errbp(
               data = df,
               progress = prog,
@@ -171,7 +161,37 @@ analysisResult <- shiny::eventReactive(input$next4, {
               scale = "none",
               method = input$eb_method %||% "auto",
               p_adjust_method = null_if_blank(input$eb_p_adjust_method),
-              label_size = input$eb_label_size %||% 4
+              label_size = input$eb_label_size %||% 4,
+              n_col = input$eb_n_col %||% 3,
+              base_size = input$eb_base_size %||% 11,
+              fill_palette = switch(
+                input$eb_fill_palette %||% "grey",
+                "grey" = NULL,
+                "tableau" = c(
+                  "#4E79A7",
+                  "#F28E2B",
+                  "#E15759",
+                  "#76B7B2",
+                  "#59A14F",
+                  "#EDC948"
+                ),
+                "colorblind" = c(
+                  "#0072B2",
+                  "#E69F00",
+                  "#009E73",
+                  "#CC79A7",
+                  "#56B4E9",
+                  "#D55E00"
+                ),
+                "pastel" = c(
+                  "#AEC6CF",
+                  "#FFD1DC",
+                  "#B5EAD7",
+                  "#FFDAC1",
+                  "#C7CEEA",
+                  "#E2F0CB"
+                )
+              )
             ),
 
             "Dual-Flashlight Plot" = cyt_dualflashplot(
@@ -477,7 +497,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
               run_rfcv = isTRUE(input$rf_run_rfcv),
               k_folds = input$rf_k_folds,
               step = input$rf_step,
-              scale = "none"
+              scale = "none",
+              seed = 123
             ),
 
             "Extreme Gradient Boosting (XGBoost)" = cyt_xgb(
@@ -493,7 +514,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
               eval_metric = input$xgb_eval_metric,
               top_n_features = input$xgb_top_n_features,
               plot_roc = isTRUE(input$xgb_plot_roc),
-              scale = "none"
+              scale = "none",
+              seed = 123
             )
           ) # end switch
 
@@ -550,7 +572,10 @@ exportablePlots <- shiny::reactive({
       ),
       "skku"
     ),
-    collect_exportable_plots(res, gsub("[^A-Za-z0-9]+", "_", tolower(func_name)))
+    collect_exportable_plots(
+      res,
+      gsub("[^A-Za-z0-9]+", "_", tolower(func_name))
+    )
   )
 })
 
@@ -1486,7 +1511,7 @@ output$result_display <- shiny::renderUI({
         shiny::tagList(
           shiny::h4("Error-Bar Plot Results"),
           shinycssloaders::withSpinner(
-            shiny::plotOutput("errorBarPlotOutput", height = "400px"),
+            shiny::plotOutput("errorBarPlotOutput", height = "auto"),
             type = 8
           )
         )
@@ -1501,12 +1526,51 @@ output$result_display <- shiny::renderUI({
         )
       },
       "Univariate Tests (ANOVA, Kruskal-Wallis)" = {
+        method_used <- input$uvm_method %||% "anova"
         shiny::tagList(
           shiny::h4("Univariate Test Results"),
-          shinycssloaders::withSpinner(
-            DT::dataTableOutput("univariateResults"),
-            type = 8
-          )
+          if (method_used == "anova") {
+            shiny::tabsetPanel(
+              shiny::tabPanel(
+                "Pairwise Comparisons",
+                shiny::br(),
+                shinycssloaders::withSpinner(
+                  DT::dataTableOutput("univariateResults"),
+                  type = 8
+                )
+              ),
+              shiny::tabPanel(
+                "Assumption Checks",
+                shiny::br(),
+                shiny::helpText(
+                  shiny::icon("circle-info"),
+                  "Residual normality is assessed via Shapiro-Wilk on model residuals.",
+                  "Homogeneity of variance is assessed via Bartlett's test.",
+                  "A p-value > 0.05 indicates the assumption is met.",
+                  "If either assumption is violated, consider switching the method to Kruskal-Wallis,",
+                  "which is non-parametric and does not require normality or equal variances."
+                ),
+                shiny::br(),
+                shinycssloaders::withSpinner(
+                  DT::dataTableOutput("anovaAssumptionTable"),
+                  type = 8
+                )
+              )
+            )
+          } else {
+            shiny::tagList(
+              shiny::helpText(
+                shiny::icon("circle-info"),
+                "Kruskal-Wallis is non-parametric and does not require normality or",
+                "homogeneity of variance assumptions. No assumption checks are needed."
+              ),
+              shiny::br(),
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("univariateResults"),
+                type = 8
+              )
+            )
+          }
         )
       },
       # --- Default UI for other functions (plots or tables) ---
@@ -2382,20 +2446,58 @@ shiny::observeEvent(analysisResult(), {
 output$univariateResults <- DT::renderDataTable(
   {
     res <- analysisResult()
-    shiny::req(selected_function() %in% c(
-      "Univariate Tests (T-test, Wilcoxon)",
-      "Univariate Tests (ANOVA, Kruskal-Wallis)"
-    ))
-    res
+    shiny::req(
+      selected_function() %in%
+        c(
+          "Univariate Tests (T-test, Wilcoxon)",
+          "Univariate Tests (ANOVA, Kruskal-Wallis)"
+        )
+    )
+    # ANOVA returns a named list; t-test/Wilcoxon returns a plain data frame
+    if (is.list(res) && !is.data.frame(res) && !is.null(res$results)) {
+      res$results
+    } else {
+      res
+    }
   },
   options = list(pageLength = 10, scrollX = TRUE)
 )
-
-output$errorBarPlotOutput <- shiny::renderPlot({
-  shiny::req(analysisResult())
-  res <- analysisResult()
-  print(res)
-})
+output$anovaAssumptionTable <- DT::renderDataTable(
+  {
+    res <- analysisResult()
+    shiny::req(
+      selected_function() == "Univariate Tests (ANOVA, Kruskal-Wallis)",
+      is.list(res),
+      !is.null(res$assumptions)
+    )
+    res$assumptions
+  },
+  options = list(pageLength = 10, scrollX = TRUE)
+)
+output$errorBarPlotOutput <- shiny::renderPlot(
+  {
+    shiny::req(analysisResult())
+    res <- analysisResult()
+    print(res)
+  },
+  height = function() {
+    res <- analysisResult()
+    if (is.null(res) || !inherits(res, "ggplot")) {
+      return(400L)
+    }
+    # Extract number of facets from the built plot data if possible
+    n_facets <- tryCatch(
+      {
+        pb <- ggplot2::ggplot_build(res)
+        length(unique(pb$data[[1]]$PANEL))
+      },
+      error = function(e) 9L
+    )
+    n_cols <- input$eb_n_col %||% 3L
+    n_rows <- ceiling(n_facets / n_cols)
+    max(400L, n_rows * 180L)
+  }
+)
 
 # Render the download UI conditionally
 output$download_ui <- shiny::renderUI({

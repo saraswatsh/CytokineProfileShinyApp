@@ -103,6 +103,8 @@ cyt_univariate_multi <- function(
 
   # Initialize list to store p-value vectors
   test_results <- list()
+  # Initialize list to store assumption test results (for ANOVA)
+  assumption_results <- list()
 
   for (cat_var in cat_vars) {
     # Skip predictors with insufficient levels
@@ -133,6 +135,26 @@ cyt_univariate_multi <- function(
         p_vals <- tuk[, "p adj"]
         names(p_vals) <- rownames(tuk)
         test_results[[key]] <- round(p_vals, 4)
+
+        # Assumption checks for ANOVA
+        resids <- stats::residuals(model)
+        norm_p <- tryCatch(
+          stats::shapiro.test(resids)$p.value,
+          error = function(e) NA_real_
+        )
+        bartlett_p <- tryCatch(
+          stats::bartlett.test(
+            stats::as.formula(paste(outcome, "~", cat_var)),
+            data = x1_df
+          )$p.value,
+          error = function(e) NA_real_
+        )
+        assumption_results[[key]] <- list(
+          normality_p = round(norm_p, 4),
+          homogeneity_p = round(bartlett_p, 4),
+          normality_ok = !is.na(norm_p) && norm_p > 0.05,
+          homogeneity_ok = !is.na(bartlett_p) && bartlett_p > 0.05
+        )
       } else {
         # Kruskal-Wallis global test
         kw <- stats::kruskal.test(
@@ -240,5 +262,39 @@ cyt_univariate_multi <- function(
     progress$inc(0.05, detail = "Complete")
   }
 
-  out_df
+  # Build assumption summary table (only populated when method == "anova")
+  assumption_df <- if (length(assumption_results) > 0L) {
+    do.call(
+      rbind,
+      lapply(names(assumption_results), function(key) {
+        a <- assumption_results[[key]]
+        parts <- strsplit(key, "_")[[1]]
+        data.frame(
+          Outcome = parts[1],
+          Categorical = parts[2],
+          Normality_P = a$normality_p,
+          Normality_Met = ifelse(
+            isTRUE(a$normality_ok),
+            "\u2714 Yes",
+            "\u2718 No"
+          ),
+          Homogeneity_P = a$homogeneity_p,
+          Homogeneity_Met = ifelse(
+            isTRUE(a$homogeneity_ok),
+            "\u2714 Yes",
+            "\u2718 No"
+          ),
+          stringsAsFactors = FALSE,
+          row.names = NULL
+        )
+      })
+    )
+  } else {
+    NULL
+  }
+
+  list(
+    results = out_df,
+    assumptions = assumption_df
+  )
 }
