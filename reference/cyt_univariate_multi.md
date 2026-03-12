@@ -80,17 +80,14 @@ Shubh Saraswat
 data("ExampleData1")
 cyt_univariate_multi(ExampleData1[, c(1:2, 5:6)], method = "kruskal",
                      format_output = TRUE)
-#>    Outcome Categorical            Comparison  P_adj
-#> 1   GM.CSF       Group             PreT2D-ND 0.8981
-#> 2   GM.CSF       Group                T2D-ND 0.8981
-#> 3   GM.CSF       Group            T2D-PreT2D 0.8981
-#> 4   GM.CSF   Treatment          LPS-CD3/CD28 0.0000
-#> 5   GM.CSF   Treatment Unstimulated-CD3/CD28 0.0000
-#> 6   GM.CSF   Treatment      Unstimulated-LPS 0.0000
-#> 7    IFN.G       Group             PreT2D-ND 0.0247
-#> 8    IFN.G       Group                T2D-ND 0.5516
-#> 9    IFN.G       Group            T2D-PreT2D 0.0247
-#> 10   IFN.G   Treatment          LPS-CD3/CD28 0.0000
-#> 11   IFN.G   Treatment Unstimulated-CD3/CD28 0.0000
-#> 12   IFN.G   Treatment      Unstimulated-LPS 0.0000
+#>   Outcome Categorical            Comparison  P_adj
+#> 1  GM.CSF   Treatment          LPS-CD3/CD28 0.0000
+#> 2  GM.CSF   Treatment Unstimulated-CD3/CD28 0.0000
+#> 3  GM.CSF   Treatment      Unstimulated-LPS 0.0000
+#> 4   IFN.G       Group             PreT2D-ND 0.0247
+#> 5   IFN.G       Group                T2D-ND 0.5516
+#> 6   IFN.G       Group            T2D-PreT2D 0.0247
+#> 7   IFN.G   Treatment          LPS-CD3/CD28 0.0000
+#> 8   IFN.G   Treatment Unstimulated-CD3/CD28 0.0000
+#> 9   IFN.G   Treatment      Unstimulated-LPS 0.0000
 ```

@@ -3,9 +3,9 @@
 This function creates a heatmap using the numeric columns from the
 provided data frame. It provides the ability to hide row and column
 names, adjust font sizes and clustering, and apply additional
-transformations such as log10 or combined z-scoring. A file name with
-extension may be provided via `title` to save the heat map to disk;
-otherwise the plot is drawn on the active graphics device.
+transformations such as log10 or combined z-scoring. An optional `title`
+is displayed as the plot title; an optional `filename` (ending in `.pdf`
+or `.png`) saves the heat map to disk. Both may be supplied together.
 
 ## Usage
 
@@ -22,6 +22,7 @@ cyt_heatmap(
   cluster_rows = TRUE,
   cluster_cols = TRUE,
   title = NULL,
+  filename = NULL,
   progress = NULL
 )
 ```
@@ -77,10 +78,15 @@ cyt_heatmap(
 
 - title:
 
-  Character. The heat map title or file name. If `title` ends with
-  `".pdf"` or `".png"` (case insensitive), the heat map is saved to that
-  file and no title is printed on screen. If `NULL` (default), the heat
-  map is drawn on the active device without a main title.
+  Character. Optional title displayed at the top of the heat map. If
+  `NULL` (default), no title is printed.
+
+- filename:
+
+  Character. Optional file path ending in `".pdf"` or `".png"` (case
+  insensitive). When supplied the heat map is written to disk and screen
+  rendering is suppressed. If `NULL` (default), the plot is drawn on the
+  active graphics device.
 
 - progress:
 
@@ -105,6 +111,6 @@ cyt_heatmap(
   scale           = "log2",
   annotation_col  = "Group",
   annotation_side = "auto",
-  title           = NULL
+  title           = "Cytokine Heatmap"
 )
 ```
