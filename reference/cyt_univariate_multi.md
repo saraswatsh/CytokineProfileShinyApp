@@ -80,6 +80,7 @@ Shubh Saraswat
 data("ExampleData1")
 cyt_univariate_multi(ExampleData1[, c(1:2, 5:6)], method = "kruskal",
                      format_output = TRUE)
+#> $results
 #>   Outcome Categorical            Comparison  P_adj
 #> 1  GM.CSF   Treatment          LPS-CD3/CD28 0.0000
 #> 2  GM.CSF   Treatment Unstimulated-CD3/CD28 0.0000
@@ -90,4 +91,8 @@ cyt_univariate_multi(ExampleData1[, c(1:2, 5:6)], method = "kruskal",
 #> 7   IFN.G   Treatment          LPS-CD3/CD28 0.0000
 #> 8   IFN.G   Treatment Unstimulated-CD3/CD28 0.0000
 #> 9   IFN.G   Treatment      Unstimulated-LPS 0.0000
+#> 
+#> $assumptions
+#> NULL
+#> 
 ```

@@ -25,9 +25,10 @@ App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
 
 - Multiple Analysis Functions:
 
-  - Choose from several analysis functions, including:
-    1.  ANOVA
-    2.  Boxplots and Enhanced Boxplots
+  - Choose from several analysis functions, including but not limited
+    to:
+    1.  Univariate Analysis (e.g., T-test/Wilcoxon/ANOVA/Kruskal-Wallis)
+    2.  Boxplots
     3.  Error-Bar Plots
     4.  Dual-Flashlight Plot
     5.  Heatmap
