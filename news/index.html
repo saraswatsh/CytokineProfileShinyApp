@@ -61,6 +61,18 @@
 <ul><li>The data editor now clears stale <code>sheet_name</code> selections on new uploads to prevent mismatches between previously selected sheet names and the newly uploaded workbook.</li>
 <li>The editor’s AutoFill and cell-edit path preserve numeric coercion logic for edited cells.</li>
 </ul></li>
+<li>Bug fixes &amp; code quality (PR <a href="https://github.com/saraswatsh/CytokineProfileShinyApp/issues/1" class="external-link">#1</a> review)
+<ul><li>
+<code><a href="../reference/cyt_heatmap.html">cyt_heatmap()</a></code>: the heatmap is now drawn on the active graphics device in interactive use. Previously <code>silent = TRUE</code> was unconditional, suppressing all on-screen rendering; it is now only set when saving to a file.</li>
+<li>
+<code><a href="../reference/cyt_univariate.html">cyt_univariate()</a></code> and <code><a href="../reference/cyt_univariate_multi.html">cyt_univariate_multi()</a></code>: fixed a key-parsing bug where column names containing underscores would produce mis-labelled <code>Outcome</code> and <code>Categorical</code> columns in formatted output. Results are now assembled by iterating over the original variable vectors directly rather than splitting the composite key string. Both functions also now return a consistent type (empty <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> or typed empty <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame()</a></code> with a <code><a href="https://rdrr.io/r/base/warning.html" class="external-link">warning()</a></code>) when no valid tests can be performed, instead of a bare character string.</li>
+<li>
+<code><a href="../reference/cyt_xgb.html">cyt_xgb()</a></code>: the best cross-validation iteration is now chosen correctly for all evaluation metrics. When early stopping is enabled, <code>xgb_cv$best_iteration</code> is used directly; otherwise the selection switches between <code><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.max()</a></code> and <code><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.min()</a></code> depending on whether the metric is higher-is-better (e.g. <code>auc</code>, <code>aucpr</code>, <code>map</code>, <code>ndcg</code>) or lower-is-better (e.g. <code>logloss</code>, <code>rmse</code>).</li>
+<li>
+<code><a href="../reference/run_app.html">run_app()</a></code>: the function now resolves the app directory using <code>dirname(system.file("app.R", ...))</code>, which works correctly with both <code><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">devtools::load_all()</a></code> and a standard package installation.</li>
+<li>
+<code>NAMESPACE</code>: <code><a href="https://rlang.r-lib.org/reference/dot-data.html" class="external-link">rlang::.data</a></code> and <code>rlang::%||%</code> are now formally imported via <code>CytokineProfileShinyApp-package.R</code>, preventing potential “object not found” errors when tidy-eval pronouns or the null-coalescing operator are used in package context.</li>
+</ul></li>
 </ul></div>
   </main></div>
 
