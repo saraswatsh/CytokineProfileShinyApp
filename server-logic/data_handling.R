@@ -105,7 +105,7 @@ userData <- shiny::reactive({
     df <- bioplex$final
   } else if (isTRUE(input$use_builtin)) {
     shiny::req(input$built_in_choice)
-    df <- get(input$built_in_choice)
+    df <- base::get(input$built_in_choice)
     dest <- file.path(builtins_dir, paste0(input$built_in_choice, ".rds"))
     if (!file.exists(dest)) saveRDS(df, dest)
   } else {

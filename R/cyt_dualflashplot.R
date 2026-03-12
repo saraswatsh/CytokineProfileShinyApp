@@ -82,14 +82,14 @@ cyt_dualflashplot <- function(
       values_from = c(mean, variance)
     ) |>
     dplyr::mutate(
-      ssmd = (get(paste0("mean_", group1)) - get(paste0("mean_", group2))) /
+      ssmd = (base::get(paste0("mean_", group1)) - base::get(paste0("mean_", group2))) /
         sqrt(
-          (get(paste0("variance_", group1)) +
-            get(paste0("variance_", group2))) /
+          (base::get(paste0("variance_", group1)) +
+            base::get(paste0("variance_", group2))) /
             2
         ),
       log2FC = log2(
-        get(paste0("mean_", group1)) / get(paste0("mean_", group2))
+        base::get(paste0("mean_", group1)) / base::get(paste0("mean_", group2))
       ),
       SSMD_Category = dplyr::case_when(
         abs(ssmd) >= 1 ~ "Strong Effect",

@@ -16,7 +16,6 @@ Depends:
 Imports: 
     shiny,
     shinyjs,
-    base64enc,
     readxl,
     bslib,
     shinyhelper,
@@ -25,7 +24,6 @@ Imports:
     shinyWidgets,
     shinycssloaders,
     fontawesome,
-    jsonlite,
     skimr, 
     mixOmics,
     dplyr,
