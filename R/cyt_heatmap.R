@@ -4,9 +4,9 @@
 #' This function creates a heatmap using the numeric columns from the provided
 #' data frame.  It provides the ability to hide row and column names, adjust
 #' font sizes and clustering, and apply additional transformations such as
-#' log10 or combined z-scoring.  A file name with extension may be provided
-#' via \code{title} to save the heat map to disk; otherwise the plot is drawn
-#' on the active graphics device.
+#' log10 or combined z-scoring.  An optional \code{title} is displayed as the
+#' plot title; an optional \code{filename} (ending in \code{.pdf} or
+#' \code{.png}) saves the heat map to disk.  Both may be supplied together.
 #'
 #' @param data A data frame.  Only numeric columns are used to construct the
 #'   heat map.
@@ -33,11 +33,12 @@
 #' @param cluster_rows Logical.  If \code{TRUE} (default), rows are clustered.
 #' @param cluster_cols Logical.  If \code{TRUE} (default), columns are
 #'   clustered.
-#' @param title Character.  The heat map title or file name.  If \code{title}
-#'   ends with \code{".pdf"} or \code{".png"} (case insensitive), the heat map
-#'   is saved to that file and no title is printed on screen.  If \code{NULL}
-#'   (default), the heat map is drawn on the active device without a main
-#'   title.
+#' @param title Character.  Optional title displayed at the top of the heat
+#'   map.  If \code{NULL} (default), no title is printed.
+#' @param filename Character.  Optional file path ending in \code{".pdf"} or
+#'   \code{".png"} (case insensitive).  When supplied the heat map is written
+#'   to disk and screen rendering is suppressed.  If \code{NULL} (default),
+#'   the plot is drawn on the active graphics device.
 #' @param progress Optional.  A Shiny \code{Progress} object for reporting
 #'   progress updates.
 #'
@@ -58,7 +59,7 @@
 #'   scale           = "log2",
 #'   annotation_col  = "Group",
 #'   annotation_side = "auto",
-#'   title           = NULL
+#'   title           = "Cytokine Heatmap"
 #' )
 cyt_heatmap <- function(
   data,
@@ -72,6 +73,7 @@ cyt_heatmap <- function(
   cluster_rows = TRUE,
   cluster_cols = TRUE,
   title = NULL,
+  filename = NULL,
   progress = NULL
 ) {
   # ── 0. Initialise ──────────────────────────────────────────────────────────
@@ -360,12 +362,14 @@ cyt_heatmap <- function(
     }
   }
 
-  # ── 4. Resolve title vs filename ───────────────────────────────────────────
-  is_file <- !is.null(title) &&
-    grepl("\\.(pdf|png)$", title, ignore.case = TRUE)
-
-  filename <- if (is_file) title else NA
-  main <- if (!is.null(title) && !is_file) title else NA
+  # ── 4. Resolve title and filename ─────────────────────────────────────────
+  if (
+    !is.null(filename) && !grepl("\\.(pdf|png)$", filename, ignore.case = TRUE)
+  ) {
+    stop("`filename` must end in '.pdf' or '.png'.", call. = FALSE)
+  }
+  main <- title %||% NA_character_
+  silent <- !is.null(filename)
 
   # ── 5. Draw heatmap ────────────────────────────────────────────────────────
   if (!is.null(progress)) {
@@ -390,9 +394,9 @@ cyt_heatmap <- function(
     show_colnames = show_col_names,
     fontsize_row = fontsize_row,
     fontsize_col = fontsize_col,
-    filename = filename,
+    filename = filename %||% NA,
     main = main,
-    silent = is_file
+    silent = silent
   )
 
   if (!is.null(progress)) {

@@ -139,30 +139,36 @@ cyt_univariate_multi <- function(
           stats::as.formula(paste(outcome, "~", cat_var)),
           data = x1_df
         )
-        # Pairwise Wilcoxon with adjustment
-        pw <- stats::pairwise.wilcox.test(
-          x1_df[[outcome]],
-          x1_df[[cat_var]],
-          p.adjust.method = p_adjust_method
-        )
-        p_mat <- pw$p.value
-        # Flatten symmetric matrix into named vector (remove NA values)
-        pairs <- NULL
-        pvals <- NULL
-        for (i in seq_len(nrow(p_mat))) {
-          for (j in seq_len(ncol(p_mat))) {
-            if (!is.na(p_mat[i, j])) {
-              pairs <- c(
-                pairs,
-                paste0(rownames(p_mat)[i], "-", colnames(p_mat)[j])
-              )
-              pvals <- c(pvals, p_mat[i, j])
+        # Only perform pairwise comparisons if the global test is significant
+        if (is.finite(kw$p.value) && kw$p.value < 0.05) {
+          # Pairwise Wilcoxon with adjustment
+          pw <- stats::pairwise.wilcox.test(
+            x1_df[[outcome]],
+            x1_df[[cat_var]],
+            p.adjust.method = p_adjust_method
+          )
+          p_mat <- pw$p.value
+          # Flatten symmetric matrix into named vector (remove NA values)
+          pairs <- NULL
+          pvals <- NULL
+          for (i in seq_len(nrow(p_mat))) {
+            for (j in seq_len(ncol(p_mat))) {
+              if (!is.na(p_mat[i, j])) {
+                pairs <- c(
+                  pairs,
+                  paste0(rownames(p_mat)[i], "-", colnames(p_mat)[j])
+                )
+                pvals <- c(pvals, p_mat[i, j])
+              }
             }
           }
+          names(pvals) <- pairs
+          # Round values
+          test_results[[key]] <- round(pvals, 4)
+        } else {
+          # Global test not significant: no pairwise comparisons returned
+          test_results[[key]] <- numeric(0)
         }
-        names(pvals) <- pairs
-        # Round values
-        test_results[[key]] <- round(pvals, 4)
       }
     }
   }
@@ -198,13 +204,7 @@ cyt_univariate_multi <- function(
   }
 
   # Create tidy data frame
-  out_df <- data.frame(
-    Outcome = character(),
-    Categorical = character(),
-    Comparison = character(),
-    P_adj = numeric(),
-    stringsAsFactors = FALSE
-  )
+  rows <- list()
   for (outcome in cont_vars) {
     for (cat_var in cat_vars) {
       key <- paste(outcome, cat_var, sep = "_")
@@ -213,19 +213,27 @@ cyt_univariate_multi <- function(
       }
       p_vec <- test_results[[key]]
       for (comp in names(p_vec)) {
-        out_df <- rbind(
-          out_df,
-          data.frame(
-            Outcome = outcome,
-            Categorical = cat_var,
-            Comparison = comp,
-            P_adj = p_vec[comp],
-            stringsAsFactors = FALSE,
-            row.names = NULL
-          )
+        rows[[length(rows) + 1L]] <- data.frame(
+          Outcome = outcome,
+          Categorical = cat_var,
+          Comparison = comp,
+          P_adj = p_vec[comp],
+          stringsAsFactors = FALSE,
+          row.names = NULL
         )
       }
     }
+  }
+  out_df <- if (length(rows) > 0L) {
+    do.call(rbind, rows)
+  } else {
+    data.frame(
+      Outcome = character(),
+      Categorical = character(),
+      Comparison = character(),
+      P_adj = numeric(),
+      stringsAsFactors = FALSE
+    )
   }
 
   if (!is.null(progress)) {

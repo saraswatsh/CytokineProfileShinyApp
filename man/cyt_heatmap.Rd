@@ -16,6 +16,7 @@ cyt_heatmap(
   cluster_rows = TRUE,
   cluster_cols = TRUE,
   title = NULL,
+  filename = NULL,
   progress = NULL
 )
 }
@@ -55,11 +56,13 @@ Default is \code{TRUE}.}
 \item{cluster_cols}{Logical.  If \code{TRUE} (default), columns are
 clustered.}
 
-\item{title}{Character.  The heat map title or file name.  If \code{title}
-ends with \code{".pdf"} or \code{".png"} (case insensitive), the heat map
-is saved to that file and no title is printed on screen.  If \code{NULL}
-(default), the heat map is drawn on the active device without a main
-title.}
+\item{title}{Character.  Optional title displayed at the top of the heat
+map.  If \code{NULL} (default), no title is printed.}
+
+\item{filename}{Character.  Optional file path ending in \code{".pdf"} or
+\code{".png"} (case insensitive).  When supplied the heat map is written
+to disk and screen rendering is suppressed.  If \code{NULL} (default),
+the plot is drawn on the active graphics device.}
 
 \item{progress}{Optional.  A Shiny \code{Progress} object for reporting
 progress updates.}
@@ -72,9 +75,9 @@ Invisibly returns the pheatmap object created by
 This function creates a heatmap using the numeric columns from the provided
 data frame.  It provides the ability to hide row and column names, adjust
 font sizes and clustering, and apply additional transformations such as
-log10 or combined z-scoring.  A file name with extension may be provided
-via \code{title} to save the heat map to disk; otherwise the plot is drawn
-on the active graphics device.
+log10 or combined z-scoring.  An optional \code{title} is displayed as the
+plot title; an optional \code{filename} (ending in \code{.pdf} or
+\code{.png}) saves the heat map to disk.  Both may be supplied together.
 }
 \examples{
 data("ExampleData1")
@@ -84,7 +87,7 @@ cyt_heatmap(
   scale           = "log2",
   annotation_col  = "Group",
   annotation_side = "auto",
-  title           = NULL
+  title           = "Cytokine Heatmap"
 )
 }
 \author{

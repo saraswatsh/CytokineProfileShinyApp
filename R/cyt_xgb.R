@@ -209,12 +209,19 @@ cyt_xgb <- function(
   }
   preds <- stats::predict(xgb_model, X_test)
 
-  preds_matrix <- if (is.matrix(preds)) {
-    preds
+  if (is.matrix(preds)) {
+    preds_matrix <- preds
+    pred_labels <- max.col(preds_matrix) - 1L
+  } else if (num_class == 2L && length(preds) == nrow(X_test)) {
+    # Binary classification: predict() returned a length-N probability vector
+    # for the positive class. Avoid reshaping into 2 columns with recycling.
+    preds_matrix <- cbind(1 - preds, preds)
+    pred_labels <- ifelse(preds >= 0.5, 1L, 0L)
   } else {
-    matrix(preds, ncol = num_class, byrow = TRUE)
+    # Multi-class probabilities (e.g., 'multi:softprob'): reshape flat vector
+    preds_matrix <- matrix(preds, ncol = num_class, byrow = TRUE)
+    pred_labels <- max.col(preds_matrix) - 1L
   }
-  pred_labels <- max.col(preds_matrix) - 1L
 
   test_levels <- sort(unique(y))
   confusion_mat <- caret::confusionMatrix(

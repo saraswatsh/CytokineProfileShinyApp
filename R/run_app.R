@@ -1,9 +1,9 @@
 #' Launch the CytokineProfile Shiny App
 #' @export
 run_app <- function() {
-  app_dir <- system.file("app.R", package = "CytokineProfileShinyApp")
-  if (app_dir == "") {
+  app_file <- system.file("app.R", package = "CytokineProfileShinyApp")
+  if (!nzchar(app_file)) {
     stop("Could not find app directory.")
   }
-  shiny::runApp(app_dir, display.mode = "normal")
+  shiny::runApp(dirname(app_file), display.mode = "normal")
 }
