@@ -129,8 +129,8 @@ cyt_errbp(
 
 - fill_palette:
 
-  Character vector of colours for the group bars. If `NULL` (default),
-  all bars are filled with `"grey80"`. Supply one colour per group level
+  Character vector of colors for the group bars. If `NULL` (default),
+  all bars are filled with `"gray80"`. Supply one color per group level
   (e.g. `c("#4E79A7", "#F28E2B", "#E15759")`).
 
 - output_file:

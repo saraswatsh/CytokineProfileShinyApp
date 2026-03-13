@@ -49,7 +49,7 @@ Functions for performing univariate statistical tests.
   : Pairwise Univariate Tests Between Two Groups
 
 - [`cyt_univariate_multi()`](https://shinyinfo.cytokineprofile.org/reference/cyt_univariate_multi.md)
-  : Univariate Tests for Multi‑Level Categorical Predictors
+  : Univariate Tests for Multi-Level Categorical Predictors
 
 - [`cyt_anova()`](https://shinyinfo.cytokineprofile.org/reference/cyt_anova.md)
   :
