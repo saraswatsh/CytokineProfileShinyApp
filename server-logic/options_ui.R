@@ -168,7 +168,7 @@ output$function_options_ui <- shiny::renderUI({
     # ------------------------
     # Univariate Tests (ANOVA, Kruskal-Wallis)
     # ------------------------
-    "Univariate Tests (ANOVA, Kruskal-Wallis)" = {
+    "Multi-level Univariate Tests (Anova, Kruskal-Wallis)" = {
       method_selected <- input$uvm_method %||%
         shiny::isolate(userState$uvm_method) %||%
         "anova"

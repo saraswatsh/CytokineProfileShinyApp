@@ -583,8 +583,8 @@ shiny::observeEvent(input$menu_univariate_2lvl, {
   currentStep(4)
 })
 shiny::observeEvent(input$menu_univariate_multi, {
-  selected_stat_func("Univariate Tests (ANOVA, Kruskal-Wallis)")
-  selected_function("Univariate Tests (ANOVA, Kruskal-Wallis)")
+  selected_stat_func("Multi-level Univariate Tests (Anova, Kruskal-Wallis)")
+  selected_function("Multi-level Univariate Tests (Anova, Kruskal-Wallis)")
   currentPage("step4")
   currentStep(4)
 })

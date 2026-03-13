@@ -140,7 +140,8 @@ shiny::observeEvent(currentStep(), {
       )
     }
     if (
-      userState$selected_function == "Univariate Tests (ANOVA, Kruskal-Wallis)"
+      userState$selected_function ==
+        "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
     ) {
       shiny::updateSelectInput(
         session,

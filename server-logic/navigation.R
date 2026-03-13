@@ -563,7 +563,9 @@ homeUI <- function() {
             class = "card-body",
             shiny::tags$ul(
               shiny::tags$li("Univariate Tests (T-test, Wilcoxon)"),
-              shiny::tags$li("Univariate Tests (ANOVA, Kruskal-Wallis)")
+              shiny::tags$li(
+                "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
+              )
             )
           )
         )
@@ -1135,7 +1137,7 @@ step3UI <- function() {
             ),
             shiny::actionButton(
               "menu_univariate_multi",
-              "Univariate Tests (ANOVA, Kruskal-Wallis)",
+              "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
               class = "menu-card"
             ),
           )
@@ -1481,7 +1483,7 @@ output$step1_bottom_block <- shiny::renderUI({
 # --- Logic for Custom Button Group: Statistical Tests ---
 stat_choices <- c(
   "Univariate Tests (T-test, Wilcoxon)",
-  "Univariate Tests (ANOVA, Kruskal-Wallis)"
+  "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
 )
 output$stat_function_ui <- shiny::renderUI({
   lapply(stat_choices, function(choice) {
@@ -2342,7 +2344,10 @@ shiny::observeEvent(input$next4, {
       userState$uv2_method <- input$uv2_method
       userState$uv2_p_adjust_method <- input$uv2_p_adjust_method
     }
-    if (selected_function() == "Univariate Tests (ANOVA, Kruskal-Wallis)") {
+    if (
+      selected_function() ==
+        "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
+    ) {
       userState$uvm_method <- input$uvm_method
       if (!is.null(input$uvm_p_adjust_method)) {
         userState$uvm_p_adjust_method <- input$uvm_p_adjust_method
@@ -2374,7 +2379,9 @@ shiny::observeEvent(input$next4, {
       userState$eb_label_size <- input$eb_label_size
       userState$eb_n_col <- input$eb_n_col
       userState$eb_base_size <- input$eb_base_size
-      userState$eb_fill_palette <- if (identical(input$eb_fill_palette, "grey")) {
+      userState$eb_fill_palette <- if (
+        identical(input$eb_fill_palette, "grey")
+      ) {
         "gray"
       } else {
         input$eb_fill_palette

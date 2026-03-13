@@ -206,7 +206,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
               format_output = TRUE
             ),
 
-            "Univariate Tests (ANOVA, Kruskal-Wallis)" = cyt_univariate_multi(
+            "Multi-level Univariate Tests (Anova, Kruskal-Wallis)" = cyt_univariate_multi(
               data = df,
               method = input$uvm_method %||% "anova",
               p_adjust_method = if (nzchar(input$uvm_p_adjust_method %||% "")) {
@@ -654,7 +654,7 @@ exportablePlots <- shiny::reactive({
   switch(
     func_name,
     "Univariate Tests (T-test, Wilcoxon)" = list(),
-    "Univariate Tests (ANOVA, Kruskal-Wallis)" = list(),
+    "Multi-level Univariate Tests (Anova, Kruskal-Wallis)" = list(),
     "Heatmap" = collect_exportable_plots(res, "heatmap"),
     "Random Forest" = collect_exportable_plots(
       list(
@@ -700,7 +700,7 @@ exportableTables <- shiny::reactive({
         list()
       }
     },
-    "Univariate Tests (ANOVA, Kruskal-Wallis)" = {
+    "Multi-level Univariate Tests (Anova, Kruskal-Wallis)" = {
       if (!is.list(res) || is.null(res$results)) {
         return(list())
       }
@@ -1665,10 +1665,10 @@ output$result_display <- shiny::renderUI({
           )
         )
       },
-      "Univariate Tests (ANOVA, Kruskal-Wallis)" = {
+      "Multi-level Univariate Tests (Anova, Kruskal-Wallis)" = {
         method_used <- input$uvm_method %||% "anova"
         shiny::tagList(
-          shiny::h4("Univariate Test Results"),
+          shiny::h4("Multi-level Univariate Test Results"),
           shiny::tabsetPanel(
             shiny::tabPanel(
               "Global Tests",
@@ -2591,7 +2591,7 @@ output$univariateResults <- DT::renderDataTable(
       selected_function() %in%
         c(
           "Univariate Tests (T-test, Wilcoxon)",
-          "Univariate Tests (ANOVA, Kruskal-Wallis)"
+          "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
         )
     )
     # Multi-level tests return a named list; t-test/Wilcoxon returns a plain data frame
@@ -2608,7 +2608,8 @@ output$univariatePairwiseResults <- DT::renderDataTable(
   {
     res <- analysisResult()
     shiny::req(
-      selected_function() == "Univariate Tests (ANOVA, Kruskal-Wallis)",
+      selected_function() ==
+        "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
       is.list(res),
       !is.null(res$pairwise)
     )
@@ -2621,7 +2622,8 @@ output$anovaAssumptionTable <- DT::renderDataTable(
   {
     res <- analysisResult()
     shiny::req(
-      selected_function() == "Univariate Tests (ANOVA, Kruskal-Wallis)",
+      selected_function() ==
+        "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
       is.list(res),
       !is.null(res$assumptions)
     )
@@ -2682,7 +2684,8 @@ output$download_ui <- shiny::renderUI({
     )
   } else if (length(tables) > 0) {
     is_multi_univariate <-
-      selected_function() == "Univariate Tests (ANOVA, Kruskal-Wallis)"
+      selected_function() ==
+        "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
     shiny::tagList(
       shiny::textInput(
         "download_filename",
