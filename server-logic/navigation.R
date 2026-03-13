@@ -2149,7 +2149,7 @@ output$norm_compare <- shiny::renderPlot({
   base_theme <- ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(size = 12, face = "bold"),
-      plot.subtitle = ggplot2::element_text(size = 8, colour = "grey50"),
+      plot.subtitle = ggplot2::element_text(size = 8, colour = "gray50"),
       panel.grid.minor = ggplot2::element_blank()
     )
   # Helper: trim x-axis to 1st–99th percentile for display only
@@ -2344,7 +2344,9 @@ shiny::observeEvent(input$next4, {
     }
     if (selected_function() == "Univariate Tests (ANOVA, Kruskal-Wallis)") {
       userState$uvm_method <- input$uvm_method
-      userState$uvm_p_adjust_method <- input$uvm_p_adjust_method
+      if (!is.null(input$uvm_p_adjust_method)) {
+        userState$uvm_p_adjust_method <- input$uvm_p_adjust_method
+      }
     }
     if (selected_function() == "Boxplots") {
       userState$bp_group_by <- input$bp_group_by
@@ -2372,7 +2374,11 @@ shiny::observeEvent(input$next4, {
       userState$eb_label_size <- input$eb_label_size
       userState$eb_n_col <- input$eb_n_col
       userState$eb_base_size <- input$eb_base_size
-      userState$eb_fill_palette <- input$eb_fill_palette
+      userState$eb_fill_palette <- if (identical(input$eb_fill_palette, "grey")) {
+        "gray"
+      } else {
+        input$eb_fill_palette
+      }
     }
     if (selected_function() == "Dual-Flashlight Plot") {
       userState$df_group_var <- input$df_group_var

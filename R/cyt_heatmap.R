@@ -76,9 +76,9 @@ cyt_heatmap <- function(
   filename = NULL,
   progress = NULL
 ) {
-  # ── 0. Initialise ──────────────────────────────────────────────────────────
+  # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Heatmap: initialising...", value = 0)
+    progress$set(message = "Heatmap: initializing...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -280,7 +280,7 @@ cyt_heatmap <- function(
 
     if (!is.null(ann)) {
       if (!is.null(progress)) {
-        progress$inc(0.05, detail = "Adding annotation colours")
+        progress$inc(0.05, detail = "Adding annotation colors")
       }
 
       side <- if (annotation_side == "auto") {

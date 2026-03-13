@@ -367,7 +367,7 @@ cyt_plsr <- function(
               ),
               ggplot2::aes(yintercept = yint),
               linetype = "dashed",
-              color = "grey40"
+              color = "gray40"
             )
 
           print(g)
@@ -544,7 +544,7 @@ cyt_plsr <- function(
                   ),
                   ggplot2::aes(yintercept = yint),
                   linetype = "dashed",
-                  color = "grey40"
+                  color = "gray40"
                 )
               print(g)
             } else {

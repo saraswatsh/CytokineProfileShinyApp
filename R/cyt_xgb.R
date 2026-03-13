@@ -109,9 +109,9 @@ cyt_xgb <- function(
   output_file = NULL,
   progress = NULL
 ) {
-  # ── 0. Initialise ──────────────────────────────────────────────────────────
+  # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "XGBoost: initialising...", value = 0)
+    progress$set(message = "XGBoost: initializing...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -342,8 +342,8 @@ cyt_xgb <- function(
               color = NA
             ),
             plot.background = ggplot2::element_rect(fill = "white", color = NA),
-            panel.grid.major = ggplot2::element_line(color = "grey90"),
-            panel.grid.minor = ggplot2::element_line(color = "grey95")
+            panel.grid.major = ggplot2::element_line(color = "gray90"),
+            panel.grid.minor = ggplot2::element_line(color = "gray95")
           )
       } else {
         warning(

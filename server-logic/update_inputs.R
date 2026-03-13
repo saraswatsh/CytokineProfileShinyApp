@@ -208,10 +208,14 @@ shiny::observeEvent(currentStep(), {
         "eb_base_size",
         value = userState$eb_base_size %||% 11
       )
+      eb_fill_palette_selected <- userState$eb_fill_palette %||% "gray"
+      if (identical(eb_fill_palette_selected, "grey")) {
+        eb_fill_palette_selected <- "gray"
+      }
       shiny::updateSelectInput(
         session,
         "eb_fill_palette",
-        selected = userState$eb_fill_palette %||% "grey"
+        selected = eb_fill_palette_selected
       )
     }
     # Dual-Flashlight Plot

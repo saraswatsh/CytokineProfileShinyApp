@@ -26,14 +26,15 @@ p_adjust_choices <- c(
 )
 
 p_adjust_help <- shiny::HTML(paste(
-  "Choose one multiple-testing correction method for the reported p-values.<br><br>",
-  "<b>None</b>: report raw p-values without adjustment.<br>",
-  "<b>Bonferroni</b>: strict family-wise error control.<br>",
-  "<b>Holm</b>: step-down family-wise error control, less conservative than Bonferroni.<br>",
-  "<b>Hochberg</b>: step-up family-wise error control.<br>",
-  "<b>Hommel</b>: family-wise error control with more power but more complexity.<br>",
-  "<b>Benjamini-Hochberg</b>: false discovery rate control.<br>",
-  "<b>Benjamini-Yekutieli</b>: false discovery rate control under arbitrary dependence."
+  "Use this when you are testing many cytokines or features at the same time.<br><br>",
+  "Adjustment makes the reported p-values more conservative so fewer findings look significant just by chance.<br><br>",
+  "<b>None</b>: keep the raw p-values exactly as calculated.<br>",
+  "<b>Bonferroni</b>: very strict; best when you want to minimize any false positives.<br>",
+  "<b>Holm</b>: still strict, but usually a little less harsh than Bonferroni.<br>",
+  "<b>Hochberg</b>: another family-wise error method that can be a bit more powerful when assumptions fit.<br>",
+  "<b>Hommel</b>: a more advanced family-wise error method; useful but less commonly chosen by non-specialists.<br>",
+  "<b>Benjamini-Hochberg</b>: controls the expected false discovery rate and is a common choice for exploratory biology data.<br>",
+  "<b>Benjamini-Yekutieli</b>: similar to Benjamini-Hochberg, but more conservative when tests may be strongly related."
 ))
 
 # PCH Values
@@ -100,7 +101,7 @@ output$function_options_ui <- shiny::renderUI({
 
   userState$selected_function <- func
   func_name <- func
-  helper_colour <- if (input$theme_choice %in% c("darkly", "cyborg")) {
+  helper_color <- if (input$theme_choice %in% c("darkly", "cyborg")) {
     "red"
   } else {
     "blue"
@@ -119,7 +120,7 @@ output$function_options_ui <- shiny::renderUI({
         sprintf("<span style='margin-right: 15px;'>%s</span>", text)
       ),
       content = content,
-      colour = helper_colour
+      colour = helper_color
     )
   }
   ui_list <- list()
@@ -138,7 +139,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Test Method",
                 "Two-Level Test Method",
-                "Choose automatic selection, a two-sample t-test, or a Wilcoxon rank-sum test for each numeric outcome."
+                "Choose how the app compares two groups for each numeric outcome. Use Auto if you are unsure. The app will pick between the t-test and Wilcoxon test based on the data, while the other options force one method for every outcome."
               ),
               choices = c(
                 "Auto" = "auto",
@@ -168,6 +169,9 @@ output$function_options_ui <- shiny::renderUI({
     # Univariate Tests (ANOVA, Kruskal-Wallis)
     # ------------------------
     "Univariate Tests (ANOVA, Kruskal-Wallis)" = {
+      method_selected <- input$uvm_method %||%
+        shiny::isolate(userState$uvm_method) %||%
+        "anova"
       ui_list <- shiny::tagList(
         shiny::fluidRow(
           shiny::column(
@@ -177,7 +181,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Global Test Method",
                 "Multi-Level Test Method",
-                "Use ANOVA for parametric group comparisons or Kruskal-Wallis for a non-parametric global test."
+                "Choose the overall test used when one categorical variable has more than two groups. ANOVA is the standard choice when group means are a sensible summary and the data are reasonably well behaved. Kruskal-Wallis is a safer rank-based option when the data are non-normal or contain outliers."
               ),
               choices = c("ANOVA" = "anova", "Kruskal-Wallis" = "kruskal"),
               selected = shiny::isolate(userState$uvm_method) %||% "anova"
@@ -185,16 +189,20 @@ output$function_options_ui <- shiny::renderUI({
           ),
           shiny::column(
             6,
-            shiny::selectInput(
-              "uvm_p_adjust_method",
-              label = helper_label(
-                "P-Value Adjustment",
-                "Multiple-Testing Correction",
-                p_adjust_help
-              ),
-              choices = p_adjust_choices,
-              selected = shiny::isolate(userState$uvm_p_adjust_method) %||% ""
-            )
+            if (identical(method_selected, "kruskal")) {
+              shiny::selectInput(
+                "uvm_p_adjust_method",
+                label = helper_label(
+                  "Pairwise P-Value Adjustment",
+                  "Pairwise Multiple-Testing Correction",
+                  p_adjust_help
+                ),
+                choices = p_adjust_choices,
+                selected = input$uvm_p_adjust_method %||%
+                  shiny::isolate(userState$uvm_p_adjust_method) %||%
+                  ""
+              )
+            }
           )
         )
       )
@@ -223,7 +231,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Bin Size</span>"
                 ),
-                content = "Determines the number of columns (variables) to group together in each set of box plots. For example, a bin size of 25 will display box plots for up to 25 columns (variables) at a time. If there are more columns, multiple sets of box plots will be generated.",
+                content = "Choose how many numeric variables are shown on one page of boxplots at a time. Smaller values are easier to read, while larger values show more variables per page but can make the figure feel crowded.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -238,7 +246,11 @@ output$function_options_ui <- shiny::renderUI({
             width = 6,
             shiny::selectizeInput(
               "bp_group_by",
-              label = "Grouping columns (optional)",
+              label = helper_label(
+                "Grouping Columns (Optional)",
+                "Boxplot Grouping Columns",
+                "Pick one or more categorical columns if you want separate boxplots for groups such as treatment, sex, cohort, or timepoint. Leave this blank to show one overall boxplot per numeric variable."
+              ),
               choices = group_choices,
               selected = shiny::isolate(userState$bp_group_by),
               multiple = TRUE,
@@ -261,8 +273,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Y-axis Limits</span><br>(min, max; comma-separated; leave blank for auto)"
                 ),
-                content = "Set the minimum and maximum values for the Y-axis, entered as (min, max) e.g., '0,100'. Leave blank for automatic scaling based on data range. 
-                         This controls the vertical range displayed on the plot.",
+                content = "Set the vertical range shown on the plot by entering two numbers separated by a comma, such as 0,100. Leave this blank to let the app choose the range automatically from your data. Set it manually only when you want multiple plots to use the same scale for easier comparison.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -295,7 +306,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Bin Size",
                 "Violin Plot Bin Size",
-                "Controls how many numeric variables are plotted in each violin-plot panel group."
+                "Choose how many numeric variables are shown on one violin-plot page at a time. Smaller values are easier to read, while larger values show more variables per page but can make the page busier."
               ),
               value = shiny::isolate(userState$vio_bin_size) %||% 25,
               min = 1
@@ -308,7 +319,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Grouping Columns (Optional)",
                 "Violin Plot Grouping",
-                "Optionally split violin plots by one or more categorical columns from the working dataset."
+                "Pick one or more categorical columns if you want the violins split into groups, such as treatment, cohort, or timepoint. Leave this blank if you only want the overall distribution for each numeric variable."
               ),
               choices = group_choices,
               selected = shiny::isolate(userState$vio_group_by),
@@ -328,7 +339,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Y-Axis Limits",
                 "Violin Plot Y-Axis Limits",
-                "Optionally set the minimum and maximum y-axis values as a comma-separated pair such as 0,100."
+                "Set the minimum and maximum y-axis values as two numbers separated by a comma, for example 0,100. Leave this blank for automatic scaling. Set it manually when you want several plots to use the same vertical scale."
               ),
               value = shiny::isolate(userState$vio_y_lim) %||% ""
             )
@@ -340,7 +351,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Show Boxplot Overlay",
                 "Violin Plot Overlay",
-                "Overlay a boxplot on top of each violin to show medians and quartiles."
+                "Add a small boxplot inside each violin so you can see the median and middle spread more clearly. Turn this on when the violin shape alone feels hard to interpret."
               ),
               value = shiny::isolate(userState$vio_boxplot_overlay) %||% FALSE
             )
@@ -359,6 +370,11 @@ output$function_options_ui <- shiny::renderUI({
       cat_vars <- names(df)[sapply(df, function(x) {
         is.factor(x) || is.character(x)
       })]
+      eb_fill_palette_selected <- shiny::isolate(userState$eb_fill_palette) %||%
+        "gray"
+      if (identical(eb_fill_palette_selected, "grey")) {
+        eb_fill_palette_selected <- "gray"
+      }
 
       ui_list <- shiny::tagList(
         shiny::fluidRow(
@@ -373,7 +389,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Comparison Column</span>"
                 ),
-                content = "The column to use for comparing groups in the error-bar plot. This should be a categorical variable.",
+                content = "Choose the categorical column that defines the groups you want to compare, such as treatment, responder status, or timepoint. The app will summarize each numeric outcome within the levels of this column and use those groups for the statistical annotations.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -391,7 +407,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Test Method",
                 "Error-Bar Statistical Test",
-                "Choose automatic selection, a two-sample t-test, or a Wilcoxon rank-sum test for pairwise comparisons."
+                "Choose which statistical test is used when the plot adds pairwise significance labels. Use Auto if you are unsure. The app will choose between the t-test and Wilcoxon test, while the other options force one method across all outcomes."
               ),
               choices = c(
                 "Auto" = "auto",
@@ -414,7 +430,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>P-Value Label</span>"
                 ),
-                content = "Label for the p-value annotation on the plot.",
+                content = "Show p-value annotations directly on the plot. Turn this on if you want each comparison labeled with statistical significance instead of reading the values only from a separate results table.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -436,10 +452,12 @@ output$function_options_ui <- shiny::renderUI({
                   "<span style='margin-right:15px;'>Effect-Size Label</span>"
                 ),
                 content = shiny::HTML(paste0(
-                  "Display effect size labels above the bar plots to indicate the effect observed by strictly
-                standardized mean differences (SSMD).
-                Learn more about SSMD at <a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
-                <a href='https://doi.org/10.1177/1087057107300645' target='_blank' rel='noopener noreferrer'>link 2</a>"
+                  "Show an effect-size label above each comparison so you can judge how large the difference is, not just whether it is statistically significant.<br><br>",
+                  "This plot uses SSMD (strictly standardized mean difference), which is helpful for screening-style comparisons because it emphasizes the size and direction of the separation.<br><br>",
+                  "Learn more about SSMD at ",
+                  "<a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>Zhang (2011)</a>",
+                  " and ",
+                  "<a href='https://doi.org/10.1177/1087057107300645' target='_blank' rel='noopener noreferrer'>Zhang (2007)</a>."
                 )),
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
@@ -461,7 +479,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Class Symbol</span>"
                 ),
-                content = "Use class symbols for the plot.",
+                content = "Replace the full annotation text with short symbol-style categories. Use this if you want a cleaner plot with less text. Leave it off if you prefer the exact p-value or effect-size wording to stay visible.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -484,7 +502,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Y-Axis Label</span>"
                 ),
-                content = "The label to use on the Y axis (e.g., 'Value').",
+                content = "Text shown on the vertical axis. Use a plain description of the measurement units or quantity being plotted, such as Concentration, Signal, or Normalized Value.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -505,7 +523,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>X-Axis Label</span>"
                 ),
-                content = "The label to use on the X axis (e.g., 'Cytokine').",
+                content = "Text shown on the horizontal axis. Use this to describe what each bar represents, such as Cytokine, Marker, or Feature.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -526,7 +544,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Plot Title</span>"
                 ),
-                content = "The title to use for the plot.",
+                content = "Main title displayed above the plot. Use a short description that tells the viewer what comparison or data subset they are looking at.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -545,7 +563,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Statistic",
                 "Error-Bar Summary Statistic",
-                "Choose whether each bar summarizes the mean or the median for each cytokine and group."
+                "Choose what the height of each bar represents for every group. Mean is the usual average. Median is the middle value and is often easier to trust when the data contain outliers or are strongly skewed."
               ),
               choices = c("Mean" = "mean", "Median" = "median"),
               selected = shiny::isolate(userState$eb_stat) %||% "mean"
@@ -558,7 +576,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Error Metric",
                 "Error-Bar Metric",
-                "Choose the uncertainty band to plot: standard error, standard deviation, MAD, or a 95% confidence interval."
+                "Choose what the error bars show around each bar. Standard deviation shows spread in the raw values, standard error shows uncertainty in the mean, MAD is a robust spread measure, and 95% CI shows an estimated range for the group summary."
               ),
               choices = c(
                 "Standard error" = "se",
@@ -591,7 +609,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Label Size",
                 "Annotation Label Size",
-                "Controls the size of p-value or effect-size labels drawn on the error-bar plot."
+                "Controls the size of the p-value or effect-size labels drawn on the plot. Increase this if the annotations are hard to read. Decrease it if the text overlaps or crowds the figure."
               ),
               value = shiny::isolate(userState$eb_label_size) %||% 4,
               min = 1,
@@ -605,7 +623,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Base Font Size",
                 "Plot Font Size",
-                "Controls the base font size for all text in the plot (axis labels, strip titles, etc.). Increase if text is too small."
+                "Controls the base text size used across the plot, including axes, facet titles, and labels. Increase this for presentations or dense figures. Decrease it if long labels are being cut off."
               ),
               min = 8,
               max = 20,
@@ -622,7 +640,7 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Columns",
                 "Facet Grid Columns",
-                "Number of columns in the cytokine facet grid. With many cytokines, increase this to reduce the number of rows and prevent crowding."
+                "Choose how many facet columns are used when the plot is split across many cytokines or features. More columns create a wider plot with fewer rows. Fewer columns create a taller plot that may be easier to read."
               ),
               value = shiny::isolate(userState$eb_n_col) %||% 3,
               min = 1,
@@ -635,17 +653,17 @@ output$function_options_ui <- shiny::renderUI({
             shiny::selectInput(
               "eb_fill_palette",
               label = helper_label(
-                "Bar Colour",
+                "Bar Color",
                 "Bar Fill Palette",
-                "Choose a colour scheme for the group bars. 'Grey (default)' uses a flat grey fill. The other options colour each group distinctly using a named palette."
+                "Choose how the bars are colored for each group. Gray keeps the plot simple. The named palettes make group differences easier to follow when you have several levels in the comparison column."
               ),
               choices = c(
-                "Grey (default)" = "grey",
+                "Gray (default)" = "gray",
                 "Tableau 10" = "tableau",
                 "Colorblind-safe" = "colorblind",
                 "Pastel" = "pastel"
               ),
-              selected = shiny::isolate(userState$eb_fill_palette) %||% "grey"
+              selected = eb_fill_palette_selected
             )
           )
         )
@@ -675,7 +693,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Comparison Column</span>"
                 ),
-                content = "Column that contains the groups to compare in the dual-flashlight plot. This should be a categorical variable.",
+                content = "Choose the categorical column that defines the two groups you want to compare in the dual-flashlight plot. Typical examples are treatment, disease status, or responder group. The condition selectors below will use levels from this column.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -704,11 +722,12 @@ output$function_options_ui <- shiny::renderUI({
                   "<span style='margin-right:15px;'>SSMD Threshold</span>"
                 ),
                 content = shiny::HTML(paste0(
-                  "The threshold for the SSMD (strictly standardized mean difference) value. 
-                     SSMD is a measure of how different two groups are. A higher threshold means that 
-                      only larger differences are considered significant.
-                     Learn more about SSMD at <a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>link 1</a>, and 
-                    <a href='https://doi.org/10.1177/1087057107300645' target='_blank' rel='noopener noreferrer'>link 2</a>"
+                  "Set the minimum SSMD effect size needed for a feature to stand out in the plot.<br><br>",
+                  "Higher values make the plot stricter by highlighting only stronger differences between the two groups. Lower values show more features but include weaker effects.<br><br>",
+                  "Learn more about SSMD at ",
+                  "<a href='https://doi.org/10.1177/1087057111405851' target='_blank' rel='noopener noreferrer'>Zhang (2011)</a>",
+                  " and ",
+                  "<a href='https://doi.org/10.1177/1087057107300645' target='_blank' rel='noopener noreferrer'>Zhang (2007)</a>."
                 )),
 
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
@@ -731,7 +750,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Log2 Fold Change Threshold</span>"
                 ),
-                content = "Threshold for log2 fold change.",
+                content = "Set the minimum absolute log2 fold change needed for a feature to count as meaningfully changed. A value of 1 means about a two-fold change between groups. Raise this cutoff to focus on bigger changes.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -754,7 +773,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Top Labels</span>"
                 ),
-                content = "Number of top features to label on the plot.",
+                content = "Choose how many of the most extreme features receive text labels on the plot. Higher values label more points but can make the figure busier. Lower values keep the plot cleaner.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -792,7 +811,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Annotation Column</span>"
                 ),
-                content = "Categorical column to use for annotating rows/columns. Choose 'None' to skip.",
+                content = "Choose a categorical column to add a side annotation bar to the heatmap. This is useful when you want samples or features colored by a known grouping variable, such as treatment or batch. Choose None if you want a plain heatmap.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -817,7 +836,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Annotation Side</span>"
                 ),
-                content = "Auto chooses row/column based on length match; override if desired.",
+                content = "Choose where the annotation bar is attached. Auto lets the app decide whether the annotation belongs on rows or columns based on the data shape. Override it only if the annotation is being placed on the wrong side.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -858,7 +877,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Response Variable</span>"
                 ),
-                content = "Correlate this variable against all other numeric features.",
+                content = "Choose the numeric variable that will be compared with every other numeric feature. Use the measurement you care most about as the response, then the plot will show which other variables move with it.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -880,7 +899,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Stratification Variable</span>"
                 ),
-                content = "If set, you can render per-group heatmaps for each method.",
+                content = "Optionally choose a grouping column if you want correlations calculated within separate subgroups. This helps answer questions like whether a correlation looks different in treated versus untreated samples.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -904,7 +923,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Per-group Heatmaps</span>"
                 ),
-                content = "If a grouping column is selected, show one heatmap per categories.",
+                content = "Show a separate correlation heatmap for each level of the selected grouping column. Turn this on only when you want subgroup-specific patterns. Leave it off for one overall correlation view.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -941,7 +960,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>PCA Comparison Column</span>"
                 ),
-                content = "Column to use for grouping the data in PCA. This is typically a categorical variable that defines the groups you want to compare.",
+                content = "Choose the main categorical column used to color or separate samples in the PCA plots. This does not change the PCA calculation itself, but it helps you see whether known groups cluster apart after dimension reduction.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -963,7 +982,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>PCA Stratification Column</span>"
                 ),
-                content = "Optional second grouping column for PCA. This can be used to further stratify the data within the primary grouping column. If you don't want to use a second grouping column, select the same column as in the comparison column.",
+                content = "Choose an optional second grouping column if you want another visual layer, such as shapes within colors. Use the same column as the main comparison column if you do not want a second level of labeling.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -989,7 +1008,10 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Number of Components</span>"
                 ),
-                content = "Specify the number of principal components to calculate and potentially visualize. For 2D plots, the first two components are used. For 3D plots, at least 3 components are required.",
+                content = shiny::HTML(paste0(
+                  "Choose how many principal components the PCA should calculate. For a standard 2D score plot, 2 components are enough. Choose at least 3 if you want a 3D plot or want to inspect more than the first two major patterns in the data.<br><br>",
+                  "Method reference: <a href='https://doi.org/10.1016/0098-3004(93)90090-R' target='_blank' rel='noopener noreferrer'>Mackiewicz and Ratajczak (1993)</a>."
+                )),
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1011,7 +1033,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Select Colors for PCA Plot (Optional)</span>"
                 ),
-                content = "The color palette to use for the PCA plot. Select the number of colors to match the number of categories in comparison column.",
+                content = "Choose custom colors for the PCA groups. If you leave this empty, the app will generate colors automatically. If you set your own colors, try to provide enough for all levels in the main grouping column.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1041,7 +1063,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Draw Ellipse</span>"
                 ),
-                content = "Draw an ellipse around the data points on the PCA plot. (Draws an ellipse covering 95% of the data points.)",
+                content = "Draw a 95% ellipse around each group in the PCA score plot. This gives a quick visual summary of where most samples in a group fall and how much the groups overlap.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1066,7 +1088,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Plot Style</span>"
                 ),
-                content = "The style of the PCA plot. Choose between 2D and 3D. Requires at least 3 components for 3D.",
+                content = "Choose whether the PCA score plot is shown in 2D or 3D. Use 2D for a simpler figure. Use 3D only if you need to see separation along a third component and have calculated at least 3 components.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1088,7 +1110,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Plotting Symbols</span>"
                 ),
-                content = "Select plotting character (PCH) symbols for data points. If using a second grouping column, match the number of symbols to its categories.",
+                content = "Choose the point shapes used in the PCA score plot. This matters most when you use a second grouping column, because different shapes help distinguish subgroups within the same color.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1145,7 +1167,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Grouping Column</span>"
                 ),
-                content = "Optional: choose a column to colour points in the score plot.",
+                content = "Optionally choose a categorical column to color samples in the PLSR score plot. This is for visual interpretation only and helps you see whether known groups line up with the model structure.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1167,7 +1189,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Response Column</span>"
                 ),
-                content = "Select the numeric column to be predicted.",
+                content = "Choose the numeric outcome you want the PLSR model to predict. This should be the main response variable of interest, such as a concentration, score, or clinical measurement.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1191,9 +1213,7 @@ output$function_options_ui <- shiny::renderUI({
               shiny_tag = shiny::HTML(
                 "<span style='margin-right: 15px;'>Predictor Columns</span>"
               ),
-              content = "Select which numeric columns to use as predictors (X matrix).
-                   Any numeric column not selected here will be excluded.
-                   Leave blank to use all numeric columns that are not the response.",
+              content = "Choose which numeric variables are used as predictors in the model. Any numeric column you do not select here will be excluded. Leave the full default selection in place if you want the model to use all eligible numeric predictors except the response column.",
               colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                 "red"
               } else {
@@ -1222,7 +1242,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Number of Components</span>"
                 ),
-                content = "How many latent components to extract.",
+                content = "Choose how many latent components the PLSR model should extract. More components let the model capture more structure, but too many can make the result harder to interpret and may start modeling noise.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1245,7 +1265,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Sparse PLSR</span>"
                 ),
-                content = "Use sparse PLSR for variable selection.",
+                content = "Turn this on to build a sparse PLSR model that keeps only a subset of predictors on each component. This is useful when you want a smaller, easier-to-interpret variable set instead of using every predictor.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1271,7 +1291,7 @@ output$function_options_ui <- shiny::renderUI({
                   shiny_tag = shiny::HTML(
                     "<span style='margin-right: 15px;'>Number of Variables</span>"
                   ),
-                  content = "Select number of variables to keep per component.",
+                  content = "Choose how many predictors are kept on each component when sparse PLSR is enabled. Lower values force stronger variable selection and produce a simpler model. Higher values keep more predictors and act more like standard PLSR.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1296,7 +1316,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Ellipse</span>"
                 ),
-                content = "Draw 95% confidence ellipses on the Scores plot (if grouping provided).",
+                content = "Draw 95% ellipses around groups in the PLSR score plot when a grouping column is selected. This helps you see whether groups occupy distinct regions of the plot or strongly overlap.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1317,7 +1337,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Colors (optional)</span>"
                 ),
-                content = "Optional palette for levels of the grouping column (recycled as needed).",
+                content = "Choose custom colors for the PLSR score plot groups. If you leave this empty, the app will assign colors automatically.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1344,7 +1364,7 @@ output$function_options_ui <- shiny::renderUI({
                   shiny_tag = shiny::HTML(
                     "<span style='margin-right: 15px;'>Cross-validation</span>"
                   ),
-                  content = "Choose Leave-One-Out Cross Validation (LOOCV) or M-fold with defined number of folds to assess predictive performance.",
+                  content = "Choose whether to estimate model stability with cross-validation. LOOCV uses almost all samples for training each time and is useful for small datasets. Mfold splits the data into a smaller number of repeated train/test parts and is often faster.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1359,7 +1379,11 @@ output$function_options_ui <- shiny::renderUI({
                 condition = "input.plsr_cv_opt == 'Mfold'",
                 shiny::numericInput(
                   "plsr_fold_num",
-                  "Number of folds",
+                  label = helper_label(
+                    "Number of Folds",
+                    "PLSR Cross-Validation Folds",
+                    "Choose how many parts the data are split into when Mfold cross-validation is selected. More folds use more data for training in each run but take longer. Five or ten folds are common starting points."
+                  ),
                   value = shiny::isolate(userState$plsr_fold_num) %||% 5,
                   min = 2
                 )
@@ -1393,7 +1417,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Grouping Column</span>"
                 ),
-                content = "Select the column that contains the outcome or class labels you want the Random Forest model to predict.",
+                content = "Choose the categorical column the Random Forest model should learn to predict. This is the outcome or class label, such as case versus control or treatment group.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1415,7 +1439,10 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Number of Trees</span>"
                 ),
-                content = "The number of trees to grow in the random forest model. Each tree is a simple model; more trees can improve predictions but take longer to compute.",
+                content = shiny::HTML(paste0(
+                  "Choose how many trees are grown in the Random Forest. More trees usually make the model more stable, but they also increase runtime. The default is a sensible starting point for most datasets.<br><br>",
+                  "Method reference: <a href='https://doi.org/10.1023/A:1010933404324' target='_blank' rel='noopener noreferrer'>Breiman (2001)</a>."
+                )),
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1441,8 +1468,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Number of Variables to Split</span>"
                 ),
-                content = "The number of variables to randomly select at each split.
-                         At each decision point, the model randomly considers this number of variables, which helps improve model accuracy.",
+                content = "Choose how many predictors the model is allowed to consider at each split inside each tree. Smaller values add more randomness between trees. Larger values let each split consider more variables and can sometimes improve accuracy, but they also reduce the diversity of the forest.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1464,7 +1490,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Train Fraction</span>"
                 ),
-                content = "The fraction of the data to use for training the random forest model. The remainder is used for testing the model.",
+                content = "Choose what fraction of the samples is used to train the model. The remaining samples are held back for testing. Larger training fractions give the model more data to learn from, while smaller fractions leave more data for an honest holdout check.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1492,7 +1518,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Plot ROC (Binary Comparison Only)</span>"
                 ),
-                content = "Plot the Receiving Operating Characteristic (ROC) curve for the random forest model.",
+                content = "Show an ROC curve for model performance. This is only meaningful for two-class problems and helps you see how well the model separates the two groups across different thresholds.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1513,7 +1539,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Run RFCV</span>"
                 ),
-                content = "Perform cross-validation to evaluate model performance with a decreasing number of predictors.",
+                content = "Run recursive feature elimination with cross-validation to see how performance changes as the model uses fewer predictors. Turn this on if you want to explore whether a smaller feature set performs almost as well as the full model.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1540,7 +1566,7 @@ output$function_options_ui <- shiny::renderUI({
                   shiny_tag = shiny::HTML(
                     "<span style='margin-right:15px;'>Number of Folds</span>"
                   ),
-                  content = "The number of folds to use for cross-validation in the RFCV process.",
+                  content = "Choose how many folds are used in the RFCV feature-selection procedure. More folds generally give a more stable estimate, but they also increase runtime.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1562,7 +1588,7 @@ output$function_options_ui <- shiny::renderUI({
                   shiny_tag = shiny::HTML(
                     "<span style='margin-right:15px;'>Step Size</span>"
                   ),
-                  content = "The step size to use for the RFCV process (0.1–0.9).",
+                  content = "Choose how aggressively predictors are removed during RFCV. Smaller step sizes remove features more gradually and give a finer search, while larger step sizes are faster but coarser.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1602,7 +1628,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Grouping Columns</span>"
                 ),
-                content = "Select one or more categorical columns to stratify the skewness/kurtosis.",
+                content = "Choose one or more categorical columns if you want skewness and kurtosis summarized within groups. Leave this as one grouping variable for a simple split, or add more if you need a more detailed breakdown.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1625,7 +1651,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Print Raw Results</span>"
                 ),
-                content = "Show the un-transformed skewness/kurtosis values.",
+                content = "Show skewness and kurtosis calculated from the raw values. Turn this on if you want to understand the shape of the data before any log transformation.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1648,7 +1674,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Print Log-Transformed Results</span>"
                 ),
-                content = "Show skewness/kurtosis after log transformation.",
+                content = "Show skewness and kurtosis after log transformation. This is useful when you want to check whether logging the data makes the distributions look more symmetric.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1689,7 +1715,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>sPLS-DA Comparison Column</span>"
                 ),
-                content = "Select the column containing the class labels or groups to discriminate between using sPLS-DA.",
+                content = "Choose the categorical column that defines the classes the sPLS-DA model should separate. This is the main outcome or grouping variable, such as treatment group or disease status.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1711,7 +1737,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>sPLS-DA Stratification Column</span>"
                 ),
-                content = "Optional: Select a second column for stratifying the sPLS-DA analysis. This can be used to further differentiate groups within the primary grouping column. If not needed, select the same column as in the comparison column.",
+                content = "Choose an optional second grouping column if you want extra visual separation, such as shapes within colors. If you do not need that extra layer, use the same column as the main comparison column.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1738,8 +1764,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Perform Batch Correction?</span>"
                 ),
-                content = "Performing batch correction using z-score normalization. This is useful when your data has multiple 
-                  batches or experimental runs that need to be corrected for.",
+                content = "Turn this on if your samples come from different batches, plates, studies, or experimental runs and you want to reduce those unwanted technical differences. Use it only when the batch label is known and meaningful.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1762,7 +1787,7 @@ output$function_options_ui <- shiny::renderUI({
                   shiny_tag = shiny::HTML(
                     "<span style='margin-right: 15px;'>Select Batch Column</span>"
                   ),
-                  content = "Select the column that identifies batch categories.",
+                  content = "Choose the column that records the batch, study, run, or plate for each sample. The model uses this column only when batch correction is enabled.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1789,7 +1814,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Perform Multilevel Analysis?</span>"
                 ),
-                content = "Check if your data has repeated measures and you want to account for that variation.",
+                content = "Turn this on when the same subject or experimental unit was measured more than once. This helps the model focus on within-subject changes instead of treating repeated measurements as fully independent samples.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1812,7 +1837,7 @@ output$function_options_ui <- shiny::renderUI({
                   shiny_tag = shiny::HTML(
                     "<span style='margin-right: 15px;'>Select Repeated Measures Column</span>"
                   ),
-                  content = "Select the column that identifies repeated measurements (e.g. Patient ID).",
+                  content = "Choose the column that identifies repeated measurements from the same subject or unit, such as Patient ID or Animal ID. Use this only when multilevel analysis is turned on.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1840,7 +1865,10 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Number of Variables</span>"
                 ),
-                content = "Specify the number of variables to select/retain on each component.",
+                content = shiny::HTML(paste0(
+                  "Choose how many predictors are kept on each component. Lower values create a smaller feature set that is easier to interpret, while higher values keep more variables.<br><br>",
+                  "Method reference: <a href='https://doi.org/10.1186/1471-2105-12-253' target='_blank' rel='noopener noreferrer'>Le Cao, Boitard, and Besse (2011)</a>."
+                )),
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1862,7 +1890,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Select Colors for sPLS-DA Plot (Optional)</span>"
                 ),
-                content = "The color palette to use for the sPLS-DA plot. Match the number of colors to the number of categories in the comparison column.",
+                content = "Choose custom colors for the sPLS-DA groups. If you leave this empty, the app will assign colors automatically. If you set colors manually, try to supply enough for every class.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1892,7 +1920,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Cross-Validation Option</span>"
                 ),
-                content = "Choose None, LOOCV, or Mfold for model evaluation stability.",
+                content = "Choose whether to estimate how stable the classifier is with cross-validation. LOOCV is useful for small datasets. Mfold is often faster and splits the data into a chosen number of parts.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1916,7 +1944,7 @@ output$function_options_ui <- shiny::renderUI({
                   shiny_tag = shiny::HTML(
                     "<span style='margin-right: 15px;'>Number of Folds</span>"
                   ),
-                  content = "The number of folds for M-Fold cross-validation.",
+                  content = "Choose how many parts the data are split into when Mfold cross-validation is used. More folds can give a more stable estimate, but they also take longer to run.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -1943,7 +1971,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Number of Components</span>"
                 ),
-                content = "Specify how many latent variables to compute in the model.",
+                content = "Choose how many components the model should calculate. Two components are enough for most 2D plots. Use three or more only if you need more model structure or a 3D view.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1965,7 +1993,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Plot Individual Names?</span>"
                 ),
-                content = "Choose Off (shapes only), Row names (use rownames), or a Column (choose a column to label points).",
+                content = "Choose whether individual samples should be labeled on the score plot. Leave this off for a cleaner plot. Use row names or a selected column when you need to identify specific samples.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -1995,7 +2023,7 @@ output$function_options_ui <- shiny::renderUI({
                   shiny_tag = shiny::HTML(
                     "<span style='margin-right: 15px;'>Label Column</span>"
                   ),
-                  content = "Column to use for individual labels.",
+                  content = "Choose the column whose values should be used as point labels. Pick something short and recognizable, such as sample ID.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -2022,7 +2050,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Plotting Symbols</span>"
                 ),
-                content = "Select PCH symbols for data points. Match to your grouping columns.",
+                content = "Choose the point shapes used in the sPLS-DA plot. Shapes are most helpful when you use a second grouping column and want a visual cue beyond color.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2052,7 +2080,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Plot Style</span>"
                 ),
-                content = "Choose 2D or 3D style for the sPLS-DA plot (3D needs ≥3 components).",
+                content = "Choose whether the score plot is drawn in 2D or 3D. Use 2D for the clearest default view. Use 3D only when you have at least 3 components and need to inspect separation along the third one.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2078,7 +2106,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Plot ROC</span>"
                 ),
-                content = "Plot ROC curves to evaluate classification performance.",
+                content = "Show ROC curves to summarize classification performance. This is most useful for two-class problems, where it helps you judge how well the model separates the groups.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2099,7 +2127,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Draw Ellipse</span>"
                 ),
-                content = "Draw a 95% ellipse around the data points on the sPLS-DA plot.",
+                content = "Draw a 95% ellipse around each group in the score plot. This gives a quick visual summary of group spread and overlap.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2124,7 +2152,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Shaded Background Prediction</span>"
                 ),
-                content = "Draw shaded prediction regions on the sPLS-DA plot.",
+                content = "Draw shaded background regions showing the model's predicted class areas. This can make the decision boundaries easier to see, but it also adds visual complexity.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2145,7 +2173,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Confusion Matrix</span>"
                 ),
-                content = "Display the confusion matrix for the sPLS-DA model. This helps evaluate classification accuracy by showing true vs predicted values. Additional metrics are also provided such as sensitivity and specificity.",
+                content = "Show a confusion matrix comparing the true class of each sample with the class predicted by the model. Use this when you want a simple summary of which groups are classified well and which ones are commonly confused.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2169,7 +2197,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Font Scale Multiplier</span>"
                 ),
-                content = "Increase Font Size",
+                content = "Scale the text size used in the sPLS-DA figures. Increase this if labels are hard to read in the plot output. Decrease it if the figure feels crowded.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2211,7 +2239,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>MINT sPLS-DA Comparison Column</span>"
                 ),
-                content = "Select the column containing the class labels you want to discriminate.",
+                content = "Choose the categorical column that defines the classes the MINT sPLS-DA model should separate. This is the main outcome or grouping variable you want the model to learn.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2234,7 +2262,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>MINT sPLS-DA Stratification Column</span>"
                 ),
-                content = "Optional. If specified, the MINT sPLS-DA analysis will be run separately for each level of this column. If not needed, select the same column as in the comparison column.",
+                content = "Choose an optional second grouping column if you want the analysis repeated within each level of another variable. Use this when you want separate MINT results by subgroup. If you do not need that, leave it at None.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2260,7 +2288,10 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Batch Column</span>"
                 ),
-                content = "Select the column that identifies the different batches or studies. This is crucial for the batch correction model.",
+                content = shiny::HTML(paste0(
+                  "Choose the column that identifies the study, batch, cohort, or platform each sample came from. MINT uses this information to integrate multiple experiments while keeping those sources separate during modeling.<br><br>",
+                  "Method reference: Rohart, Eslami, Matigian, Bougeard, and Le Cao (2017), <i>BMC Bioinformatics</i> 18:128."
+                )),
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2283,7 +2314,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Number of Variables to Select</span>"
                 ),
-                content = "Specify the number of variables (e.g., cytokines) to select on each component.",
+                content = "Choose how many predictors are kept on each component. Lower values produce a smaller and easier-to-interpret biomarker set. Higher values keep more variables in the model.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2308,7 +2339,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Number of Components</span>"
                 ),
-                content = "Specify how many latent variables (components) to compute in the model.",
+                content = "Choose how many components the model should calculate. Two components are enough for most standard score plots. Use more only when you need to explore additional structure.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2330,7 +2361,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Select Colors for Groups</span>"
                 ),
-                content = "The color palette to use for the different groups in the plots. Match the number of colors to the number of categories in the comparison column.",
+                content = "Choose custom colors for the groups shown in the MINT plots. If you leave this empty, the app will assign colors automatically. If you set colors yourself, provide enough for all groups.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2359,7 +2390,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Draw a Clustered Image Map?</span>"
                 ),
-                content = "Draw a Clustered Image Map (CIM) to visualize the data. This provides a heatmap-like view of the data with clustering.",
+                content = "Show a clustered heatmap of the selected features. Turn this on when you want to see whether samples and variables group together visually beyond the score plot.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2380,7 +2411,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Draw Ellipse</span>"
                 ),
-                content = "Draw a 95% confidence ellipse around the groups on the sample plots.",
+                content = "Draw a 95% ellipse around each group in the sample plots. This gives a quick visual summary of group spread and overlap.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2404,7 +2435,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Plot ROC Curve</span>"
                 ),
-                content = "Plot ROC curves to evaluate classification performance.",
+                content = "Show ROC curves to summarize classification performance. This is most informative for two-class problems, where it helps you judge how well the model separates the groups.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2425,7 +2456,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right: 15px;'>Draw Background</span>"
                 ),
-                content = "Draws a shaded background to visualize the prediction areas on the global sample plot.",
+                content = "Draw shaded background regions that show the model's predicted class areas. Use this when you want an easier visual sense of the decision regions, and leave it off for a cleaner plot.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2461,7 +2492,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Comparison Column</span>"
                 ),
-                content = "The column that contains the comparison groups for the volcano plot. This should be a categorical column.",
+                content = "Choose the categorical column that defines the two groups compared in the volcano plot. The condition selectors below will let you pick which two levels of this column are compared.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2489,7 +2520,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Log2 Fold Change Threshold</span>"
                 ),
-                content = "Absolute log2 fold-change cutoff for significance.",
+                content = "Set the minimum absolute log2 fold change needed for a feature to be highlighted. A value of 1 means about a two-fold change between groups. Higher values focus on larger shifts.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2512,7 +2543,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>P-Value Threshold</span>"
                 ),
-                content = "Cutoff for adjusted p-value for significance.",
+                content = "Set the adjusted p-value cutoff used to flag statistically significant features. Smaller values are stricter. The common starting point is 0.05.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2533,7 +2564,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Top Labels</span>"
                 ),
-                content = "Number of top genes/features to annotate on the volcano plot.",
+                content = "Choose how many of the most prominent features receive text labels on the plot. More labels show more names but can clutter the figure. Fewer labels keep the plot cleaner.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2570,7 +2601,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Grouping Column</span>"
                 ),
-                content = "Select the column that contains the outcome or class labels you want the XGBoost model to predict.",
+                content = "Choose the categorical column the XGBoost model should learn to predict. This is the outcome or class label, such as case versus control or treatment group.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2592,7 +2623,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Train Fraction</span>"
                 ),
-                content = "The fraction of the data to use for training the XGBoost model.",
+                content = "Choose what fraction of the samples is used to train the model. The remaining samples are held back for testing. Larger fractions give the model more training data, while smaller fractions leave more data for the holdout check.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2619,7 +2650,10 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Number of Rounds</span>"
                 ),
-                content = "The number of rounds (trees) to grow in the XGBoost model.",
+                content = shiny::HTML(paste0(
+                  "Choose how many boosting rounds the model runs. More rounds can improve performance, but they also increase runtime and can overfit if set too high.<br><br>",
+                  "Method reference: <a href='https://doi.org/10.1145/2939672.2939785' target='_blank' rel='noopener noreferrer'>Chen and Guestrin (2016)</a>."
+                )),
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2641,7 +2675,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Maximum Depth</span>"
                 ),
-                content = "The maximum depth of the trees in the XGBoost model.",
+                content = "Choose how deep each tree is allowed to grow. Shallower trees are simpler and less likely to overfit. Deeper trees can capture more complex patterns but may fit noise.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2666,7 +2700,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Learning Rate</span>"
                 ),
-                content = "The learning rate of the XGBoost model (step size shrinkage).",
+                content = "Choose how quickly the model updates itself at each boosting round. Smaller values learn more cautiously and often need more rounds. Larger values learn faster but can overshoot good solutions.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2689,7 +2723,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Evaluation Metric</span>"
                 ),
-                content = "Choose 'mlogloss' or 'auc' to evaluate model performance.",
+                content = "Choose the metric used to judge model performance during training. Use mlogloss for general probabilistic classification, especially with more than two classes. Use AUC when you specifically care about binary-class separation.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2715,7 +2749,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Top Number of Features</span>"
                 ),
-                content = "Number of top features (by importance) to display.",
+                content = "Choose how many of the most important predictors are shown in the feature-importance output. Higher values show more of the ranking but can make the display busier.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2737,7 +2771,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Plot ROC (Binary Only)</span>"
                 ),
-                content = "Plot the ROC curve for the XGBoost model (binary outcome).",
+                content = "Show an ROC curve for the fitted XGBoost model. This is only meaningful for two-class problems and helps summarize how well the model separates the two groups.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2761,7 +2795,7 @@ output$function_options_ui <- shiny::renderUI({
                 shiny_tag = shiny::HTML(
                   "<span style='margin-right:15px;'>Cross-Validation</span>"
                 ),
-                content = "Perform cross-validation on the XGBoost model.",
+                content = "Turn this on to estimate model performance with cross-validation instead of relying only on one train/test split. This gives a more stable performance estimate, but it also takes longer to run.",
                 colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                   "red"
                 } else {
@@ -2784,7 +2818,7 @@ output$function_options_ui <- shiny::renderUI({
                   shiny_tag = shiny::HTML(
                     "<span style='margin-right:15px;'>Number of Folds</span>"
                   ),
-                  content = "The number of folds to use for cross-validation.",
+                  content = "Choose how many parts the data are split into during cross-validation. More folds usually give a more stable estimate, but they increase runtime.",
                   colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
                     "red"
                   } else {
@@ -2879,7 +2913,7 @@ output$df_conditions_ui <- shiny::renderUI({
           shiny_tag = shiny::HTML(
             "<span style='margin-right: 15px;'>Condition 1</span>"
           ),
-          content = "The first condition to compare.",
+          content = "Choose the first group level used in the comparison. The plot will compare this level against Condition 2.",
           colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
             "red"
           } else {
@@ -2898,7 +2932,7 @@ output$df_conditions_ui <- shiny::renderUI({
           shiny_tag = shiny::HTML(
             "<span style='margin-right: 15px;'>Condition 2</span>"
           ),
-          content = "The second condition to compare.",
+          content = "Choose the second group level used in the comparison. The plot will compare this level against Condition 1.",
           colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
             "red"
           } else {
@@ -2931,7 +2965,7 @@ output$volc_conditions_ui <- shiny::renderUI({
             shiny_tag = shiny::HTML(
               "<span style='margin-right: 15px;'>Condition 1</span>"
             ),
-            content = "The first condition to compare.",
+            content = "Choose the first group level used in the volcano comparison. The plot will compare this level against Condition 2.",
             colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
               "red"
             } else {
@@ -2950,7 +2984,7 @@ output$volc_conditions_ui <- shiny::renderUI({
             shiny_tag = shiny::HTML(
               "<span style='margin-right: 15px;'>Condition 2</span>"
             ),
-            content = "The second condition to compare.",
+            content = "Choose the second group level used in the volcano comparison. The plot will compare this level against Condition 1.",
             colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
               "red"
             } else {

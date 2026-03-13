@@ -86,9 +86,9 @@ cyt_rf <- function(
   output_file = NULL,
   progress = NULL
 ) {
-  # ── 0. Initialise ──────────────────────────────────────────────────────────
+  # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Random Forest: initialising...", value = 0)
+    progress$set(message = "Random Forest: initializing...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)

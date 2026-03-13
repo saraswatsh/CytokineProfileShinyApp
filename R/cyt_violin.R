@@ -58,9 +58,9 @@ cyt_violin <- function(
   boxplot_overlay = FALSE,
   progress = NULL
 ) {
-  # ── 0. Initialise ──────────────────────────────────────────────────────────
+  # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Violin plots: initialising...", value = 0)
+    progress$set(message = "Violin plots: initializing...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)

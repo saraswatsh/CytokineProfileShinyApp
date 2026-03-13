@@ -53,9 +53,9 @@ cyt_bp <- function(
   custom_fn = NULL,
   progress = NULL
 ) {
-  # ── 0. Initialise ──────────────────────────────────────────────────────────
+  # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Boxplots: initialising...", value = 0)
+    progress$set(message = "Boxplots: initializing...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)

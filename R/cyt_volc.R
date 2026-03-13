@@ -158,7 +158,7 @@ cyt_volc <- function(
       ) +
       ggrepel::geom_text_repel(size = 3, max.overlaps = 50) +
       ggplot2::scale_color_manual(
-        values = c("FALSE" = "grey", "TRUE" = "red")
+        values = c("FALSE" = "gray", "TRUE" = "red")
       ) +
       ggplot2::labs(
         title = paste("Volcano Plot:", current_cond1, "vs", current_cond2),

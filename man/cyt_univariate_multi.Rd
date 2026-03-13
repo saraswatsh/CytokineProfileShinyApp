@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyt_univariate_multi.R
 \name{cyt_univariate_multi}
 \alias{cyt_univariate_multi}
-\title{Univariate Tests for Multi‑Level Categorical Predictors}
+\title{Univariate Tests for Multi-Level Categorical Predictors}
 \usage{
 cyt_univariate_multi(
   data,
@@ -16,55 +16,57 @@ cyt_univariate_multi(
 }
 \arguments{
 \item{data}{A data frame or matrix containing both categorical
-and continuous variables.  Character columns will be converted
+and continuous variables. Character columns will be converted
 to factors.}
 
 \item{method}{Character specifying the type of global test to
-perform.  Use "anova" (default) for one‑way ANOVA with Tukey
-HSD or "kruskal" for Kruskal–Wallis with pairwise Wilcoxon
+perform. Use \code{"anova"} (default) for one-way ANOVA with Tukey
+HSD or \code{"kruskal"} for Kruskal-Wallis with pairwise Wilcoxon
 tests.}
 
 \item{cat_vars}{Optional character vector of predictor column
-names.  When \code{NULL}, all factor or character columns in \code{data}
+names. When \code{NULL}, all factor or character columns in \code{data}
 are used.}
 
 \item{cont_vars}{Optional character vector of numeric outcome
-variable names.  When \code{NULL}, all numeric columns in \code{data} are
+variable names. When \code{NULL}, all numeric columns in \code{data} are
 used.}
 
 \item{p_adjust_method}{Character string specifying the method for
-p‑value adjustment across pairwise comparisons.  Passed to
-\code{p.adjust}.  Default is "BH".}
+p-value adjustment across pairwise Kruskal-Wallis follow-up
+comparisons. Passed to \code{p.adjust}. Default is \code{"BH"}.}
 
-\item{format_output}{Logical.  If \code{TRUE}, returns a tidy data
-frame; otherwise (default) returns a list of numeric vectors
-keyed by "Outcome_Categorical".  Each numeric vector contains
-adjusted p‑values for the pairwise comparisons.}
+\item{format_output}{Logical. If \code{TRUE}, returns a list with
+global results, pairwise results, and assumption summaries;
+otherwise (default) returns a list of numeric vectors keyed by
+\code{"Outcome_Categorical"}. Each numeric vector contains adjusted
+p-values for the pairwise comparisons.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting
 progress updates during the analysis.}
 }
 \value{
-Either a list (if \code{format_output = FALSE}) or a data
-frame (if \code{format_output = TRUE}).
+Either a list of adjusted pairwise p-values (if
+\code{format_output = FALSE}) or a list with \code{results}, \code{pairwise},
+and \code{assumptions} data frames (if \code{format_output = TRUE}).
 }
 \description{
-\code{cyt_univariate_multi}provides univariate statistical testing for
-categorical predictors with more than two levels.  For each
+\code{cyt_univariate_multi} provides univariate statistical testing for
+categorical predictors with more than two levels. For each
 categorical predictor and numeric outcome pair, a global test is
-performed, followed by pairwise comparisons if the global test is
-significant.  Users may choose between two methods,
-classical ANOVA with Tukey's Honest Significant Difference (HSD)
-or a non‑parametric Kruskal–Wallis test followed by pairwise
-Wilcoxon rank–sum tests.  The return format can either be a list
-of adjusted p‑values for each outcome–predictor pair or, if
-\code{format_output = TRUE}, a tidy data frame summarizing all
-pairwise comparisons.
+performed, followed by pairwise comparisons when appropriate.
+Users may choose between two methods: classical ANOVA with Tukey's
+Honest Significant Difference (HSD) or a non-parametric
+Kruskal-Wallis test followed by pairwise Wilcoxon rank-sum tests.
+The return format can either be a list of adjusted p-values for each
+outcome-predictor pair or, if \code{format_output = TRUE}, a list
+containing separate global and pairwise summary tables.
 }
 \examples{
 data("ExampleData1")
 cyt_univariate_multi(ExampleData1[, c(1:2, 5:6)], method = "kruskal",
-                     format_output = TRUE)
+  format_output = TRUE
+)
 }
 \author{
 Shubh Saraswat

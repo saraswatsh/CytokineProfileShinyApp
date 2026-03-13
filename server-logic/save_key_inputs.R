@@ -145,7 +145,11 @@ shiny::observeEvent(input$eb_base_size, {
   userState$eb_base_size <- input$eb_base_size
 })
 shiny::observeEvent(input$eb_fill_palette, {
-  userState$eb_fill_palette <- input$eb_fill_palette
+  userState$eb_fill_palette <- if (identical(input$eb_fill_palette, "grey")) {
+    "gray"
+  } else {
+    input$eb_fill_palette
+  }
 })
 # For Univariate Tests
 shiny::observeEvent(input$uv2_method, {

@@ -20,6 +20,106 @@ null_if_blank <- function(x) {
   x
 }
 
+copyable_text_dependencies <- function() {
+  shiny::tagList(
+    shiny::singleton(
+      shiny::tags$style(
+        shiny::HTML(
+          "
+          .copyable-text {
+            position: relative;
+            margin: 0;
+          }
+          .copyable-text__button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.15s ease-in-out;
+            z-index: 1;
+          }
+          .copyable-text:hover .copyable-text__button,
+          .copyable-text:focus-within .copyable-text__button {
+            opacity: 1;
+          }
+          .copyable-text__content {
+            margin: 0;
+            padding: 0.75rem 1rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+          }
+          "
+        )
+      )
+    ),
+    shiny::singleton(
+      shiny::tags$script(
+        shiny::HTML(
+          "
+          window.cytCopyText = function(button) {
+            var container = button.closest('.copyable-text');
+            var content = container ? container.querySelector('.copyable-text__content') : null;
+            if (!content) {
+              return;
+            }
+
+            var text = content.innerText;
+            var fallbackCopy = function(value) {
+              var textarea = document.createElement('textarea');
+              textarea.value = value;
+              textarea.setAttribute('readonly', '');
+              textarea.style.position = 'absolute';
+              textarea.style.left = '-9999px';
+              document.body.appendChild(textarea);
+              textarea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textarea);
+            };
+            var showCopied = function() {
+              var defaultLabel = button.getAttribute('data-default-label') || 'Copy';
+              button.textContent = 'Copied';
+              window.setTimeout(function() {
+                button.textContent = defaultLabel;
+              }, 1500);
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+              navigator.clipboard.writeText(text).then(showCopied).catch(function() {
+                fallbackCopy(text);
+                showCopied();
+              });
+            } else {
+              fallbackCopy(text);
+              showCopied();
+            }
+          };
+          "
+        )
+      )
+    )
+  )
+}
+
+copyable_text_block <- function(text, button_label = "Copy") {
+  if (is.null(text) || !length(text)) {
+    return(NULL)
+  }
+
+  text <- paste(as.character(text), collapse = "\n")
+
+  shiny::tags$div(
+    class = "copyable-text",
+    shiny::tags$button(
+      type = "button",
+      class = "btn btn-sm btn-outline-secondary copyable-text__button",
+      onclick = "window.cytCopyText(this)",
+      `data-default-label` = button_label,
+      button_label
+    ),
+    shiny::tags$pre(class = "copyable-text__content", text)
+  )
+}
+
 collect_exportable_plots <- function(x, prefix = "plot") {
   if (is.null(x)) {
     return(list())
@@ -164,34 +264,40 @@ analysisResult <- shiny::eventReactive(input$next4, {
               label_size = input$eb_label_size %||% 4,
               n_col = input$eb_n_col %||% 3,
               base_size = input$eb_base_size %||% 11,
-              fill_palette = switch(
-                input$eb_fill_palette %||% "grey",
-                "grey" = NULL,
-                "tableau" = c(
-                  "#4E79A7",
-                  "#F28E2B",
-                  "#E15759",
-                  "#76B7B2",
-                  "#59A14F",
-                  "#EDC948"
-                ),
-                "colorblind" = c(
-                  "#0072B2",
-                  "#E69F00",
-                  "#009E73",
-                  "#CC79A7",
-                  "#56B4E9",
-                  "#D55E00"
-                ),
-                "pastel" = c(
-                  "#AEC6CF",
-                  "#FFD1DC",
-                  "#B5EAD7",
-                  "#FFDAC1",
-                  "#C7CEEA",
-                  "#E2F0CB"
+              fill_palette = {
+                eb_fill_palette_choice <- input$eb_fill_palette %||% "gray"
+                if (identical(eb_fill_palette_choice, "grey")) {
+                  eb_fill_palette_choice <- "gray"
+                }
+                switch(
+                  eb_fill_palette_choice,
+                  "gray" = NULL,
+                  "tableau" = c(
+                    "#4E79A7",
+                    "#F28E2B",
+                    "#E15759",
+                    "#76B7B2",
+                    "#59A14F",
+                    "#EDC948"
+                  ),
+                  "colorblind" = c(
+                    "#0072B2",
+                    "#E69F00",
+                    "#009E73",
+                    "#CC79A7",
+                    "#56B4E9",
+                    "#D55E00"
+                  ),
+                  "pastel" = c(
+                    "#AEC6CF",
+                    "#FFD1DC",
+                    "#B5EAD7",
+                    "#FFDAC1",
+                    "#C7CEEA",
+                    "#E2F0CB"
+                  )
                 )
-              )
+              }
             ),
 
             "Dual-Flashlight Plot" = cyt_dualflashplot(
@@ -579,6 +685,39 @@ exportablePlots <- shiny::reactive({
   )
 })
 
+exportableTables <- shiny::reactive({
+  shiny::req(analysisResult(), selected_function())
+
+  func_name <- selected_function()
+  res <- analysisResult()
+
+  switch(
+    func_name,
+    "Univariate Tests (T-test, Wilcoxon)" = {
+      if (is.data.frame(res)) {
+        list(results = res)
+      } else {
+        list()
+      }
+    },
+    "Univariate Tests (ANOVA, Kruskal-Wallis)" = {
+      if (!is.list(res) || is.null(res$results)) {
+        return(list())
+      }
+
+      tables <- list(
+        global = res$results,
+        pairwise = res$pairwise %||% data.frame()
+      )
+      if (!is.null(res$assumptions)) {
+        tables$assumptions <- res$assumptions
+      }
+      tables
+    },
+    list()
+  )
+})
+
 output$errorText <- shiny::renderUI({
   shiny::req(errorMessage())
   shiny::div(
@@ -617,6 +756,7 @@ output$result_display <- shiny::renderUI({
 
   # Main UI container
   shiny::tagList(
+    copyable_text_dependencies(),
     shiny::uiOutput("warningText"), # Display warnings if any
     shiny::hr(),
 
@@ -738,7 +878,7 @@ output$result_display <- shiny::renderUI({
                 shiny::tabPanel(
                   "Confusion Matrix",
                   shinycssloaders::withSpinner(
-                    shiny::verbatimTextOutput("splsda_confMatrix"),
+                    shiny::uiOutput("splsda_confMatrix"),
                     type = 8
                   )
                 )
@@ -880,7 +1020,7 @@ output$result_display <- shiny::renderUI({
                       shiny::tabPanel(
                         "Confusion Matrix",
                         shinycssloaders::withSpinner(
-                          shiny::verbatimTextOutput(
+                          shiny::uiOutput(
                             paste0("splsda_confMatrix_", trt)
                           ),
                           type = 8
@@ -1327,7 +1467,7 @@ output$result_display <- shiny::renderUI({
           shiny::h4("Random Forest Results"),
           shiny::tabsetPanel(
             type = "tabs",
-            shiny::tabPanel("Summary", shiny::verbatimTextOutput("rf_summary")),
+            shiny::tabPanel("Summary", shiny::uiOutput("rf_summary")),
             shiny::tabPanel(
               "Variable Importance",
               shinycssloaders::withSpinner(
@@ -1365,7 +1505,7 @@ output$result_display <- shiny::renderUI({
             type = "tabs",
             shiny::tabPanel(
               "Summary",
-              shiny::verbatimTextOutput("xgb_summary")
+              shiny::uiOutput("xgb_summary")
             ),
             shiny::tabPanel(
               "Variable Importance",
@@ -1529,16 +1669,30 @@ output$result_display <- shiny::renderUI({
         method_used <- input$uvm_method %||% "anova"
         shiny::tagList(
           shiny::h4("Univariate Test Results"),
-          if (method_used == "anova") {
-            shiny::tabsetPanel(
-              shiny::tabPanel(
-                "Pairwise Comparisons",
-                shiny::br(),
-                shinycssloaders::withSpinner(
-                  DT::dataTableOutput("univariateResults"),
-                  type = 8
+          shiny::tabsetPanel(
+            shiny::tabPanel(
+              "Global Tests",
+              shiny::br(),
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("univariateResults"),
+                type = 8
+              )
+            ),
+            shiny::tabPanel(
+              "Pairwise Comparisons",
+              shiny::br(),
+              if (method_used == "kruskal") {
+                shiny::helpText(
+                  shiny::icon("circle-info"),
+                  "Pairwise Wilcoxon tests are shown only when the global Kruskal-Wallis test is significant."
                 )
-              ),
+              },
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("univariatePairwiseResults"),
+                type = 8
+              )
+            ),
+            if (method_used == "anova") {
               shiny::tabPanel(
                 "Assumption Checks",
                 shiny::br(),
@@ -1556,21 +1710,8 @@ output$result_display <- shiny::renderUI({
                   type = 8
                 )
               )
-            )
-          } else {
-            shiny::tagList(
-              shiny::helpText(
-                shiny::icon("circle-info"),
-                "Kruskal-Wallis is non-parametric and does not require normality or",
-                "homogeneity of variance assumptions. No assumption checks are needed."
-              ),
-              shiny::br(),
-              shinycssloaders::withSpinner(
-                DT::dataTableOutput("univariateResults"),
-                type = 8
-              )
-            )
-          }
+            }
+          )
         )
       },
       # --- Default UI for other functions (plots or tables) ---
@@ -1680,9 +1821,9 @@ shiny::observeEvent(analysisResult(), {
           grDevices::replayPlot(res$vip_indiv_plot)
         }
       })
-      output$splsda_confMatrix <- shiny::renderPrint({
+      output$splsda_confMatrix <- shiny::renderUI({
         if (!is.null(res$conf_matrix)) {
-          cat(paste(res$conf_matrix, collapse = "\n"))
+          copyable_text_block(res$conf_matrix)
         }
       })
 
@@ -1900,9 +2041,9 @@ shiny::observeEvent(analysisResult(), {
           output[[paste0(
             "splsda_confMatrix_",
             current_trt
-          )]] <- shiny::renderPrint({
+          )]] <- shiny::renderUI({
             if (!is.null(sub_res$conf_matrix)) {
-              cat(paste(sub_res$conf_matrix, collapse = "\n"))
+              copyable_text_block(sub_res$conf_matrix)
             }
           })
         })
@@ -2320,8 +2461,8 @@ shiny::observeEvent(analysisResult(), {
 
   # --- Random Forest Rendering Logic ---
   if (func_name == "Random Forest") {
-    output$rf_summary <- shiny::renderPrint({
-      cat(res$summary_text)
+    output$rf_summary <- shiny::renderUI({
+      copyable_text_block(res$summary_text)
     })
     output$rf_vipPlot <- shiny::renderPlot({
       print(res$vip_plot)
@@ -2336,8 +2477,8 @@ shiny::observeEvent(analysisResult(), {
 
   # --- XGBoost Rendering Logic ---
   if (func_name == "Extreme Gradient Boosting (XGBoost)") {
-    output$xgb_summary <- shiny::renderPrint({
-      cat(res$summary_text)
+    output$xgb_summary <- shiny::renderUI({
+      copyable_text_block(res$summary_text)
     })
     output$xgb_vipPlot <- shiny::renderPlot({
       print(res$importance_plot)
@@ -2453,14 +2594,28 @@ output$univariateResults <- DT::renderDataTable(
           "Univariate Tests (ANOVA, Kruskal-Wallis)"
         )
     )
-    # ANOVA returns a named list; t-test/Wilcoxon returns a plain data frame
+    # Multi-level tests return a named list; t-test/Wilcoxon returns a plain data frame
     if (is.list(res) && !is.data.frame(res) && !is.null(res$results)) {
       res$results
     } else {
       res
     }
   },
-  options = list(pageLength = 10, scrollX = TRUE)
+  options = list(pageLength = 10, scrollX = TRUE),
+  rownames = FALSE
+)
+output$univariatePairwiseResults <- DT::renderDataTable(
+  {
+    res <- analysisResult()
+    shiny::req(
+      selected_function() == "Univariate Tests (ANOVA, Kruskal-Wallis)",
+      is.list(res),
+      !is.null(res$pairwise)
+    )
+    res$pairwise
+  },
+  options = list(pageLength = 10, scrollX = TRUE),
+  rownames = FALSE
 )
 output$anovaAssumptionTable <- DT::renderDataTable(
   {
@@ -2502,12 +2657,14 @@ output$errorBarPlotOutput <- shiny::renderPlot(
 # Render the download UI conditionally
 output$download_ui <- shiny::renderUI({
   plots <- exportablePlots()
+  tables <- exportableTables()
+
   if (length(plots) > 0) {
     shiny::tagList(
       shiny::textInput(
         "download_filename",
         "Enter filename for download:",
-        value = "Cytokine_Analysis_Results"
+        value = "Results"
       ),
       shiny::selectInput(
         "download_format",
@@ -2523,18 +2680,79 @@ output$download_ui <- shiny::renderUI({
       ),
       shiny::downloadButton("download_output", "Download Results")
     )
+  } else if (length(tables) > 0) {
+    is_multi_univariate <-
+      selected_function() == "Univariate Tests (ANOVA, Kruskal-Wallis)"
+    shiny::tagList(
+      shiny::textInput(
+        "download_filename",
+        "Enter filename for download:",
+        value = if (is_multi_univariate) {
+          "Results"
+        } else {
+          "Results"
+        }
+      ),
+      shiny::downloadButton(
+        "download_output",
+        if (is_multi_univariate) {
+          "Download Results (ZIP)"
+        } else {
+          "Download Results (CSV)"
+        }
+      )
+    )
   }
 })
 
 # Download handler
 output$download_output <- shiny::downloadHandler(
   filename = function() {
+    tables <- exportableTables()
+    if (length(tables) > 0 && length(exportablePlots()) == 0) {
+      ext <- if (length(tables) > 1L) "zip" else "csv"
+      return(paste0(
+        input$download_filename %||% "Results",
+        ".",
+        ext
+      ))
+    }
+
     fmt <- tolower(input$download_format %||% "pdf")
     plot_count <- length(exportablePlots())
     ext <- if (fmt == "pdf" || plot_count <= 1L) fmt else "zip"
-    paste0(input$download_filename %||% "Cytokine_Analysis_Results", ".", ext)
+    paste0(input$download_filename %||% "Results", ".", ext)
   },
   content = function(file) {
+    tables <- exportableTables()
+    if (length(tables) > 0 && length(exportablePlots()) == 0) {
+      if (length(tables) == 1L) {
+        utils::write.csv(tables[[1]], file, row.names = FALSE)
+        return(invisible(NULL))
+      }
+
+      base_file <- tools::file_path_sans_ext(file)
+      generated_files <- vapply(
+        names(tables),
+        function(table_name) {
+          generated_file <- paste0(base_file, "_", table_name, ".csv")
+          utils::write.csv(
+            tables[[table_name]],
+            generated_file,
+            row.names = FALSE
+          )
+          basename(generated_file)
+        },
+        character(1)
+      )
+
+      old_wd <- getwd()
+      on.exit(setwd(old_wd), add = TRUE)
+      setwd(dirname(file))
+      utils::zip(zipfile = file, files = generated_files)
+      return(invisible(NULL))
+    }
+
     plots <- exportablePlots()
     shiny::req(length(plots) > 0)
 

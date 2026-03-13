@@ -86,9 +86,9 @@ Default is \code{4}.}
 \item{base_size}{Numeric. Base font size for the plot theme. Default is
 \code{11}.}
 
-\item{fill_palette}{Character vector of colours for the group bars. If
-\code{NULL} (default), all bars are filled with \code{"grey80"}.
-Supply one colour per group level (e.g. \code{c("#4E79A7", "#F28E2B",
+\item{fill_palette}{Character vector of colors for the group bars. If
+\code{NULL} (default), all bars are filled with \code{"gray80"}.
+Supply one color per group level (e.g. \code{c("#4E79A7", "#F28E2B",
   "#E15759")}).}
 
 \item{output_file}{Optional file path. If provided, the plot is saved

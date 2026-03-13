@@ -52,9 +52,9 @@
 #'   (default), uses \code{min(3, number_of_cytokines)}.
 #' @param base_size Numeric. Base font size for the plot theme. Default is
 #'   \code{11}.
-#' @param fill_palette Character vector of colours for the group bars. If
-#'   \code{NULL} (default), all bars are filled with \code{"grey80"}.
-#'   Supply one colour per group level (e.g. \code{c("#4E79A7", "#F28E2B",
+#' @param fill_palette Character vector of colors for the group bars. If
+#'   \code{NULL} (default), all bars are filled with \code{"gray80"}.
+#'   Supply one color per group level (e.g. \code{c("#4E79A7", "#F28E2B",
 #'   "#E15759")}).
 #' @param output_file Optional file path. If provided, the plot is saved
 #'   using \code{ggsave()}; otherwise the plot is returned and automatically
@@ -100,9 +100,9 @@ cyt_errbp <- function(
   output_file = NULL,
   progress = NULL
 ) {
-  # ── 0. Initialise ──────────────────────────────────────────────────────────
+  # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Error bar plot: initialising...", value = 0)
+    progress$set(message = "Error bar plot: initializing...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -177,7 +177,7 @@ cyt_errbp <- function(
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Computing summary statistics")
   }
-  summarised <- long_df |>
+  summarized <- long_df |>
     dplyr::group_by(.data[[group_col]], Measure) |>
     dplyr::summarise(
       n = sum(!is.na(Value)),
@@ -191,9 +191,9 @@ cyt_errbp <- function(
     )
 
   spread_values <- if (error == "sd") {
-    summarised$sd
+    summarized$sd
   } else if (error == "se") {
-    summarised$sd / sqrt(summarised$n)
+    summarized$sd / sqrt(summarized$n)
   } else if (error == "mad") {
     mapply(
       function(g, m) {
@@ -202,23 +202,23 @@ cyt_errbp <- function(
           na.rm = TRUE
         )
       },
-      summarised[[group_col]],
-      summarised$Measure
+      summarized[[group_col]],
+      summarized$Measure
     )
   } else if (error == "ci") {
-    (summarised$sd / sqrt(summarised$n)) * 1.96
+    (summarized$sd / sqrt(summarized$n)) * 1.96
   } else {
-    summarised$sd / sqrt(summarised$n)
+    summarized$sd / sqrt(summarized$n)
   }
 
-  summarised <- summarised |>
+  summarized <- summarized |>
     dplyr::mutate(spread = spread_values)
 
   # ── 6. P-values and effect sizes ───────────────────────────────────────────
   group_levels <- levels(data[[group_col]])
   baseline <- group_levels[1]
 
-  summarised <- summarised |>
+  summarized <- summarized |>
     dplyr::mutate(P_value = NA_real_, EffectSize = NA_real_)
 
   if (p_lab || es_lab) {
@@ -226,11 +226,11 @@ cyt_errbp <- function(
       progress$inc(0.05, detail = "Computing p-values and effect sizes")
     }
 
-    total_iter <- length(unique(summarised$Measure)) *
+    total_iter <- length(unique(summarized$Measure)) *
       (length(group_levels) - 1L)
     iter_inc <- 0.30 / max(total_iter, 1L)
 
-    for (m in unique(summarised$Measure)) {
+    for (m in unique(summarized$Measure)) {
       baseline_values <- long_df$Value[
         long_df$Measure == m & long_df[[group_col]] == baseline
       ]
@@ -242,7 +242,7 @@ cyt_errbp <- function(
           progress$inc(iter_inc, detail = paste0("Testing: ", m, " ~ ", g))
         }
 
-        idx <- summarised$Measure == m & summarised[[group_col]] == g
+        idx <- summarized$Measure == m & summarized[[group_col]] == g
         grp_values <- long_df$Value[
           long_df$Measure == m & long_df[[group_col]] == g
         ]
@@ -281,24 +281,24 @@ cyt_errbp <- function(
           eff <- (u / (length(grp_values) * length(baseline_values))) * 2 - 1
         }
 
-        summarised$P_value[idx] <- p_val
-        summarised$EffectSize[idx] <- eff
+        summarized$P_value[idx] <- p_val
+        summarized$EffectSize[idx] <- eff
       }
     }
 
     # P-value adjustment
     if (!is.null(p_adjust_method)) {
-      summarised$P_adj <- adjust_p(summarised$P_value, method = p_adjust_method)
+      summarized$P_adj <- adjust_p(summarized$P_value, method = p_adjust_method)
     } else {
-      summarised$P_adj <- summarised$P_value
+      summarized$P_adj <- summarized$P_value
     }
   } else {
-    summarised$P_adj <- summarised$P_value
+    summarized$P_adj <- summarized$P_value
   }
 
   # ── 7. Label positions ─────────────────────────────────────────────────────
-  y_range <- diff(range(summarised$center + summarised$spread, na.rm = TRUE))
-  summarised <- summarised |>
+  y_range <- diff(range(summarized$center + summarized$spread, na.rm = TRUE))
+  summarized <- summarized |>
     dplyr::mutate(
       p_y = center + spread + 0.05 * y_range,
       es_y = center + spread + 0.15 * y_range
@@ -368,25 +368,25 @@ cyt_errbp <- function(
     "<<<<<"
   }
 
-  p_symbol <- sapply(summarised$P_adj, significance_mark_fn)
-  es_symbol <- sapply(summarised$EffectSize, effect_size_mark_fn)
+  p_symbol <- sapply(summarized$P_adj, significance_mark_fn)
+  es_symbol <- sapply(summarized$EffectSize, effect_size_mark_fn)
 
   p_numeric <- ifelse(
-    is.na(summarised$P_adj),
+    is.na(summarized$P_adj),
     NA_character_,
     ifelse(
-      summarised$P_adj > 0.001,
-      sprintf("p=%.3f", summarised$P_adj),
-      paste0("p=", formatC(summarised$P_adj, format = "e", digits = 1))
+      summarized$P_adj > 0.001,
+      sprintf("p=%.3f", summarized$P_adj),
+      paste0("p=", formatC(summarized$P_adj, format = "e", digits = 1))
     )
   )
   es_numeric <- ifelse(
-    is.na(summarised$EffectSize),
+    is.na(summarized$EffectSize),
     NA_character_,
-    sprintf("es=%.3f", summarised$EffectSize)
+    sprintf("es=%.3f", summarized$EffectSize)
   )
 
-  summarised$p_label <- unlist(mapply(
+  summarized$p_label <- unlist(mapply(
     function(sym, num) {
       if (p_lab && class_symbol) {
         if (!is.na(sym) && sym != "" && sym != " " && !is.na(num)) {
@@ -412,7 +412,7 @@ cyt_errbp <- function(
     SIMPLIFY = FALSE
   ))
 
-  summarised$es_label <- unlist(mapply(
+  summarized$es_label <- unlist(mapply(
     function(sym, num) {
       if (es_lab && class_symbol) {
         if (!is.na(sym) && sym != "" && sym != " " && !is.na(num)) {
@@ -448,7 +448,7 @@ cyt_errbp <- function(
   if (title == "") {
     title <- paste(
       "Error Bar Plots for",
-      paste(unique(summarised$Measure), collapse = ", ")
+      paste(unique(summarized$Measure), collapse = ", ")
     )
   }
 
@@ -458,16 +458,16 @@ cyt_errbp <- function(
   }
 
   # Resolve ncol for facet grid
-  n_facets_total <- length(unique(summarised$Measure))
+  n_facets_total <- length(unique(summarized$Measure))
   facet_ncol <- if (!is.null(n_col) && n_col > 0L) {
     as.integer(n_col)
   } else {
     min(3L, n_facets_total)
   }
 
-  # Resolve fill: group-coloured or flat grey
+  # Resolve fill: group-colored or flat gray
   if (!is.null(fill_palette)) {
-    group_levels <- levels(factor(summarised[[group_col]]))
+    group_levels <- levels(factor(summarized[[group_col]]))
     fill_map <- stats::setNames(
       rep_len(fill_palette, length(group_levels)),
       group_levels
@@ -480,13 +480,13 @@ cyt_errbp <- function(
   }
 
   p <- ggplot2::ggplot(
-    summarised,
+    summarized,
     ggplot2::aes(x = .data[[group_col]], y = center)
   ) +
     (if (!is.null(fill_palette)) {
       ggplot2::geom_col(ggplot2::aes(fill = .data[[group_col]]))
     } else {
-      ggplot2::geom_col(fill = "grey80")
+      ggplot2::geom_col(fill = "gray80")
     }) +
     ggplot2::geom_errorbar(
       ggplot2::aes(ymin = center - spread, ymax = center + spread),
@@ -509,7 +509,7 @@ cyt_errbp <- function(
   if (p_lab) {
     p <- p +
       ggplot2::geom_text(
-        data = summarised |>
+        data = summarized |>
           dplyr::filter(.data[[group_col]] != baseline & !is.na(p_label)),
         ggplot2::aes(x = .data[[group_col]], y = p_y, label = p_label),
         size = label_size,
@@ -522,7 +522,7 @@ cyt_errbp <- function(
   if (es_lab) {
     p <- p +
       ggplot2::geom_text(
-        data = summarised |>
+        data = summarized |>
           dplyr::filter(.data[[group_col]] != baseline & !is.na(es_label)),
         ggplot2::aes(x = .data[[group_col]], y = es_y, label = es_label),
         size = label_size,
@@ -537,7 +537,7 @@ cyt_errbp <- function(
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Saving plot to file")
     }
-    n_facets <- length(unique(summarised$Measure))
+    n_facets <- length(unique(summarized$Measure))
     n_cols <- facet_ncol
     n_rows <- ceiling(n_facets / n_cols)
     out_width <- n_cols * 4
