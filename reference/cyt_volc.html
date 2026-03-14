@@ -69,6 +69,7 @@ two groups. The results are log2-transformed (for fold change) and -log10-transf
 <span>  p_value_thresh <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  top_labels <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  output_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  font_settings <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -111,6 +112,11 @@ Default is 10.</p></dd>
 <dt id="arg-output-file">output_file<a class="anchor" aria-label="anchor" href="#arg-output-file"></a></dt>
 <dd><p>Optional. A file path to save the plot. If NULL (default), the function
 returns a list of ggplot objects.</p></dd>
+
+
+<dt id="arg-font-settings">font_settings<a class="anchor" aria-label="anchor" href="#arg-font-settings"></a></dt>
+<dd><p>Optional named list of font sizes for supported plot
+text elements.</p></dd>
 
 
 <dt id="arg-progress">progress<a class="anchor" aria-label="anchor" href="#arg-progress"></a></dt>

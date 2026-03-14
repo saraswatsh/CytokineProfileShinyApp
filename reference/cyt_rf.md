@@ -26,6 +26,7 @@ cyt_rf(
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -111,6 +112,10 @@ cyt_rf(
 
   Optional. A file path to save outputs as a PDF. If `NULL` (default), a
   named list is returned for interactive display.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 

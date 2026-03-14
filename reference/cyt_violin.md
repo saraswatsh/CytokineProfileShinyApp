@@ -21,6 +21,7 @@ cyt_violin(
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
   boxplot_overlay = FALSE,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -68,6 +69,10 @@ cyt_violin(
 
   Logical. When `TRUE`, a narrow boxplot is drawn inside each violin to
   summarize the median and quartiles. Default is `FALSE`.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 

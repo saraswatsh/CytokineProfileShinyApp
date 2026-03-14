@@ -1,15 +1,14 @@
 # Univariate Tests for Multi-Level Categorical Predictors
 
 `cyt_univariate_multi` provides univariate statistical testing for
-categorical predictors with more than two levels. For each categorical
-predictor and numeric outcome pair, a global test is performed, followed
-by pairwise comparisons when appropriate. Users may choose between two
-methods: classical ANOVA with Tukey's Honest Significant Difference
-(HSD) or a non-parametric Kruskal-Wallis test followed by pairwise
-Wilcoxon rank-sum tests. The return format can either be a list of
-adjusted p-values for each outcome-predictor pair or, if
-`format_output = TRUE`, a list containing separate global and pairwise
-summary tables.
+categorical predictors with more than two levels. For one-way designs,
+each categorical predictor and numeric outcome pair receives a global
+test followed by pairwise comparisons when appropriate. Users may choose
+between classical ANOVA with Tukey's Honest Significant Difference (HSD)
+or a non-parametric Kruskal-Wallis test followed by pairwise Wilcoxon
+rank-sum tests. The function also supports explicit two-way ANOVA and
+ANCOVA designs with optional `primary:secondary` and `primary:covariate`
+interaction terms.
 
 ## Usage
 
@@ -17,9 +16,15 @@ summary tables.
 cyt_univariate_multi(
   data,
   method = c("anova", "kruskal"),
+  design = c("one_way", "two_way", "ancova"),
   cat_vars = NULL,
   cont_vars = NULL,
   p_adjust_method = "BH",
+  primary_cat_var = NULL,
+  secondary_cat_var = NULL,
+  covariate_col = NULL,
+  include_primary_secondary_interaction = FALSE,
+  include_primary_covariate_interaction = FALSE,
   format_output = FALSE,
   progress = NULL
 )
@@ -36,17 +41,26 @@ cyt_univariate_multi(
 
   Character specifying the type of global test to perform. Use `"anova"`
   (default) for one-way ANOVA with Tukey HSD or `"kruskal"` for
-  Kruskal-Wallis with pairwise Wilcoxon tests.
+  Kruskal-Wallis with pairwise Wilcoxon tests. `"kruskal"` is only
+  supported when `design = "one_way"`.
+
+- design:
+
+  Character specifying the model design. Use `"one_way"` (default) to
+  preserve the existing multi-level ANOVA/Kruskal-Wallis workflow,
+  `"two_way"` for two-way ANOVA, or `"ancova"` for ANCOVA.
 
 - cat_vars:
 
-  Optional character vector of predictor column names. When `NULL`, all
-  factor or character columns in `data` are used.
+  Optional character vector of predictor column names used by the
+  one-way workflow. When `NULL`, all factor or character columns in
+  `data` are used.
 
 - cont_vars:
 
   Optional character vector of numeric outcome variable names. When
-  `NULL`, all numeric columns in `data` are used.
+  `NULL`, all numeric columns in `data` are used, excluding
+  `covariate_col` for ANCOVA.
 
 - p_adjust_method:
 
@@ -54,12 +68,37 @@ cyt_univariate_multi(
   pairwise Kruskal-Wallis follow-up comparisons. Passed to `p.adjust`.
   Default is `"BH"`.
 
+- primary_cat_var:
+
+  Optional primary categorical predictor used by the two-way ANOVA and
+  ANCOVA workflows.
+
+- secondary_cat_var:
+
+  Optional secondary categorical predictor used by the two-way ANOVA and
+  ANCOVA workflows.
+
+- covariate_col:
+
+  Optional numeric covariate used by the ANCOVA workflow.
+
+- include_primary_secondary_interaction:
+
+  Logical. Whether to include the `primary:secondary` interaction term
+  when `secondary_cat_var` is supplied.
+
+- include_primary_covariate_interaction:
+
+  Logical. Whether to include the `primary:covariate` interaction term
+  when `covariate_col` is supplied.
+
 - format_output:
 
   Logical. If `TRUE`, returns a list with global results, pairwise
   results, and assumption summaries; otherwise (default) returns a list
-  of numeric vectors keyed by `"Outcome_Categorical"`. Each numeric
-  vector contains adjusted p-values for the pairwise comparisons.
+  of numeric vectors keyed by `"Outcome_Categorical"` for the one-way
+  workflow. Two-way ANOVA and ANCOVA return raw model bundles keyed by
+  outcome when `format_output = FALSE`.
 
 - progress:
 
@@ -68,9 +107,9 @@ cyt_univariate_multi(
 
 ## Value
 
-Either a list of adjusted pairwise p-values (if `format_output = FALSE`)
-or a list with `results`, `pairwise`, and `assumptions` data frames (if
-`format_output = TRUE`).
+Either a list of adjusted pairwise p-values (if `format_output = FALSE`
+and `design = "one_way"`) or a list with `results`, `pairwise`, and
+`assumptions` data frames (if `format_output = TRUE`).
 
 ## Author
 

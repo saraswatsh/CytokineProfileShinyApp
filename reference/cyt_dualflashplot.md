@@ -20,6 +20,7 @@ cyt_dualflashplot(
   log2fc_thresh = 1,
   top_labels = 15,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -61,6 +62,10 @@ cyt_dualflashplot(
 
   Optional. A file path to save the plot as a PDF (or PNG if extension
   is .png). If NULL (default), the function returns a ggplot object.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 

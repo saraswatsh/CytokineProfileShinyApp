@@ -71,6 +71,7 @@ file or returned as a list of ggplot2 objects.</p>
 <span>  y_lim <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"log2"</span>, <span class="st">"log10"</span>, <span class="st">"zscore"</span>, <span class="st">"custom"</span><span class="op">)</span>,</span>
 <span>  custom_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  font_settings <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -116,6 +117,11 @@ One of <code>"none"</code>, <code>"log2"</code>, <code>"log10"</code>, <code>"zs
 <dt id="arg-custom-fn">custom_fn<a class="anchor" aria-label="anchor" href="#arg-custom-fn"></a></dt>
 <dd><p>A user-supplied function to transform numeric columns when
 <code>scale = "custom"</code>.</p></dd>
+
+
+<dt id="arg-font-settings">font_settings<a class="anchor" aria-label="anchor" href="#arg-font-settings"></a></dt>
+<dd><p>Optional named list of font sizes for supported plot
+text elements.</p></dd>
 
 
 <dt id="arg-progress">progress<a class="anchor" aria-label="anchor" href="#arg-progress"></a></dt>

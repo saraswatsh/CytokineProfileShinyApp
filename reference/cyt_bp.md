@@ -18,6 +18,7 @@ cyt_bp(
   y_lim = NULL,
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -60,6 +61,10 @@ cyt_bp(
 
   A user-supplied function to transform numeric columns when
   `scale = "custom"`.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 

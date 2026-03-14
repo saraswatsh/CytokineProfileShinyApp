@@ -23,6 +23,7 @@ cyt_mint_splsda(
   cim = FALSE,
   scale = NULL,
   roc = FALSE,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -94,6 +95,10 @@ cyt_mint_splsda(
 
   Logical. Whether to compute and plot the ROC curve for the model.
   Default is `FALSE`.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 

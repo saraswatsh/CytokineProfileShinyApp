@@ -17,6 +17,7 @@ cyt_skku(
   output_file = NULL,
   print_res_raw = FALSE,
   print_res_log = FALSE,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -46,6 +47,10 @@ cyt_skku(
 
   Logical. If TRUE, prints and returns the summary statistics for log2
   data.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 

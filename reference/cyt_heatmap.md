@@ -19,6 +19,7 @@ cyt_heatmap(
   show_col_names = TRUE,
   fontsize_row = 10,
   fontsize_col = 10,
+  font_settings = NULL,
   cluster_rows = TRUE,
   cluster_cols = TRUE,
   title = NULL,
@@ -67,6 +68,10 @@ cyt_heatmap(
 - fontsize_col:
 
   Numeric. Font size for column names. Default is `10`.
+
+- font_settings:
+
+  Optional named list of font sizes for supported heatmap text elements.
 
 - cluster_rows:
 

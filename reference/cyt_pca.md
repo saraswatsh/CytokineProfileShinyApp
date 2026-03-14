@@ -20,6 +20,7 @@ cyt_pca(
   pch_values = NULL,
   style = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -72,6 +73,10 @@ cyt_pca(
 
   Optional. A file name for the PDF output. If NULL, interactive mode is
   assumed.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 

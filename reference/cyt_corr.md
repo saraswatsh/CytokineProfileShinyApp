@@ -17,6 +17,7 @@ cyt_corr(
   group_var = NULL,
   compare_groups = FALSE,
   plot = FALSE,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -53,6 +54,10 @@ cyt_corr(
 
   Logical. If `TRUE`, the function will generate and return a
   correlation plot.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 

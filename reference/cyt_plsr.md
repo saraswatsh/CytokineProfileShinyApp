@@ -29,6 +29,7 @@ cyt_plsr(
   ellipse = FALSE,
   pls_colors = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -98,6 +99,10 @@ cyt_plsr(
 - output_file:
 
   Optional. A file path to save the plots as a PDF.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 

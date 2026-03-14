@@ -32,6 +32,7 @@ cyt_errbp(
   n_col = NULL,
   base_size = 11,
   fill_palette = NULL,
+  font_settings = NULL,
   output_file = NULL,
   progress = NULL
 )
@@ -132,6 +133,10 @@ cyt_errbp(
   Character vector of colors for the group bars. If `NULL` (default),
   all bars are filled with `"gray80"`. Supply one color per group level
   (e.g. `c("#4E79A7", "#F28E2B", "#E15759")`).
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - output_file:
 

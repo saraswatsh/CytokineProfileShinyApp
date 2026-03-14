@@ -27,6 +27,7 @@ cyt_splsda(
   pch_values = NULL,
   output_file = NULL,
   font_scale = 1,
+  font_settings = NULL,
   progress = NULL
 )
 ```
@@ -137,6 +138,10 @@ cyt_splsda(
 
   Numeric. Apply a scale to font size in the figures for better
   readability.
+
+- font_settings:
+
+  Optional named list of font sizes for supported plot text elements.
 
 - progress:
 
