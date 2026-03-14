@@ -114,7 +114,7 @@ cyt_xgb <- function(
 ) {
   # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "XGBoost: initializing...", value = 0)
+    progress$set(message = "Running XGBoost...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -149,7 +149,7 @@ cyt_xgb <- function(
 
   # ── 2. Class mapping & numeric encoding ────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Setting up class mapping")
+    progress$inc(0.05, detail = "Preparing class labels")
   }
   data[[group_col]] <- as.factor(data[[group_col]])
   class_labels <- levels(data[[group_col]])
@@ -248,7 +248,7 @@ cyt_xgb <- function(
 
   # ── 8. Feature importance plot ─────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Computing feature importance")
+    progress$inc(0.05, detail = "Building feature importance plot")
   }
   importance_matrix <- xgboost::xgb.importance(
     feature_names = colnames(X_train),
@@ -425,7 +425,7 @@ cyt_xgb <- function(
 
   # ── 11. Build summary text ─────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Compiling summary")
+    progress$inc(0.05, detail = "Formatting results")
   }
   summary_text <- paste(
     utils::capture.output({
@@ -464,7 +464,7 @@ cyt_xgb <- function(
   # ── 12. Output ─────────────────────────────────────────────────────────────
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Saving outputs to PDF")
+      progress$inc(0.05, detail = "Writing output file")
     }
     grDevices::pdf(file = output_file, width = 8, height = 8)
     on.exit(grDevices::dev.off(), add = TRUE)
@@ -474,13 +474,14 @@ cyt_xgb <- function(
       print(roc_plot)
     }
     if (!is.null(progress)) {
-      progress$inc(0.02, detail = "PDF saved")
+      progress$inc(0.02, detail = "Finished writing output file")
+      progress$set(message = "Running XGBoost...", value = 1, detail = "Finished")
     }
     return(invisible(NULL))
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.03, detail = "Complete")
+    progress$set(message = "Running XGBoost...", value = 1, detail = "Finished")
   }
 
   invisible(list(

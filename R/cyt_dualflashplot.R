@@ -72,14 +72,15 @@ cyt_dualflashplot <- function(
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Validating input data")
+    progress$set(message = "Running Dual-Flashlight Plot...", value = 0)
+    progress$inc(0.05, detail = "Checking inputs")
   }
   if (!is.data.frame(data)) {
     stop("Input must be a data frame.")
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Reshaping data to long format")
+    progress$inc(0.05, detail = "Preparing long-format data")
   }
   data_long <- data |>
     tidyr::pivot_longer(
@@ -121,12 +122,12 @@ cyt_dualflashplot <- function(
     )
 
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Selecting top variables for labels")
+    progress$inc(0.1, detail = "Selecting labels")
   }
   top_stats <- dplyr::top_n(stats, n = top_labels, wt = abs(ssmd))
 
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Generating plot")
+    progress$inc(0.1, detail = "Building plot")
   }
   p <- ggplot2::ggplot(
     stats,
@@ -160,7 +161,7 @@ cyt_dualflashplot <- function(
 
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
-      progress$inc(0.1, detail = "Saving plot to file")
+      progress$inc(0.1, detail = "Writing output file")
     }
     ext <- tools::file_ext(output_file)
     if (tolower(ext) == "pdf") {
@@ -184,12 +185,14 @@ cyt_dualflashplot <- function(
       grDevices::dev.off()
     }
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Plot saved")
+      progress$inc(0.05, detail = "Finished writing output file")
+      progress$set(message = "Running Dual-Flashlight Plot...", value = 1, detail = "Finished")
     }
     return(invisible(NULL))
   } else {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Returning plot")
+      progress$inc(0.05, detail = "Formatting results")
+      progress$set(message = "Running Dual-Flashlight Plot...", value = 1, detail = "Finished")
     }
     return(list(plot = p, stats = top_stats))
   }

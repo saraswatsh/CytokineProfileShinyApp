@@ -107,7 +107,7 @@ cyt_splsda <- function(
   `%notin%` <- function(x, y) !(x %in% y)
 
   if (!is.null(progress)) {
-    progress$set(message = "Starting sPLS-DA...", value = 0)
+    progress$set(message = "Running sPLS-DA...", value = 0)
   }
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
@@ -207,6 +207,9 @@ cyt_splsda <- function(
     pch_levels <- rep(pch_values, length.out = length(levs_all))
   }
   names(col_levels) <- names(pch_levels) <- levs_all
+  if (!is.null(progress)) {
+    progress$inc(0.10, detail = "Preparing analysis inputs")
+  }
 
   # helper to compute accuracy cleanly (avoids 0% bug)
   .acc_pct <- function(pred_class, ref_factor) {
@@ -329,9 +332,20 @@ cyt_splsda <- function(
   }
 
   # main worker for one dataset (overall or by level of group_col2)
-  run_one <- function(df_subset, label) {
+  run_one <- function(df_subset, label, progress_share) {
+    stage_weights <- list(
+      prepare = 0.18,
+      fit = 0.22,
+      predict = 0.15,
+      plots = 0.20,
+      cross_validation = if (!is.null(cv_opt)) 0.10 else 0,
+      loadings = 0.15
+    )
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = paste("Preparing:", label))
+      progress$inc(
+        progress_share * stage_weights$prepare,
+        detail = paste("Preparing data for", label)
+      )
     }
     xy <- .x_y(df_subset)
     X <- xy$X
@@ -348,7 +362,10 @@ cyt_splsda <- function(
 
     # fit
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Fitting sPLS-DA")
+      progress$inc(
+        progress_share * stage_weights$fit,
+        detail = paste("Fitting sPLS-DA model for", label)
+      )
     }
     args <- list(
       X = X,
@@ -364,7 +381,10 @@ cyt_splsda <- function(
 
     # predict + accuracy for selected component
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Predicting")
+      progress$inc(
+        progress_share * stage_weights$predict,
+        detail = paste("Calculating predictions for", label)
+      )
     }
     pred <- stats::predict(mdl, X, dist = "max.dist")
     pred_class <- pred$class$max.dist[, comp_num_eff]
@@ -372,7 +392,10 @@ cyt_splsda <- function(
 
     # plots (interactive)
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Plotting")
+      progress$inc(
+        progress_share * stage_weights$plots,
+        detail = paste("Building score plots for", label)
+      )
     }
     lab_res <- .resolve_ind_names(
       df_subset,
@@ -481,6 +504,12 @@ cyt_splsda <- function(
     # CV (optional)
     indiv_CV <- NULL
     if (!is.null(cv_opt)) {
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$cross_validation,
+          detail = paste("Running cross-validation for", label)
+        )
+      }
       if (identical(cv_opt, "loocv")) {
         set.seed(123)
         cv_res <- mixOmics::perf(mdl, validation = "loo")
@@ -552,7 +581,10 @@ cyt_splsda <- function(
 
     # loadings + VIP
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Loadings & VIP")
+      progress$inc(
+        progress_share * stage_weights$loadings,
+        detail = paste("Building loadings and VIP summaries for", label)
+      )
     }
     loadings <- lapply(seq_len(comp_num_eff), function(k) {
       .record_plot({
@@ -1013,19 +1045,30 @@ cyt_splsda <- function(
 
   # --- overall vs split by group_col2 -------------------------------------
   if (is.null(group_col2) || identical(group_col, group_col2)) {
-    res <- run_one(data, "Overall Analysis")
+    res <- run_one(data, "Overall Analysis", progress_share = 0.80)
     if (!is.null(output_file)) {
       res$pdf_file <- output_file
+    }
+    if (!is.null(progress)) {
+      progress$set(message = "Running sPLS-DA...", value = 1, detail = "Finished")
     }
     return(res)
   } else {
     trts <- unique(data[[group_col2]])
+    progress_share <- 0.80 / max(length(trts), 1L)
     out <- lapply(trts, function(tt) {
-      run_one(data[data[[group_col2]] == tt, , drop = FALSE], as.character(tt))
+      run_one(
+        data[data[[group_col2]] == tt, , drop = FALSE],
+        as.character(tt),
+        progress_share = progress_share
+      )
     })
     names(out) <- trts
     if (!is.null(output_file)) {
       attr(out, "pdf_file") <- output_file
+    }
+    if (!is.null(progress)) {
+      progress$set(message = "Running sPLS-DA...", value = 1, detail = "Finished")
     }
     return(out)
   }

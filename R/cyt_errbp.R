@@ -105,7 +105,7 @@ cyt_errbp <- function(
 ) {
   # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Error bar plot: initializing...", value = 0)
+    progress$set(message = "Running Error-Bar Plot...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -161,13 +161,13 @@ cyt_errbp <- function(
 
   # ── 1. Convert grouping column to factor ───────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Converting grouping column to factor")
+    progress$inc(0.05, detail = "Preparing grouping column")
   }
   data[[group_col]] <- as.factor(data[[group_col]])
 
   # ── 2. Identify numeric columns ────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Identifying numeric columns")
+    progress$inc(0.05, detail = "Selecting numeric measures")
   }
   num_vars <- names(data)[sapply(data, is.numeric) & names(data) != group_col]
   if (length(num_vars) == 0L) {
@@ -189,7 +189,7 @@ cyt_errbp <- function(
 
   # ── 4. Reshape to long format ──────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Reshaping data to long format")
+    progress$inc(0.05, detail = "Reshaping data")
   }
   long_df <- data |>
     dplyr::select(dplyr::all_of(c(group_col, num_vars))) |>
@@ -201,7 +201,7 @@ cyt_errbp <- function(
 
   # ── 5. Summary statistics ──────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Computing summary statistics")
+    progress$inc(0.05, detail = "Calculating summary statistics")
   }
   summarized <- long_df |>
     dplyr::group_by(.data[[group_col]], Measure) |>
@@ -249,12 +249,13 @@ cyt_errbp <- function(
 
   if (p_lab || es_lab) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Computing p-values and effect sizes")
+      progress$inc(0.05, detail = "Calculating pairwise statistics")
     }
 
     total_iter <- length(unique(summarized$Measure)) *
       (length(group_levels) - 1L)
     iter_inc <- 0.30 / max(total_iter, 1L)
+    current_iter <- 0L
 
     for (m in unique(summarized$Measure)) {
       baseline_values <- long_df$Value[
@@ -264,8 +265,19 @@ cyt_errbp <- function(
       base_sd <- stats::sd(baseline_values, na.rm = TRUE)
 
       for (g in setdiff(group_levels, baseline)) {
+        current_iter <- current_iter + 1L
         if (!is.null(progress)) {
-          progress$inc(iter_inc, detail = paste0("Testing: ", m, " ~ ", g))
+          progress$inc(
+            iter_inc,
+            detail = paste(
+              "Processing comparison",
+              current_iter,
+              "of",
+              total_iter,
+              "for",
+              m
+            )
+          )
         }
 
         idx <- summarized$Measure == m & summarized[[group_col]] == g
@@ -332,7 +344,7 @@ cyt_errbp <- function(
 
   # ── 8. Build text labels ───────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Building annotation labels")
+    progress$inc(0.05, detail = "Creating annotation labels")
   }
 
   significance_mark_fn <- function(p_value) {
@@ -564,7 +576,7 @@ cyt_errbp <- function(
   # ── 11. Output ─────────────────────────────────────────────────────────────
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Saving plot to file")
+      progress$inc(0.05, detail = "Writing output file")
     }
     n_facets <- length(unique(summarized$Measure))
     n_cols <- facet_ncol
@@ -573,13 +585,15 @@ cyt_errbp <- function(
     out_height <- n_rows * 4
     ggplot2::ggsave(output_file, p, width = out_width, height = out_height)
     if (!is.null(progress)) {
-      progress$inc(0.02, detail = "File saved")
+      progress$inc(0.02, detail = "Finished writing output file")
+      progress$set(message = "Running Error-Bar Plot...", value = 1, detail = "Finished")
     }
     return(invisible(p))
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Complete")
+    progress$inc(0.05, detail = "Finished")
+    progress$set(message = "Running Error-Bar Plot...", value = 1, detail = "Finished")
   }
 
   print(p)

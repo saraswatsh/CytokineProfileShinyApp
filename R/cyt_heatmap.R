@@ -81,7 +81,7 @@ cyt_heatmap <- function(
 ) {
   # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Heatmap: initializing...", value = 0)
+    progress$set(message = "Running Heatmap...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -120,7 +120,7 @@ cyt_heatmap <- function(
 
   # ── 1. Extract numeric columns ─────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Subsetting numeric columns")
+    progress$inc(0.05, detail = "Selecting numeric measures")
   }
   num <- data[, vapply(data, is.numeric, logical(1L)), drop = FALSE]
   if (!ncol(num)) {
@@ -142,7 +142,7 @@ cyt_heatmap <- function(
       detail = if (!is.null(scale)) {
         paste("Applying", scale, "transformation")
       } else {
-        "No transformation requested"
+        "Skipping data transformation"
       }
     )
   }
@@ -268,7 +268,7 @@ cyt_heatmap <- function(
 
   # ── 3. Annotation handling ─────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Building annotation")
+    progress$inc(0.05, detail = "Preparing annotation")
   }
 
   ann_row <- ann_col <- NULL
@@ -389,7 +389,7 @@ cyt_heatmap <- function(
 
   # ── 5. Draw heatmap ────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.10, detail = "Generating heatmap")
+    progress$inc(0.10, detail = "Building heatmap")
   }
 
   ph <- pheatmap::pheatmap(
@@ -430,7 +430,7 @@ cyt_heatmap <- function(
   )
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Complete")
+    progress$set(message = "Running Heatmap...", value = 1, detail = "Finished")
   }
 
   invisible(ph)

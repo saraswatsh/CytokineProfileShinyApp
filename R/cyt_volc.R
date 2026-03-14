@@ -70,7 +70,8 @@ cyt_volc <- function(
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Validating input data")
+    progress$set(message = "Running Volcano Plot...", value = 0)
+    progress$inc(0.05, detail = "Checking inputs")
   }
   if (!is.data.frame(data)) {
     stop("Input data must be a data frame.")
@@ -80,7 +81,7 @@ cyt_volc <- function(
     condition_pairs <- list(c(cond1, cond2))
   } else {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Generating condition pairs")
+      progress$inc(0.05, detail = "Building comparison list")
     }
     conditions <- unique(data[[group_col]])
     condition_pairs <- utils::combn(conditions, 2, simplify = FALSE)
@@ -95,9 +96,10 @@ cyt_volc <- function(
   plot_list <- list()
   total_pairs <- length(condition_pairs)
   pair_count <- 0
+  pair_inc <- if (total_pairs > 0L) 0.70 / total_pairs else 0
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Processing condition pairs")
+    progress$inc(0.05, detail = "Calculating volcano statistics")
   }
   for (pair in condition_pairs) {
     pair_count <- pair_count + 1
@@ -158,8 +160,17 @@ cyt_volc <- function(
 
     if (!is.null(progress)) {
       progress$inc(
-        0.05,
-        detail = paste("Processed pair", pair_count, "of", total_pairs)
+        pair_inc,
+        detail = paste(
+          "Building comparison",
+          pair_count,
+          "of",
+          total_pairs,
+          ":",
+          current_cond1,
+          "vs",
+          current_cond2
+        )
       )
     }
     p <- ggplot2::ggplot(
@@ -195,7 +206,7 @@ cyt_volc <- function(
 
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Saving plots to file")
+      progress$inc(0.05, detail = "Writing output file")
     }
     ext <- tools::file_ext(output_file)
     if (tolower(ext) == "pdf") {
@@ -205,7 +216,8 @@ cyt_volc <- function(
       }
       grDevices::dev.off()
       if (!is.null(progress)) {
-        progress$inc(0.05, detail = "File saved")
+        progress$inc(0.05, detail = "Finished writing output file")
+        progress$set(message = "Running Volcano Plot...", value = 1, detail = "Finished")
       }
       return(invisible(NULL))
     } else if (tolower(ext) %in% c("png", "jpg", "jpeg")) {
@@ -218,13 +230,18 @@ cyt_volc <- function(
       )
       print(plot_list[[1]])
       grDevices::dev.off()
+      if (!is.null(progress)) {
+        progress$inc(0.05, detail = "Finished writing output file")
+        progress$set(message = "Running Volcano Plot...", value = 1, detail = "Finished")
+      }
       return(invisible(NULL))
     } else {
       stop("Output file must have extension .pdf, .png, .jpg, or .jpeg")
     }
   } else {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Returning list of plots")
+      progress$inc(0.05, detail = "Formatting results")
+      progress$set(message = "Running Volcano Plot...", value = 1, detail = "Finished")
     }
     return(list(plot = p, stats = plot_data[, -5]))
   }

@@ -97,8 +97,20 @@ cyt_mint_splsda <- function(
   run_mint_analysis <- function(
     data_subset,
     analysis_label = "",
-    is_pdf_mode = !is.null(output_file)
+    is_pdf_mode = !is.null(output_file),
+    progress_share = 0
   ) {
+    display_label <- if (nzchar(analysis_label)) analysis_label else "Overall Analysis"
+    stage_weights <- list(
+      prepare = 0.15,
+      fit = 0.25,
+      predict = 0.15,
+      plots = 0.20,
+      corr = 0.10,
+      extra = 0.10,
+      results = 0.05
+    )
+
     # --- 1. Data Preparation ---
     data_subset[[group_col]] <- as.factor(data_subset[[group_col]])
     data_subset[[batch_col]] <- as.factor(data_subset[[batch_col]])
@@ -127,6 +139,12 @@ cyt_mint_splsda <- function(
       drop = FALSE
     ]
     X <- X[, sapply(X, is.numeric)]
+    if (!is.null(progress)) {
+      progress$inc(
+        progress_share * stage_weights$prepare,
+        detail = paste("Preparing data for", display_label)
+      )
+    }
 
     # --- 2. Run MINT sPLS-DA Model ---
     final_model <- mixOmics::mint.splsda(
@@ -136,6 +154,12 @@ cyt_mint_splsda <- function(
       ncomp = comp_num,
       keepX = rep(var_num, comp_num)
     )
+    if (!is.null(progress)) {
+      progress$inc(
+        progress_share * stage_weights$fit,
+        detail = paste("Fitting MINT sPLS-DA model for", display_label)
+      )
+    }
 
     # --- 3. Calculate Prediction Accuracy ---
     mint_predict <- stats::predict(
@@ -148,6 +172,12 @@ cyt_mint_splsda <- function(
     final_predictions <- mint_predict$class$max.dist[, comp_num]
     accuracy <- sum(Y == final_predictions) / length(Y)
     acc_percent <- signif(accuracy * 100, 2)
+    if (!is.null(progress)) {
+      progress$inc(
+        progress_share * stage_weights$predict,
+        detail = paste("Calculating predictions for", display_label)
+      )
+    }
 
     # --- 4. Prepare plot titles and background object ---
     title_label <- if (nzchar(analysis_label)) {
@@ -167,6 +197,12 @@ cyt_mint_splsda <- function(
           )
         },
         silent = TRUE
+      )
+    }
+    if (!is.null(progress)) {
+      progress$inc(
+        progress_share * stage_weights$plots,
+        detail = paste("Building score plots for", display_label)
       )
     }
     record_base_plot <- function(expr) {
@@ -237,6 +273,18 @@ cyt_mint_splsda <- function(
         final_model,
         paste("Correlation Circle:", analysis_label)
       )
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$corr,
+          detail = paste("Building correlation circle for", display_label)
+        )
+      }
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$extra,
+          detail = paste("Building additional plots for", display_label)
+        )
+      }
       if (cim) {
         mixOmics::cim(
           final_model,
@@ -288,6 +336,12 @@ cyt_mint_splsda <- function(
               e$message
             )
           }
+        )
+      }
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$results,
+          detail = paste("Formatting results for", display_label)
         )
       }
       return(NULL)
@@ -439,13 +493,27 @@ cyt_mint_splsda <- function(
         partial_loadings_plots = partial_loadings_plots, # Assign the list of plots here
         roc_plot = roc_plot # Assign the ROC plot here
       )
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$corr,
+          detail = paste("Building correlation circle for", display_label)
+        )
+        progress$inc(
+          progress_share * stage_weights$extra,
+          detail = paste("Building additional plots for", display_label)
+        )
+        progress$inc(
+          progress_share * stage_weights$results,
+          detail = paste("Formatting results for", display_label)
+        )
+      }
       return(results_list)
     }
   }
 
   # --- Main Execution ---
   if (!is.null(progress)) {
-    progress$set(message = "Starting MINT sPLS-DA...", value = 0)
+    progress$set(message = "Running MINT sPLS-DA...", value = 0)
   }
   if (!is.null(scale) && scale == "log2") {
     id_cols <- unique(c(group_col, group_col2, batch_col))
@@ -457,6 +525,9 @@ cyt_mint_splsda <- function(
   if (is.null(colors) || length(colors) < num_groups) {
     colors <- grDevices::rainbow(num_groups)
   }
+  if (!is.null(progress)) {
+    progress$inc(0.10, detail = "Preparing analysis inputs")
+  }
   is_pdf <- !is.null(output_file)
   if (is_pdf) {
     grDevices::pdf(file = output_file, width = 11, height = 8.5)
@@ -466,16 +537,19 @@ cyt_mint_splsda <- function(
     results <- run_mint_analysis(
       data,
       analysis_label = "",
-      is_pdf_mode = is_pdf
+      is_pdf_mode = is_pdf,
+      progress_share = 0.80
     )
   } else {
     treatments <- levels(as.factor(data[[group_col2]]))
+    progress_share <- 0.80 / max(length(treatments), 1L)
     if (is_pdf) {
       for (trt in treatments) {
         run_mint_analysis(
           data[data[[group_col2]] == trt, , drop = FALSE],
           trt,
-          TRUE
+          TRUE,
+          progress_share = progress_share
         )
       }
       results <- paste("Output file generated:", normalizePath(output_file))
@@ -484,14 +558,15 @@ cyt_mint_splsda <- function(
         run_mint_analysis(
           data[data[[group_col2]] == trt, , drop = FALSE],
           trt,
-          FALSE
+          FALSE,
+          progress_share = progress_share
         )
       })
       names(results) <- treatments
     }
   }
   if (!is.null(progress)) {
-    progress$set(value = 1, detail = "Analysis complete.")
+    progress$set(message = "Running MINT sPLS-DA...", value = 1, detail = "Finished")
   }
   return(results)
 }

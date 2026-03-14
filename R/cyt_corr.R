@@ -86,12 +86,12 @@ cyt_corr <- function(
   }
 
   if (!is.null(progress)) {
-    progress$set(message = "Starting Correlation Analysis...", value = 0)
+    progress$set(message = "Running Correlation Analysis...", value = 0)
   }
 
   compute_one <- function(method) {
     if (!is.null(progress)) {
-      progress$inc(0.1, detail = "Computing Metrics")
+      progress$inc(0.1, detail = "Calculating overall correlations")
     }
     # overall table via cor.test for accurate p
     one_vs_all <- lapply(others, function(v) {
@@ -130,7 +130,7 @@ cyt_corr <- function(
     heat_vars <- unique(c(target, res$variable))
 
     if (!is.null(progress)) {
-      progress$inc(0.1, detail = "Generating Correlation Heatmap")
+      progress$inc(0.1, detail = "Building correlation heatmap")
     }
 
     heat_mat <- stats::cor(
@@ -212,7 +212,7 @@ cyt_corr <- function(
 
     if (!is.null(group_var) && group_var %in% names(data)) {
       if (!is.null(progress)) {
-        progress$inc(0.1, detail = "Computing Groupwise Metrics")
+        progress$inc(0.1, detail = "Calculating grouped correlations")
       }
 
       g <- factor(data[[group_var]])
@@ -326,7 +326,7 @@ cyt_corr <- function(
       }
     }
     if (!is.null(progress)) {
-      progress$inc(0.7, detail = "Finishing up")
+      progress$inc(0.7, detail = "Formatting results")
     }
     list(
       table = res,

@@ -91,7 +91,7 @@ cyt_rf <- function(
 ) {
   # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Random Forest: initializing...", value = 0)
+    progress$set(message = "Running Random Forest...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -125,7 +125,7 @@ cyt_rf <- function(
 
   # ── 2. Coerce grouping variable ────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Converting grouping variable to factor")
+    progress$inc(0.05, detail = "Preparing outcome groups")
   }
   data[[group_col]] <- as.factor(data[[group_col]])
   if (length(levels(data[[group_col]])) < 2L) {
@@ -255,7 +255,7 @@ cyt_rf <- function(
 
   # ── 8. Variable importance ─────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Generating variable importance plot")
+    progress$inc(0.05, detail = "Building variable importance plot")
   }
   imp_data <- data.frame(
     Variable = rownames(randomForest::importance(rf_model)),
@@ -341,7 +341,7 @@ cyt_rf <- function(
 
   # ── 11. Build summary text ─────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Compiling summary")
+    progress$inc(0.05, detail = "Formatting results")
   }
   summary_text <- paste(
     utils::capture.output({
@@ -402,7 +402,7 @@ cyt_rf <- function(
   # ── 12. Output ─────────────────────────────────────────────────────────────
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Saving outputs to PDF")
+      progress$inc(0.05, detail = "Writing output file")
     }
     grDevices::pdf(file = output_file, width = 8, height = 8)
     on.exit(grDevices::dev.off(), add = TRUE)
@@ -415,13 +415,14 @@ cyt_rf <- function(
       print(rfcv_plot)
     }
     if (!is.null(progress)) {
-      progress$inc(0.02, detail = "PDF saved")
+      progress$inc(0.02, detail = "Finished writing output file")
+      progress$set(message = "Running Random Forest...", value = 1, detail = "Finished")
     }
     return(invisible(NULL))
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.03, detail = "Complete")
+    progress$set(message = "Running Random Forest...", value = 1, detail = "Finished")
   }
 
   invisible(list(

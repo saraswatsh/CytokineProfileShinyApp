@@ -58,7 +58,7 @@ cyt_bp <- function(
 ) {
   # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$set(message = "Boxplots: initializing...", value = 0)
+    progress$set(message = "Running Boxplots...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -82,7 +82,7 @@ cyt_bp <- function(
 
   # ── 2. Identify numeric columns ────────────────────────────────────────────
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Identifying numeric columns")
+    progress$inc(0.05, detail = "Selecting numeric measures")
   }
 
   numeric_cols <- names(df)[
@@ -108,7 +108,7 @@ cyt_bp <- function(
   # ── 4. Resolve grouping column ─────────────────────────────────────────────
   if (!is.null(group_by)) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Converting grouping columns to factors")
+      progress$inc(0.05, detail = "Preparing grouping columns")
     }
 
     for (g in group_by) {
@@ -131,9 +131,13 @@ cyt_bp <- function(
   if (!is.null(grp_col)) {
     iter_inc <- 0.65 / length(numeric_cols)
 
-    for (var in numeric_cols) {
+    for (var_idx in seq_along(numeric_cols)) {
+      var <- numeric_cols[[var_idx]]
       if (!is.null(progress)) {
-        progress$inc(iter_inc, detail = paste("Plotting:", var))
+        progress$inc(
+          iter_inc,
+          detail = paste("Building plot", var_idx, "of", length(numeric_cols), ":", var)
+        )
       }
 
       p <- ggplot2::ggplot(
@@ -172,7 +176,7 @@ cyt_bp <- function(
     iter_inc <- 0.65 / n_chunks
 
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Generating boxplot pages")
+      progress$inc(0.05, detail = "Arranging plot pages")
     }
 
     y_label <- if (scale == "none") {
@@ -223,7 +227,7 @@ cyt_bp <- function(
       plot_list[[paste0("page", i)]] <- p
 
       if (!is.null(progress)) {
-        progress$inc(iter_inc, detail = paste("Page", i, "of", n_chunks))
+        progress$inc(iter_inc, detail = paste("Building page", i, "of", n_chunks))
       }
     }
   }
@@ -231,7 +235,7 @@ cyt_bp <- function(
   # ── 6. Output ──────────────────────────────────────────────────────────────
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Saving plots to file")
+      progress$inc(0.05, detail = "Writing output file")
     }
 
     ext <- tolower(tools::file_ext(output_file))
@@ -254,7 +258,7 @@ cyt_bp <- function(
     }
 
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "File saved")
+      progress$inc(0.05, detail = "Finished writing output file")
     }
   } else {
     for (p in plot_list) {
@@ -262,8 +266,12 @@ cyt_bp <- function(
     }
 
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Complete")
+      progress$inc(0.05, detail = "Finished")
     }
+  }
+
+  if (!is.null(progress)) {
+    progress$set(message = "Running Boxplots...", value = 1, detail = "Finished")
   }
 
   invisible(plot_list)

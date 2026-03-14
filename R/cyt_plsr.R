@@ -86,8 +86,9 @@ cyt_plsr <- function(
     stop("`response_col` must be numeric for regression.")
   }
 
+  analysis_label <- paste0("Running ", if (sparse) "sPLS" else "PLS", " Regression...")
   if (!is.null(progress)) {
-    progress$set(message = "Starting (s)PLS regression...", value = 0)
+    progress$set(message = analysis_label, value = 0)
   }
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
@@ -232,7 +233,10 @@ cyt_plsr <- function(
     keepx <- rep(max(1, min(var_num, p)), comp_num_eff)
   }
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = paste("Fitting", if (sparse) "sPLS" else "PLS"))
+    progress$inc(
+      0.1,
+      detail = paste("Fitting", if (sparse) "sPLS" else "PLS", "model")
+    )
   }
   mdl <- if (isTRUE(sparse)) {
     mixOmics::spls(
@@ -255,7 +259,7 @@ cyt_plsr <- function(
 
   # --- predictions & metrics
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Predicting")
+    progress$inc(0.1, detail = "Calculating predictions")
   }
   pr <- predict(mdl, newdata = X)
   yhat <- as.numeric(drop(pr$predict[, 1, comp_num_eff]))
@@ -269,6 +273,9 @@ cyt_plsr <- function(
   )
 
   # --- plots: scores, diagnostics
+  if (!is.null(progress)) {
+    progress$inc(0.15, detail = "Building score and diagnostic plots")
+  }
   scores_plot <- .record_plot(.plot_indiv(
     mdl,
     groups,
@@ -311,6 +318,9 @@ cyt_plsr <- function(
   cv_plot <- NULL
 
   if (!is.null(cv_opt)) {
+    if (!is.null(progress)) {
+      progress$inc(0.1, detail = "Running cross-validation")
+    }
     # 1) Run perf() to perform cross-validation
     set.seed(123)
     cv_res <- if (identical(cv_opt, "loocv")) {
@@ -399,6 +409,9 @@ cyt_plsr <- function(
   }
 
   # --- loadings
+  if (!is.null(progress)) {
+    progress$inc(0.1, detail = "Building loadings and VIP summaries")
+  }
   loadings <- lapply(seq_len(comp_num_eff), function(k) {
     .record_plot({
       do.call(
@@ -581,6 +594,9 @@ cyt_plsr <- function(
 
   # --- Optional PDF output (regenerate key plots for device)
   if (!is.null(output_file)) {
+    if (!is.null(progress)) {
+      progress$inc(0.05, detail = "Writing output file")
+    }
     grDevices::pdf(output_file, width = 10, height = 8)
     on.exit(grDevices::dev.off(), add = TRUE)
     .plot_indiv(
@@ -622,7 +638,7 @@ cyt_plsr <- function(
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.5, detail = "Wrapping up")
+    progress$inc(0.1, detail = "Formatting results")
   }
   # --- build metrics text ---
   metrics_text <- if (!is.null(cv_opt)) {
@@ -644,6 +660,10 @@ cyt_plsr <- function(
   } else {
     "No cross-validation performed."
   }
+  if (!is.null(progress)) {
+    progress$set(message = analysis_label, value = 1, detail = "Finished")
+  }
+
   list(
     scores_plot = scores_plot,
     pred_vs_obs = pvo,

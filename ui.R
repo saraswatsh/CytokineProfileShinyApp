@@ -122,6 +122,21 @@ ui <- shiny::fluidPage(
       width: auto; margin-top: -0.1rem;
       margin-bottom: 1.5rem;
     }
+    .shiny-progress-container {
+      width: 460px;
+      max-width: calc(100vw - 2rem);
+    }
+    .shiny-progress-notification {
+      padding: 0.85rem 1rem !important;
+    }
+    .shiny-progress-notification .progress-message {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .shiny-progress-notification .progress-detail {
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
 
     /* ── Full‑height page, hide Shiny errors offscreen ─────────────── */
     html, body {

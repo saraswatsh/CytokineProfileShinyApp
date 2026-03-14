@@ -56,7 +56,7 @@ cyt_univariate <- function(
   progress = NULL
 ) {
   if (!is.null(progress)) {
-    progress$set(message = "Starting univariate tests...", value = 0)
+    progress$set(message = "Running Univariate Tests...", value = 0)
   }
 
   names(data) <- make.names(names(data), unique = TRUE)
@@ -91,7 +91,7 @@ cyt_univariate <- function(
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Identifying predictors and outcomes")
+    progress$inc(0.05, detail = "Preparing outcomes and groupings")
   }
 
   # Empty list to store test results
@@ -107,6 +107,7 @@ cyt_univariate <- function(
   ]
   total_iter <- length(two_level_cats) * sum(cont_vars)
   iter_inc <- if (total_iter > 0) 0.70 / total_iter else 0
+  current_iter <- 0L
 
   # Loop over categorical predictors and continuous outcomes
   for (cat_var in names(x1_df)[cat_preds]) {
@@ -115,10 +116,20 @@ cyt_univariate <- function(
       next
     }
     for (outcome in names(x1_df)[cont_vars]) {
+      current_iter <- current_iter + 1L
       if (!is.null(progress)) {
         progress$inc(
           iter_inc,
-          detail = paste0("Testing: ", outcome, " ~ ", cat_var)
+          detail = paste(
+            "Processing comparison",
+            current_iter,
+            "of",
+            total_iter,
+            ":",
+            outcome,
+            "by",
+            cat_var
+          )
         )
       }
 
@@ -200,13 +211,13 @@ cyt_univariate <- function(
   # Return results in tidy format if requested
   if (!format_output) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Done")
+      progress$set(message = "Running Univariate Tests...", value = 1, detail = "Finished")
     }
     return(test_results)
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Formatting results table")
+    progress$inc(0.05, detail = "Formatting results")
   }
 
   safe_numeric <- function(x) {
@@ -280,7 +291,7 @@ cyt_univariate <- function(
   )
   if (!is.null(p_adjust_method)) {
     if (!is.null(progress)) {
-      progress$inc(0.03, detail = paste("Adjusting p-values:", p_adjust_method))
+      progress$inc(0.03, detail = paste("Adjusting p-values with", p_adjust_method))
     }
     out_df$P_adj <- adjust_p(out_df$P_value, method = p_adjust_method)
   }
@@ -293,7 +304,7 @@ cyt_univariate <- function(
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.02, detail = "Complete")
+    progress$set(message = "Running Univariate Tests...", value = 1, detail = "Finished")
   }
 
   out_df

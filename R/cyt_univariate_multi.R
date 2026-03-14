@@ -379,16 +379,21 @@ cyt_univariate_multi <- function(
     )
   }
 
-  if (!is.null(progress)) {
-    progress$set(
-      message = "Starting multi-level univariate tests...",
-      value = 0
-    )
-  }
-
   names(data) <- make.names(names(data), unique = TRUE)
   method <- match.arg(method)
   design <- match.arg(design)
+  analysis_message <- switch(
+    design,
+    one_way = "Running Multi-level Univariate Tests...",
+    two_way = "Running Two-way ANOVA...",
+    ancova = "Running ANCOVA..."
+  )
+  if (!is.null(progress)) {
+    progress$set(
+      message = analysis_message,
+      value = 0
+    )
+  }
   if (is.null(p_adjust_method) || !nzchar(p_adjust_method)) {
     p_adjust_method <- "none"
   }
@@ -396,7 +401,7 @@ cyt_univariate_multi <- function(
   x1_df <- as.data.frame(data)
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Converting character columns to factors")
+    progress$inc(0.05, detail = "Preparing data")
   }
   char_cols <- names(x1_df)[sapply(x1_df, is.character)]
   if (length(char_cols) > 0) {
@@ -524,6 +529,7 @@ cyt_univariate_multi <- function(
 
     total_iter <- length(cont_vars)
     iter_inc <- if (total_iter > 0) 0.70 / total_iter else 0
+    current_iter <- 0L
     complex_rows <- list()
     complex_pairwise <- list()
     complex_assumptions <- list()
@@ -533,15 +539,23 @@ cyt_univariate_multi <- function(
     if (!is.null(progress)) {
       progress$inc(
         0.05,
-        detail = "Validating model inputs and identifying outcomes"
+        detail = "Checking model inputs and outcomes"
       )
     }
 
     for (outcome in cont_vars) {
+      current_iter <- current_iter + 1L
       if (!is.null(progress)) {
         progress$inc(
           iter_inc,
-          detail = paste0("Testing: ", outcome, " (", design, ")")
+          detail = paste(
+            "Processing outcome",
+            current_iter,
+            "of",
+            total_iter,
+            ":",
+            outcome
+          )
         )
       }
 
@@ -1088,13 +1102,13 @@ cyt_univariate_multi <- function(
         warning(paste(unique(warning_messages), collapse = "\n"), call. = FALSE)
       }
       if (!is.null(progress)) {
-        progress$inc(0.05, detail = "Done")
+        progress$set(message = analysis_message, value = 1, detail = "Finished")
       }
       return(raw_results)
     }
 
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Formatting results table")
+      progress$inc(0.05, detail = "Formatting results")
     }
 
     global_df <- if (length(complex_rows) > 0L) {
@@ -1148,7 +1162,7 @@ cyt_univariate_multi <- function(
     }
 
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Complete")
+      progress$set(message = analysis_message, value = 1, detail = "Finished")
     }
 
     if (length(unique(warning_messages)) > 0L) {
@@ -1165,7 +1179,7 @@ cyt_univariate_multi <- function(
   if (!is.null(progress)) {
     progress$inc(
       0.05,
-      detail = "Identifying categorical predictors and outcomes"
+      detail = "Preparing outcomes and factor comparisons"
     )
   }
   if (is.null(cat_vars)) {
@@ -1185,6 +1199,7 @@ cyt_univariate_multi <- function(
   )]
   total_iter <- length(valid_cats) * length(cont_vars)
   iter_inc <- if (total_iter > 0) 0.70 / total_iter else 0
+  current_iter <- 0L
 
   test_results <- list()
   global_rows <- list()
@@ -1202,10 +1217,20 @@ cyt_univariate_multi <- function(
     }
 
     for (outcome in cont_vars) {
+      current_iter <- current_iter + 1L
       if (!is.null(progress)) {
         progress$inc(
           iter_inc,
-          detail = paste0("Testing: ", outcome, " ~ ", cat_var)
+          detail = paste(
+            "Processing comparison",
+            current_iter,
+            "of",
+            total_iter,
+            ":",
+            outcome,
+            "by",
+            cat_var
+          )
         )
       }
 
@@ -1383,13 +1408,13 @@ cyt_univariate_multi <- function(
 
   if (!format_output) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Done")
+      progress$set(message = analysis_message, value = 1, detail = "Finished")
     }
     return(test_results)
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Formatting results table")
+    progress$inc(0.05, detail = "Formatting results")
   }
 
   global_df <- if (length(global_rows) > 0L) {
@@ -1417,7 +1442,7 @@ cyt_univariate_multi <- function(
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Complete")
+    progress$set(message = analysis_message, value = 1, detail = "Finished")
   }
 
   assumption_df <- if (length(assumption_results) > 0L) {

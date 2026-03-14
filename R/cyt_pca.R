@@ -64,7 +64,7 @@ cyt_pca <- function(
 ) {
   # Initialize progress if provided.
   if (!is.null(progress)) {
-    progress$set(message = "Starting PCA analysis...", value = 0)
+    progress$set(message = "Running PCA...", value = 0)
   }
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
@@ -111,7 +111,7 @@ cyt_pca <- function(
 
   # Update progress after transformation.
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Data transformation complete")
+    progress$inc(0.1, detail = "Preparing data")
   }
 
   num_groups <- length(unique(data[[group_col]]))
@@ -344,7 +344,7 @@ cyt_pca <- function(
       scale = TRUE
     )
     if (!is.null(progress)) {
-      progress$inc(0.2, detail = "PCA computation complete")
+      progress$inc(0.2, detail = "Fitting PCA model")
     }
     group_factors <- seq_len(length(levels(factor(the_groups))))
 
@@ -357,7 +357,7 @@ cyt_pca <- function(
       )
     }
     if (!is.null(progress)) {
-      progress$inc(0.2, detail = "Individuals plot generated")
+      progress$inc(0.2, detail = "Building individuals plot")
     }
 
     # 3D plot (only if style is "3d" and comp_num == 3).
@@ -371,7 +371,7 @@ cyt_pca <- function(
         )
       }
       if (!is.null(progress)) {
-        progress$inc(0.1, detail = "3D plot generated")
+        progress$inc(0.1, detail = "Building 3D plot")
       }
     }
 
@@ -392,7 +392,7 @@ cyt_pca <- function(
       result_list$overall_scree_plot <- grDevices::recordPlot()
     }
     if (!is.null(progress)) {
-      progress$inc(0.1, detail = "Scree plot generated")
+      progress$inc(0.1, detail = "Building scree plot")
     }
 
     # Loadings plots for each component.
@@ -423,7 +423,7 @@ cyt_pca <- function(
       result_list$loadings <- loadings_plots
     }
     if (!is.null(progress)) {
-      progress$inc(0.1, detail = "Loadings plots generated")
+      progress$inc(0.1, detail = "Building loadings plots")
     }
 
     # Biplot using the default stats package.
@@ -453,16 +453,31 @@ cyt_pca <- function(
       )
     }
     if (!is.null(progress)) {
-      progress$inc(0.1, detail = "Biplot & correlation circle generated")
+      progress$inc(0.1, detail = "Building biplot and correlation circle")
     }
   } else {
     # CASE 2: Multi-level analysis when group_col != group_col2.
     result_list <- list()
     levels_vec <- unique(data[[group_col2]])
+    level_inc <- if (length(levels_vec) > 0L) 0.80 / length(levels_vec) else 0
 
-    for (lev in levels_vec) {
+    for (lev_idx in seq_along(levels_vec)) {
+      lev <- levels_vec[[lev_idx]]
       current_level <- lev
       title_sub <- current_level
+      if (!is.null(progress)) {
+        progress$inc(
+          level_inc,
+          detail = paste(
+            "Processing subset",
+            lev_idx,
+            "of",
+            length(levels_vec),
+            ":",
+            title_sub
+          )
+        )
+      }
       condt <- data[[group_col2]] == current_level
       the_data_df <- data[
         condt,
@@ -582,8 +597,14 @@ cyt_pca <- function(
     if (grDevices::dev.cur() > 1) {
       grDevices::dev.off()
     }
+    if (!is.null(progress)) {
+      progress$set(message = "Running PCA...", value = 1, detail = "Finished")
+    }
     invisible(NULL)
   } else {
+    if (!is.null(progress)) {
+      progress$set(message = "Running PCA...", value = 1, detail = "Finished")
+    }
     return(result_list)
   }
 }
