@@ -11,6 +11,7 @@ cyt_corr(
   group_var = NULL,
   compare_groups = FALSE,
   plot = FALSE,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -31,6 +32,9 @@ least two levels, the function will compare the correlations between the
 first two levels of \code{group_var}.}
 
 \item{plot}{Logical. If \code{TRUE}, the function will generate and return a correlation plot.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }

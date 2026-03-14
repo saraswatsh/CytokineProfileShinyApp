@@ -26,12 +26,14 @@ userState <- shiny::reactiveValues(
   bp_bin_size = NULL,
   bp_group_by = NULL,
   bp_y_lim = NULL,
+  bp_font_settings = NULL,
 
   # Violin Plot options
   vio_group_by = NULL,
   vio_bin_size = NULL,
   vio_y_lim = NULL,
   vio_boxplot_overlay = NULL,
+  vio_font_settings = NULL,
 
   # Univariate Tests (T-test, Wilcoxon)
   uv2_method = NULL,
@@ -40,6 +42,14 @@ userState <- shiny::reactiveValues(
   # Univariate Tests (ANOVA, Kruskal-Wallis)
   uvm_method = NULL,
   uvm_p_adjust_method = NULL,
+  twa_primary_cat_var = NULL,
+  twa_secondary_cat_var = NULL,
+  twa_include_primary_secondary_interaction = NULL,
+  anc_primary_cat_var = NULL,
+  anc_secondary_cat_var = NULL,
+  anc_covariate_col = NULL,
+  anc_include_primary_secondary_interaction = NULL,
+  anc_include_primary_covariate_interaction = NULL,
 
   # Error-Bar Plot
   eb_group_col = NULL,
@@ -53,10 +63,9 @@ userState <- shiny::reactiveValues(
   eb_error = NULL,
   eb_method = NULL,
   eb_p_adjust_method = NULL,
-  eb_label_size = NULL,
   eb_n_col = NULL,
-  eb_base_size = NULL,
   eb_fill_palette = NULL,
+  eb_font_settings = NULL,
 
   # Dual-Flashlight Plot options
   df_group_var = NULL,
@@ -65,10 +74,12 @@ userState <- shiny::reactiveValues(
   df_ssmd_thresh = NULL,
   df_log2fc_thresh = NULL,
   df_top_labels = NULL,
+  df_font_settings = NULL,
 
   # Heatmap options
   hm_annotation = NULL,
   hm_ann_side = NULL,
+  hm_font_settings = NULL,
 
   # PCA options
   pca_group_col = NULL,
@@ -78,6 +89,7 @@ userState <- shiny::reactiveValues(
   pca_style = NULL,
   pca_pch = NULL,
   pca_colors = NULL,
+  pca_font_settings = NULL,
 
   # Random Forest options
   rf_group_col = NULL,
@@ -88,6 +100,7 @@ userState <- shiny::reactiveValues(
   rf_run_rfcv = NULL,
   rf_k_folds = NULL,
   rf_step = NULL,
+  rf_font_settings = NULL,
 
   # PLSR options
   plsr_group_col = NULL,
@@ -101,11 +114,13 @@ userState <- shiny::reactiveValues(
   plsr_fold_num = NULL,
   plsr_ellipse = NULL,
   plsr_colors = NULL,
+  plsr_font_settings = NULL,
 
   # Skewness/Kurtosis options
   skku_group_cols = NULL,
   skku_print_raw = NULL,
   skku_print_log = NULL,
+  skku_font_settings = NULL,
 
   # sPLS-DA options
   splsda_group_col = NULL,
@@ -128,7 +143,7 @@ userState <- shiny::reactiveValues(
   splsda_multilevel = NULL,
   splsda_use_batch_corr = FALSE,
   splsda_batch_col = NULL,
-  splsda_fontsize = NULL,
+  splsda_font_settings = NULL,
 
   # MINT sPLS-DA options
   mint_splsda_group_col = NULL,
@@ -142,6 +157,7 @@ userState <- shiny::reactiveValues(
   mint_splsda_bg = NULL,
   mint_splsda_roc = NULL,
   mint_splsda_colors = NULL,
+  mint_splsda_font_settings = NULL,
 
   # Volcano Plot options
   volc_group_col = NULL,
@@ -150,6 +166,7 @@ userState <- shiny::reactiveValues(
   volc_fold_change_thresh = NULL,
   volc_p_value_thresh = NULL,
   volc_top_labels = NULL,
+  volc_font_settings = NULL,
 
   # XGBoost options
   xgb_group_col = NULL,
@@ -162,11 +179,13 @@ userState <- shiny::reactiveValues(
   xgb_eval_metric = NULL,
   xgb_top_n_features = NULL,
   xgb_plot_roc = NULL,
+  xgb_font_settings = NULL,
 
   # Correlation options
   corr_target = NULL,
   corr_group_col = NULL,
-  corr_by_group = FALSE
+  corr_by_group = FALSE,
+  corr_font_settings = NULL
 )
 # --- Bio-Plex import state ---
 bioplex <- shiny::reactiveValues(

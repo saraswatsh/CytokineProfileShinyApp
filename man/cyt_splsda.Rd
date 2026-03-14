@@ -25,6 +25,7 @@ cyt_splsda(
   pch_values = NULL,
   output_file = NULL,
   font_scale = 1,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -89,6 +90,9 @@ to be used in the plots.}
 If set to NULL, the function runs in interactive mode.}
 
 \item{font_scale}{Numeric. Apply a scale to font size in the figures for better readability.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }

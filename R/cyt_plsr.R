@@ -33,6 +33,8 @@
 #'   score plot.
 #' @param pls_colors A character vector of colors to use for grouping.
 #' @param output_file Optional. A file path to save the plots as a PDF.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return A list containing:
 #'   \item{scores_plot}{A recorded plot of the PLSR scores.}
@@ -68,6 +70,7 @@ cyt_plsr <- function(
   ellipse = FALSE,
   pls_colors = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 ) {
   # normalize cv_opt input to lowercase for consistent handling
@@ -86,6 +89,16 @@ cyt_plsr <- function(
   if (!is.null(progress)) {
     progress$set(message = "Starting (s)PLS regression...", value = 0)
   }
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title", "x_text", "y_text",
+      "legend_title", "legend_text", "strip_text", "variable_names", "point_labels"
+    ),
+    activate = !is.null(font_settings)
+  )
+  mixomics_indiv_args <- font_settings_mixomics_indiv_args(resolved_fonts)
+  mixomics_loadings_args <- font_settings_mixomics_loadings_args(resolved_fonts)
 
   # --- identify non-predictor cols
   id_cols <- unique(na.omit(c(response_col, group_col)))
@@ -192,7 +205,7 @@ cyt_plsr <- function(
   }
 
   .plot_indiv <- function(model, groups, title, ind_names_resolved) {
-    args <- list(
+    args <- c(list(
       model,
       group = groups,
       legend = TRUE,
@@ -200,7 +213,7 @@ cyt_plsr <- function(
       title = title,
       legend.title = if (!is.null(group_col)) group_col else "Group",
       ellipse = isTRUE(ellipse)
-    )
+    ), mixomics_indiv_args)
     if (isTRUE(ind_names_resolved) || is.character(ind_names_resolved)) {
       args$ind.names <- ind_names_resolved
     } else {
@@ -281,6 +294,7 @@ cyt_plsr <- function(
           rmse_train
         )
       )
+    p <- apply_font_settings_ggplot(p, resolved_fonts)
     print(p)
   })
   res_plot <- .record_plot({
@@ -289,6 +303,7 @@ cyt_plsr <- function(
       ggplot2::geom_point() +
       ggplot2::geom_hline(yintercept = 0, linetype = 2) +
       ggplot2::labs(title = "Residuals vs Fitted")
+    p <- apply_font_settings_ggplot(p, resolved_fonts)
     print(p)
   })
 
@@ -369,14 +384,15 @@ cyt_plsr <- function(
               linetype = "dashed",
               color = "gray40"
             )
+          g <- apply_font_settings_ggplot(g, resolved_fonts)
 
           print(g)
         } else {
-          print(
-            ggplot2::ggplot() +
-              ggplot2::theme_minimal() +
-              ggplot2::labs(title = "CV results not available.")
-          )
+          empty_plot <- ggplot2::ggplot() +
+            ggplot2::theme_minimal() +
+            ggplot2::labs(title = "CV results not available.")
+          empty_plot <- apply_font_settings_ggplot(empty_plot, resolved_fonts)
+          print(empty_plot)
         }
       })
     }
@@ -385,16 +401,19 @@ cyt_plsr <- function(
   # --- loadings
   loadings <- lapply(seq_len(comp_num_eff), function(k) {
     .record_plot({
-      mixOmics::plotLoadings(
-        mdl,
-        comp = k,
-        contrib = "max",
-        method = "mean",
-        size.names = 1,
-        size.legend = 1,
-        size.title = 1,
-        legend = FALSE,
-        title = paste("Loadings Comp", k)
+      do.call(
+        mixOmics::plotLoadings,
+        c(
+          list(
+            mdl,
+            comp = k,
+            contrib = "max",
+            method = "mean",
+            legend = FALSE,
+            title = paste("Loadings Comp", k)
+          ),
+          mixomics_loadings_args
+        )
       )
     })
   })
@@ -428,7 +447,8 @@ cyt_plsr <- function(
           title = paste("VIP Scores Comp", k),
           x = "Variable",
           y = "VIP"
-        )
+        ) |>
+        apply_font_settings_ggplot(font_settings = resolved_fonts)
     })
     vip_filter <- !is.na(vip_all[, 1]) & vip_all[, 1] > 1
 
@@ -546,9 +566,12 @@ cyt_plsr <- function(
                   linetype = "dashed",
                   color = "gray40"
                 )
+              g <- apply_font_settings_ggplot(g, resolved_fonts)
               print(g)
             } else {
-              print(ggplot2::ggplot() + ggplot2::theme_minimal())
+              empty_plot <- ggplot2::ggplot() + ggplot2::theme_minimal()
+              empty_plot <- apply_font_settings_ggplot(empty_plot, resolved_fonts)
+              print(empty_plot)
             }
           })
         }
@@ -577,16 +600,19 @@ cyt_plsr <- function(
       print(grDevices::replayPlot(cv_plot))
     }
     for (k in seq_len(comp_num_eff)) {
-      mixOmics::plotLoadings(
-        mdl,
-        comp = k,
-        contrib = "max",
-        method = "mean",
-        size.names = 1,
-        size.legend = 1,
-        size.title = 1,
-        legend = FALSE,
-        title = paste("Loadings Comp", k)
+      do.call(
+        mixOmics::plotLoadings,
+        c(
+          list(
+            mdl,
+            comp = k,
+            contrib = "max",
+            method = "mean",
+            legend = FALSE,
+            title = paste("Loadings Comp", k)
+          ),
+          mixomics_loadings_args
+        )
       )
     }
     if (!is.null(vip_indiv_plot)) {

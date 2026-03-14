@@ -44,6 +44,8 @@
 #'   \code{scale = "custom"}.
 #' @param output_file Optional.  A file path to save outputs as a PDF.  If
 #'   \code{NULL} (default), a named list is returned for interactive display.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional.  A Shiny \code{Progress} object for reporting
 #'   progress updates.
 #'
@@ -84,6 +86,7 @@ cyt_rf <- function(
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 ) {
   # ── 0. Initialize ──────────────────────────────────────────────────────────
@@ -93,6 +96,14 @@ cyt_rf <- function(
 
   names(data) <- make.names(names(data), unique = TRUE)
   scale <- match.arg(scale)
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title",
+      "x_text", "y_text", "legend_title", "legend_text"
+    ),
+    activate = !is.null(font_settings)
+  )
 
   if (!group_col %in% colnames(data)) {
     stop(sprintf("Column '%s' not found in data.", group_col))
@@ -239,6 +250,7 @@ cyt_rf <- function(
         color = "blue"
       ) +
       ggplot2::theme_minimal()
+    roc_plot <- apply_font_settings_ggplot(roc_plot, resolved_fonts)
   }
 
   # ── 8. Variable importance ─────────────────────────────────────────────────
@@ -259,6 +271,7 @@ cyt_rf <- function(
     ggplot2::xlab("Features") +
     ggplot2::ylab("Importance (Gini Index)") +
     ggplot2::theme_minimal()
+  vip_plot <- apply_font_settings_ggplot(vip_plot, resolved_fonts)
 
   # ── 9. RFCV ───────────────────────────────────────────────────────────────
   rfcv_result <- NULL
@@ -294,6 +307,7 @@ cyt_rf <- function(
       ggplot2::xlab("Number of Variables") +
       ggplot2::ylab("Cross-Validation Error") +
       ggplot2::theme_minimal()
+    rfcv_plot <- apply_font_settings_ggplot(rfcv_plot, resolved_fonts)
     if (verbose) cat("Random Forest CV completed for feature selection.\n")
   }
 

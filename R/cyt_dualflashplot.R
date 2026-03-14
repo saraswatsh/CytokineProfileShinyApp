@@ -16,6 +16,8 @@
 #' @param top_labels An integer specifying the number of top variables (based on absolute SSMD) to label in the plot (default = 15).
 #' @param output_file Optional. A file path to save the plot as a PDF (or PNG if extension is .png). If NULL (default),
 #' the function returns a ggplot object.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If output_file is NULL, a ggplot object representing the dual-flash plot is returned;
 #' otherwise, the plot is saved to the specified file and the function returns NULL invisibly.
@@ -48,8 +50,27 @@ cyt_dualflashplot <- function(
   log2fc_thresh = 1,
   top_labels = 15,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 ) {
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title",
+      "x_text", "y_text", "legend_title", "legend_text",
+      "annotation_text"
+    ),
+    activate = !is.null(font_settings)
+  )
+  label_size <- if (is.null(resolved_fonts)) {
+    3
+  } else {
+    font_settings_ggplot_text_size(
+      resolved_fonts$annotation_text,
+      default_size = 3
+    )
+  }
+
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Validating input data")
   }
@@ -117,7 +138,7 @@ cyt_dualflashplot <- function(
     )) +
     ggrepel::geom_text_repel(
       data = top_stats,
-      size = 3,
+      size = label_size,
       vjust = 1.5,
       hjust = 1.1,
       max.overlaps = 50
@@ -134,6 +155,8 @@ cyt_dualflashplot <- function(
       title = paste("SSMD vs log2FC for", group1, "vs", group2)
     ) +
     ggplot2::theme_minimal()
+
+  p <- apply_font_settings_ggplot(p, resolved_fonts)
 
   if (!is.null(output_file)) {
     if (!is.null(progress)) {

@@ -18,6 +18,7 @@ cyt_mint_splsda(
   cim = FALSE,
   scale = NULL,
   roc = FALSE,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -61,6 +62,9 @@ transformation is applied to the continuous variables. Default is \code{NULL}.}
 
 \item{roc}{Logical. Whether to compute and plot the ROC curve for the model.
 Default is \code{FALSE}.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }

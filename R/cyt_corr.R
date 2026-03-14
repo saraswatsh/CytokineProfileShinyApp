@@ -17,6 +17,8 @@
 #'   least two levels, the function will compare the correlations between the
 #'   first two levels of `group_var`.
 #' @param plot Logical. If `TRUE`, the function will generate and return a correlation plot.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return A list containing:
 #'   \item{results}{A data frame with overall correlation results, including
@@ -46,6 +48,7 @@ cyt_corr <- function(
   group_var = NULL,
   compare_groups = FALSE,
   plot = FALSE,
+  font_settings = NULL,
   progress = NULL
 ) {
   stopifnot(is.data.frame(data))
@@ -64,6 +67,23 @@ cyt_corr <- function(
   }
   others <- setdiff(num_cols, target)
   x <- data[[target]]
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_text", "y_text",
+      "legend_title", "legend_text", "cell_text"
+    ),
+    activate = !is.null(font_settings)
+  )
+  show_cell_labels <- is.list(font_settings) && "cell_text" %in% names(font_settings)
+  cell_label_size <- if (show_cell_labels) {
+    font_settings_ggplot_text_size(
+      resolved_fonts$cell_text,
+      default_size = 4
+    )
+  } else {
+    4
+  }
 
   if (!is.null(progress)) {
     progress$set(message = "Starting Correlation Analysis...", value = 0)
@@ -129,7 +149,8 @@ cyt_corr <- function(
         mat,
         hc.order = FALSE, # keep our order; don't re-cluster
         type = "full",
-        lab = FALSE,
+        lab = show_cell_labels,
+        lab_size = cell_label_size,
         show.diag = TRUE,
         outline.color = "white", # <-- documented arg name
         ggtheme = ggplot2::theme_minimal()
@@ -176,6 +197,8 @@ cyt_corr <- function(
           colour = "#cc0000",
           linewidth = 0.6
         )
+
+      apply_font_settings_ggplot(p, resolved_fonts)
     }
 
     # Creating heatmap of the correlation

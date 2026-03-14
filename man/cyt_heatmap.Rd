@@ -13,6 +13,7 @@ cyt_heatmap(
   show_col_names = TRUE,
   fontsize_row = 10,
   fontsize_col = 10,
+  font_settings = NULL,
   cluster_rows = TRUE,
   cluster_cols = TRUE,
   title = NULL,
@@ -50,6 +51,9 @@ Default is \code{TRUE}.}
 
 \item{fontsize_col}{Numeric.  Font size for column names.  Default is
 \code{10}.}
+
+\item{font_settings}{Optional named list of font sizes for supported heatmap
+text elements.}
 
 \item{cluster_rows}{Logical.  If \code{TRUE} (default), rows are clustered.}
 

@@ -21,6 +21,8 @@
 #'                   Default is 10.
 #' @param output_file Optional. A file path to save the plot. If NULL (default), the function
 #'                    returns a list of ggplot objects.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If output_file is NULL, a list of ggplot objects (one per pair) is returned.
 #'         If output_file is provided, the plot(s) are written to that file and the function returns NULL invisibly.
@@ -46,8 +48,27 @@ cyt_volc <- function(
   p_value_thresh = 0.05,
   top_labels = 10,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 ) {
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title",
+      "x_text", "y_text", "legend_title", "legend_text",
+      "annotation_text"
+    ),
+    activate = !is.null(font_settings)
+  )
+  label_size <- if (is.null(resolved_fonts)) {
+    3
+  } else {
+    font_settings_ggplot_text_size(
+      resolved_fonts$annotation_text,
+      default_size = 3
+    )
+  }
+
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Validating input data")
   }
@@ -156,7 +177,7 @@ cyt_volc <- function(
         linetype = "dashed",
         color = "blue"
       ) +
-      ggrepel::geom_text_repel(size = 3, max.overlaps = 50) +
+      ggrepel::geom_text_repel(size = label_size, max.overlaps = 50) +
       ggplot2::scale_color_manual(
         values = c("FALSE" = "gray", "TRUE" = "red")
       ) +
@@ -166,6 +187,8 @@ cyt_volc <- function(
         y = "-Log10 P-Value"
       ) +
       ggplot2::theme_minimal()
+
+    p <- apply_font_settings_ggplot(p, resolved_fonts)
 
     plot_list[[paste(current_cond1, "vs", current_cond2)]] <- p
   }

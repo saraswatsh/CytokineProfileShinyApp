@@ -21,6 +21,7 @@ cyt_rf(
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -77,6 +78,9 @@ numeric predictor columns prior to model fitting.  One of \code{"none"}
 
 \item{output_file}{Optional.  A file path to save outputs as a PDF.  If
 \code{NULL} (default), a named list is returned for interactive display.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional.  A Shiny \code{Progress} object for reporting
 progress updates.}

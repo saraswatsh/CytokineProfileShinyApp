@@ -1,25 +1,37 @@
 # CytokineProfileShinyApp 0.0.0.9000
 
-The development build contains several quality-of-life fixes and reliability improvements focused on data upload, type handling, editor state, and initial performance profiling. Key changes:
+This development build focuses on making the app easier to use, easier to read, and more reliable.
 
-- Upload & file handling
-	- Uploaded files are now always copied to the app upload directory with `overwrite = TRUE`, so re-uploading a file (even with the same filename) refreshes the stored copy immediately.
-	- Excel sheet selection is now robust: the app validates `input$sheet_name` against the workbook's actual sheets and falls back to the first sheet when a previously selected sheet is not present, avoiding "Sheet 'NA' not found" errors.
-	- When a new file is uploaded the Bio‑Plex editor persisted state and related caches are cleared and a short notification is shown.
+## What's New
 
-- Missing values & type coercion
-	- Character columns that are numeric-like (for example containing NA tokens, asterisks, OOR markers, or commas) are now heuristically cleaned and coerced back to numeric where appropriate using the existing cleaning helper. This prevents numeric columns from being mis-classified as character and improves downstream analyses.
+- You can now run `Two-way ANOVA` and `ANCOVA` directly in the app.
+- The app now gives clearer warnings when interaction effects may make results harder to interpret on their own.
+- Many figure-based analyses now include easier text controls, so you can adjust titles, axis labels, legends, and other plot text without digging into code.
 
-- Reactive state & UI sync
-	- `userState$selected_columns` is updated immediately when Step 2 checkbox groups change, so downstream reactives (including variable-count defaults) reflect current selections without needing to navigate forward.
-	- Defaults for `plsr_keepX`, `splsda_var_num`, and `mint_splsda_var_num` are recomputed and pushed to the UI when column selections change, but manual user overrides are respected via `*_manual` flags.
+## Easier to Use
 
-- Data editor robustness
-	- The data editor now clears stale `sheet_name` selections on new uploads to prevent mismatches between previously selected sheet names and the newly uploaded workbook.
-	- The editor's AutoFill and cell-edit path preserve numeric coercion logic for edited cells.
-- Bug fixes & code quality (PR #1 review)
-	- `cyt_heatmap()`: the heatmap is now drawn on the active graphics device in interactive use. Previously `silent = TRUE` was unconditional, suppressing all on-screen rendering; it is now only set when saving to a file.
-	- `cyt_univariate()` and `cyt_univariate_multi()`: fixed a key-parsing bug where column names containing underscores would produce mis-labelled `Outcome` and `Categorical` columns in formatted output. Results are now assembled by iterating over the original variable vectors directly rather than splitting the composite key string. Both functions also now return a consistent type (empty `list()` or typed empty `data.frame()` with a `warning()`) when no valid tests can be performed, instead of a bare character string.
-	- `cyt_xgb()`: the best cross-validation iteration is now chosen correctly for all evaluation metrics. When early stopping is enabled, `xgb_cv$best_iteration` is used directly; otherwise the selection switches between `which.max()` and `which.min()` depending on whether the metric is higher-is-better (e.g. `auc`, `aucpr`, `map`, `ndcg`) or lower-is-better (e.g. `logloss`, `rmse`).
-	- `run_app()`: the function now resolves the app directory using `dirname(system.file("app.R", ...))`, which works correctly with both `devtools::load_all()` and a standard package installation.
-	- `NAMESPACE`: `rlang::.data` and `rlang::%||%` are now formally imported via `CytokineProfileShinyApp-package.R`, preventing potential "object not found" errors when tidy-eval pronouns or the null-coalescing operator are used in package context.
+- Re-uploading a file now refreshes the saved copy right away, even if the file has the same name as before.
+- Excel imports are more reliable. If a previously chosen sheet is no longer available, the app now switches safely instead of failing.
+- When you upload a new file, saved editor choices from the previous file are cleared more cleanly.
+- Columns that look like numbers, even when they include symbols or common missing-value markers, are now more likely to be recognized correctly.
+- Column selections now update more smoothly, and related defaults stay in sync better as you change your data choices.
+- The app now starts more reliably in different R workflows.
+
+## Better Figures
+
+- Plot text is now more customizable across many figure types.
+- PCA, PLSR, sPLS-DA, and MINT sPLS-DA figures now use more readable default text sizes.
+- Correlation circle plots in PCA and MINT sPLS-DA now behave more reliably.
+- Heatmaps now display more consistently during interactive use.
+
+## Bug Fixes
+
+- Some result tables are now labeled more accurately when column names contain underscores.
+- The app handles empty analysis results more gracefully instead of returning confusing output.
+- The XGBoost workflow now chooses the best training step more reliably across different scoring methods.
+- Editing data in the built-in editor now preserves values more consistently.
+
+## Behind the Scenes
+
+- Several parts of the app were cleaned up to reduce small startup and package-loading problems.
+

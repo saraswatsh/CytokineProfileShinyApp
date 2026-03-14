@@ -55,6 +55,8 @@
 #'   \code{scale = "custom"}.  Ignored otherwise.
 #' @param output_file Optional.  A file path to save outputs as a PDF.  If
 #'   \code{NULL} (default), a named list is returned for interactive display.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional.  A Shiny \code{Progress} object for reporting
 #'   progress updates.
 #'
@@ -107,6 +109,7 @@ cyt_xgb <- function(
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 ) {
   # ── 0. Initialize ──────────────────────────────────────────────────────────
@@ -117,6 +120,14 @@ cyt_xgb <- function(
   names(data) <- make.names(names(data), unique = TRUE)
   data <- as.data.frame(data)
   scale <- match.arg(scale)
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title",
+      "x_text", "y_text", "legend_title", "legend_text"
+    ),
+    activate = !is.null(font_settings)
+  )
 
   if (!group_col %in% names(data)) {
     stop(sprintf("Column '%s' not found in data.", group_col))
@@ -294,6 +305,7 @@ cyt_xgb <- function(
         )
       )
   }
+  imp_plot <- apply_font_settings_ggplot(imp_plot, resolved_fonts)
 
   # ── 9. ROC curve (binary only) ─────────────────────────────────────────────
   roc_plot <- NULL
@@ -345,6 +357,7 @@ cyt_xgb <- function(
             panel.grid.major = ggplot2::element_line(color = "gray90"),
             panel.grid.minor = ggplot2::element_line(color = "gray95")
           )
+        roc_plot <- apply_font_settings_ggplot(roc_plot, resolved_fonts)
       } else {
         warning(
           "Length mismatch between predicted probabilities and true labels; skipping ROC/AUC."

@@ -12,6 +12,7 @@ cyt_bp(
   y_lim = NULL,
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -40,6 +41,9 @@ One of \code{"none"}, \code{"log2"}, \code{"log10"}, \code{"zscore"}, or
 
 \item{custom_fn}{A user-supplied function to transform numeric columns when
 \code{scale = "custom"}.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional.  A Shiny \code{Progress} object for reporting
 progress updates.}

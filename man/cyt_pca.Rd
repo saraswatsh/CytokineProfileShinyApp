@@ -15,6 +15,7 @@ cyt_pca(
   pch_values = NULL,
   style = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -39,6 +40,9 @@ If one is missing, the provided column is used for both.}
 \item{style}{Character. If "3d" (case insensitive) and comp_num equals 3, a 3D scatter plot is generated.}
 
 \item{output_file}{Optional. A file name for the PDF output. If NULL, interactive mode is assumed.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }

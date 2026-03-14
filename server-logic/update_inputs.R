@@ -154,6 +154,50 @@ shiny::observeEvent(currentStep(), {
         selected = userState$uvm_p_adjust_method %||% ""
       )
     }
+    if (userState$selected_function == "Two-way ANOVA") {
+      shiny::updateSelectInput(
+        session,
+        "twa_primary_cat_var",
+        selected = userState$twa_primary_cat_var
+      )
+      shiny::updateSelectInput(
+        session,
+        "twa_secondary_cat_var",
+        selected = userState$twa_secondary_cat_var
+      )
+      shiny::updateCheckboxInput(
+        session,
+        "twa_include_primary_secondary_interaction",
+        value = userState$twa_include_primary_secondary_interaction
+      )
+    }
+    if (userState$selected_function == "ANCOVA") {
+      shiny::updateSelectInput(
+        session,
+        "anc_primary_cat_var",
+        selected = userState$anc_primary_cat_var
+      )
+      shiny::updateSelectInput(
+        session,
+        "anc_secondary_cat_var",
+        selected = userState$anc_secondary_cat_var
+      )
+      shiny::updateSelectInput(
+        session,
+        "anc_covariate_col",
+        selected = userState$anc_covariate_col
+      )
+      shiny::updateCheckboxInput(
+        session,
+        "anc_include_primary_secondary_interaction",
+        value = userState$anc_include_primary_secondary_interaction
+      )
+      shiny::updateCheckboxInput(
+        session,
+        "anc_include_primary_covariate_interaction",
+        value = userState$anc_include_primary_covariate_interaction
+      )
+    }
     if (userState$selected_function == "Error-Bar Plot") {
       shiny::updateSelectInput(
         session,
@@ -196,18 +240,8 @@ shiny::observeEvent(currentStep(), {
       )
       shiny::updateNumericInput(
         session,
-        "eb_label_size",
-        value = userState$eb_label_size
-      )
-      shiny::updateNumericInput(
-        session,
         "eb_n_col",
         value = userState$eb_n_col %||% 3
-      )
-      shiny::updateSliderInput(
-        session,
-        "eb_base_size",
-        value = userState$eb_base_size %||% 11
       )
       eb_fill_palette_selected <- userState$eb_fill_palette %||% "gray"
       if (identical(eb_fill_palette_selected, "grey")) {
@@ -540,11 +574,6 @@ shiny::observeEvent(currentStep(), {
         "splsda_colors",
         selected = userState$splsda_colors
       )
-      shiny::updateSliderInput(
-        session,
-        "splsda_fontsize",
-        value = userState$splsda_fontsize
-      )
     }
     # Volcano Plot
     if (userState$selected_function == "Volcano Plot") {
@@ -625,6 +654,17 @@ shiny::observeEvent(currentStep(), {
         value = userState$xgb_nfold
       )
     }
+
+    font_spec <- get_analysis_font_spec(userState$selected_function)
+    if (!is.null(font_spec)) {
+      restore_font_settings_inputs(
+        session = session,
+        prefix = font_spec$prefix,
+        supported_fields = font_spec$supported_fields,
+        state = userState[[font_spec$state_key]],
+        default_font_settings = font_spec$default_font_settings
+      )
+    }
   }
 })
 
@@ -651,6 +691,17 @@ analysis_inputs <- shiny::reactive({
       uv2_p_adjust_method = input$uv2_p_adjust_method,
       uvm_method = input$uvm_method,
       uvm_p_adjust_method = input$uvm_p_adjust_method,
+      twa_primary_cat_var = input$twa_primary_cat_var,
+      twa_secondary_cat_var = input$twa_secondary_cat_var,
+      twa_include_primary_secondary_interaction =
+        input$twa_include_primary_secondary_interaction,
+      anc_primary_cat_var = input$anc_primary_cat_var,
+      anc_secondary_cat_var = input$anc_secondary_cat_var,
+      anc_covariate_col = input$anc_covariate_col,
+      anc_include_primary_secondary_interaction =
+        input$anc_include_primary_secondary_interaction,
+      anc_include_primary_covariate_interaction =
+        input$anc_include_primary_covariate_interaction,
 
       # Error-Bar Plot
       eb_group_col = input$eb_group_col,
@@ -664,9 +715,7 @@ analysis_inputs <- shiny::reactive({
       eb_error = input$eb_error,
       eb_method = input$eb_method,
       eb_p_adjust_method = input$eb_p_adjust_method,
-      eb_label_size = input$eb_label_size,
       eb_n_col = input$eb_n_col,
-      eb_base_size = input$eb_base_size,
       eb_fill_palette = input$eb_fill_palette,
       # Dual-Flashlight Plot
       df_group_var = input$df_group_var,
@@ -741,7 +790,6 @@ analysis_inputs <- shiny::reactive({
       splsda_bg = input$splsda_bg,
       splsda_conf_mat = input$splsda_conf_mat,
       splsda_colors = input$splsda_colors,
-      splsda_fontsize = input$splsda_fontsize,
 
       # MINT sPLS-DA
       mint_splsda_group_col = input$mint_splsda_group_col,

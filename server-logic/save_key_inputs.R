@@ -74,6 +74,20 @@ shiny::observeEvent(input$step2_scale, {
 shiny::observeEvent(selected_function(), {
   userState$selected_function <- selected_function()
 })
+lapply(names(analysis_font_specs), function(func_name) {
+  spec <- analysis_font_specs[[func_name]]
+  shiny::observe({
+    state <- font_settings_state_from_inputs(
+      input = input,
+      prefix = spec$prefix,
+      supported_fields = spec$supported_fields,
+      default_font_settings = spec$default_font_settings
+    )
+    if (!is.null(state)) {
+      userState[[spec$state_key]] <- state
+    }
+  })
+})
 # For sheet name
 shiny::observeEvent(input$sheet_name, {
   userState$sheet_name <- input$sheet_name
@@ -135,14 +149,8 @@ shiny::observeEvent(input$eb_method, {
 shiny::observeEvent(input$eb_p_adjust_method, {
   userState$eb_p_adjust_method <- input$eb_p_adjust_method
 })
-shiny::observeEvent(input$eb_label_size, {
-  userState$eb_label_size <- input$eb_label_size
-})
 shiny::observeEvent(input$eb_n_col, {
   userState$eb_n_col <- input$eb_n_col
-})
-shiny::observeEvent(input$eb_base_size, {
-  userState$eb_base_size <- input$eb_base_size
 })
 shiny::observeEvent(input$eb_fill_palette, {
   userState$eb_fill_palette <- if (identical(input$eb_fill_palette, "grey")) {
@@ -163,6 +171,33 @@ shiny::observeEvent(input$uvm_method, {
 })
 shiny::observeEvent(input$uvm_p_adjust_method, {
   userState$uvm_p_adjust_method <- input$uvm_p_adjust_method
+})
+shiny::observeEvent(input$twa_primary_cat_var, {
+  userState$twa_primary_cat_var <- input$twa_primary_cat_var
+})
+shiny::observeEvent(input$twa_secondary_cat_var, {
+  userState$twa_secondary_cat_var <- input$twa_secondary_cat_var
+})
+shiny::observeEvent(input$twa_include_primary_secondary_interaction, {
+  userState$twa_include_primary_secondary_interaction <-
+    input$twa_include_primary_secondary_interaction
+})
+shiny::observeEvent(input$anc_primary_cat_var, {
+  userState$anc_primary_cat_var <- input$anc_primary_cat_var
+})
+shiny::observeEvent(input$anc_secondary_cat_var, {
+  userState$anc_secondary_cat_var <- input$anc_secondary_cat_var
+})
+shiny::observeEvent(input$anc_covariate_col, {
+  userState$anc_covariate_col <- input$anc_covariate_col
+})
+shiny::observeEvent(input$anc_include_primary_secondary_interaction, {
+  userState$anc_include_primary_secondary_interaction <-
+    input$anc_include_primary_secondary_interaction
+})
+shiny::observeEvent(input$anc_include_primary_covariate_interaction, {
+  userState$anc_include_primary_covariate_interaction <-
+    input$anc_include_primary_covariate_interaction
 })
 # For Dual-Flashlight Plot
 shiny::observeEvent(input$df_group_var, {
@@ -422,9 +457,6 @@ shiny::observeEvent(input$splsda_conf_mat, {
 shiny::observeEvent(input$splsda_colors, {
   userState$splsda_colors <- input$splsda_colors
 })
-shiny::observeEvent(input$splsda_fontsize, {
-  userState$splsda_fontsize <- input$splsda_fontsize
-})
 # For MINT sPLS-DA
 shiny::observeEvent(input$mint_splsda_group_col, {
   userState$mint_splsda_group_col <- input$mint_splsda_group_col
@@ -585,6 +617,18 @@ shiny::observeEvent(input$menu_univariate_2lvl, {
 shiny::observeEvent(input$menu_univariate_multi, {
   selected_stat_func("Multi-level Univariate Tests (Anova, Kruskal-Wallis)")
   selected_function("Multi-level Univariate Tests (Anova, Kruskal-Wallis)")
+  currentPage("step4")
+  currentStep(4)
+})
+shiny::observeEvent(input$menu_two_way_anova, {
+  selected_stat_func("Two-way ANOVA")
+  selected_function("Two-way ANOVA")
+  currentPage("step4")
+  currentStep(4)
+})
+shiny::observeEvent(input$menu_ancova, {
+  selected_stat_func("ANCOVA")
+  selected_function("ANCOVA")
   currentPage("step4")
   currentStep(4)
 })

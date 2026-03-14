@@ -56,6 +56,8 @@
 #'   \code{NULL} (default), all bars are filled with \code{"gray80"}.
 #'   Supply one color per group level (e.g. \code{c("#4E79A7", "#F28E2B",
 #'   "#E15759")}).
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param output_file Optional file path. If provided, the plot is saved
 #'   using \code{ggsave()}; otherwise the plot is returned and automatically
 #'   printed.
@@ -97,6 +99,7 @@ cyt_errbp <- function(
   n_col = NULL,
   base_size = 11,
   fill_palette = NULL,
+  font_settings = NULL,
   output_file = NULL,
   progress = NULL
 ) {
@@ -132,6 +135,29 @@ cyt_errbp <- function(
   scale <- match.arg(scale)
   method <- match.arg(method)
   data <- as.data.frame(data)
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title",
+      "x_text", "y_text", "legend_title", "legend_text",
+      "strip_text", "annotation_text"
+    ),
+    legacy = list(
+      base_size = base_size,
+      annotation_text = label_size
+    ),
+    activate = !is.null(font_settings) ||
+      !identical(base_size, 11) ||
+      !identical(label_size, 4)
+  )
+  annotation_size <- if (!is.null(font_settings)) {
+    font_settings_ggplot_text_size(
+      resolved_fonts$annotation_text,
+      default_size = label_size
+    )
+  } else {
+    label_size
+  }
 
   # ── 1. Convert grouping column to factor ───────────────────────────────────
   if (!is.null(progress)) {
@@ -499,12 +525,15 @@ cyt_errbp <- function(
     ) +
     ggplot2::labs(x = x_lab, y = y_lab, title = title) +
     (if (!is.null(fill_palette)) fill_scale else ggplot2::guides()) +
-    ggplot2::theme_minimal(base_size = base_size) +
+    ggplot2::theme_minimal(
+      base_size = if (is.null(resolved_fonts)) base_size else resolved_fonts$base_size
+    ) +
     ggplot2::theme(
       axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
       strip.text = ggplot2::element_text(face = "bold"),
       legend.position = if (!is.null(fill_palette)) "bottom" else "none"
     )
+  p <- apply_font_settings_ggplot(p, resolved_fonts)
 
   if (p_lab) {
     p <- p +
@@ -512,7 +541,7 @@ cyt_errbp <- function(
         data = summarized |>
           dplyr::filter(.data[[group_col]] != baseline & !is.na(p_label)),
         ggplot2::aes(x = .data[[group_col]], y = p_y, label = p_label),
-        size = label_size,
+        size = annotation_size,
         colour = "black",
         vjust = 0,
         na.rm = TRUE
@@ -525,7 +554,7 @@ cyt_errbp <- function(
         data = summarized |>
           dplyr::filter(.data[[group_col]] != baseline & !is.na(es_label)),
         ggplot2::aes(x = .data[[group_col]], y = es_y, label = es_label),
-        size = label_size,
+        size = annotation_size,
         colour = "black",
         vjust = 0,
         na.rm = TRUE

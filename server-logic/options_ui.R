@@ -66,6 +66,282 @@ pch_choices <- c(
   "Triangle Up w/ Border" = 24,
   "Triangle Down w/ Border" = 25
 )
+
+core_font_fields <- c(
+  "base_size",
+  "plot_title",
+  "x_title",
+  "y_title",
+  "x_text",
+  "y_text",
+  "legend_title",
+  "legend_text",
+  "strip_text"
+)
+core_font_slider_fields <- setdiff(core_font_fields, "base_size")
+
+font_field_specs <- list(
+  base_size = list(label = "Base Font Size", min = 8, max = 24, step = 1),
+  plot_title = list(label = "Plot Title", min = 8, max = 30, step = 1),
+  x_title = list(label = "X-Axis Title", min = 8, max = 28, step = 1),
+  y_title = list(label = "Y-Axis Title", min = 8, max = 28, step = 1),
+  x_text = list(label = "X-Axis Text", min = 6, max = 24, step = 1),
+  y_text = list(label = "Y-Axis Text", min = 6, max = 24, step = 1),
+  legend_title = list(label = "Legend Title", min = 6, max = 24, step = 1),
+  legend_text = list(label = "Legend Text", min = 6, max = 24, step = 1),
+  strip_text = list(label = "Facet Strip Text", min = 6, max = 24, step = 1),
+  annotation_text = list(label = "Annotation Text", min = 6, max = 24, step = 1),
+  row_names = list(label = "Row Names", min = 6, max = 24, step = 1),
+  col_names = list(label = "Column Names", min = 6, max = 24, step = 1),
+  cell_text = list(label = "Cell Labels", min = 6, max = 24, step = 1),
+  variable_names = list(label = "Variable Labels", min = 6, max = 24, step = 1),
+  point_labels = list(label = "Point Labels", min = 6, max = 24, step = 1)
+)
+
+analysis_font_specs <- list(
+  "Boxplots" = list(
+    prefix = "bp",
+    state_key = "bp_font_settings",
+    supported_fields = core_font_slider_fields,
+    default_font_settings = font_settings_defaults(11)
+  ),
+  "Violin Plots" = list(
+    prefix = "vio",
+    state_key = "vio_font_settings",
+    supported_fields = core_font_slider_fields,
+    default_font_settings = font_settings_defaults(11)
+  ),
+  "Error-Bar Plot" = list(
+    prefix = "eb",
+    state_key = "eb_font_settings",
+    supported_fields = c(core_font_slider_fields, "annotation_text"),
+    default_font_settings = font_settings_defaults(11)
+  ),
+  "Dual-Flashlight Plot" = list(
+    prefix = "df",
+    state_key = "df_font_settings",
+    supported_fields = c(core_font_slider_fields, "annotation_text"),
+    default_font_settings = font_settings_defaults(11)
+  ),
+  "Heatmap" = list(
+    prefix = "hm",
+    state_key = "hm_font_settings",
+    supported_fields = c("row_names", "col_names"),
+    default_font_settings = font_settings_defaults(10)
+  ),
+  "Correlation Plots" = list(
+    prefix = "corr",
+    state_key = "corr_font_settings",
+    supported_fields = c(
+      "plot_title", "x_text", "y_text",
+      "legend_title", "legend_text", "cell_text"
+    ),
+    default_font_settings = font_settings_defaults(11)
+  ),
+  "Skewness/Kurtosis" = list(
+    prefix = "skku",
+    state_key = "skku_font_settings",
+    supported_fields = core_font_slider_fields,
+    default_font_settings = font_settings_defaults(11)
+  ),
+  "Volcano Plot" = list(
+    prefix = "volc",
+    state_key = "volc_font_settings",
+    supported_fields = c(core_font_slider_fields, "annotation_text"),
+    default_font_settings = font_settings_defaults(11)
+  ),
+  "Principal Component Analysis (PCA)" = list(
+    prefix = "pca",
+    state_key = "pca_font_settings",
+    supported_fields = c(
+      core_font_slider_fields,
+      "annotation_text",
+      "variable_names",
+      "point_labels"
+    ),
+    default_font_settings = utils::modifyList(
+      font_settings_defaults(14),
+      list(
+        plot_title = 18,
+        x_title = 16,
+        y_title = 16,
+        x_text = 14,
+        y_text = 14,
+        legend_title = 16,
+        legend_text = 14,
+        annotation_text = 13,
+        variable_names = 12,
+        point_labels = 11
+      )
+    )
+  ),
+  "Partial Least Squares Regression (PLSR)" = list(
+    prefix = "plsr",
+    state_key = "plsr_font_settings",
+    supported_fields = c(core_font_slider_fields, "variable_names", "point_labels"),
+    default_font_settings = utils::modifyList(
+      font_settings_defaults(14),
+      list(
+        plot_title = 18,
+        x_title = 16,
+        y_title = 16,
+        x_text = 14,
+        y_text = 14,
+        legend_title = 16,
+        legend_text = 14,
+        annotation_text = 13,
+        variable_names = 12,
+        point_labels = 11
+      )
+    )
+  ),
+  "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = list(
+    prefix = "splsda",
+    state_key = "splsda_font_settings",
+    supported_fields = c(core_font_slider_fields, "variable_names", "point_labels"),
+    default_font_settings = utils::modifyList(
+      font_settings_defaults(14),
+      list(
+        plot_title = 18,
+        x_title = 16,
+        y_title = 16,
+        x_text = 14,
+        y_text = 14,
+        legend_title = 16,
+        legend_text = 14,
+        annotation_text = 13,
+        variable_names = 12,
+        point_labels = 11
+      )
+    )
+  ),
+  "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = list(
+    prefix = "mint_splsda",
+    state_key = "mint_splsda_font_settings",
+    supported_fields = c(core_font_slider_fields, "variable_names", "point_labels"),
+    default_font_settings = utils::modifyList(
+      font_settings_defaults(14),
+      list(
+        plot_title = 18,
+        x_title = 16,
+        y_title = 16,
+        x_text = 14,
+        y_text = 14,
+        legend_title = 16,
+        legend_text = 14,
+        annotation_text = 13,
+        variable_names = 12,
+        point_labels = 11
+      )
+    )
+  ),
+  "Random Forest" = list(
+    prefix = "rf",
+    state_key = "rf_font_settings",
+    supported_fields = core_font_slider_fields,
+    default_font_settings = font_settings_defaults(11)
+  ),
+  "Extreme Gradient Boosting (XGBoost)" = list(
+    prefix = "xgb",
+    state_key = "xgb_font_settings",
+    supported_fields = core_font_slider_fields,
+    default_font_settings = font_settings_defaults(11)
+  )
+)
+
+get_analysis_font_spec <- function(func_name) {
+  analysis_font_specs[[func_name]]
+}
+
+font_settings_state_from_inputs <- function(
+  input,
+  prefix,
+  supported_fields,
+  default_font_settings = font_settings_defaults(11)
+) {
+  use_custom_id <- paste0(prefix, "_font_use_custom")
+  custom_ids <- paste0(prefix, "_font_", supported_fields)
+  defaults <- normalize_font_settings(
+    font_settings = default_font_settings,
+    supported_fields = unique(c("base_size", supported_fields)),
+    activate = TRUE
+  )
+
+  if (
+    is.null(input[[use_custom_id]]) &&
+      all(vapply(custom_ids, function(id) is.null(input[[id]]), logical(1)))
+  ) {
+    return(NULL)
+  }
+
+  state <- list(
+    use_custom = isTRUE(input[[use_custom_id]])
+  )
+
+  for (field in supported_fields) {
+    state[[field]] <- input[[paste0(prefix, "_font_", field)]] %||%
+      defaults[[field]]
+  }
+
+  state
+}
+
+font_settings_state_to_backend <- function(
+  state,
+  default_font_settings = font_settings_defaults(11)
+) {
+  defaults <- normalize_font_settings(
+    font_settings = default_font_settings,
+    activate = TRUE
+  )
+
+  if (is.null(state)) {
+    return(defaults)
+  }
+
+  if (!isTRUE(state$use_custom)) {
+    return(defaults)
+  }
+
+  for (field in setdiff(names(state), "use_custom")) {
+    defaults[[field]] <- state[[field]]
+  }
+
+  defaults
+}
+
+restore_font_settings_inputs <- function(
+  session,
+  prefix,
+  supported_fields,
+  state = NULL,
+  default_font_settings = font_settings_defaults(11)
+) {
+  defaults <- font_settings_state_to_backend(
+    state = state,
+    default_font_settings = default_font_settings
+  )
+
+  try(
+    shiny::updateCheckboxInput(
+      session,
+      paste0(prefix, "_font_use_custom"),
+      value = isTRUE(state$use_custom)
+    ),
+    silent = TRUE
+  )
+
+  for (field in supported_fields) {
+    try(
+      shiny::updateSliderInput(
+        session,
+        paste0(prefix, "_font_", field),
+        value = state[[field]] %||% defaults[[field]]
+      ),
+      silent = TRUE
+    )
+  }
+}
 # --- Helper: expand/normalize PCH to match number of levels ---
 expand_pch <- function(selected, needed, pool = 0:25) {
   sel <- as.integer(selected)
@@ -121,6 +397,130 @@ output$function_options_ui <- shiny::renderUI({
       ),
       content = content,
       colour = helper_color
+    )
+  }
+  build_univariate_formula_preview <- function(
+    design,
+    primary = NULL,
+    secondary = NULL,
+    covariate = NULL,
+    include_ps = FALSE,
+    include_pc = FALSE
+  ) {
+    if (is.null(primary) || !nzchar(primary)) {
+      return("outcome ~ <choose predictors>")
+    }
+
+    rhs_terms <- primary
+    if (identical(design, "two_way")) {
+      if (is.null(secondary) || !nzchar(secondary)) {
+        return("outcome ~ <choose predictors>")
+      }
+      rhs_terms <- c(rhs_terms, secondary)
+      if (isTRUE(include_ps)) {
+        rhs_terms <- c(rhs_terms, paste(primary, secondary, sep = ":"))
+      }
+    } else {
+      if (!is.null(secondary) && nzchar(secondary)) {
+        rhs_terms <- c(rhs_terms, secondary)
+      }
+      if (is.null(covariate) || !nzchar(covariate)) {
+        return("outcome ~ <choose predictors>")
+      }
+      rhs_terms <- c(rhs_terms, covariate)
+      if (isTRUE(include_ps) && !is.null(secondary) && nzchar(secondary)) {
+        rhs_terms <- c(rhs_terms, paste(primary, secondary, sep = ":"))
+      }
+      if (isTRUE(include_pc)) {
+        rhs_terms <- c(rhs_terms, paste(primary, covariate, sep = ":"))
+      }
+    }
+
+    paste("outcome ~", paste(rhs_terms, collapse = " + "))
+  }
+  formula_preview_ui <- function(formula_text, note = NULL) {
+    shiny::div(
+      class = "border rounded p-2 mt-2",
+      shiny::strong("Model formula preview"),
+      shiny::tags$pre(style = "margin:0.5rem 0 0;", formula_text),
+      if (!is.null(note)) {
+        shiny::helpText(note)
+      }
+    )
+  }
+  build_font_controls_ui <- function(func_name) {
+    spec <- get_analysis_font_spec(func_name)
+    if (is.null(spec)) {
+      return(NULL)
+    }
+
+    state <- userState[[spec$state_key]]
+    defaults <- font_settings_state_to_backend(
+      state = state,
+      default_font_settings = spec$default_font_settings
+    )
+    custom_fields <- spec$supported_fields
+
+    slider_ui <- function(field) {
+      field_spec <- font_field_specs[[field]]
+      slider_label <- field_spec$label
+
+      if (
+        identical(field, "point_labels") &&
+          func_name %in% c(
+            "Principal Component Analysis (PCA)",
+            "Partial Least Squares Regression (PLSR)",
+            "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)",
+            "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
+          )
+      ) {
+        slider_label <- helper_label(
+          "Point Labels",
+          "mixOmics Point / Label Size",
+          "For mixOmics individual plots, this control sets point size when sample names are hidden and label size when sample names are shown."
+        )
+      }
+
+      shiny::sliderInput(
+        paste0(spec$prefix, "_font_", field),
+        label = slider_label,
+        min = field_spec$min,
+        max = field_spec$max,
+        step = field_spec$step,
+        value = state[[field]] %||% defaults[[field]]
+      )
+    }
+
+    custom_rows <- lapply(split(custom_fields, ceiling(seq_along(custom_fields) / 2)), function(fields) {
+      shiny::fluidRow(
+        lapply(fields, function(field) {
+          shiny::column(6, slider_ui(field))
+        })
+      )
+    })
+
+    shiny::tagList(
+      shiny::tags$details(
+        class = "mt-2 border rounded p-2",
+        open = isTRUE(state$use_custom),
+        shiny::tags$summary(shiny::strong("Text & Fonts")),
+        shiny::div(
+          class = "mt-2",
+          shiny::checkboxInput(
+            paste0(spec$prefix, "_font_use_custom"),
+            label = helper_label(
+              "Use Custom Text Sizes",
+              "Custom Font Controls",
+              "Turn this on to customize the supported text elements for this figure, including titles, axes, legends, labels, and other plot-specific text."
+            ),
+            value = isTRUE(state$use_custom)
+          ),
+          shiny::conditionalPanel(
+            condition = sprintf("input.%s == true", paste0(spec$prefix, "_font_use_custom")),
+            do.call(shiny::tagList, custom_rows)
+          )
+        )
+      )
     )
   }
   ui_list <- list()
@@ -203,6 +603,203 @@ output$function_options_ui <- shiny::renderUI({
                   ""
               )
             }
+          )
+        )
+      )
+    },
+    # ------------------------
+    # Two-way ANOVA
+    # ------------------------
+    "Two-way ANOVA" = {
+      df <- filteredData()
+      if (is.null(df)) {
+        return(NULL)
+      }
+      cols <- safe_names(df)
+      cat_cols <- cols[vapply(df[cols], function(x) !is.numeric(x), logical(1))]
+      twa_primary_selected <- input$twa_primary_cat_var %||%
+        shiny::isolate(userState$twa_primary_cat_var) %||%
+        if (length(cat_cols)) cat_cols[1] else NULL
+      twa_secondary_choices <- setdiff(cat_cols, twa_primary_selected %||% "")
+      if (length(twa_secondary_choices) == 0L) {
+        twa_secondary_choices <- cat_cols
+      }
+      preview_formula <- build_univariate_formula_preview(
+        design = "two_way",
+        primary = twa_primary_selected,
+        secondary = input$twa_secondary_cat_var %||%
+          shiny::isolate(userState$twa_secondary_cat_var),
+        include_ps = isTRUE(
+          input$twa_include_primary_secondary_interaction %||%
+            shiny::isolate(userState$twa_include_primary_secondary_interaction)
+        )
+      )
+
+      ui_list <- shiny::tagList(
+        shiny::fluidRow(
+          shiny::column(
+            6,
+            shiny::selectInput(
+              "twa_primary_cat_var",
+              label = helper_label(
+                "Primary Factor",
+                "Two-way ANOVA Primary Factor",
+                "Choose the main categorical factor whose mean differences you want to evaluate across outcomes."
+              ),
+              choices = cat_cols,
+              selected = twa_primary_selected
+            )
+          ),
+          shiny::column(
+            6,
+            shiny::selectInput(
+              "twa_secondary_cat_var",
+              label = helper_label(
+                "Secondary Factor",
+                "Two-way ANOVA Secondary Factor",
+                "Choose the second categorical factor that defines the two-way ANOVA design."
+              ),
+              choices = twa_secondary_choices,
+              selected = shiny::isolate(userState$twa_secondary_cat_var) %||%
+                if (length(twa_secondary_choices)) twa_secondary_choices[1] else NULL
+            )
+          )
+        ),
+        shiny::fluidRow(
+          shiny::column(
+            12,
+            shiny::checkboxInput(
+              "twa_include_primary_secondary_interaction",
+              label = helper_label(
+                "Include primary:secondary interaction",
+                "Two-way ANOVA Interaction",
+                "Turn this on to include the primary:secondary interaction term in the fitted model."
+              ),
+              value = shiny::isolate(
+                userState$twa_include_primary_secondary_interaction
+              ) %||% FALSE
+            ),
+            formula_preview_ui(preview_formula)
+          )
+        )
+      )
+    },
+    # ------------------------
+    # ANCOVA
+    # ------------------------
+    "ANCOVA" = {
+      df <- filteredData()
+      if (is.null(df)) {
+        return(NULL)
+      }
+      cols <- safe_names(df)
+      cat_cols <- cols[vapply(df[cols], function(x) !is.numeric(x), logical(1))]
+      num_cols <- cols[vapply(df[cols], is.numeric, logical(1))]
+      anc_primary_selected <- input$anc_primary_cat_var %||%
+        shiny::isolate(userState$anc_primary_cat_var) %||%
+        if (length(cat_cols)) cat_cols[1] else NULL
+      anc_secondary_base <- setdiff(cat_cols, anc_primary_selected %||% "")
+      secondary_choices <- c(
+        "None" = "",
+        stats::setNames(anc_secondary_base, anc_secondary_base)
+      )
+      preview_formula <- build_univariate_formula_preview(
+        design = "ancova",
+        primary = anc_primary_selected,
+        secondary = input$anc_secondary_cat_var %||%
+          shiny::isolate(userState$anc_secondary_cat_var),
+        covariate = input$anc_covariate_col %||%
+          shiny::isolate(userState$anc_covariate_col),
+        include_ps = isTRUE(
+          input$anc_include_primary_secondary_interaction %||%
+            shiny::isolate(userState$anc_include_primary_secondary_interaction)
+        ),
+        include_pc = isTRUE(
+          input$anc_include_primary_covariate_interaction %||%
+            shiny::isolate(userState$anc_include_primary_covariate_interaction)
+        )
+      )
+
+      ui_list <- shiny::tagList(
+        shiny::fluidRow(
+          shiny::column(
+            4,
+            shiny::selectInput(
+              "anc_primary_cat_var",
+              label = helper_label(
+                "Primary Factor",
+                "ANCOVA Primary Factor",
+                "Choose the main categorical factor whose adjusted mean differences you want to test."
+              ),
+              choices = cat_cols,
+              selected = anc_primary_selected
+            )
+          ),
+          shiny::column(
+            4,
+            shiny::selectInput(
+              "anc_secondary_cat_var",
+              label = helper_label(
+                "Secondary Factor (Optional)",
+                "ANCOVA Secondary Factor",
+                "Optionally add a second categorical factor. Leave this as None to fit a single-factor ANCOVA."
+              ),
+              choices = secondary_choices,
+              selected = shiny::isolate(userState$anc_secondary_cat_var) %||% ""
+            )
+          ),
+          shiny::column(
+            4,
+            shiny::selectInput(
+              "anc_covariate_col",
+              label = helper_label(
+                "Covariate",
+                "ANCOVA Covariate",
+                "Choose the numeric covariate that should be adjusted for in the ANCOVA model."
+              ),
+              choices = num_cols,
+              selected = shiny::isolate(userState$anc_covariate_col) %||%
+                if (length(num_cols)) num_cols[1] else NULL
+            )
+          )
+        ),
+        shiny::fluidRow(
+          shiny::column(
+            6,
+            shiny::checkboxInput(
+              "anc_include_primary_secondary_interaction",
+              label = helper_label(
+                "Include primary:secondary interaction",
+                "ANCOVA Factor Interaction",
+                "Turn this on to include the primary:secondary interaction term when a secondary factor is selected."
+              ),
+              value = shiny::isolate(
+                userState$anc_include_primary_secondary_interaction
+              ) %||% FALSE
+            )
+          ),
+          shiny::column(
+            6,
+            shiny::checkboxInput(
+              "anc_include_primary_covariate_interaction",
+              label = helper_label(
+                "Include primary:covariate interaction",
+                "ANCOVA Slope Interaction",
+                "Turn this on to model a primary:covariate interaction directly instead of treating slope heterogeneity as an assumption check."
+              ),
+              value = shiny::isolate(
+                userState$anc_include_primary_covariate_interaction
+              ) %||% FALSE
+            )
+          )
+        ),
+        shiny::fluidRow(
+          shiny::column(
+            12,
+            formula_preview_ui(
+              preview_formula,
+              note = "secondary:covariate is excluded by design in this version."
+            )
           )
         )
       )
@@ -598,37 +1195,6 @@ output$function_options_ui <- shiny::renderUI({
               ),
               choices = p_adjust_choices,
               selected = shiny::isolate(userState$eb_p_adjust_method) %||% ""
-            )
-          )
-        ),
-        shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::numericInput(
-              "eb_label_size",
-              label = helper_label(
-                "Label Size",
-                "Annotation Label Size",
-                "Controls the size of the p-value or effect-size labels drawn on the plot. Increase this if the annotations are hard to read. Decrease it if the text overlaps or crowds the figure."
-              ),
-              value = shiny::isolate(userState$eb_label_size) %||% 4,
-              min = 1,
-              step = 0.5
-            )
-          ),
-          shiny::column(
-            6,
-            shiny::sliderInput(
-              "eb_base_size",
-              label = helper_label(
-                "Base Font Size",
-                "Plot Font Size",
-                "Controls the base text size used across the plot, including axes, facet titles, and labels. Increase this for presentations or dense figures. Decrease it if long labels are being cut off."
-              ),
-              min = 8,
-              max = 20,
-              value = shiny::isolate(userState$eb_base_size) %||% 11,
-              step = 1
             )
           )
         ),
@@ -2184,33 +2750,7 @@ output$function_options_ui <- shiny::renderUI({
             )
           )
         ),
-        # Row 9: Font scale multiplier
-        shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::sliderInput(
-              "splsda_fontsize",
-              label = shinyhelper::helper(
-                type = "inline",
-                title = "Font Scale Multiplier",
-                icon = "fas fa-exclamation-circle",
-                shiny_tag = shiny::HTML(
-                  "<span style='margin-right: 15px;'>Font Scale Multiplier</span>"
-                ),
-                content = "Scale the text size used in the sPLS-DA figures. Increase this if labels are hard to read in the plot output. Decrease it if the figure feels crowded.",
-                colour = if (input$theme_choice %in% c("darkly", "cyborg")) {
-                  "red"
-                } else {
-                  "blue"
-                }
-              ),
-              min = 0.5,
-              max = 2.5,
-              step = 0.1,
-              value = shiny::isolate(userState$splsda_fontsize) %||% 1.0
-            )
-          )
-        )
+        NULL
       )
     },
     "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
@@ -2834,6 +3374,10 @@ output$function_options_ui <- shiny::renderUI({
       )
     }
   )
+  font_controls <- build_font_controls_ui(func_name)
+  if (!is.null(font_controls)) {
+    ui_list <- append(ui_list, list(font_controls))
+  }
   do.call(shiny::tagList, ui_list)
 })
 

@@ -7,9 +7,15 @@
 cyt_univariate_multi(
   data,
   method = c("anova", "kruskal"),
+  design = c("one_way", "two_way", "ancova"),
   cat_vars = NULL,
   cont_vars = NULL,
   p_adjust_method = "BH",
+  primary_cat_var = NULL,
+  secondary_cat_var = NULL,
+  covariate_col = NULL,
+  include_primary_secondary_interaction = FALSE,
+  include_primary_covariate_interaction = FALSE,
   format_output = FALSE,
   progress = NULL
 )
@@ -22,45 +28,67 @@ to factors.}
 \item{method}{Character specifying the type of global test to
 perform. Use \code{"anova"} (default) for one-way ANOVA with Tukey
 HSD or \code{"kruskal"} for Kruskal-Wallis with pairwise Wilcoxon
-tests.}
+tests. \code{"kruskal"} is only supported when \code{design = "one_way"}.}
+
+\item{design}{Character specifying the model design. Use \code{"one_way"}
+(default) to preserve the existing multi-level ANOVA/Kruskal-Wallis
+workflow, \code{"two_way"} for two-way ANOVA, or \code{"ancova"} for ANCOVA.}
 
 \item{cat_vars}{Optional character vector of predictor column
-names. When \code{NULL}, all factor or character columns in \code{data}
-are used.}
+names used by the one-way workflow. When \code{NULL}, all factor or
+character columns in \code{data} are used.}
 
 \item{cont_vars}{Optional character vector of numeric outcome
 variable names. When \code{NULL}, all numeric columns in \code{data} are
-used.}
+used, excluding \code{covariate_col} for ANCOVA.}
 
 \item{p_adjust_method}{Character string specifying the method for
 p-value adjustment across pairwise Kruskal-Wallis follow-up
 comparisons. Passed to \code{p.adjust}. Default is \code{"BH"}.}
 
+\item{primary_cat_var}{Optional primary categorical predictor used by
+the two-way ANOVA and ANCOVA workflows.}
+
+\item{secondary_cat_var}{Optional secondary categorical predictor used
+by the two-way ANOVA and ANCOVA workflows.}
+
+\item{covariate_col}{Optional numeric covariate used by the ANCOVA
+workflow.}
+
+\item{include_primary_secondary_interaction}{Logical. Whether to
+include the \code{primary:secondary} interaction term when
+\code{secondary_cat_var} is supplied.}
+
+\item{include_primary_covariate_interaction}{Logical. Whether to
+include the \code{primary:covariate} interaction term when
+\code{covariate_col} is supplied.}
+
 \item{format_output}{Logical. If \code{TRUE}, returns a list with
 global results, pairwise results, and assumption summaries;
 otherwise (default) returns a list of numeric vectors keyed by
-\code{"Outcome_Categorical"}. Each numeric vector contains adjusted
-p-values for the pairwise comparisons.}
+\code{"Outcome_Categorical"} for the one-way workflow. Two-way ANOVA and
+ANCOVA return raw model bundles keyed by outcome when
+\code{format_output = FALSE}.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting
 progress updates during the analysis.}
 }
 \value{
 Either a list of adjusted pairwise p-values (if
-\code{format_output = FALSE}) or a list with \code{results}, \code{pairwise},
-and \code{assumptions} data frames (if \code{format_output = TRUE}).
+\code{format_output = FALSE} and \code{design = "one_way"}) or a list with
+\code{results}, \code{pairwise}, and \code{assumptions} data frames
+(if \code{format_output = TRUE}).
 }
 \description{
 \code{cyt_univariate_multi} provides univariate statistical testing for
-categorical predictors with more than two levels. For each
-categorical predictor and numeric outcome pair, a global test is
-performed, followed by pairwise comparisons when appropriate.
-Users may choose between two methods: classical ANOVA with Tukey's
-Honest Significant Difference (HSD) or a non-parametric
-Kruskal-Wallis test followed by pairwise Wilcoxon rank-sum tests.
-The return format can either be a list of adjusted p-values for each
-outcome-predictor pair or, if \code{format_output = TRUE}, a list
-containing separate global and pairwise summary tables.
+categorical predictors with more than two levels. For one-way
+designs, each categorical predictor and numeric outcome pair receives
+a global test followed by pairwise comparisons when appropriate.
+Users may choose between classical ANOVA with Tukey's Honest
+Significant Difference (HSD) or a non-parametric Kruskal-Wallis test
+followed by pairwise Wilcoxon rank-sum tests. The function also
+supports explicit two-way ANOVA and ANCOVA designs with optional
+\code{primary:secondary} and \code{primary:covariate} interaction terms.
 }
 \examples{
 data("ExampleData1")

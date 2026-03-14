@@ -32,6 +32,8 @@
 #' @param cim Logical. Whether to compute and plot the Clustered Image Map (CIM) heatmap. Default is \code{FALSE}.
 #' @param roc Logical. Whether to compute and plot the ROC curve for the model.
 #'   Default is \code{FALSE}.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return In Download mode, a PDF file is written. In Interactive mode, a named list
 #'         (`results_list`) of plots and results is returned. If `group_col2` is used,
@@ -72,8 +74,25 @@ cyt_mint_splsda <- function(
   cim = FALSE,
   scale = NULL,
   roc = FALSE,
+  font_settings = NULL,
   progress = NULL
 ) {
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title", "x_text", "y_text",
+      "legend_title", "legend_text", "strip_text", "variable_names", "point_labels"
+    ),
+    activate = !is.null(font_settings)
+  )
+  mixomics_indiv_args <- font_settings_mixomics_indiv_args(resolved_fonts)
+  mixomics_loadings_args <- font_settings_mixomics_loadings_args(resolved_fonts)
+  plotvar_args <- font_settings_plotvar_args(
+    resolved_fonts,
+    show_var_names = FALSE
+  )
+  base_font_args <- font_settings_base_graphics(resolved_fonts)
+
   # --- Helper function to run the core analysis ---
   run_mint_analysis <- function(
     data_subset,
@@ -158,33 +177,65 @@ cyt_mint_splsda <- function(
       force(expr)
       grDevices::recordPlot()
     }
+    draw_corr_circle_plot <- function(model, plot_title) {
+      plot_obj <- do.call(
+        mixOmics::plotVar,
+        c(
+          list(
+            model,
+            var.names = FALSE,
+            legend = TRUE,
+            title = plot_title,
+            style = "ggplot2"
+          ),
+          plotvar_args
+        )
+      )
+
+      if (inherits(plot_obj, "ggplot")) {
+        plot_obj <- apply_font_settings_ggplot(plot_obj, resolved_fonts)
+        print(plot_obj)
+      } else {
+        plot_obj
+      }
+    }
 
     # --- 5. Handle Output: PDF vs. Interactive ---
     if (is_pdf_mode) {
-      mixOmics::plotIndiv(
-        final_model,
-        study = "global",
-        group = Y,
-        col = colors,
-        legend = TRUE,
-        legend.title = group_col,
-        subtitle = main_title,
-        ellipse = ellipse,
-        background = bg_obj
+      do.call(
+        mixOmics::plotIndiv,
+        c(
+          list(
+            final_model,
+            study = "global",
+            group = Y,
+            col = colors,
+            legend = TRUE,
+            legend.title = group_col,
+            subtitle = main_title,
+            ellipse = ellipse,
+            background = bg_obj
+          ),
+          mixomics_indiv_args
+        )
       )
-      mixOmics::plotIndiv(
-        final_model,
-        study = "all.partial",
-        group = Y,
-        col = colors,
-        legend = TRUE,
-        title = paste("Partial Plots:", analysis_label)
+      do.call(
+        mixOmics::plotIndiv,
+        c(
+          list(
+            final_model,
+            study = "all.partial",
+            group = Y,
+            col = colors,
+            legend = TRUE,
+            title = paste("Partial Plots:", analysis_label)
+          ),
+          mixomics_indiv_args
+        )
       )
-      mixOmics::plotVar(
+      draw_corr_circle_plot(
         final_model,
-        var.names = FALSE,
-        legend = TRUE,
-        title = paste("Correlation Circle:", analysis_label)
+        paste("Correlation Circle:", analysis_label)
       )
       if (cim) {
         mixOmics::cim(
@@ -196,18 +247,24 @@ cyt_mint_splsda <- function(
         )
       }
       for (i in 1:comp_num) {
-        mixOmics::plotLoadings(
-          final_model,
-          comp = i,
-          legend.color = colors,
-          study = "all.partial",
-          contrib = "max",
-          method = "mean",
-          title = paste(
-            "Partial Loadings for Component",
-            i,
-            "in",
-            analysis_label
+        do.call(
+          mixOmics::plotLoadings,
+          c(
+            list(
+              final_model,
+              comp = i,
+              legend.color = colors,
+              study = "all.partial",
+              contrib = "max",
+              method = "mean",
+              title = paste(
+                "Partial Loadings for Component",
+                i,
+                "in",
+                analysis_label
+              )
+            ),
+            mixomics_loadings_args
           )
         )
       }
@@ -269,18 +326,24 @@ cyt_mint_splsda <- function(
               {
                 op <- graphics::par(no.readonly = TRUE)
                 on.exit(graphics::par(op), add = TRUE)
-                mixOmics::plotLoadings(
-                  final_model,
-                  comp = i,
-                  legend.color = colors,
-                  study = s_idx,
-                  contrib = "max",
-                  method = "mean",
-                  title = paste(
-                    "Partial Loadings for Component",
-                    i,
-                    "\nStudy:",
-                    studies[s_idx]
+                do.call(
+                  mixOmics::plotLoadings,
+                  c(
+                    list(
+                      final_model,
+                      comp = i,
+                      legend.color = colors,
+                      study = s_idx,
+                      contrib = "max",
+                      method = "mean",
+                      title = paste(
+                        "Partial Loadings for Component",
+                        i,
+                        "\nStudy:",
+                        studies[s_idx]
+                      )
+                    ),
+                    mixomics_loadings_args
                   )
                 )
               },
@@ -294,7 +357,12 @@ cyt_mint_splsda <- function(
                     studies[s_idx]
                   )
                 )
-                mtext(e$message, side = 1, line = -1, cex = 0.8)
+                mtext(
+                  e$message,
+                  side = 1,
+                  line = -1,
+                  cex = base_font_args$legend_cex %||% 0.8
+                )
               }
             )
           })
@@ -327,34 +395,44 @@ cyt_mint_splsda <- function(
       }
       results_list <- list(
         global_indiv_plot = record_base_plot({
-          mixOmics::plotIndiv(
-            final_model,
-            study = "global",
-            group = Y,
-            col = colors,
-            legend = TRUE,
-            legend.title = group_col,
-            subtitle = main_title,
-            ellipse = ellipse,
-            background = bg_obj
+          do.call(
+            mixOmics::plotIndiv,
+            c(
+              list(
+                final_model,
+                study = "global",
+                group = Y,
+                col = colors,
+                legend = TRUE,
+                legend.title = group_col,
+                subtitle = main_title,
+                ellipse = ellipse,
+                background = bg_obj
+              ),
+              mixomics_indiv_args
+            )
           )
         }),
         partial_indiv_plot = record_base_plot({
-          mixOmics::plotIndiv(
-            final_model,
-            study = "all.partial",
-            group = Y,
-            col = colors,
-            legend = TRUE,
-            title = paste("Partial Plots:", analysis_label)
+          do.call(
+            mixOmics::plotIndiv,
+            c(
+              list(
+                final_model,
+                study = "all.partial",
+                group = Y,
+                col = colors,
+                legend = TRUE,
+                title = paste("Partial Plots:", analysis_label)
+              ),
+              mixomics_indiv_args
+            )
           )
         }),
         correlation_circle_plot = record_base_plot({
-          mixOmics::plotVar(
+          draw_corr_circle_plot(
             final_model,
-            var.names = FALSE,
-            legend = TRUE,
-            title = paste("Correlation Circle:", analysis_label)
+            paste("Correlation Circle:", analysis_label)
           )
         }),
         cim_obj = cim_obj, # Assign the CIM object here

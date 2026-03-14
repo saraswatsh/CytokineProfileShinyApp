@@ -2,7 +2,7 @@
 ## Analysis and Results
 ## ---------------------------
 errorMessage <- shiny::reactiveVal(NULL)
-warningMessage <- shiny::reactiveVal(NULL)
+warningMessage <- shiny::reactiveVal(character())
 
 parse_numeric_input <- function(x) {
   if (is.null(x) || !nzchar(trimws(x))) {
@@ -18,6 +18,28 @@ null_if_blank <- function(x) {
   }
 
   x
+}
+
+analysis_font_settings <- function(input, func_name, user_state = userState) {
+  spec <- get_analysis_font_spec(func_name)
+  if (is.null(spec)) {
+    return(NULL)
+  }
+
+  state <- font_settings_state_from_inputs(
+    input = input,
+    prefix = spec$prefix,
+    supported_fields = spec$supported_fields,
+    default_font_settings = spec$default_font_settings
+  )
+  if (is.null(state)) {
+    state <- user_state[[spec$state_key]]
+  }
+
+  font_settings_state_to_backend(
+    state,
+    default_font_settings = spec$default_font_settings
+  )
 }
 
 copyable_text_dependencies <- function() {
@@ -170,7 +192,7 @@ collect_exportable_plots <- function(x, prefix = "plot") {
 
 analysisResult <- shiny::eventReactive(input$next4, {
   errorMessage(NULL)
-  warningMessage(NULL)
+  warningMessage(character())
 
   shiny::req(filteredData())
   prog <- shiny::Progress$new()
@@ -217,6 +239,34 @@ analysisResult <- shiny::eventReactive(input$next4, {
               progress = prog,
               format_output = TRUE
             ),
+            "Two-way ANOVA" = cyt_univariate_multi(
+              data = df,
+              method = "anova",
+              design = "two_way",
+              primary_cat_var = input$twa_primary_cat_var,
+              secondary_cat_var = input$twa_secondary_cat_var,
+              include_primary_secondary_interaction = isTRUE(
+                input$twa_include_primary_secondary_interaction
+              ),
+              progress = prog,
+              format_output = TRUE
+            ),
+            "ANCOVA" = cyt_univariate_multi(
+              data = df,
+              method = "anova",
+              design = "ancova",
+              primary_cat_var = input$anc_primary_cat_var,
+              secondary_cat_var = null_if_blank(input$anc_secondary_cat_var),
+              covariate_col = input$anc_covariate_col,
+              include_primary_secondary_interaction = isTRUE(
+                input$anc_include_primary_secondary_interaction
+              ),
+              include_primary_covariate_interaction = isTRUE(
+                input$anc_include_primary_covariate_interaction
+              ),
+              progress = prog,
+              format_output = TRUE
+            ),
 
             # -- Exploratory Visualization --
             "Boxplots" = cyt_bp(
@@ -229,7 +279,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
               },
               bin_size = input$bp_bin_size,
               y_lim = parse_numeric_input(input$bp_y_lim),
-              scale = "none"
+              scale = "none",
+              font_settings = analysis_font_settings(input, "Boxplots")
             ),
 
             "Violin Plots" = cyt_violin(
@@ -243,7 +294,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
               bin_size = input$vio_bin_size,
               y_lim = parse_numeric_input(input$vio_y_lim),
               scale = "none",
-              boxplot_overlay = isTRUE(input$vio_boxplot_overlay)
+              boxplot_overlay = isTRUE(input$vio_boxplot_overlay),
+              font_settings = analysis_font_settings(input, "Violin Plots")
             ),
 
             "Error-Bar Plot" = cyt_errbp(
@@ -261,9 +313,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
               scale = "none",
               method = input$eb_method %||% "auto",
               p_adjust_method = null_if_blank(input$eb_p_adjust_method),
-              label_size = input$eb_label_size %||% 4,
               n_col = input$eb_n_col %||% 3,
-              base_size = input$eb_base_size %||% 11,
               fill_palette = {
                 eb_fill_palette_choice <- input$eb_fill_palette %||% "gray"
                 if (identical(eb_fill_palette_choice, "grey")) {
@@ -297,7 +347,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
                     "#E2F0CB"
                   )
                 )
-              }
+              },
+              font_settings = analysis_font_settings(input, "Error-Bar Plot")
             ),
 
             "Dual-Flashlight Plot" = cyt_dualflashplot(
@@ -309,7 +360,11 @@ analysisResult <- shiny::eventReactive(input$next4, {
               progress = prog,
               ssmd_thresh = input$df_ssmd_thresh,
               log2fc_thresh = input$df_log2fc_thresh,
-              top_labels = input$df_top_labels
+              top_labels = input$df_top_labels,
+              font_settings = analysis_font_settings(
+                input,
+                "Dual-Flashlight Plot"
+              )
             ),
             "Heatmap" = {
               num_cols <- names(df)[vapply(df, is.numeric, logical(1))]
@@ -343,7 +398,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 data = df,
                 scale = NULL,
                 annotation_col = ann_arg,
-                annotation_side = side_arg
+                annotation_side = side_arg,
+                font_settings = analysis_font_settings(input, "Heatmap")
               )
               ph # <- return the pheatmap object
             },
@@ -354,7 +410,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
               progress = prog,
               group_cols = input$skku_group_cols,
               print_res_raw = input$skku_print_raw,
-              print_res_log = input$skku_print_log
+              print_res_log = input$skku_print_log,
+              font_settings = analysis_font_settings(input, "Skewness/Kurtosis")
             ),
 
             "Volcano Plot" = cyt_volc(
@@ -366,7 +423,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
               cond2 = input$volc_cond2,
               fold_change_thresh = input$volc_fold_change_thresh,
               p_value_thresh = input$volc_p_value_thresh,
-              top_labels = input$volc_top_labels
+              top_labels = input$volc_top_labels,
+              font_settings = analysis_font_settings(input, "Volcano Plot")
             ),
 
             # -- Multivariate Analysis --
@@ -413,7 +471,11 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 ellipse = input$pca_ellipse,
                 style = if (input$pca_style == "3D") "3d" else NULL,
                 pch_values = pch_vals,
-                pca_colors = cols
+                pca_colors = cols,
+                font_settings = analysis_font_settings(
+                  input,
+                  "Principal Component Analysis (PCA)"
+                )
               )
             },
 
@@ -451,6 +513,10 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 },
                 fold_num = input$plsr_fold_num,
                 pls_colors = input$plsr_colors,
+                font_settings = analysis_font_settings(
+                  input,
+                  "Partial Least Squares Regression (PLSR)"
+                ),
                 progress = prog
               )
             },
@@ -468,6 +534,7 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 group_var = if (bygrp) input$corr_group_col else NULL,
                 compare_groups = FALSE,
                 plot = TRUE,
+                font_settings = analysis_font_settings(input, "Correlation Plots"),
                 progress = prog
               )
 
@@ -560,7 +627,10 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 ind_names = ind_names_val,
                 bg = input$splsda_bg,
                 conf_mat = input$splsda_conf_mat,
-                font_scale = input$splsda_fontsize
+                font_settings = analysis_font_settings(
+                  input,
+                  "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
+                )
               )
             },
 
@@ -587,7 +657,11 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 colors = cols,
                 roc = input$mint_splsda_roc,
                 ellipse = input$mint_splsda_ellipse,
-                bg = input$mint_splsda_bg
+                bg = input$mint_splsda_bg,
+                font_settings = analysis_font_settings(
+                  input,
+                  "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)"
+                )
               )
             },
 
@@ -604,7 +678,8 @@ analysisResult <- shiny::eventReactive(input$next4, {
               k_folds = input$rf_k_folds,
               step = input$rf_step,
               scale = "none",
-              seed = 123
+              seed = 123,
+              font_settings = analysis_font_settings(input, "Random Forest")
             ),
 
             "Extreme Gradient Boosting (XGBoost)" = cyt_xgb(
@@ -621,14 +696,21 @@ analysisResult <- shiny::eventReactive(input$next4, {
               top_n_features = input$xgb_top_n_features,
               plot_roc = isTRUE(input$xgb_plot_roc),
               scale = "none",
-              seed = 123
+              seed = 123,
+              font_settings = analysis_font_settings(
+                input,
+                "Extreme Gradient Boosting (XGBoost)"
+              )
             )
           ) # end switch
 
           results
         },
         warning = function(w) {
-          warningMessage(conditionMessage(w))
+          warningMessage(unique(c(
+            warningMessage(),
+            conditionMessage(w)
+          )))
           invokeRestart("muffleWarning")
         }
       )
@@ -655,6 +737,8 @@ exportablePlots <- shiny::reactive({
     func_name,
     "Univariate Tests (T-test, Wilcoxon)" = list(),
     "Multi-level Univariate Tests (Anova, Kruskal-Wallis)" = list(),
+    "Two-way ANOVA" = list(),
+    "ANCOVA" = list(),
     "Heatmap" = collect_exportable_plots(res, "heatmap"),
     "Random Forest" = collect_exportable_plots(
       list(
@@ -714,6 +798,34 @@ exportableTables <- shiny::reactive({
       }
       tables
     },
+    "Two-way ANOVA" = {
+      if (!is.list(res) || is.null(res$results)) {
+        return(list())
+      }
+
+      tables <- list(
+        global = res$results,
+        pairwise = res$pairwise %||% data.frame()
+      )
+      if (!is.null(res$assumptions)) {
+        tables$assumptions <- res$assumptions
+      }
+      tables
+    },
+    "ANCOVA" = {
+      if (!is.list(res) || is.null(res$results)) {
+        return(list())
+      }
+
+      tables <- list(
+        global = res$results,
+        pairwise = res$pairwise %||% data.frame()
+      )
+      if (!is.null(res$assumptions)) {
+        tables$assumptions <- res$assumptions
+      }
+      tables
+    },
     list()
   )
 })
@@ -728,11 +840,12 @@ output$errorText <- shiny::renderUI({
 })
 
 output$warningText <- shiny::renderUI({
-  shiny::req(warningMessage())
+  warnings <- warningMessage()
+  shiny::req(length(warnings) > 0L)
   shiny::div(
     style = "color:orange; padding:5px; border:1px solid orange;",
     shiny::strong("Warning:"),
-    shiny::tags$pre(warningMessage())
+    shiny::tags$pre(paste(unique(warnings), collapse = "\n"))
   )
 })
 
@@ -1714,6 +1827,104 @@ output$result_display <- shiny::renderUI({
           )
         )
       },
+      "Two-way ANOVA" = {
+        shiny::tagList(
+          shiny::h4("Two-way ANOVA Results"),
+          shiny::helpText(
+            shiny::icon("circle-info"),
+            "Type II and Type III sums of squares are generally preferred for unbalanced designs.",
+            "Type I is included for completeness and comparison.",
+            "If a modeled interaction is significant, main-effect pairwise comparisons are marginal means and should be interpreted cautiously."
+          ),
+          shiny::tabsetPanel(
+            shiny::tabPanel(
+              "Model Terms",
+              shiny::br(),
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("univariateResults"),
+                type = 8
+              )
+            ),
+            shiny::tabPanel(
+              "Pairwise Comparisons",
+              shiny::br(),
+              shiny::helpText(
+                shiny::icon("circle-info"),
+                "Pairwise comparisons are reported for factor main effects only.",
+                "Interaction-specific simple effects are not shown in this version."
+              ),
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("univariatePairwiseResults"),
+                type = 8
+              )
+            ),
+            shiny::tabPanel(
+              "Assumption Checks",
+              shiny::br(),
+              shiny::helpText(
+                shiny::icon("circle-info"),
+                "Residual normality is assessed via Shapiro-Wilk on model residuals.",
+                "Homogeneity of variance is assessed via Levene's test across the effective factor cells.",
+                "Warnings also report low cell counts and significant interaction cautions."
+              ),
+              shiny::br(),
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("anovaAssumptionTable"),
+                type = 8
+              )
+            )
+          )
+        )
+      },
+      "ANCOVA" = {
+        shiny::tagList(
+          shiny::h4("ANCOVA Results"),
+          shiny::helpText(
+            shiny::icon("circle-info"),
+            "Type II and Type III sums of squares are generally preferred for unbalanced designs.",
+            "Type I is included for completeness and comparison.",
+            "If a modeled interaction is significant, main-effect pairwise comparisons are marginal means and should be interpreted cautiously."
+          ),
+          shiny::tabsetPanel(
+            shiny::tabPanel(
+              "Model Terms",
+              shiny::br(),
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("univariateResults"),
+                type = 8
+              )
+            ),
+            shiny::tabPanel(
+              "Pairwise Comparisons",
+              shiny::br(),
+              shiny::helpText(
+                shiny::icon("circle-info"),
+                "Pairwise comparisons are based on adjusted marginal means at the covariate mean.",
+                "Interaction-specific simple effects are not shown in this version."
+              ),
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("univariatePairwiseResults"),
+                type = 8
+              )
+            ),
+            shiny::tabPanel(
+              "Assumption Checks",
+              shiny::br(),
+              shiny::helpText(
+                shiny::icon("circle-info"),
+                "Residual normality is assessed via Shapiro-Wilk on model residuals.",
+                "Homogeneity of variance is assessed via Levene's test across the effective factor cells.",
+                "If primary:covariate is not modeled directly, the table also reports a slope-homogeneity check."
+              ),
+              shiny::br(),
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("anovaAssumptionTable"),
+                type = 8
+              )
+            )
+          )
+        )
+      },
       # --- Default UI for other functions (plots or tables) ---
       # This will catch simpler functions that return one plot or one table
       {
@@ -2591,7 +2802,9 @@ output$univariateResults <- DT::renderDataTable(
       selected_function() %in%
         c(
           "Univariate Tests (T-test, Wilcoxon)",
-          "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
+          "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
+          "Two-way ANOVA",
+          "ANCOVA"
         )
     )
     # Multi-level tests return a named list; t-test/Wilcoxon returns a plain data frame
@@ -2608,8 +2821,11 @@ output$univariatePairwiseResults <- DT::renderDataTable(
   {
     res <- analysisResult()
     shiny::req(
-      selected_function() ==
+      selected_function() %in% c(
         "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
+        "Two-way ANOVA",
+        "ANCOVA"
+      ),
       is.list(res),
       !is.null(res$pairwise)
     )
@@ -2622,14 +2838,18 @@ output$anovaAssumptionTable <- DT::renderDataTable(
   {
     res <- analysisResult()
     shiny::req(
-      selected_function() ==
+      selected_function() %in% c(
         "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
+        "Two-way ANOVA",
+        "ANCOVA"
+      ),
       is.list(res),
       !is.null(res$assumptions)
     )
     res$assumptions
   },
-  options = list(pageLength = 10, scrollX = TRUE)
+  options = list(pageLength = 10, scrollX = TRUE),
+  rownames = FALSE
 )
 output$errorBarPlotOutput <- shiny::renderPlot(
   {
@@ -2684,8 +2904,11 @@ output$download_ui <- shiny::renderUI({
     )
   } else if (length(tables) > 0) {
     is_multi_univariate <-
-      selected_function() ==
-        "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
+      selected_function() %in% c(
+        "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
+        "Two-way ANOVA",
+        "ANCOVA"
+      )
     shiny::tagList(
       shiny::textInput(
         "download_filename",

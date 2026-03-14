@@ -30,6 +30,8 @@
 #'   \code{10}.
 #' @param fontsize_col Numeric.  Font size for column names.  Default is
 #'   \code{10}.
+#' @param font_settings Optional named list of font sizes for supported heatmap
+#'   text elements.
 #' @param cluster_rows Logical.  If \code{TRUE} (default), rows are clustered.
 #' @param cluster_cols Logical.  If \code{TRUE} (default), columns are
 #'   clustered.
@@ -70,6 +72,7 @@ cyt_heatmap <- function(
   show_col_names = TRUE,
   fontsize_row = 10,
   fontsize_col = 10,
+  font_settings = NULL,
   cluster_rows = TRUE,
   cluster_cols = TRUE,
   title = NULL,
@@ -101,6 +104,19 @@ cyt_heatmap <- function(
   if (!is.data.frame(data)) {
     stop("`data` must be a data.frame.")
   }
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c("base_size", "row_names", "col_names", "cell_text"),
+    legacy = list(
+      base_size = 10,
+      row_names = fontsize_row,
+      col_names = fontsize_col
+    ),
+    activate = !is.null(font_settings) ||
+      !identical(fontsize_row, 10) ||
+      !identical(fontsize_col, 10)
+  )
+  heatmap_font_args <- font_settings_heatmap_args(resolved_fonts)
 
   # ── 1. Extract numeric columns ─────────────────────────────────────────────
   if (!is.null(progress)) {
@@ -392,8 +408,22 @@ cyt_heatmap <- function(
     annotation_legend = TRUE,
     show_rownames = show_row_names,
     show_colnames = show_col_names,
-    fontsize_row = fontsize_row,
-    fontsize_col = fontsize_col,
+    fontsize = if (is.null(resolved_fonts)) 10 else heatmap_font_args$fontsize,
+    fontsize_row = if (is.null(resolved_fonts)) {
+      fontsize_row
+    } else {
+      heatmap_font_args$fontsize_row
+    },
+    fontsize_col = if (is.null(resolved_fonts)) {
+      fontsize_col
+    } else {
+      heatmap_font_args$fontsize_col
+    },
+    fontsize_number = if (is.null(resolved_fonts)) {
+      0.8 * 10
+    } else {
+      heatmap_font_args$fontsize_number
+    },
     filename = filename %||% NA,
     main = main,
     silent = silent

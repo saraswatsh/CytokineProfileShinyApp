@@ -10,6 +10,7 @@ cyt_skku(
   output_file = NULL,
   print_res_raw = FALSE,
   print_res_log = FALSE,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -25,6 +26,9 @@ If NULL (default), the function returns a list of two ggplot objects.}
 \item{print_res_raw}{Logical. If TRUE, prints and returns the summary statistics for raw data.}
 
 \item{print_res_log}{Logical. If TRUE, prints and returns the summary statistics for log2 data.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }

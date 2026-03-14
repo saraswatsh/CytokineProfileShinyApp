@@ -146,6 +146,14 @@ resetState <- function() {
   userState$uv2_p_adjust_method = NULL
   userState$uvm_method = NULL
   userState$uvm_p_adjust_method = NULL
+  userState$twa_primary_cat_var = NULL
+  userState$twa_secondary_cat_var = NULL
+  userState$twa_include_primary_secondary_interaction = NULL
+  userState$anc_primary_cat_var = NULL
+  userState$anc_secondary_cat_var = NULL
+  userState$anc_covariate_col = NULL
+  userState$anc_include_primary_secondary_interaction = NULL
+  userState$anc_include_primary_covariate_interaction = NULL
 
   # Error-Bar Plot
   userState$eb_group_col = NULL
@@ -159,8 +167,6 @@ resetState <- function() {
   userState$eb_error = NULL
   userState$eb_method = NULL
   userState$eb_p_adjust_method = NULL
-  userState$eb_label_size = NULL
-
   # Dual-Flashlight Plot options
   userState$df_group_var = NULL
   userState$df_cond1 = NULL
@@ -237,8 +243,6 @@ resetState <- function() {
   userState$splsda_multilevel = NULL
   userState$splsda_use_batch_corr = FALSE
   userState$splsda_batch_col = NULL
-  userState$splsda_fontsize = NULL
-
   # MINT sPLS-DA options
   userState$mint_splsda_group_col = NULL
   userState$mint_splsda_group_col2 = NULL
@@ -271,6 +275,10 @@ resetState <- function() {
   userState$xgb_eval_metric = NULL
   userState$xgb_top_n_features = NULL
   userState$xgb_plot_roc = NULL
+
+  lapply(analysis_font_specs, function(spec) {
+    userState[[spec$state_key]] <- NULL
+  })
 }
 shiny::observeEvent(input$new_fresh, {
   session$reload()
@@ -315,6 +323,14 @@ shiny::observeEvent(input$new_reuse, {
     userState$uv2_p_adjust_method = NULL
     userState$uvm_method = NULL
     userState$uvm_p_adjust_method = NULL
+    userState$twa_primary_cat_var = NULL
+    userState$twa_secondary_cat_var = NULL
+    userState$twa_include_primary_secondary_interaction = NULL
+    userState$anc_primary_cat_var = NULL
+    userState$anc_secondary_cat_var = NULL
+    userState$anc_covariate_col = NULL
+    userState$anc_include_primary_secondary_interaction = NULL
+    userState$anc_include_primary_covariate_interaction = NULL
 
     # Error-Bar Plot
     userState$eb_group_col = NULL
@@ -328,9 +344,7 @@ shiny::observeEvent(input$new_reuse, {
     userState$eb_error = NULL
     userState$eb_method = NULL
     userState$eb_p_adjust_method = NULL
-    userState$eb_label_size = NULL
     userState$eb_n_col = NULL
-    userState$eb_base_size = NULL
     userState$eb_fill_palette = NULL
 
     # Dual-Flashlight Plot options
@@ -404,8 +418,6 @@ shiny::observeEvent(input$new_reuse, {
     userState$splsda_use_batch_corr = FALSE
     userState$splsda_batch_col = NULL
     userState$splsda_use_multilevel = FALSE
-    userState$splsda_fontsize = NULL
-
     # MINT sPLS-DA options
     userState$mint_splsda_group_col = NULL
     userState$mint_splsda_group_col2 = NULL
@@ -443,6 +455,10 @@ shiny::observeEvent(input$new_reuse, {
     userState$corr_target = NULL
     userState$corr_group_col = NULL
     userState$corr_by_group = FALSE
+
+    lapply(analysis_font_specs, function(spec) {
+      userState[[spec$state_key]] <- NULL
+    })
   })
   currentPage("step2")
   currentStep(2)
@@ -565,7 +581,9 @@ homeUI <- function() {
               shiny::tags$li("Univariate Tests (T-test, Wilcoxon)"),
               shiny::tags$li(
                 "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
-              )
+              ),
+              shiny::tags$li("Two-way ANOVA"),
+              shiny::tags$li("ANCOVA")
             )
           )
         )
@@ -1140,6 +1158,16 @@ step3UI <- function() {
               "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
               class = "menu-card"
             ),
+            shiny::actionButton(
+              "menu_two_way_anova",
+              "Two-way ANOVA",
+              class = "menu-card"
+            ),
+            shiny::actionButton(
+              "menu_ancova",
+              "ANCOVA",
+              class = "menu-card"
+            ),
           )
         )
       ),
@@ -1483,7 +1511,9 @@ output$step1_bottom_block <- shiny::renderUI({
 # --- Logic for Custom Button Group: Statistical Tests ---
 stat_choices <- c(
   "Univariate Tests (T-test, Wilcoxon)",
-  "Multi-level Univariate Tests (Anova, Kruskal-Wallis)"
+  "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
+  "Two-way ANOVA",
+  "ANCOVA"
 )
 output$stat_function_ui <- shiny::renderUI({
   lapply(stat_choices, function(choice) {
@@ -2353,6 +2383,21 @@ shiny::observeEvent(input$next4, {
         userState$uvm_p_adjust_method <- input$uvm_p_adjust_method
       }
     }
+    if (selected_function() == "Two-way ANOVA") {
+      userState$twa_primary_cat_var <- input$twa_primary_cat_var
+      userState$twa_secondary_cat_var <- input$twa_secondary_cat_var
+      userState$twa_include_primary_secondary_interaction <-
+        input$twa_include_primary_secondary_interaction
+    }
+    if (selected_function() == "ANCOVA") {
+      userState$anc_primary_cat_var <- input$anc_primary_cat_var
+      userState$anc_secondary_cat_var <- input$anc_secondary_cat_var
+      userState$anc_covariate_col <- input$anc_covariate_col
+      userState$anc_include_primary_secondary_interaction <-
+        input$anc_include_primary_secondary_interaction
+      userState$anc_include_primary_covariate_interaction <-
+        input$anc_include_primary_covariate_interaction
+    }
     if (selected_function() == "Boxplots") {
       userState$bp_group_by <- input$bp_group_by
       userState$bp_y_lim <- input$bp_y_lim
@@ -2376,9 +2421,7 @@ shiny::observeEvent(input$next4, {
       userState$eb_error <- input$eb_error
       userState$eb_method <- input$eb_method
       userState$eb_p_adjust_method <- input$eb_p_adjust_method
-      userState$eb_label_size <- input$eb_label_size
       userState$eb_n_col <- input$eb_n_col
-      userState$eb_base_size <- input$eb_base_size
       userState$eb_fill_palette <- if (
         identical(input$eb_fill_palette, "grey")
       ) {
@@ -2463,7 +2506,6 @@ shiny::observeEvent(input$next4, {
       userState$splsda_bg <- input$splsda_bg
       userState$splsda_conf_mat <- input$splsda_conf_mat
       userState$splsda_colors <- input$splsda_colors
-      userState$splsda_fontsize <- input$splsda_fontsize
     }
     if (
       selected_function() ==
@@ -2499,6 +2541,16 @@ shiny::observeEvent(input$next4, {
       userState$xgb_eval_metric <- input$xgb_eval_metric
       userState$xgb_top_n_features <- input$xgb_top_n_features
       userState$xgb_plot_roc <- input$xgb_plot_roc
+    }
+
+    font_spec <- get_analysis_font_spec(selected_function())
+    if (!is.null(font_spec)) {
+      userState[[font_spec$state_key]] <- font_settings_state_from_inputs(
+        input = input,
+        prefix = font_spec$prefix,
+        supported_fields = font_spec$supported_fields,
+        default_font_settings = font_spec$default_font_settings
+      )
     }
   }
 })

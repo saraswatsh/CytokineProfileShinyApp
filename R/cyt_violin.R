@@ -31,6 +31,8 @@
 #' @param boxplot_overlay Logical.  When \code{TRUE}, a narrow boxplot is
 #'   drawn inside each violin to summarize the median and quartiles.
 #'   Default is \code{FALSE}.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional.  A Shiny \code{Progress} object for reporting
 #'   progress updates.
 #'
@@ -56,6 +58,7 @@ cyt_violin <- function(
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
   boxplot_overlay = FALSE,
+  font_settings = NULL,
   progress = NULL
 ) {
   # ── 0. Initialize ──────────────────────────────────────────────────────────
@@ -66,6 +69,14 @@ cyt_violin <- function(
   names(data) <- make.names(names(data), unique = TRUE)
   scale <- match.arg(scale)
   df <- as.data.frame(data)
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title",
+      "x_text", "y_text", "legend_title", "legend_text", "strip_text"
+    ),
+    activate = !is.null(font_settings)
+  )
 
   # ── 1. Validate group_by ───────────────────────────────────────────────────
   if (!is.null(group_by)) {
@@ -161,6 +172,7 @@ cyt_violin <- function(
         p <- p + ggplot2::coord_cartesian(ylim = y_lim)
       }
 
+      p <- apply_font_settings_ggplot(p, resolved_fonts)
       plot_list[[var]] <- p
     }
 
@@ -225,6 +237,7 @@ cyt_violin <- function(
         p <- p + ggplot2::coord_cartesian(ylim = y_lim)
       }
 
+      p <- apply_font_settings_ggplot(p, resolved_fonts)
       plot_list[[paste0("page", i)]] <- p
 
       if (!is.null(progress)) {

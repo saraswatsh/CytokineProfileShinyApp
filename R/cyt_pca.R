@@ -20,6 +20,8 @@
 #' @param scale Character. If "log2", a log2 transformation is applied (excluding factor columns).
 #' @param pch_values A vector of plotting symbols.
 #' @param style Character. If "3d" (case insensitive) and comp_num equals 3, a 3D scatter plot is generated.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #'
 #' @return In PDF mode, a PDF is created and the function returns NULL (invisibly).
@@ -57,12 +59,22 @@ cyt_pca <- function(
   pch_values = NULL,
   style = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 ) {
   # Initialize progress if provided.
   if (!is.null(progress)) {
     progress$set(message = "Starting PCA analysis...", value = 0)
   }
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title", "x_text", "y_text",
+      "legend_title", "legend_text", "strip_text", "annotation_text",
+      "variable_names", "point_labels"
+    ),
+    activate = !is.null(font_settings)
+  )
 
   # If one factor is missing, use the provided column for both grouping and treatment.
   if (is.null(group_col) && !is.null(group_col2)) {
@@ -117,6 +129,181 @@ cyt_pca <- function(
     expr
     grDevices::recordPlot()
   }
+  mixomics_indiv_args <- font_settings_mixomics_indiv_args(resolved_fonts)
+  mixomics_loadings_args <- font_settings_mixomics_loadings_args(resolved_fonts)
+  plotvar_args <- font_settings_plotvar_args(
+    resolved_fonts,
+    show_var_names = TRUE
+  )
+  base_font_args <- font_settings_base_graphics(resolved_fonts)
+  scree_label_size <- if (is.null(resolved_fonts)) {
+    4
+  } else {
+    font_settings_ggplot_text_size(
+      resolved_fonts$annotation_text,
+      default_size = 4
+    )
+  }
+
+  draw_indiv_plot <- function(model, groups, plot_title) {
+    plot_args <- c(
+      list(
+        model,
+        group = groups,
+        ind.names = FALSE,
+        legend = TRUE,
+        col = pca_colors,
+        title = plot_title,
+        ellipse = ellipse,
+        pch = pch_values
+      ),
+      mixomics_indiv_args
+    )
+    do.call(mixOmics::plotIndiv, plot_args)
+  }
+
+  draw_3d_plot <- function(scores, plot_title) {
+    plot_args <- list(
+      scores[, 1],
+      scores[, 2],
+      scores[, 3],
+      pch = pch_values,
+      col = pca_colors,
+      xlab = "PC1",
+      ylab = "PC2",
+      zlab = "PC3",
+      main = plot_title,
+      theta = 20,
+      phi = 30,
+      bty = "g",
+      colkey = FALSE
+    )
+
+    if (!is.null(resolved_fonts)) {
+      plot_args <- c(
+        plot_args,
+        list(
+          cex = base_font_args$point_cex,
+          cex.lab = base_font_args$cex.lab,
+          cex.axis = base_font_args$cex.axis,
+          cex.main = base_font_args$cex.main
+        )
+      )
+    }
+
+    do.call(plot3D::scatter3D, plot_args)
+  }
+
+  build_scree_plot <- function(variances, cumulative_variances, plot_title) {
+    scree_data <- data.frame(
+      Component = seq_along(variances),
+      Variance = variances,
+      Cumulative = cumulative_variances
+    )
+    scree_plot <- ggplot2::ggplot(scree_data, ggplot2::aes(x = Component)) +
+      ggplot2::geom_line(
+        ggplot2::aes(y = Variance, color = "Individual"),
+        linewidth = 1
+      ) +
+      ggplot2::geom_point(
+        ggplot2::aes(y = Variance, color = "Individual"),
+        size = 2
+      ) +
+      ggplot2::geom_line(
+        ggplot2::aes(y = Cumulative, color = "Cumulative"),
+        linewidth = 1,
+        linetype = "dashed"
+      ) +
+      ggplot2::geom_point(
+        ggplot2::aes(y = Cumulative, color = "Cumulative"),
+        size = 2
+      ) +
+      ggplot2::scale_color_manual(
+        values = c("Individual" = "blue", "Cumulative" = "green")
+      ) +
+      ggplot2::labs(
+        title = plot_title,
+        x = "Principal Components",
+        y = "Explained Variance",
+        color = "Variance Type"
+      ) +
+      ggplot2::theme_minimal() +
+      ggplot2::scale_x_continuous(breaks = seq_along(variances)) +
+      ggplot2::geom_text(
+        ggplot2::aes(
+          y = Variance,
+          label = paste0(round(Variance * 100, 1), "%")
+        ),
+        vjust = -1.5,
+        hjust = 0.5,
+        size = scree_label_size
+      ) +
+      ggplot2::geom_text(
+        ggplot2::aes(
+          y = Cumulative,
+          label = paste0(round(Cumulative * 100, 1), "%")
+        ),
+        vjust = 1.5,
+        hjust = 0.5,
+        size = scree_label_size
+      )
+
+    apply_font_settings_ggplot(scree_plot, resolved_fonts)
+  }
+
+  draw_loadings_plot <- function(model, component, plot_title) {
+    plot_args <- c(
+      list(
+        model,
+        comp = component,
+        legend.color = pca_colors,
+        title = plot_title,
+        legend = TRUE
+      ),
+      mixomics_loadings_args
+    )
+    do.call(mixOmics::plotLoadings, plot_args)
+  }
+
+  draw_biplot <- function(prcomp_obj, plot_title) {
+    op <- NULL
+    if (!is.null(resolved_fonts)) {
+      op <- graphics::par(
+        cex = base_font_args$cex,
+        cex.main = base_font_args$cex.main,
+        cex.lab = base_font_args$cex.lab,
+        cex.axis = base_font_args$cex.axis
+      )
+      on.exit(graphics::par(op), add = TRUE)
+    }
+
+    stats::biplot(prcomp_obj, main = plot_title)
+  }
+
+  draw_corr_circle <- function(model, plot_title) {
+    plot_obj <- do.call(
+      mixOmics::plotVar,
+      c(
+        list(
+          model,
+          comp = c(1, 2),
+          var.names = TRUE,
+          col = "black",
+          overlap = TRUE,
+          title = plot_title,
+          style = "ggplot2"
+        ),
+        plotvar_args
+      )
+    )
+
+    if (inherits(plot_obj, "ggplot")) {
+      plot_obj <- apply_font_settings_ggplot(plot_obj, resolved_fonts)
+      print(plot_obj)
+    } else {
+      plot_obj
+    }
+  }
   pdf_mode <- !is.null(output_file)
   if (pdf_mode) {
     # real PDF export
@@ -163,28 +350,10 @@ cyt_pca <- function(
 
     # Individuals plot.
     if (pdf_mode) {
-      mixOmics::plotIndiv(
-        pca_result,
-        group = the_groups,
-        ind.names = FALSE,
-        legend = TRUE,
-        col = pca_colors,
-        title = paste("PCA:", overall_analysis),
-        ellipse = ellipse,
-        pch = pch_values
-      )
+      draw_indiv_plot(pca_result, the_groups, paste("PCA:", overall_analysis))
     } else {
       result_list$overall_indiv_plot <- record_base_plot(
-        mixOmics::plotIndiv(
-          pca_result,
-          group = the_groups,
-          ind.names = FALSE,
-          legend = TRUE,
-          col = pca_colors,
-          title = paste("PCA:", overall_analysis),
-          ellipse = ellipse,
-          pch = pch_values
-        )
+        draw_indiv_plot(pca_result, the_groups, paste("PCA:", overall_analysis))
       )
     }
     if (!is.null(progress)) {
@@ -195,39 +364,10 @@ cyt_pca <- function(
     if (!is.null(style) && comp_num == 3 && (tolower(style) == "3d")) {
       cytokine_scores <- pca_result$variates$X
       if (pdf_mode) {
-        plot3D::scatter3D(
-          cytokine_scores[, 1],
-          cytokine_scores[, 2],
-          cytokine_scores[, 3],
-          pch = pch_values,
-          ,
-          col = pca_colors,
-          xlab = "PC1",
-          ylab = "PC2",
-          zlab = "PC3",
-          main = paste("3D Plot:", overall_analysis),
-          theta = 20,
-          phi = 30,
-          bty = "g",
-          colkey = FALSE
-        )
+        draw_3d_plot(cytokine_scores, paste("3D Plot:", overall_analysis))
       } else {
         result_list$overall_3D <- record_base_plot(
-          plot3D::scatter3D(
-            cytokine_scores[, 1],
-            cytokine_scores[, 2],
-            cytokine_scores[, 3],
-            pch = pch_values,
-            col = pca_colors,
-            xlab = "PC1",
-            ylab = "PC2",
-            zlab = "PC3",
-            main = paste("3D Plot:", overall_analysis),
-            theta = 20,
-            phi = 30,
-            bty = "g",
-            colkey = FALSE
-          )
+          draw_3d_plot(cytokine_scores, paste("3D Plot:", overall_analysis))
         )
       }
       if (!is.null(progress)) {
@@ -238,58 +378,11 @@ cyt_pca <- function(
     # Scree Plot (using ggplot2).
     variances <- pca_result$prop_expl_var$X
     cumulative_variances <- pca_result$cum.var
-    scree_data <- data.frame(
-      Component = 1:comp_num,
-      Variance = variances,
-      Cumulative = cumulative_variances
+    scree_plot <- build_scree_plot(
+      variances = variances,
+      cumulative_variances = cumulative_variances,
+      plot_title = paste("Scree Plot:", overall_analysis)
     )
-    scree_plot <- ggplot2::ggplot(scree_data, ggplot2::aes(x = Component)) +
-      ggplot2::geom_line(
-        ggplot2::aes(y = Variance, color = "Individual"),
-        linewidth = 1
-      ) +
-      ggplot2::geom_point(
-        ggplot2::aes(y = Variance, color = "Individual"),
-        size = 2
-      ) +
-      ggplot2::geom_line(
-        ggplot2::aes(y = Cumulative, color = "Cumulative"),
-        linewidth = 1,
-        linetype = "dashed"
-      ) +
-      ggplot2::geom_point(
-        ggplot2::aes(y = Cumulative, color = "Cumulative"),
-        size = 2
-      ) +
-      ggplot2::scale_color_manual(
-        values = c("Individual" = "blue", "Cumulative" = "green")
-      ) +
-      ggplot2::labs(
-        title = paste("Scree Plot:", overall_analysis),
-        x = "Principal Components",
-        y = "Explained Variance",
-        color = "Variance Type"
-      ) +
-      ggplot2::theme_minimal() +
-      ggplot2::scale_x_continuous(breaks = 1:comp_num) +
-      ggplot2::geom_text(
-        ggplot2::aes(
-          y = Variance,
-          label = paste0(round(Variance * 100, 1), "%")
-        ),
-        vjust = -1.5,
-        hjust = 0.5,
-        size = 4
-      ) +
-      ggplot2::geom_text(
-        ggplot2::aes(
-          y = Cumulative,
-          label = paste0(round(Cumulative * 100, 1), "%")
-        ),
-        vjust = 1.5,
-        hjust = 0.5,
-        size = 4
-      )
 
     if (pdf_mode) {
       print(scree_plot)
@@ -306,30 +399,22 @@ cyt_pca <- function(
     loadings_plots <- list()
     for (comp in 1:comp_num) {
       if (pdf_mode) {
-        mixOmics::plotLoadings(
+        draw_loadings_plot(
           pca_result,
-          comp = comp,
-          size.names = 1,
-          size.legend = 1,
-          legend.color = pca_colors,
-          title = paste("Loadings for Component", comp, ":", overall_analysis),
-          legend = TRUE
+          component = comp,
+          plot_title = paste("Loadings for Component", comp, ":", overall_analysis)
         )
       } else {
         loadings_plots[[comp]] <- record_base_plot(
-          mixOmics::plotLoadings(
+          draw_loadings_plot(
             pca_result,
-            comp = comp,
-            size.names = 1,
-            size.legend = 1,
-            legend.color = pca_colors,
-            title = paste(
+            component = comp,
+            plot_title = paste(
               "Loadings for Component",
               comp,
               ":",
               overall_analysis
-            ),
-            legend = TRUE
+            )
           )
         )
       }
@@ -345,37 +430,25 @@ cyt_pca <- function(
     # Create a prcomp object from the numeric data.
     prcomp_obj <- stats::prcomp(the_data_df, center = TRUE, scale. = TRUE)
     if (pdf_mode) {
-      stats::biplot(prcomp_obj, main = paste("Biplot:", overall_analysis))
+      draw_biplot(prcomp_obj, paste("Biplot:", overall_analysis))
     } else {
       result_list$biplot <- record_base_plot({
         graphics::plot.new()
-        stats::biplot(prcomp_obj, main = paste("Biplot:", overall_analysis))
+        draw_biplot(prcomp_obj, paste("Biplot:", overall_analysis))
       })
     }
 
     # Correlation circle plot.
     if (pdf_mode) {
-      mixOmics::plotVar(
+      draw_corr_circle(
         pca_result,
-        comp = c(1, 2),
-        var.names = TRUE,
-        cex = 4,
-        col = "black",
-        overlap = TRUE,
-        title = paste("Correlation Circle Plot:", overall_analysis),
-        style = "ggplot2"
+        paste("Correlation Circle Plot:", overall_analysis)
       )
     } else {
       result_list$correlation_circle <- record_base_plot(
-        mixOmics::plotVar(
+        draw_corr_circle(
           pca_result,
-          comp = c(1, 2),
-          var.names = TRUE,
-          cex = 4,
-          col = "black",
-          overlap = TRUE,
-          title = paste("Correlation Circle Plot:", overall_analysis),
-          style = "ggplot2"
+          paste("Correlation Circle Plot:", overall_analysis)
         )
       )
     }
@@ -417,28 +490,10 @@ cyt_pca <- function(
 
       # Individuals plot.
       if (pdf_mode) {
-        mixOmics::plotIndiv(
-          pca_result,
-          group = the_groups,
-          ind.names = FALSE,
-          legend = TRUE,
-          col = pca_colors,
-          title = paste("PCA:", title_sub),
-          ellipse = ellipse,
-          pch = pch_values
-        )
+        draw_indiv_plot(pca_result, the_groups, paste("PCA:", title_sub))
       } else {
         sublist$overall_indiv_plot <- record_base_plot(
-          mixOmics::plotIndiv(
-            pca_result,
-            group = the_groups,
-            ind.names = FALSE,
-            legend = TRUE,
-            col = pca_colors,
-            title = paste("PCA:", title_sub),
-            ellipse = ellipse,
-            pch = pch_values
-          )
+          draw_indiv_plot(pca_result, the_groups, paste("PCA:", title_sub))
         )
       }
 
@@ -447,38 +502,10 @@ cyt_pca <- function(
       if (!is.null(style) && comp_num == 3 && (tolower(style) == "3d")) {
         cytokine_scores <- pca_result$variates$X
         if (pdf_mode) {
-          plot3D::scatter3D(
-            cytokine_scores[, 1],
-            cytokine_scores[, 2],
-            cytokine_scores[, 3],
-            pch = pch_values,
-            col = pca_colors,
-            xlab = "PC1",
-            ylab = "PC2",
-            zlab = "PC3",
-            main = paste("3D Plot:", title_sub),
-            theta = 20,
-            phi = 30,
-            bty = "g",
-            colkey = FALSE
-          )
+          draw_3d_plot(cytokine_scores, paste("3D Plot:", title_sub))
         } else {
           sublist$overall_3D <- record_base_plot(
-            plot3D::scatter3D(
-              cytokine_scores[, 1],
-              cytokine_scores[, 2],
-              cytokine_scores[, 3],
-              pch = pch_values,
-              col = pca_colors,
-              xlab = "PC1",
-              ylab = "PC2",
-              zlab = "PC3",
-              main = paste("3D Plot:", title_sub),
-              theta = 20,
-              phi = 30,
-              bty = "g",
-              colkey = FALSE
-            )
+            draw_3d_plot(cytokine_scores, paste("3D Plot:", title_sub))
           )
         }
       }
@@ -486,58 +513,11 @@ cyt_pca <- function(
       # Scree Plot.
       variances <- pca_result$prop_expl_var$X
       cumulative_variances <- pca_result$cum.var
-      scree_data <- data.frame(
-        Component = 1:comp_num,
-        Variance = variances,
-        Cumulative = cumulative_variances
+      scree_plot <- build_scree_plot(
+        variances = variances,
+        cumulative_variances = cumulative_variances,
+        plot_title = paste("Scree Plot:", title_sub)
       )
-      scree_plot <- ggplot2::ggplot(scree_data, ggplot2::aes(x = Component)) +
-        ggplot2::geom_line(
-          ggplot2::aes(y = Variance, color = "Individual"),
-          linewidth = 1
-        ) +
-        ggplot2::geom_point(
-          ggplot2::aes(y = Variance, color = "Individual"),
-          size = 2
-        ) +
-        ggplot2::geom_line(
-          ggplot2::aes(y = Cumulative, color = "Cumulative"),
-          linewidth = 1,
-          linetype = "dashed"
-        ) +
-        ggplot2::geom_point(
-          ggplot2::aes(y = Cumulative, color = "Cumulative"),
-          size = 2
-        ) +
-        ggplot2::scale_color_manual(
-          values = c("Individual" = "blue", "Cumulative" = "green")
-        ) +
-        ggplot2::labs(
-          title = paste("Scree Plot:", title_sub),
-          x = "Principal Components",
-          y = "Explained Variance",
-          color = "Variance Type"
-        ) +
-        ggplot2::theme_minimal() +
-        ggplot2::scale_x_continuous(breaks = 1:comp_num) +
-        ggplot2::geom_text(
-          ggplot2::aes(
-            y = Variance,
-            label = paste0(round(Variance * 100, 1), "%")
-          ),
-          vjust = -1.5,
-          hjust = 0.5,
-          size = 4
-        ) +
-        ggplot2::geom_text(
-          ggplot2::aes(
-            y = Cumulative,
-            label = paste0(round(Cumulative * 100, 1), "%")
-          ),
-          vjust = 1.5,
-          hjust = 0.5,
-          size = 4
-        )
 
       if (pdf_mode) {
         print(scree_plot)
@@ -551,25 +531,17 @@ cyt_pca <- function(
       loadings_plots <- list()
       for (comp in 1:comp_num) {
         if (pdf_mode) {
-          mixOmics::plotLoadings(
+          draw_loadings_plot(
             pca_result,
-            comp = comp,
-            size.names = 1,
-            size.legend = 1,
-            legend.color = pca_colors,
-            title = paste("Loadings for Component", comp, ":", title_sub),
-            legend = TRUE
+            component = comp,
+            plot_title = paste("Loadings for Component", comp, ":", title_sub)
           )
         } else {
           loadings_plots[[comp]] <- record_base_plot(
-            mixOmics::plotLoadings(
+            draw_loadings_plot(
               pca_result,
-              comp = comp,
-              size.names = 1,
-              size.legend = 1,
-              legend.color = pca_colors,
-              title = paste("Loadings for Component", comp, ":", title_sub),
-              legend = TRUE
+              component = comp,
+              plot_title = paste("Loadings for Component", comp, ":", title_sub)
             )
           )
         }
@@ -579,37 +551,25 @@ cyt_pca <- function(
       # Biplot using the default stats package.
       prcomp_obj <- stats::prcomp(the_data_df, center = TRUE, scale. = TRUE)
       if (pdf_mode) {
-        stats::biplot(prcomp_obj, main = paste("Biplot:", title_sub))
+        draw_biplot(prcomp_obj, paste("Biplot:", title_sub))
       } else {
         sublist$biplot <- record_base_plot({
           graphics::plot.new()
-          stats::biplot(prcomp_obj, main = paste("Biplot:", title_sub))
+          draw_biplot(prcomp_obj, paste("Biplot:", title_sub))
         })
       }
 
       # Correlation circle.
       if (pdf_mode) {
-        mixOmics::plotVar(
+        draw_corr_circle(
           pca_result,
-          comp = c(1, 2),
-          var.names = TRUE,
-          cex = 4,
-          col = "black",
-          overlap = TRUE,
-          title = paste("Correlation Circle Plot:", title_sub),
-          style = "ggplot2"
+          paste("Correlation Circle Plot:", title_sub)
         )
       } else {
         sublist$correlation_circle <- record_base_plot(
-          mixOmics::plotVar(
+          draw_corr_circle(
             pca_result,
-            comp = c(1, 2),
-            var.names = TRUE,
-            cex = 4,
-            col = "black",
-            overlap = TRUE,
-            title = paste("Correlation Circle Plot:", title_sub),
-            style = "ggplot2"
+            paste("Correlation Circle Plot:", title_sub)
           )
         )
       }

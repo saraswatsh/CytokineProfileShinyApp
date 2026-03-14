@@ -13,6 +13,8 @@
 #' If NULL (default), the function returns a list of two ggplot objects.
 #' @param print_res_raw Logical. If TRUE, prints and returns the summary statistics for raw data.
 #' @param print_res_log Logical. If TRUE, prints and returns the summary statistics for log2 data.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If output_file is NULL, returns a list with:
 #'   - p_skew: Overlayed histogram of raw and log2 skewness.
@@ -41,8 +43,18 @@ cyt_skku <- function(
   output_file = NULL,
   print_res_raw = FALSE,
   print_res_log = FALSE,
+  font_settings = NULL,
   progress = NULL
 ) {
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_title", "y_title",
+      "x_text", "y_text", "legend_title", "legend_text"
+    ),
+    activate = !is.null(font_settings)
+  )
+
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Loading libraries and data")
   }
@@ -142,6 +154,9 @@ cyt_skku <- function(
     ggplot2::geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
     ggplot2::labs(x = "Kurtosis", title = "Distribution of Kurtosis") +
     ggplot2::theme_minimal()
+
+  p_skew <- apply_font_settings_ggplot(p_skew, resolved_fonts)
+  p_kurt <- apply_font_settings_ggplot(p_kurt, resolved_fonts)
 
   if (print_res_raw) {
     print(raw_results)

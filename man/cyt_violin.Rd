@@ -13,6 +13,7 @@ cyt_violin(
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
   boxplot_overlay = FALSE,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -45,6 +46,9 @@ when \code{scale = "custom"}.}
 \item{boxplot_overlay}{Logical.  When \code{TRUE}, a narrow boxplot is
 drawn inside each violin to summarize the median and quartiles.
 Default is \code{FALSE}.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional.  A Shiny \code{Progress} object for reporting
 progress updates.}
