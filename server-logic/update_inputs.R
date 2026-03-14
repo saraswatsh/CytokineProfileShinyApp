@@ -136,7 +136,7 @@ shiny::observeEvent(currentStep(), {
       shiny::updateSelectInput(
         session,
         "uv2_p_adjust_method",
-        selected = userState$uv2_p_adjust_method %||% ""
+        selected = userState$uv2_p_adjust_method %||% "BH"
       )
     }
     if (
@@ -151,7 +151,7 @@ shiny::observeEvent(currentStep(), {
       shiny::updateSelectInput(
         session,
         "uvm_p_adjust_method",
-        selected = userState$uvm_p_adjust_method %||% ""
+        selected = userState$uvm_p_adjust_method %||% "BH"
       )
     }
     if (userState$selected_function == "Two-way ANOVA") {
@@ -236,7 +236,7 @@ shiny::observeEvent(currentStep(), {
       shiny::updateSelectInput(
         session,
         "eb_p_adjust_method",
-        selected = userState$eb_p_adjust_method %||% ""
+        selected = userState$eb_p_adjust_method %||% "BH"
       )
       shiny::updateNumericInput(
         session,

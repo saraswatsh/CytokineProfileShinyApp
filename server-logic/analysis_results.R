@@ -20,6 +20,17 @@ null_if_blank <- function(x) {
   x
 }
 
+analysis_p_adjust_input <- function(x, none_value, default = "BH") {
+  if (is.null(x)) {
+    return(default)
+  }
+  if (!nzchar(trimws(x))) {
+    return(none_value)
+  }
+
+  x
+}
+
 analysis_font_settings <- function(input, func_name, user_state = userState) {
   spec <- get_analysis_font_spec(func_name)
   if (is.null(spec)) {
@@ -217,11 +228,10 @@ analysisResult <- shiny::eventReactive(input$next4, {
             "Univariate Tests (T-test, Wilcoxon)" = cyt_univariate(
               data = df,
               method = input$uv2_method %||% "auto",
-              p_adjust_method = if (nzchar(input$uv2_p_adjust_method %||% "")) {
-                input$uv2_p_adjust_method
-              } else {
-                "none"
-              },
+              p_adjust_method = analysis_p_adjust_input(
+                input$uv2_p_adjust_method,
+                none_value = "none"
+              ),
               ,
               progress = prog,
               scale = NULL,
@@ -231,11 +241,10 @@ analysisResult <- shiny::eventReactive(input$next4, {
             "Multi-level Univariate Tests (Anova, Kruskal-Wallis)" = cyt_univariate_multi(
               data = df,
               method = input$uvm_method %||% "anova",
-              p_adjust_method = if (nzchar(input$uvm_p_adjust_method %||% "")) {
-                input$uvm_p_adjust_method
-              } else {
-                "none"
-              },
+              p_adjust_method = analysis_p_adjust_input(
+                input$uvm_p_adjust_method,
+                none_value = "none"
+              ),
               progress = prog,
               format_output = TRUE
             ),
@@ -312,7 +321,10 @@ analysisResult <- shiny::eventReactive(input$next4, {
               error = input$eb_error %||% "se",
               scale = "none",
               method = input$eb_method %||% "auto",
-              p_adjust_method = null_if_blank(input$eb_p_adjust_method),
+              p_adjust_method = analysis_p_adjust_input(
+                input$eb_p_adjust_method,
+                none_value = NULL
+              ),
               n_col = input$eb_n_col %||% 3,
               fill_palette = {
                 eb_fill_palette_choice <- input$eb_fill_palette %||% "gray"

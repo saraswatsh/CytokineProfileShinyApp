@@ -221,6 +221,26 @@ ui <- shiny::fluidPage(
      /* Make large modals almost full width; keep a tall body with scrolling */
     #shiny-modal .modal-dialog { max-width: 98vw; width: 98vw; }   /* more width */
     #shiny-modal .modal-body   { max-height: 70vh; overflow-y: auto; }  /* less length (scrolls) */
+    .impute-method-popover {
+      max-width: min(620px, calc(100vw - 2rem)) !important;
+      width: min(620px, calc(100vw - 2rem));
+    }
+    .impute-method-popover .popover-body {
+      max-height: min(62vh, 520px);
+      overflow-y: auto;
+      padding: 1rem 1.1rem;
+    }
+    .impute-method-popover h4,
+    .impute-method-popover h5 {
+      margin-top: 0;
+    }
+    .impute-method-popover ul {
+      padding-left: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .impute-method-popover p:last-child {
+      margin-bottom: 0;
+    }
     /* Highlight full selected column */
   table.dataTable tbody td.col-selected,
   .dataTables_scrollHeadInner th.col-selected,

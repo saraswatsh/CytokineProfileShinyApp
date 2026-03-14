@@ -1955,31 +1955,59 @@ shiny::observeEvent(input$open_impute_modal, {
               ),
               shiny::div(
                 shiny::tags$h4(
-                  "How missing values are treated",
+                  "Choosing an imputation method",
                   class = "mb-3"
                 ),
                 shiny::p(
+                  shiny::tags$b("Default behavior:"),
+                  " Mean imputation is selected by default. For kNN methods, the default number of neighbors is ",
+                  shiny::tags$code("k = 5"),
+                  ". Numeric standardization for kNN is off by default unless you turn it on."
+                ),
+                shiny::tags$h5("How to choose an imputation method"),
+                shiny::tags$ul(
+                  shiny::tags$li("If missingness is low and you want a simple numeric fill, start with median for skewed cytokine data and mean for roughly symmetric data."),
+                  shiny::tags$li("If preserving multivariate structure matters, consider kNN instead of a simple fill."),
+                  shiny::tags$li("Use sample-wise kNN when you expect biologically similar samples or subjects."),
+                  shiny::tags$li("Use feature-wise kNN when correlated cytokines are expected and only numeric features are being imputed."),
+                  shiny::tags$li("If missingness is substantial or clearly differs by group, interpret downstream results more cautiously.")
+                ),
+                shiny::tags$h5("Method-by-method guidance"),
+                shiny::p(
                   shiny::tags$b("Mean:"),
-                  " this method calculates the average of all non-missing values in a column and uses this mean to fill in any missing entries."
+                  " numeric columns only. This is a simple baseline when missingness is limited and values are roughly symmetric. It can reduce variability and pull group summaries toward the center."
                 ),
                 shiny::p(
                   shiny::tags$b("Median:"),
-                  " this method calculates the middle value of all non-missing entries in a column and uses this median to replace any missing values."
+                  " numeric columns only. This is often a better choice when cytokine values are skewed or outliers are present. It still compresses spread and can mute real group differences."
                 ),
                 shiny::p(
                   shiny::tags$b("Mode:"),
-                  " this method identifies the most frequently occurring value in a column and uses it to fill in the missing data. Mode imputation is the only one of these three that can be used for categorical (non-numeric) data."
+                  " categorical columns only in the current app. It is useful for labels or discrete annotations, not for continuous cytokine concentrations. It can over-represent the most common category."
                 ),
                 shiny::p(
                   shiny::tags$b("kNN (sample-wise):"),
-                  " this method for each missing cell, finds the k nearest rows (samples) using the other features and impute from those neighbors’ values in the same column"
+                  " works across the selected columns using similar samples or rows and can handle mixed data. This is useful when biologically similar subjects are expected. It can blur separation between phenotypes or treatment groups if nearest neighbors come from different groups."
                 ),
                 shiny::p(
                   shiny::tags$b("kNN (feature-wise):"),
-                  " this method for each missing cell, finds the k most similar columns (features) based on their patterns across samples and impute from those features’ values in the same row"
+                  " numeric columns only. This method uses similar analytes or features across samples, which can be useful when correlated cytokines tend to move together. It can reinforce correlation patterns and overstate coordinated biology."
+                ),
+                shiny::tags$h5("Bias and interpretation notes"),
+                shiny::p(
+                  "Simple imputation methods can underestimate variability and affect p-values, clustering, and multivariate models in cytokine profiling studies."
+                ),
+                shiny::p(
+                  "kNN usually preserves local structure better than mean or median imputation, but it still inserts modeled values rather than directly observed measurements."
                 )
               ),
-              placement = "right",
+              placement = "auto",
+              options = list(
+                container = "body",
+                boundary = "viewport",
+                customClass = "impute-method-popover",
+                fallbackPlacements = c("left", "bottom", "top", "right")
+              )
             )
           ),
           choices = c(

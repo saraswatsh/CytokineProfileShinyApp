@@ -15,6 +15,8 @@ This development build focuses on making the app easier to use, easier to read, 
 - When you upload a new file, saved editor choices from the previous file are cleared more cleanly.
 - Columns that look like numbers, even when they include symbols or common missing-value markers, are now more likely to be recognized correctly.
 - Column selections now update more smoothly, and related defaults stay in sync better as you change your data choices.
+- The missing-value help now gives clearer guidance on when to use mean, median, mode, and the two nearest-neighbor options, and the popup is easier to read.
+- If your uploaded data includes out-of-range values, the app now warns you when you click `Save & Use` and explains what was adjusted in plain language.
 - The app now starts more reliably in different R workflows.
 
 ## Better Figures
@@ -30,8 +32,8 @@ This development build focuses on making the app easier to use, easier to read, 
 - The app handles empty analysis results more gracefully instead of returning confusing output.
 - The XGBoost workflow now chooses the best training step more reliably across different scoring methods.
 - Editing data in the built-in editor now preserves values more consistently.
+- The missing-value help popup now opens more cleanly and is less likely to be cut off inside the app window.
 
 ## Behind the Scenes
 
 - Several parts of the app were cleaned up to reduce small startup and package-loading problems.
-

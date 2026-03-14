@@ -24,6 +24,7 @@ p_adjust_choices <- c(
   "Benjamini-Hochberg" = "BH",
   "Benjamini-Yekutieli" = "BY"
 )
+p_adjust_default <- "BH"
 
 p_adjust_help <- shiny::HTML(paste(
   "Use this when you are testing many cytokines or features at the same time.<br><br>",
@@ -559,7 +560,8 @@ output$function_options_ui <- shiny::renderUI({
                 p_adjust_help
               ),
               choices = p_adjust_choices,
-              selected = shiny::isolate(userState$uv2_p_adjust_method) %||% ""
+              selected = shiny::isolate(userState$uv2_p_adjust_method) %||%
+                p_adjust_default
             )
           )
         )
@@ -600,7 +602,7 @@ output$function_options_ui <- shiny::renderUI({
                 choices = p_adjust_choices,
                 selected = input$uvm_p_adjust_method %||%
                   shiny::isolate(userState$uvm_p_adjust_method) %||%
-                  ""
+                  p_adjust_default
               )
             }
           )
@@ -1194,7 +1196,8 @@ output$function_options_ui <- shiny::renderUI({
                 p_adjust_help
               ),
               choices = p_adjust_choices,
-              selected = shiny::isolate(userState$eb_p_adjust_method) %||% ""
+              selected = shiny::isolate(userState$eb_p_adjust_method) %||%
+                p_adjust_default
             )
           )
         ),

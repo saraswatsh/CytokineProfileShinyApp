@@ -1183,6 +1183,53 @@ bioplex_clean_numeric_only <- function(df) {
   }
   out
 }
+
+.detect_oor_tokens <- function(df) {
+  if (is.null(df) || !nrow(df) || !ncol(df)) {
+    return(list(total = 0L, gt = 0L, lt = 0L, columns = character(0)))
+  }
+
+  deny <- .always_categorical(names(df))
+  gt_total <- 0L
+  lt_total <- 0L
+  affected_cols <- character(0)
+
+  for (nm in names(df)) {
+    if (nm %in% deny || !.is_numeric_like(df[[nm]])) {
+      next
+    }
+
+    values_chr <- as.character(df[[nm]])
+    oor_gt <- grepl("(?i)\\bOOR\\s*>", values_chr, perl = TRUE)
+    oor_lt <- grepl("(?i)\\bOOR\\s*<", values_chr, perl = TRUE)
+
+    if (any(oor_gt | oor_lt, na.rm = TRUE)) {
+      gt_total <- gt_total + sum(oor_gt, na.rm = TRUE)
+      lt_total <- lt_total + sum(oor_lt, na.rm = TRUE)
+      affected_cols <- c(affected_cols, nm)
+    }
+  }
+
+  list(
+    total = gt_total + lt_total,
+    gt = gt_total,
+    lt = lt_total,
+    columns = unique(affected_cols)
+  )
+}
+
+.format_oor_columns <- function(columns, limit = 8L) {
+  columns <- unique(columns)
+  if (!length(columns)) {
+    return("None")
+  }
+  if (length(columns) <= limit) {
+    return(paste(columns, collapse = ", "))
+  }
+  shown <- columns[seq_len(limit)]
+  paste(c(shown, paste0("+", length(columns) - limit, " more")), collapse = ", ")
+}
+
 # Confirm import (activate for Step 2)
 shiny::observeEvent(input$bioplex_confirm_modal, {
   combined_now <- if (identical(bioplex$editor_mode, "persisted")) {
@@ -1202,6 +1249,7 @@ shiny::observeEvent(input$bioplex_confirm_modal, {
   keep <- setdiff(seq_len(nrow(combined_now)), bioplex$deleted_idx)
   shiny::req(length(keep) > 0)
   final_raw <- combined_now[keep, , drop = FALSE]
+  oor_summary <- .detect_oor_tokens(final_raw)
 
   # Clean asterisks + OOR (your existing helper)
   final <- bioplex_clean_numeric_only(final_raw)
@@ -1212,10 +1260,61 @@ shiny::observeEvent(input$bioplex_confirm_modal, {
   bioplex$editor_mode <- "persisted"
 
   shiny::removeModal()
-  shiny::showNotification(
-    "Bio-Plex data cleaned and staged. Click 'Next Step' to continue.",
-    type = "message"
-  )
+  if (oor_summary$total > 0) {
+    shiny::showModal(
+      shiny::modalDialog(
+        title = "Out-of-range values were adjusted",
+        easyClose = FALSE,
+        footer = shiny::actionButton(
+          "oor_warning_ok",
+          "Continue",
+          class = "btn-primary"
+        ),
+        shiny::p(
+          sprintf(
+            "The uploaded data included %d out-of-range value%s. %d were above range and %d were below range.",
+            oor_summary$total,
+            if (oor_summary$total == 1) "" else "s",
+            oor_summary$gt,
+            oor_summary$lt
+          )
+        ),
+        shiny::p(
+          shiny::tags$b("Affected columns:"),
+          paste0(" ", .format_oor_columns(oor_summary$columns))
+        ),
+        shiny::p(
+          "These values were handled automatically during data cleaning before the dataset was staged for analysis."
+        ),
+        shiny::p(
+          "For each affected column, the app uses the non-out-of-range numeric values in that same column as the reference for the replacement values."
+        ),
+        shiny::tags$ul(
+          shiny::tags$li(
+            "Values marked above range are replaced with the column maximum plus one percent of that column's observed range."
+          ),
+          shiny::tags$li(
+            "Values marked below range are replaced with the column minimum plus ten percent of that minimum when the column minimum is positive."
+          ),
+          shiny::tags$li(
+            "If the column minimum is zero or negative, values marked below range are replaced with that minimum."
+          )
+        ),
+        shiny::p(
+          "Your cleaned data has already been saved for use in the app. Click Continue to proceed."
+        )
+      )
+    )
+  } else {
+    shiny::showNotification(
+      "Bio-Plex data cleaned and staged. Click 'Next Step' to continue.",
+      type = "message"
+    )
+  }
+})
+
+shiny::observeEvent(input$oor_warning_ok, {
+  shiny::removeModal()
 })
 
 # REACTIVE & OUTPUT to track if data is loaded
