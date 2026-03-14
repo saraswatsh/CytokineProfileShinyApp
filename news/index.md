@@ -27,6 +27,12 @@ to read, and more reliable.
   correctly.
 - Column selections now update more smoothly, and related defaults stay
   in sync better as you change your data choices.
+- The missing-value help now gives clearer guidance on when to use mean,
+  median, mode, and the two nearest-neighbor options, and the popup is
+  easier to read.
+- If your uploaded data includes out-of-range values, the app now warns
+  you when you click `Save & Use` and explains what was adjusted in
+  plain language.
 - The app now starts more reliably in different R workflows.
 
 ### Better Figures
@@ -48,6 +54,8 @@ to read, and more reliable.
   across different scoring methods.
 - Editing data in the built-in editor now preserves values more
   consistently.
+- The missing-value help popup now opens more cleanly and is less likely
+  to be cut off inside the app window.
 
 ### Behind the Scenes
 
