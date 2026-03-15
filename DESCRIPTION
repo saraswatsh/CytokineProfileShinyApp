@@ -43,7 +43,6 @@ Imports:
     reshape2, 
     recipes, 
     impute,
-    plotly,
     patchwork,
     rlang,
     vroom,
@@ -60,6 +59,7 @@ Suggests:
     knitr,
     rmarkdown,
     devtools,
+    plotly,
     learnr
 NeedsCompilation: no
 License: GPL (>= 2)

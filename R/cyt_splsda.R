@@ -73,7 +73,6 @@
 #' @export
 #' @importFrom mixOmics splsda background.predict perf vip auroc plotIndiv plotLoadings
 #' @import ggplot2
-#' @import plotly
 #' @importFrom plot3D scatter3D
 #' @importFrom reshape2 melt
 #' @importFrom caret confusionMatrix
@@ -112,8 +111,17 @@ cyt_splsda <- function(
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
     supported_fields = c(
-      "base_size", "plot_title", "x_title", "y_title", "x_text", "y_text",
-      "legend_title", "legend_text", "strip_text", "variable_names", "point_labels"
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text",
+      "strip_text",
+      "variable_names",
+      "point_labels"
     ),
     legacy = list(
       base_size = 11 * font_scale,
@@ -632,7 +640,7 @@ cyt_splsda <- function(
           y = "VIP"
         ) +
         ggplot2::theme_minimal() |>
-        apply_font_settings_ggplot(font_settings = resolved_fonts)
+          apply_font_settings_ggplot(font_settings = resolved_fonts)
     })
 
     vip_indiv_plot <- vip_loadings <- vip_3D <- vip_ROC <- vip_CV <- vip_3D_interactive <- NULL
@@ -1050,7 +1058,11 @@ cyt_splsda <- function(
       res$pdf_file <- output_file
     }
     if (!is.null(progress)) {
-      progress$set(message = "Running sPLS-DA...", value = 1, detail = "Finished")
+      progress$set(
+        message = "Running sPLS-DA...",
+        value = 1,
+        detail = "Finished"
+      )
     }
     return(res)
   } else {
@@ -1068,7 +1080,11 @@ cyt_splsda <- function(
       attr(out, "pdf_file") <- output_file
     }
     if (!is.null(progress)) {
-      progress$set(message = "Running sPLS-DA...", value = 1, detail = "Finished")
+      progress$set(
+        message = "Running sPLS-DA...",
+        value = 1,
+        detail = "Finished"
+      )
     }
     return(out)
   }

@@ -8,6 +8,7 @@
 Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShinyApp.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/commits/main)
 [![Development](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CodeFactor](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/badge/devel)](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/overview/devel)
+[![R-CMD-check](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 # CytokineProfile Shiny Application <a href="https://shinyinfo.cytokineprofile.org/"><img src="man/figures/logo.png" alt="CytokineProfileShiny App website" align="right" height="134"/></a>
