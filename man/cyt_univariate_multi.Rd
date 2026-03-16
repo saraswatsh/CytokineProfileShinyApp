@@ -44,7 +44,7 @@ used, excluding \code{covariate_col} for ANCOVA.}
 
 \item{p_adjust_method}{Character string specifying the method for
 p-value adjustment across pairwise Kruskal-Wallis follow-up
-comparisons. Passed to \code{p.adjust}. Default is \code{"BH"}.}
+comparisons. Passed to \code{adjust_p}. Default is \code{"BH"}.}
 
 \item{primary_cat_var}{Optional primary categorical predictor used by
 the two-way ANOVA and ANCOVA workflows.}

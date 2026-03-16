@@ -2,12 +2,12 @@
 #'
 #' This function wraps the mixOmics `pls()` and `spls()` functions to perform
 #' regression of one or more response variables on a set of predictors.
-#' It automatically handles optional log2 scaling, extraction of numeric columns
-#' and grouping information, and returns a small list of recorded plots for
-#' display in Shiny.  The first plot (`indiv_plot`) is a score plot of the
+#' It automatically handles optional predictor scaling, extraction of numeric
+#' columns and grouping information, and returns a small list of recorded plots
+#' for display in Shiny. The first plot (`indiv_plot`) is a score plot of the
 #' first two latent components colored by a grouping variable (if provided).
 #' The second plot (`pred_plot`) is a scatterplot of the observed vs predicted
-#' response values for the first response variable.  Additional plots could
+#' response values for the first response variable. Additional plots could
 #' easily be added (e.g. loadings), but these two provide basic diagnostics.
 #'
 #' @param data A data frame containing the predictor and response variables.
@@ -27,8 +27,12 @@
 #'   Cross-Validation).
 #' @param fold_num The number of folds for M-fold cross-validation. Only
 #'   applicable if `cv_opt = "Mfold"`.
-#' @param scale Character string. If "log2", applies log2 transformation to
-#'   numeric predictor columns.
+#' @param scale Character string specifying an optional transformation for
+#'   numeric predictor columns. Supported values are \code{NULL} (default; no
+#'   transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+#'   \code{"zscore"}, or \code{"custom"}.
+#' @param custom_fn Optional transformation function used when
+#'   \code{scale = "custom"}.
 #' @param ellipse Logical. If `TRUE`, draws 95% confidence ellipses on the
 #'   score plot.
 #' @param pls_colors A character vector of colors to use for grouping.
@@ -67,6 +71,7 @@ cyt_plsr <- function(
   cv_opt = NULL,
   fold_num = 5,
   scale = NULL,
+  custom_fn = NULL,
   ellipse = FALSE,
   pls_colors = NULL,
   output_file = NULL,
@@ -105,24 +110,20 @@ cyt_plsr <- function(
   id_cols <- unique(na.omit(c(response_col, group_col)))
   id_cols <- id_cols[id_cols %in% names(data)]
 
-  # --- optional log2 transform (predictors only)
-  if (identical(scale, "log2")) {
-    num_cols <- names(data)[
-      vapply(data, is.numeric, logical(1)) & names(data) %notin% id_cols
-    ]
-    if (length(num_cols)) {
-      if (any(data[, num_cols] <= 0, na.rm = TRUE)) {
-        min_pos <- suppressWarnings(min(
-          data[, num_cols][data[, num_cols] > 0],
-          na.rm = TRUE
-        ))
-        off <- if (is.finite(min_pos)) min_pos / 2 else 1e-6
-        data[, num_cols] <- log2(data[, num_cols] + off)
-        warning("Non-positive X detected; applied log2 with a small offset.")
-      } else {
-        data[, num_cols] <- log2(data[, num_cols])
-      }
-    }
+  scale_cols <- names(data)[
+    vapply(data, is.numeric, logical(1)) & names(data) %notin% id_cols
+  ]
+  if (!is.null(predictor_cols) && length(predictor_cols)) {
+    scale_cols <- intersect(scale_cols, predictor_cols)
+  }
+
+  if (!is.null(scale) && length(scale_cols) > 0L) {
+    data <- apply_scale(
+      data = data,
+      columns = scale_cols,
+      scale = scale,
+      custom_fn = custom_fn
+    )
   }
 
   # --- build X (numeric) / y

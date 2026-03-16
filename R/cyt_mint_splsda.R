@@ -25,8 +25,10 @@
 #' @param bg Logical. Whether to draw the prediction background in the figures.
 #'   Default is \code{FALSE}.
 #' @param var_num Numeric. The number of variables to be used in the PLS-DA model.
-#' @param scale Character. Option for data transformation; if set to \code{"log2"}, a log2
-#'   transformation is applied to the continuous variables. Default is \code{NULL}.
+#' @param scale Character. Optional transformation applied to numeric
+#'   predictors. Supported values are \code{NULL} (default; no
+#'   transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+#'   \code{"zscore"}, or \code{"custom"}.
 #' @param comp_num Numeric. The number of components to calculate in the sPLS-DA model.
 #'   Default is 2.
 #' @param cim Logical. Whether to compute and plot the Clustered Image Map (CIM) heatmap. Default is \code{FALSE}.
@@ -35,6 +37,8 @@
 #' @param font_settings Optional named list of font sizes for supported plot
 #'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
+#' @param custom_fn Optional transformation function used when
+#'   \code{scale = "custom"}.
 #' @return In Download mode, a PDF file is written. In Interactive mode, a named list
 #'         (`results_list`) of plots and results is returned. If `group_col2` is used,
 #'         a nested list is returned, with each element corresponding to a level of `group_col2`.
@@ -75,7 +79,8 @@ cyt_mint_splsda <- function(
   scale = NULL,
   roc = FALSE,
   font_settings = NULL,
-  progress = NULL
+  progress = NULL,
+  custom_fn = NULL
 ) {
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
@@ -515,11 +520,19 @@ cyt_mint_splsda <- function(
   if (!is.null(progress)) {
     progress$set(message = "Running MINT sPLS-DA...", value = 0)
   }
-  if (!is.null(scale) && scale == "log2") {
-    id_cols <- unique(c(group_col, group_col2, batch_col))
-    id_cols <- id_cols[!sapply(id_cols, is.null)]
-    numeric_cols <- data[, !(names(data) %in% id_cols), drop = FALSE]
-    data <- data.frame(data[, id_cols, drop = FALSE], log2(numeric_cols))
+  if (!is.null(scale)) {
+    id_cols <- unique(na.omit(c(group_col, group_col2, batch_col)))
+    numeric_cols <- names(data)[
+      vapply(data, is.numeric, logical(1)) & !(names(data) %in% id_cols)
+    ]
+    if (length(numeric_cols) > 0L) {
+      data <- apply_scale(
+        data = data,
+        columns = numeric_cols,
+        scale = scale,
+        custom_fn = custom_fn
+      )
+    }
   }
   num_groups <- nlevels(as.factor(data[[group_col]]))
   if (is.null(colors) || length(colors) < num_groups) {

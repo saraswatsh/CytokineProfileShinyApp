@@ -19,7 +19,8 @@ cyt_mint_splsda(
   scale = NULL,
   roc = FALSE,
   font_settings = NULL,
-  progress = NULL
+  progress = NULL,
+  custom_fn = NULL
 )
 }
 \arguments{
@@ -57,8 +58,10 @@ Default is 2.}
 
 \item{cim}{Logical. Whether to compute and plot the Clustered Image Map (CIM) heatmap. Default is \code{FALSE}.}
 
-\item{scale}{Character. Option for data transformation; if set to \code{"log2"}, a log2
-transformation is applied to the continuous variables. Default is \code{NULL}.}
+\item{scale}{Character. Optional transformation applied to numeric
+predictors. Supported values are \code{NULL} (default; no
+transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+\code{"zscore"}, or \code{"custom"}.}
 
 \item{roc}{Logical. Whether to compute and plot the ROC curve for the model.
 Default is \code{FALSE}.}
@@ -67,6 +70,9 @@ Default is \code{FALSE}.}
 text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
+
+\item{custom_fn}{Optional transformation function used when
+\code{scale = "custom"}.}
 }
 \value{
 In Download mode, a PDF file is written. In Interactive mode, a named list

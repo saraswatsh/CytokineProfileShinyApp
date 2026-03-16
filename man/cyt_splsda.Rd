@@ -16,6 +16,7 @@ cyt_splsda(
   cv_opt = NULL,
   fold_num = 5,
   scale = NULL,
+  custom_fn = NULL,
   ellipse = FALSE,
   bg = FALSE,
   roc = FALSE,
@@ -61,8 +62,13 @@ Default is \code{NULL}.}
 
 \item{fold_num}{Numeric. The number of folds to use if \code{cv_opt} is "Mfold". Default is 5.}
 
-\item{scale}{Character. Option for data transformation; if set to \code{"log2"}, a log2
-transformation is applied to the continuous variables. Default is \code{NULL}.}
+\item{scale}{Character. Optional transformation applied to numeric
+predictors. Supported values are \code{NULL} (default; no
+transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+\code{"zscore"}, or \code{"custom"}.}
+
+\item{custom_fn}{Optional transformation function used when
+\code{scale = "custom"}.}
 
 \item{ellipse}{Logical. Whether to draw a 95\\% confidence ellipse on the figures.
 Default is \code{FALSE}.}

@@ -17,12 +17,17 @@
 #' @param output_file Optional. A file name for the PDF output. If NULL, interactive mode is assumed.
 #' @param ellipse Logical. If TRUE, a 95% confidence ellipse is drawn on the individuals plot.
 #' @param comp_num Numeric. Number of principal components to compute and display. Default is 2.
-#' @param scale Character. If "log2", a log2 transformation is applied (excluding factor columns).
+#' @param scale Character. Optional transformation applied to numeric columns
+#'   used in PCA. Supported values are \code{NULL} (default; no
+#'   transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+#'   \code{"zscore"}, or \code{"custom"}.
 #' @param pch_values A vector of plotting symbols.
 #' @param style Character. If "3d" (case insensitive) and comp_num equals 3, a 3D scatter plot is generated.
 #' @param font_settings Optional named list of font sizes for supported plot
 #'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
+#' @param custom_fn Optional transformation function used when
+#'   \code{scale = "custom"}.
 #'
 #' @return In PDF mode, a PDF is created and the function returns NULL (invisibly).
 #'         In interactive mode, a (possibly nested) list of recorded plots is returned.
@@ -60,7 +65,8 @@ cyt_pca <- function(
   style = NULL,
   output_file = NULL,
   font_settings = NULL,
-  progress = NULL
+  progress = NULL,
+  custom_fn = NULL
 ) {
   # Initialize progress if provided.
   if (!is.null(progress)) {
@@ -69,9 +75,18 @@ cyt_pca <- function(
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
     supported_fields = c(
-      "base_size", "plot_title", "x_title", "y_title", "x_text", "y_text",
-      "legend_title", "legend_text", "strip_text", "annotation_text",
-      "variable_names", "point_labels"
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text",
+      "strip_text",
+      "annotation_text",
+      "variable_names",
+      "point_labels"
     ),
     activate = !is.null(font_settings)
   )
@@ -93,20 +108,19 @@ cyt_pca <- function(
     stop("At least one factor column must be provided.")
   }
 
-  # Optionally apply log2 transformation only to numeric columns (excluding factor columns)
-  if (!is.null(scale) && scale == "log2") {
-    numeric_idx <- sapply(data, is.numeric)
-    numeric_idx[names(data) %in% unique(c(group_col, group_col2))] <- FALSE
-    if (sum(numeric_idx) == 0) {
-      warning("No numeric columns available for log2 transformation.")
+  transform_cols <- names(data)[vapply(data, is.numeric, logical(1))]
+  transform_cols <- setdiff(transform_cols, unique(c(group_col, group_col2)))
+  if (!is.null(scale)) {
+    if (length(transform_cols) == 0L) {
+      warning("No numeric columns available for the requested transformation.")
+    } else {
+      data <- apply_scale(
+        data = data,
+        columns = transform_cols,
+        scale = scale,
+        custom_fn = custom_fn
+      )
     }
-    data <- data.frame(
-      data[, unique(c(group_col, group_col2)), drop = FALSE],
-      log2(data[, numeric_idx, drop = FALSE])
-    )
-    message("Results based on log2 transformation.")
-  } else {
-    message("Results based on no transformation.")
   }
 
   # Update progress after transformation.
@@ -402,7 +416,12 @@ cyt_pca <- function(
         draw_loadings_plot(
           pca_result,
           component = comp,
-          plot_title = paste("Loadings for Component", comp, ":", overall_analysis)
+          plot_title = paste(
+            "Loadings for Component",
+            comp,
+            ":",
+            overall_analysis
+          )
         )
       } else {
         loadings_plots[[comp]] <- record_base_plot(

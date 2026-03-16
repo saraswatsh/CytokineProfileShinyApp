@@ -27,8 +27,12 @@
 #' @param cv_opt Character. Option for cross-validation method: either "loocv" or "Mfold".
 #'   Default is \code{NULL}.
 #' @param fold_num Numeric. The number of folds to use if \code{cv_opt} is "Mfold". Default is 5.
-#' @param scale Character. Option for data transformation; if set to \code{"log2"}, a log2
-#'   transformation is applied to the continuous variables. Default is \code{NULL}.
+#' @param scale Character. Optional transformation applied to numeric
+#'   predictors. Supported values are \code{NULL} (default; no
+#'   transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+#'   \code{"zscore"}, or \code{"custom"}.
+#' @param custom_fn Optional transformation function used when
+#'   \code{scale = "custom"}.
 #' @param comp_num Numeric. The number of components to calculate in the sPLS-DA model.
 #'   Default is 2.
 #' @param pch_values A vector of integers specifying the plotting characters (pch values)
@@ -91,6 +95,7 @@ cyt_splsda <- function(
   cv_opt = NULL,
   fold_num = 5,
   scale = NULL,
+  custom_fn = NULL,
   ellipse = FALSE,
   bg = FALSE,
   roc = FALSE,
@@ -157,26 +162,16 @@ cyt_splsda <- function(
   )))
   id_cols <- id_cols[id_cols %in% names(data)]
 
-  if (identical(scale, "log2")) {
-    num_cols <- names(data)[
-      vapply(data, is.numeric, logical(1)) & names(data) %notin% id_cols
-    ]
-    if (length(num_cols)) {
-      # offset if needed
-      if (any(data[, num_cols] <= 0, na.rm = TRUE)) {
-        min_pos <- suppressWarnings(min(
-          data[, num_cols][data[, num_cols] > 0],
-          na.rm = TRUE
-        ))
-        off <- if (is.finite(min_pos)) min_pos / 2 else 1e-6
-        data[, num_cols] <- log2(data[, num_cols] + off)
-        warning(
-          "Non-positive values detected; applied log2 with a small offset."
-        )
-      } else {
-        data[, num_cols] <- log2(data[, num_cols])
-      }
-    }
+  num_cols <- names(data)[
+    vapply(data, is.numeric, logical(1)) & names(data) %notin% id_cols
+  ]
+  if (!is.null(scale) && length(num_cols) > 0L) {
+    data <- apply_scale(
+      data = data,
+      columns = num_cols,
+      scale = scale,
+      custom_fn = custom_fn
+    )
   }
 
   # within-batch z-scaling (only if sensible)

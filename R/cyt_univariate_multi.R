@@ -29,7 +29,7 @@
 #'   used, excluding `covariate_col` for ANCOVA.
 #' @param p_adjust_method Character string specifying the method for
 #'   p-value adjustment across pairwise Kruskal-Wallis follow-up
-#'   comparisons. Passed to `p.adjust`. Default is `"BH"`.
+#'   comparisons. Passed to `adjust_p`. Default is `"BH"`.
 #' @param primary_cat_var Optional primary categorical predictor used by
 #'   the two-way ANOVA and ANCOVA workflows.
 #' @param secondary_cat_var Optional secondary categorical predictor used
@@ -1366,7 +1366,7 @@ cyt_univariate_multi <- function(
           }
 
           if (nrow(pair_df) > 0L) {
-            pair_df$P_adj <- stats::p.adjust(
+            pair_df$P_adj <- adjust_p(
               pair_df$P_adj_raw,
               method = p_adjust_method
             )

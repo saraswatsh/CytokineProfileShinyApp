@@ -122,8 +122,8 @@ cyt_corr <- function(
       )
     })
     res <- do.call(rbind, one_vs_all)
-    res$p_bonf <- round(stats::p.adjust(res$p, "bonferroni"), 4)
-    res$p_bh <- round(stats::p.adjust(res$p, "BH"), 4)
+    res$p_bonf <- round(adjust_p(res$p, method = "bonferroni"), 4)
+    res$p_bh <- round(adjust_p(res$p, method = "BH"), 4)
     res <- res[order(-abs(res$r)), ]
 
     # square heatmap matrix
@@ -258,8 +258,8 @@ cyt_corr <- function(
       )
 
       # adjust p's (BH and Bonferroni)
-      groupwise$p_bonf <- stats::p.adjust(groupwise$p, "bonferroni")
-      groupwise$p_bh <- stats::p.adjust(groupwise$p, "BH")
+      groupwise$p_bonf <- adjust_p(groupwise$p, method = "bonferroni")
+      groupwise$p_bh <- adjust_p(groupwise$p, method = "BH")
       groupwise <- groupwise[order(-abs(groupwise$r)), ]
 
       # 2) per-group HEAT MATRICES + PLOTS (new)
@@ -317,8 +317,8 @@ cyt_corr <- function(
           r_diff = m$r1 - m$r2,
           z = z,
           p_diff = pz,
-          p_diff_bonf = stats::p.adjust(pz, "bonferroni"),
-          p_diff_bh = stats::p.adjust(pz, "BH"),
+          p_diff_bonf = adjust_p(pz, method = "bonferroni"),
+          p_diff_bh = adjust_p(pz, method = "BH"),
           g1 = g1,
           g2 = g2,
           stringsAsFactors = FALSE

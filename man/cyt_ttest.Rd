@@ -4,20 +4,28 @@
 \alias{cyt_ttest}
 \title{Two Sample T-test Comparisons. \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 \usage{
-cyt_ttest(data, scale = NULL, format_output = FALSE, progress = NULL)
+cyt_ttest(
+  data,
+  scale = NULL,
+  format_output = FALSE,
+  progress = NULL,
+  custom_fn = NULL
+)
 }
 \arguments{
 \item{data}{A matrix or data frame containing continuous and categorical variables.}
 
 \item{scale}{A character specifying a transformation for continuous variables.
-Options are \code{NULL} (default) and \code{"log2"}. When \code{scale = "log2"},
-a log2 transformation is applied and a two-sample t-test is used; when \code{scale} is \code{NULL},
-a Mann-Whitney U test is performed.}
+Options are \code{NULL} (default; no transformation), \code{"none"},
+\code{"log2"}, \code{"log10"}, \code{"zscore"}, or \code{"custom"}.}
 
 \item{format_output}{Logical. If TRUE, returns the results as a tidy data frame.
 Default is FALSE.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
+
+\item{custom_fn}{Optional transformation function used when
+\code{scale = "custom"}.}
 }
 \value{
 If \code{format_output} is FALSE, returns a list of p-values (named by Outcome and Categorical variable).
@@ -27,8 +35,9 @@ If TRUE, returns a data frame with columns "Outcome", "Categorical", "Comparison
 This function performs pairwise comparisons between two groups for each combination
 of a categorical predictor (with exactly two levels) and a continuous outcome variable.
 It first converts any character variables in \code{data} to factors and, if specified,
-applies a log2 transformation to the continuous variables. The function conducts a Shapiro-Wilk
-normality test to decide whether to use a Two-Sample T-Test vs. a Wilcoxon Rank Sum Test.
+applies a shared scaling or transformation to the continuous variables. The
+function conducts a Shapiro-Wilk normality test to decide whether to use a
+Two-Sample T-Test vs. a Wilcoxon Rank Sum Test.
 The resulting p-values are printed and returned.
 }
 \examples{

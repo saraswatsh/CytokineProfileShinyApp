@@ -16,7 +16,8 @@ cyt_pca(
   style = NULL,
   output_file = NULL,
   font_settings = NULL,
-  progress = NULL
+  progress = NULL,
+  custom_fn = NULL
 )
 }
 \arguments{
@@ -33,7 +34,10 @@ If one is missing, the provided column is used for both.}
 
 \item{comp_num}{Numeric. Number of principal components to compute and display. Default is 2.}
 
-\item{scale}{Character. If "log2", a log2 transformation is applied (excluding factor columns).}
+\item{scale}{Character. Optional transformation applied to numeric columns
+used in PCA. Supported values are \code{NULL} (default; no
+transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+\code{"zscore"}, or \code{"custom"}.}
 
 \item{pch_values}{A vector of plotting symbols.}
 
@@ -45,6 +49,9 @@ If one is missing, the provided column is used for both.}
 text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
+
+\item{custom_fn}{Optional transformation function used when
+\code{scale = "custom"}.}
 }
 \value{
 In PDF mode, a PDF is created and the function returns NULL (invisibly).

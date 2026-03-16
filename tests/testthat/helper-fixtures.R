@@ -14,6 +14,7 @@ ex1_pca <- subset(
   Group != "ND" & Treatment != "Unstimulated"
 )
 ex5_mint <- subset(ExampleData5[, -c(2, 4), drop = FALSE], Group != "ND")
+ex5_mint_split <- subset(ExampleData5[, -4, drop = FALSE], Group != "ND")
 
 with_temp_pdf_device <- function(code) {
   pdf_file <- tempfile(fileext = ".pdf")

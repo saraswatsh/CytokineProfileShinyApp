@@ -10,7 +10,8 @@ cyt_bp2(
   mf_row = c(1, 1),
   scale = NULL,
   y_lim = NULL,
-  progress = NULL
+  progress = NULL,
+  custom_fn = NULL
 )
 }
 \arguments{
@@ -22,12 +23,16 @@ If NULL (default), the function returns a list of ggplot objects.}
 \item{mf_row}{A numeric vector of length two specifying the layout (rows and columns) for the plots in the PDF output.
 Defaults to c(1, 1). (Ignored when returning ggplot objects.)}
 
-\item{scale}{Transformation option for continuous variables. Options are NULL (default) and "log2".
-When set to "log2", numeric columns are transformed using the log2 function.}
+\item{scale}{Transformation option for continuous variables. Options are
+\code{NULL} (default; no transformation), \code{"none"},
+\code{"log2"}, \code{"log10"}, \code{"zscore"}, or \code{"custom"}.}
 
 \item{y_lim}{An optional numeric vector defining the y-axis limits for the plots.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
+
+\item{custom_fn}{Optional transformation function used when
+\code{scale = "custom"}.}
 }
 \value{
 If \code{output_file} is NULL, returns a list of ggplot objects (named as "num_vs_factor" for each combination).
@@ -35,9 +40,11 @@ If \code{output_file} is provided, a PDF file is created and the function return
 }
 \description{
 This function generates boxplots for each combination of numeric and factor variables in the provided data.
-Character columns are converted to factors and the function checks that the data contains at least one numeric
-and one factor column. If the \code{scale} argument is set to "log2", numeric columns are log2-transformed.
-The function then creates boxplots using ggplot2 for each numeric variable grouped by each factor variable.
+Character columns are converted to factors and the function checks that the
+data contains at least one numeric and one factor column. If the \code{scale}
+argument is provided, numeric columns are transformed with the shared
+scaling helper before plotting. The function then creates boxplots using
+ggplot2 for each numeric variable grouped by each factor variable.
 If \code{output_file} is provided, the plots are saved to that PDF file; otherwise, a list of ggplot objects is returned.
 }
 \examples{
