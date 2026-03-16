@@ -35,6 +35,16 @@ with_temp_pdf_device <- function(code) {
   force(code)
 }
 
+record_test_plot <- function(code) {
+  if (grDevices::dev.cur() == 1) {
+    stop("record_test_plot requires an active graphics device.", call. = FALSE)
+  }
+
+  grDevices::dev.control(displaylist = "enable")
+  force(code)
+  grDevices::recordPlot()
+}
+
 suppress_known_plot_warnings <- function(code) {
   withCallingHandlers(
     code,

@@ -89,7 +89,14 @@ test_that("cyt_export supports named subsetting, recorded plots, closures, and s
   with_temp_pdf_device({
     base_plot <- ggplot2::ggplot(ex1_full, ggplot2::aes(Group, IL.10)) +
       ggplot2::geom_boxplot()
-    recorded_plot <- grDevices::recordPlot()
+    recorded_plot <- record_test_plot({
+      graphics::plot(
+        x = seq_len(5),
+        y = c(1, 3, 2, 5, 4),
+        type = "b",
+        main = "Recorded Plot Fixture"
+      )
+    })
     png_base <- tempfile()
     svg_base <- tempfile()
     on.exit(
@@ -117,6 +124,8 @@ test_that("cyt_export supports named subsetting, recorded plots, closures, and s
     )
     cyt_export(list(main = base_plot), filename = svg_base, format = "svg", which = "main")
 
+    exported_pngs <- Sys.glob(paste0(png_base, "_*.png"))
+    expect_length(exported_pngs, 3)
     expect_true(file.exists(paste0(png_base, "_001.png")))
     expect_true(file.exists(paste0(png_base, "_002.png")))
     expect_true(file.exists(paste0(png_base, "_003.png")))

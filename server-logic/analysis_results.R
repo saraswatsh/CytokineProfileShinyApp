@@ -232,7 +232,6 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 input$uv2_p_adjust_method,
                 none_value = "none"
               ),
-              ,
               progress = prog,
               scale = NULL,
               format_output = TRUE
@@ -546,7 +545,10 @@ analysisResult <- shiny::eventReactive(input$next4, {
                 group_var = if (bygrp) input$corr_group_col else NULL,
                 compare_groups = FALSE,
                 plot = TRUE,
-                font_settings = analysis_font_settings(input, "Correlation Plots"),
+                font_settings = analysis_font_settings(
+                  input,
+                  "Correlation Plots"
+                ),
                 progress = prog
               )
 
@@ -2833,11 +2835,12 @@ output$univariatePairwiseResults <- DT::renderDataTable(
   {
     res <- analysisResult()
     shiny::req(
-      selected_function() %in% c(
-        "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
-        "Two-way ANOVA",
-        "ANCOVA"
-      ),
+      selected_function() %in%
+        c(
+          "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
+          "Two-way ANOVA",
+          "ANCOVA"
+        ),
       is.list(res),
       !is.null(res$pairwise)
     )
@@ -2850,11 +2853,12 @@ output$anovaAssumptionTable <- DT::renderDataTable(
   {
     res <- analysisResult()
     shiny::req(
-      selected_function() %in% c(
-        "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
-        "Two-way ANOVA",
-        "ANCOVA"
-      ),
+      selected_function() %in%
+        c(
+          "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
+          "Two-way ANOVA",
+          "ANCOVA"
+        ),
       is.list(res),
       !is.null(res$assumptions)
     )
@@ -2916,7 +2920,8 @@ output$download_ui <- shiny::renderUI({
     )
   } else if (length(tables) > 0) {
     is_multi_univariate <-
-      selected_function() %in% c(
+      selected_function() %in%
+      c(
         "Multi-level Univariate Tests (Anova, Kruskal-Wallis)",
         "Two-way ANOVA",
         "ANCOVA"
