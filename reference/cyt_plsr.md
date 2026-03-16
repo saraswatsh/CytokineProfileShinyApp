@@ -2,14 +2,14 @@
 
 This function wraps the mixOmics `pls()` and `spls()` functions to
 perform regression of one or more response variables on a set of
-predictors. It automatically handles optional log2 scaling, extraction
-of numeric columns and grouping information, and returns a small list of
-recorded plots for display in Shiny. The first plot (`indiv_plot`) is a
-score plot of the first two latent components colored by a grouping
-variable (if provided). The second plot (`pred_plot`) is a scatterplot
-of the observed vs predicted response values for the first response
-variable. Additional plots could easily be added (e.g. loadings), but
-these two provide basic diagnostics.
+predictors. It automatically handles optional predictor scaling,
+extraction of numeric columns and grouping information, and returns a
+small list of recorded plots for display in Shiny. The first plot
+(`indiv_plot`) is a score plot of the first two latent components
+colored by a grouping variable (if provided). The second plot
+(`pred_plot`) is a scatterplot of the observed vs predicted response
+values for the first response variable. Additional plots could easily be
+added (e.g. loadings), but these two provide basic diagnostics.
 
 ## Usage
 
@@ -26,6 +26,7 @@ cyt_plsr(
   cv_opt = NULL,
   fold_num = 5,
   scale = NULL,
+  custom_fn = NULL,
   ellipse = FALSE,
   pls_colors = NULL,
   output_file = NULL,
@@ -85,8 +86,14 @@ cyt_plsr(
 
 - scale:
 
-  Character string. If "log2", applies log2 transformation to numeric
-  predictor columns.
+  Character string specifying an optional transformation for numeric
+  predictor columns. Supported values are `NULL` (default; no
+  transformation), `"none"`, `"log2"`, `"log10"`, `"zscore"`, or
+  `"custom"`.
+
+- custom_fn:
+
+  Optional transformation function used when `scale = "custom"`.
 
 - ellipse:
 

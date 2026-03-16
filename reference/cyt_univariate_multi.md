@@ -65,7 +65,7 @@ cyt_univariate_multi(
 - p_adjust_method:
 
   Character string specifying the method for p-value adjustment across
-  pairwise Kruskal-Wallis follow-up comparisons. Passed to `p.adjust`.
+  pairwise Kruskal-Wallis follow-up comparisons. Passed to `adjust_p`.
   Default is `"BH"`.
 
 - primary_cat_var:

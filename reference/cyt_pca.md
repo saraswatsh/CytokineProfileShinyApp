@@ -21,7 +21,8 @@ cyt_pca(
   style = NULL,
   output_file = NULL,
   font_settings = NULL,
-  progress = NULL
+  progress = NULL,
+  custom_fn = NULL
 )
 ```
 
@@ -57,8 +58,9 @@ cyt_pca(
 
 - scale:
 
-  Character. If "log2", a log2 transformation is applied (excluding
-  factor columns).
+  Character. Optional transformation applied to numeric columns used in
+  PCA. Supported values are `NULL` (default; no transformation),
+  `"none"`, `"log2"`, `"log10"`, `"zscore"`, or `"custom"`.
 
 - pch_values:
 
@@ -81,6 +83,10 @@ cyt_pca(
 - progress:
 
   Optional. A Shiny `Progress` object for reporting progress updates.
+
+- custom_fn:
+
+  Optional transformation function used when `scale = "custom"`.
 
 ## Value
 
@@ -117,7 +123,6 @@ cyt_pca(
   group_col2 = "Treatment",
   ellipse = FALSE
 )
-#> Results based on log2 transformation.
 
 #> $`CD3/CD28`
 #> $`CD3/CD28`$overall_indiv_plot

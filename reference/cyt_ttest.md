@@ -3,15 +3,22 @@
 This function performs pairwise comparisons between two groups for each
 combination of a categorical predictor (with exactly two levels) and a
 continuous outcome variable. It first converts any character variables
-in `data` to factors and, if specified, applies a log2 transformation to
-the continuous variables. The function conducts a Shapiro-Wilk normality
-test to decide whether to use a Two-Sample T-Test vs. a Wilcoxon Rank
-Sum Test. The resulting p-values are printed and returned.
+in `data` to factors and, if specified, applies a shared scaling or
+transformation to the continuous variables. The function conducts a
+Shapiro-Wilk normality test to decide whether to use a Two-Sample T-Test
+vs. a Wilcoxon Rank Sum Test. The resulting p-values are printed and
+returned.
 
 ## Usage
 
 ``` r
-cyt_ttest(data, scale = NULL, format_output = FALSE, progress = NULL)
+cyt_ttest(
+  data,
+  scale = NULL,
+  format_output = FALSE,
+  progress = NULL,
+  custom_fn = NULL
+)
 ```
 
 ## Arguments
@@ -24,9 +31,8 @@ cyt_ttest(data, scale = NULL, format_output = FALSE, progress = NULL)
 - scale:
 
   A character specifying a transformation for continuous variables.
-  Options are `NULL` (default) and `"log2"`. When `scale = "log2"`, a
-  log2 transformation is applied and a two-sample t-test is used; when
-  `scale` is `NULL`, a Mann-Whitney U test is performed.
+  Options are `NULL` (default; no transformation), `"none"`, `"log2"`,
+  `"log10"`, `"zscore"`, or `"custom"`.
 
 - format_output:
 
@@ -36,6 +42,10 @@ cyt_ttest(data, scale = NULL, format_output = FALSE, progress = NULL)
 - progress:
 
   Optional. A Shiny `Progress` object for reporting progress updates.
+
+- custom_fn:
+
+  Optional transformation function used when `scale = "custom"`.
 
 ## Value
 

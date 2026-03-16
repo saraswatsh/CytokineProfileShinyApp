@@ -69,7 +69,8 @@ and a correlation circle plot.</p>
 <span>  style <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  font_settings <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  progress <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  custom_fn <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -103,7 +104,10 @@ If one is missing, the provided column is used for both.</p></dd>
 
 
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>
-<dd><p>Character. If "log2", a log2 transformation is applied (excluding factor columns).</p></dd>
+<dd><p>Character. Optional transformation applied to numeric columns
+used in PCA. Supported values are <code>NULL</code> (default; no
+transformation), <code>"none"</code>, <code>"log2"</code>, <code>"log10"</code>,
+<code>"zscore"</code>, or <code>"custom"</code>.</p></dd>
 
 
 <dt id="arg-pch-values">pch_values<a class="anchor" aria-label="anchor" href="#arg-pch-values"></a></dt>
@@ -125,6 +129,11 @@ text elements.</p></dd>
 
 <dt id="arg-progress">progress<a class="anchor" aria-label="anchor" href="#arg-progress"></a></dt>
 <dd><p>Optional. A Shiny <code>Progress</code> object for reporting progress updates.</p></dd>
+
+
+<dt id="arg-custom-fn">custom_fn<a class="anchor" aria-label="anchor" href="#arg-custom-fn"></a></dt>
+<dd><p>Optional transformation function used when
+<code>scale = "custom"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -160,7 +169,6 @@ and returned as a list for display in Shiny.</p>
 <span class="r-in"><span>  group_col2 <span class="op">=</span> <span class="st">"Treatment"</span>,</span></span>
 <span class="r-in"><span>  ellipse <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Results based on log2 transformation.</span>
 <span class="r-plt img"><img src="cyt_pca-1.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $`CD3/CD28`$overall_indiv_plot</span>

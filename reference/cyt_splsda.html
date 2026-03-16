@@ -60,6 +60,7 @@
 <span>  cv_opt <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fold_num <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  custom_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ellipse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  roc <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -130,8 +131,15 @@ Default is <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>
-<dd><p>Character. Option for data transformation; if set to <code>"log2"</code>, a log2
-transformation is applied to the continuous variables. Default is <code>NULL</code>.</p></dd>
+<dd><p>Character. Optional transformation applied to numeric
+predictors. Supported values are <code>NULL</code> (default; no
+transformation), <code>"none"</code>, <code>"log2"</code>, <code>"log10"</code>,
+<code>"zscore"</code>, or <code>"custom"</code>.</p></dd>
+
+
+<dt id="arg-custom-fn">custom_fn<a class="anchor" aria-label="anchor" href="#arg-custom-fn"></a></dt>
+<dd><p>Optional transformation function used when
+<code>scale = "custom"</code>.</p></dd>
 
 
 <dt id="arg-ellipse">ellipse<a class="anchor" aria-label="anchor" href="#arg-ellipse"></a></dt>

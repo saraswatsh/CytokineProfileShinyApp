@@ -72,7 +72,8 @@ and performed for each level of that column.</p>
 <span>  scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  roc <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  font_settings <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  progress <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  custom_fn <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -137,8 +138,10 @@ Default is 2.</p></dd>
 
 
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>
-<dd><p>Character. Option for data transformation; if set to <code>"log2"</code>, a log2
-transformation is applied to the continuous variables. Default is <code>NULL</code>.</p></dd>
+<dd><p>Character. Optional transformation applied to numeric
+predictors. Supported values are <code>NULL</code> (default; no
+transformation), <code>"none"</code>, <code>"log2"</code>, <code>"log10"</code>,
+<code>"zscore"</code>, or <code>"custom"</code>.</p></dd>
 
 
 <dt id="arg-roc">roc<a class="anchor" aria-label="anchor" href="#arg-roc"></a></dt>
@@ -153,6 +156,11 @@ text elements.</p></dd>
 
 <dt id="arg-progress">progress<a class="anchor" aria-label="anchor" href="#arg-progress"></a></dt>
 <dd><p>Optional. A Shiny <code>Progress</code> object for reporting progress updates.</p></dd>
+
+
+<dt id="arg-custom-fn">custom_fn<a class="anchor" aria-label="anchor" href="#arg-custom-fn"></a></dt>
+<dd><p>Optional transformation function used when
+<code>scale = "custom"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

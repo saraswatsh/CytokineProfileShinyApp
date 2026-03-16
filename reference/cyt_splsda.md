@@ -18,6 +18,7 @@ cyt_splsda(
   cv_opt = NULL,
   fold_num = 5,
   scale = NULL,
+  custom_fn = NULL,
   ellipse = FALSE,
   bg = FALSE,
   roc = FALSE,
@@ -90,9 +91,13 @@ cyt_splsda(
 
 - scale:
 
-  Character. Option for data transformation; if set to `"log2"`, a log2
-  transformation is applied to the continuous variables. Default is
-  `NULL`.
+  Character. Optional transformation applied to numeric predictors.
+  Supported values are `NULL` (default; no transformation), `"none"`,
+  `"log2"`, `"log10"`, `"zscore"`, or `"custom"`.
+
+- custom_fn:
+
+  Optional transformation function used when `scale = "custom"`.
 
 - ellipse:
 

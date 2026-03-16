@@ -24,7 +24,8 @@ cyt_mint_splsda(
   scale = NULL,
   roc = FALSE,
   font_settings = NULL,
-  progress = NULL
+  progress = NULL,
+  custom_fn = NULL
 )
 ```
 
@@ -87,9 +88,9 @@ cyt_mint_splsda(
 
 - scale:
 
-  Character. Option for data transformation; if set to `"log2"`, a log2
-  transformation is applied to the continuous variables. Default is
-  `NULL`.
+  Character. Optional transformation applied to numeric predictors.
+  Supported values are `NULL` (default; no transformation), `"none"`,
+  `"log2"`, `"log10"`, `"zscore"`, or `"custom"`.
 
 - roc:
 
@@ -103,6 +104,10 @@ cyt_mint_splsda(
 - progress:
 
   Optional. A Shiny `Progress` object for reporting progress updates.
+
+- custom_fn:
+
+  Optional transformation function used when `scale = "custom"`.
 
 ## Value
 

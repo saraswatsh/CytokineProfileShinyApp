@@ -3,11 +3,12 @@
 This function generates boxplots for each combination of numeric and
 factor variables in the provided data. Character columns are converted
 to factors and the function checks that the data contains at least one
-numeric and one factor column. If the `scale` argument is set to "log2",
-numeric columns are log2-transformed. The function then creates boxplots
-using ggplot2 for each numeric variable grouped by each factor variable.
-If `output_file` is provided, the plots are saved to that PDF file;
-otherwise, a list of ggplot objects is returned.
+numeric and one factor column. If the `scale` argument is provided,
+numeric columns are transformed with the shared scaling helper before
+plotting. The function then creates boxplots using ggplot2 for each
+numeric variable grouped by each factor variable. If `output_file` is
+provided, the plots are saved to that PDF file; otherwise, a list of
+ggplot objects is returned.
 
 ## Usage
 
@@ -18,7 +19,8 @@ cyt_bp2(
   mf_row = c(1, 1),
   scale = NULL,
   y_lim = NULL,
-  progress = NULL
+  progress = NULL,
+  custom_fn = NULL
 )
 ```
 
@@ -42,9 +44,9 @@ cyt_bp2(
 
 - scale:
 
-  Transformation option for continuous variables. Options are NULL
-  (default) and "log2". When set to "log2", numeric columns are
-  transformed using the log2 function.
+  Transformation option for continuous variables. Options are `NULL`
+  (default; no transformation), `"none"`, `"log2"`, `"log10"`,
+  `"zscore"`, or `"custom"`.
 
 - y_lim:
 
@@ -53,6 +55,10 @@ cyt_bp2(
 - progress:
 
   Optional. A Shiny `Progress` object for reporting progress updates.
+
+- custom_fn:
+
+  Optional transformation function used when `scale = "custom"`.
 
 ## Value
 
