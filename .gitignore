@@ -16,3 +16,5 @@ testing_code.R
 .vscode
 .Renviron
 R/libraries.R
+/.quarto/
+**/*.quarto_ipynb

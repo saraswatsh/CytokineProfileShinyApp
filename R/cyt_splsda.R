@@ -888,7 +888,8 @@ cyt_splsda <- function(
       .plot_indiv(
         mdl,
         Y,
-        sprintf("%s With Accuracy: %s %%", label, round(acc1, 1))
+        sprintf("%s With Accuracy: %s %%", label, round(acc1, 1)),
+        ind_names_resolved = lab_res
       )
       # 3D (if any)
       if (!is.null(style) && tolower(style) == "3d" && comp_num_eff == 3) {
@@ -964,7 +965,8 @@ cyt_splsda <- function(
             "sPLS-DA (VIP > 1): %s With Accuracy: %s %%",
             label,
             round(acc2, 1)
-          )
+          ),
+          ind_names_resolved = lab_res
         )
         if (!is.null(style) && tolower(style) == "3d" && comp_num_eff == 3) {
           sc2 <- mdl_vip$variates$X

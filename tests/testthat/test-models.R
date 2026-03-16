@@ -93,6 +93,57 @@ test_that("cyt_pca supports zscore scaling through apply_scale", {
   })
 })
 
+test_that("cyt_pca supports grouping fallbacks, font settings, and PDF output", {
+  output_file <- tempfile(fileext = ".pdf")
+  on.exit(unlink(output_file), add = TRUE)
+
+  expect_message(
+    suppress_known_plot_warnings(
+      cyt_pca(
+        ex1_pca,
+        group_col = NULL,
+        group_col2 = "Group",
+        pca_colors = "black",
+        scale = "log2",
+        comp_num = 3,
+        pch_values = c(16, 4),
+        style = "3d",
+        output_file = output_file,
+        font_settings = helper_font_settings
+      )
+    ),
+    "Grouping column 2 not provided"
+  )
+  expect_true(file.exists(output_file))
+
+  expect_message(
+    with_temp_pdf_device({
+      fallback_result <- suppress_known_plot_warnings(
+        cyt_pca(
+          ex1_pca,
+          group_col = "Group",
+          group_col2 = NULL,
+          pca_colors = c("black"),
+          scale = "log2",
+          comp_num = 2,
+          pch_values = c(16, 4),
+          output_file = NULL,
+          font_settings = helper_font_settings
+        )
+      )
+
+      expect_true(is.list(fallback_result))
+      expect_true(inherits(fallback_result$overall_indiv_plot, "recordedplot"))
+    }),
+    "Grouping column 1 not provided"
+  )
+
+  expect_error(
+    cyt_pca(ex1_pca, group_col = NULL, group_col2 = NULL),
+    "At least one factor column must be provided"
+  )
+})
+
 test_that("cyt_splsda returns nested treatment results with VIP summaries", {
   with_temp_pdf_device({
     splsda_result <- suppress_known_plot_warnings(
@@ -325,6 +376,56 @@ test_that("cyt_splsda errors on non-positive predictor values for log scales", {
   )
 })
 
+test_that("cyt_splsda supports PDF output, batch scaling, defaults, and confusion matrices", {
+  splsda_df <- ex1_binary_group_treatment[, c(
+    "Group",
+    "Treatment",
+    "IL.10",
+    "IL.17F",
+    "GM.CSF",
+    "IFN.G",
+    "IL.13"
+  ), drop = FALSE]
+  splsda_df$Batch <- factor(rep(c("Study1", "Study2"), length.out = nrow(splsda_df)))
+  output_file <- tempfile(fileext = ".pdf")
+  on.exit(unlink(output_file), add = TRUE)
+  progress <- make_progress_recorder()
+
+  splsda_result <- suppress_known_plot_warnings(
+    suppressWarnings(
+      cyt_splsda(
+        splsda_df,
+        group_col = "Group",
+        group_col2 = "Group",
+        batch_col = "Batch",
+        ind_names = setNames(
+          paste0("Sample", seq_len(nrow(splsda_df))),
+          rownames(splsda_df)
+        ),
+        var_num = 3,
+        comp_num = 2,
+        cv_opt = "mfold",
+        fold_num = 3,
+        scale = "none",
+        ellipse = TRUE,
+        bg = TRUE,
+        roc = TRUE,
+        conf_mat = TRUE,
+        output_file = output_file,
+        font_settings = helper_font_settings,
+        progress = progress
+      )
+    )
+  )
+
+  expect_true(file.exists(output_file))
+  expect_equal(splsda_result$pdf_file, output_file)
+  expect_true(inherits(splsda_result$overall_CV, "ggplot"))
+  expect_true(inherits(splsda_result$overall_indiv_plot, "recordedplot"))
+  expect_true(length(splsda_result$conf_matrix) > 0)
+  expect_gt(length(progress$get_log()$inc), 0)
+})
+
 test_that("cyt_mint_splsda returns global and partial plots from ExampleData5", {
   with_temp_pdf_device({
     mint_result <- suppress_known_plot_warnings(
@@ -416,6 +517,65 @@ test_that("cyt_mint_splsda supports zscore scaling through apply_scale", {
     expect_true(inherits(mint_result$global_indiv_plot, "recordedplot"))
     expect_true(inherits(mint_result$partial_indiv_plot, "recordedplot"))
   })
+})
+
+test_that("cyt_mint_splsda supports PDF output and skip conditions", {
+  output_file <- tempfile(fileext = ".pdf")
+  on.exit(unlink(output_file), add = TRUE)
+  progress <- make_progress_recorder()
+
+  pdf_result <- suppress_known_plot_warnings(
+    cyt_mint_splsda(
+      ex5_mint,
+      group_col = "Group",
+      batch_col = "Batch",
+      colors = NULL,
+      output_file = output_file,
+      ellipse = FALSE,
+      bg = TRUE,
+      var_num = 5,
+      comp_num = 2,
+      cim = TRUE,
+      scale = "none",
+      roc = TRUE,
+      font_settings = helper_font_settings,
+      progress = progress
+    )
+  )
+
+  expect_null(pdf_result)
+  expect_true(file.exists(output_file))
+  expect_gt(length(progress$get_log()$set), 0)
+
+  single_group_df <- ex5_mint
+  single_group_df$Group <- factor("Only")
+  expect_message(
+    suppress_known_plot_warnings(
+      cyt_mint_splsda(
+        single_group_df,
+        group_col = "Group",
+        batch_col = "Batch",
+        colors = c("black", "purple"),
+        scale = "none"
+      )
+    ),
+    "requires at least two group levels"
+  )
+
+  single_batch_df <- ex5_mint
+  single_batch_df$Batch <- factor("Only")
+  expect_message(
+    suppress_known_plot_warnings(
+      cyt_mint_splsda(
+        single_batch_df,
+        group_col = "Group",
+        batch_col = "Batch",
+        colors = c("black", "purple"),
+        scale = "none"
+      )
+    ),
+    "requires at least two batches"
+  )
 })
 
 test_that("cyt_plsr supports dense and sparse regression configurations", {
@@ -576,6 +736,58 @@ test_that("cyt_plsr errors on non-positive predictor values for log scales", {
     ),
     "requires all non-missing selected values to be finite and greater than 0"
   )
+})
+
+test_that("cyt_plsr supports CV, font settings, named labels, and PDF output", {
+  plsr_df <- ex1_binary_group[, c(
+    "Group",
+    "IL.10",
+    "IL.17F",
+    "GM.CSF",
+    "IFN.G",
+    "IL.13"
+  ), drop = FALSE]
+  predictor_cols <- c("IL.17F", "GM.CSF", "IFN.G", "IL.13")
+  output_file <- tempfile(fileext = ".pdf")
+  on.exit(unlink(output_file), add = TRUE)
+  progress <- make_progress_recorder()
+
+  mfold_result <- cyt_plsr(
+    plsr_df,
+    response_col = "IL.10",
+    predictor_cols = predictor_cols,
+    group_col = "Group",
+    ind_names = setNames(
+      paste0("Sample", seq_len(nrow(plsr_df))),
+      rownames(plsr_df)
+    ),
+    comp_num = 2,
+    sparse = FALSE,
+    cv_opt = "mfold",
+    fold_num = 3,
+    scale = "none",
+    output_file = output_file,
+    font_settings = helper_font_settings,
+    progress = progress
+  )
+  loocv_result <- cyt_plsr(
+    plsr_df,
+    response_col = "IL.10",
+    predictor_cols = predictor_cols,
+    group_col = "Group",
+    comp_num = 2,
+    sparse = FALSE,
+    cv_opt = "loocv",
+    scale = "none"
+  )
+
+  expect_true(file.exists(output_file))
+  expect_equal(mfold_result$pdf_file, output_file)
+  expect_true(inherits(mfold_result$cv_plot, "recordedplot"))
+  expect_true(grepl("Q2", mfold_result$metrics_text, fixed = TRUE))
+  expect_true(inherits(loocv_result$cv_plot, "recordedplot"))
+  expect_true(grepl("Q2", loocv_result$metrics_text, fixed = TRUE))
+  expect_gt(length(progress$get_log()$inc), 0)
 })
 
 test_that("cyt_rf returns summary text, importance data, and ROC plot", {

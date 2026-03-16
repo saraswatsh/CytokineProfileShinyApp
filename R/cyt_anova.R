@@ -65,6 +65,9 @@ cyt_anova <- function(data, format_output = FALSE, progress = NULL) {
       )
       tukey_result <- stats::TukeyHSD(model)
       p_vals <- tukey_result[[cat_var]][, "p adj"]
+      if (is.null(names(p_vals))) {
+        names(p_vals) <- rownames(tukey_result[[cat_var]])
+      }
       result_key <- paste(outcome, cat_var, sep = "_")
       tukey_results[[result_key]] <- p_vals
       iter_count <- iter_count + 1

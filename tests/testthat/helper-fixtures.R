@@ -58,3 +58,82 @@ first_non_null <- function(x) {
 
   values[[1]]
 }
+
+make_progress_recorder <- function() {
+  log <- list(set = list(), inc = list())
+
+  list(
+    set = function(message = NULL, value = NULL, detail = NULL) {
+      log$set[[length(log$set) + 1L]] <<- list(
+        message = message,
+        value = value,
+        detail = detail
+      )
+      invisible(NULL)
+    },
+    inc = function(amount, detail = NULL) {
+      log$inc[[length(log$inc) + 1L]] <<- list(
+        amount = amount,
+        detail = detail
+      )
+      invisible(NULL)
+    },
+    get_log = function() log
+  )
+}
+
+helper_invalid_numeric_df <- data.frame(
+  good = c(1, 2, 3),
+  has_na = c(1, NA_real_, 3),
+  has_nan = c(1, NaN, 3),
+  has_inf = c(1, Inf, 3),
+  has_ninf = c(1, -Inf, 3)
+)
+
+helper_font_settings <- list(
+  base_size = 12,
+  plot_title = 14,
+  x_title = 13,
+  y_title = 13,
+  x_text = 11,
+  y_text = 10,
+  legend_title = 12,
+  legend_text = 11,
+  strip_text = 12,
+  annotation_text = 10,
+  row_names = 9,
+  col_names = 8,
+  cell_text = 7,
+  variable_names = 15,
+  point_labels = 16
+)
+
+anova_test_df <- data.frame(
+  Group = factor(rep(c("A", "B", "C"), each = 4)),
+  Batch = factor(rep(c("X", "Y"), times = 6)),
+  Outcome1 = c(1, 2, 2, 3, 4, 5, 5, 6, 7, 8, 8, 9),
+  Outcome2 = c(2, 3, 3, 4, 5, 6, 6, 7, 8, 9, 9, 10),
+  stringsAsFactors = FALSE
+)
+
+anova_invalid_df <- data.frame(
+  Group = factor(rep("A", 4)),
+  Outcome = c(1, 2, 3, 4)
+)
+
+bp2_test_df <- data.frame(
+  Group = factor(rep(c("A", "B"), each = 4)),
+  Marker1 = c(1, 2, 0, 4, 5, 6, -1, 8),
+  Marker2 = c(2, 4, 8, 16, 32, 64, 128, 256)
+)
+
+heatmap_constant_df <- data.frame(
+  Group = factor(c("A", "B", "A", "B")),
+  Marker1 = c(1, 1, 1, 1),
+  Marker2 = c(1, 2, 3, 4)
+)
+
+heatmap_bad_df <- data.frame(
+  Marker1 = c(1, NA_real_, 3),
+  Marker2 = c(2, Inf, 4)
+)
