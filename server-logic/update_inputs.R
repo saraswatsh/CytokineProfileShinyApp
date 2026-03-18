@@ -23,17 +23,17 @@ shiny::observeEvent(currentStep(), {
     # recompute the same choices used in step2UI()
     df <- userData()
     shiny::req(df)
-    all_cols <- setdiff(names(df), "..cyto_id..")
-    is_numeric_col <- vapply(df[all_cols], is.numeric, logical(1))
-    categorical_cols <- all_cols[!is_numeric_col]
-    numerical_cols <- all_cols[is_numeric_col]
+    col_info <- step2_classify_columns(df)
+    all_cols <- col_info$all
+    categorical_cols <- col_info$categorical
+    numerical_cols <- col_info$numerical
 
-    cat_selected <- intersect(
-      userState$selected_categorical_cols %||% categorical_cols,
+    cat_selected <- step2_restore_bucket_selection(
+      userState$selected_columns,
       categorical_cols
     )
-    num_selected <- intersect(
-      userState$selected_numerical_cols %||% numerical_cols,
+    num_selected <- step2_restore_bucket_selection(
+      userState$selected_columns,
       numerical_cols
     )
     shiny::updateCheckboxGroupInput(
@@ -53,6 +53,48 @@ shiny::observeEvent(currentStep(), {
       session,
       "step2_scale",
       selected = userState$step2_scale %||% "none"
+    )
+    shiny::updateSelectizeInput(
+      session,
+      "factor_cols",
+      choices = all_cols,
+      selected = intersect(userState$step2_factor_cols %||% character(0), all_cols)
+    )
+    shiny::updateSelectizeInput(
+      session,
+      "numeric_override_cols",
+      choices = all_cols,
+      selected = intersect(
+        userState$step2_numeric_override_cols %||% character(0),
+        all_cols
+      )
+    )
+    shiny::updateCheckboxInput(
+      session,
+      "factor_order_enable",
+      value = isTRUE(userState$step2_factor_order_enable)
+    )
+    factor_order_choices <- intersect(
+      userState$step2_factor_cols %||% character(0),
+      all_cols
+    )
+    factor_order_selected <- intersect(
+      userState$step2_factor_order_col %||% character(0),
+      factor_order_choices
+    )
+    if (!length(factor_order_selected) && length(factor_order_choices)) {
+      factor_order_selected <- factor_order_choices[1]
+    }
+    shiny::updateSelectInput(
+      session,
+      "factor_order_col",
+      choices = factor_order_choices,
+      selected = factor_order_selected
+    )
+    shiny::updateTextInput(
+      session,
+      "factor_levels_csv",
+      value = userState$step2_factor_levels_csv %||% ""
     )
   }
   if (currentStep() == 3) {

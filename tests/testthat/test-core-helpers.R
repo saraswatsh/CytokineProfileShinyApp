@@ -181,6 +181,39 @@ test_that("numeric validation helpers summarize invalid values", {
   )
 })
 
+test_that("Step 2 helpers normalize missing tokens and restore selections safely", {
+  expect_equal(
+    step2_normalize_missing_tokens(c("1", " NA ", "", "n/a", "NULL", "NaN")),
+    c("1", NA, NA, NA, NA, NA)
+  )
+
+  expect_true(step2_is_numeric_like(c("1", "2.5", "NA", "", "NULL", "NaN")))
+  expect_false(step2_is_numeric_like(c("1", "two", "3", "groupA")))
+
+  expect_equal(
+    step2_parse_numeric_values(c("1", "2.5", "NA", "bad", "1,200", "*3")),
+    c(1, 2.5, NA_real_, NA_real_, 1200, 3)
+  )
+
+  expect_equal(
+    step2_conflicting_type_cols(c("Group", "Batch"), c("IL6", "Batch")),
+    "Batch"
+  )
+
+  expect_equal(
+    step2_restore_bucket_selection(NULL, c("Group", "Batch")),
+    c("Group", "Batch")
+  )
+  expect_equal(
+    step2_restore_bucket_selection(character(0), c("Group", "Batch")),
+    character(0)
+  )
+  expect_equal(
+    step2_restore_bucket_selection(c("Group", "IL6"), c("Group", "Batch")),
+    "Group"
+  )
+})
+
 test_that("safe_zscore_column handles all-missing, non-finite, zero-variance, and standard inputs", {
   expect_error(
     safe_zscore_column(c(NA_real_, NA_real_)),

@@ -129,6 +129,11 @@ resetState <- function() {
 
   # Step 2 preprocessing
   userState$step2_scale = "none"
+  userState$step2_factor_cols = NULL
+  userState$step2_numeric_override_cols = NULL
+  userState$step2_factor_order_enable = FALSE
+  userState$step2_factor_order_col = NULL
+  userState$step2_factor_levels_csv = NULL
 
   # Boxplots options
   userState$bp_bin_size = NULL
@@ -874,10 +879,17 @@ step1UI <- function() {
 step2UI <- function() {
   {
     df <- userData()
-    all_cols <- names(df)[names(df) != "..cyto_id.."]
-    is_numeric_col <- sapply(df[all_cols], is.numeric)
-    numeric_cols <- all_cols[is_numeric_col]
-    categorical_cols <- all_cols[!is_numeric_col]
+    col_info <- step2_classify_columns(df)
+    numeric_cols <- col_info$numerical
+    categorical_cols <- col_info$categorical
+    selected_cat <- step2_restore_bucket_selection(
+      userState$selected_columns,
+      categorical_cols
+    )
+    selected_num <- step2_restore_bucket_selection(
+      userState$selected_columns,
+      numeric_cols
+    )
 
     shiny::tagList(
       stepHeader(currentStep()),
@@ -911,17 +923,7 @@ step2UI <- function() {
                   inputId = "selected_categorical_cols",
                   label = NULL,
                   choices = categorical_cols,
-                  selected = {
-                    init_cat <- intersect(
-                      userState$selected_columns,
-                      categorical_cols
-                    )
-                    if (length(init_cat) == 0) {
-                      categorical_cols
-                    } else {
-                      init_cat
-                    }
-                  },
+                  selected = selected_cat,
                   inline = TRUE
                 )
               )
@@ -954,13 +956,7 @@ step2UI <- function() {
                   inputId = "selected_numerical_cols",
                   label = NULL,
                   choices = numeric_cols,
-                  selected = {
-                    init_num <- intersect(
-                      userState$selected_columns,
-                      numeric_cols
-                    )
-                    if (length(init_num) == 0) numeric_cols else init_num
-                  },
+                  selected = selected_num,
                   inline = TRUE
                 )
               )
@@ -973,7 +969,17 @@ step2UI <- function() {
               "2a. Treat Columns as Categorical"
             ),
             bslib::card_body(
-              shiny::uiOutput("step2_type_ui") # your dynamic controls render here
+              shiny::uiOutput("step2_factor_type_ui")
+            )
+          ),
+          bslib::card(
+            class = "mb-3",
+            bslib::card_header(
+              class = "bg-info",
+              "2b. Treat Columns as Numeric"
+            ),
+            bslib::card_body(
+              shiny::uiOutput("step2_numeric_type_ui")
             )
           ),
           # 3) Optional: data transformation
@@ -1668,14 +1674,16 @@ shiny::observeEvent(input$ok_no_data, {
 
 # A) Combine the two checkboxGroupInputs
 selected_columns_combined <- shiny::reactive({
-  c(input$selected_categorical_cols, input$selected_numerical_cols)
+  unique(c(
+    input$selected_categorical_cols %||% character(0),
+    input$selected_numerical_cols %||% character(0)
+  ))
 })
 
 # B) “Select / Deselect All” observers
 shiny::observeEvent(input$select_all_cat, {
   df <- userData()
-  all_cols <- setdiff(names(df), "..cyto_id..")
-  cat_cols <- all_cols[!sapply(df[all_cols], is.numeric)]
+  cat_cols <- step2_classify_columns(df)$categorical
   shiny::updateCheckboxGroupInput(
     session,
     "selected_categorical_cols",
@@ -1684,8 +1692,6 @@ shiny::observeEvent(input$select_all_cat, {
 })
 shiny::observeEvent(input$deselect_all_cat, {
   df <- userData()
-  all_cols <- setdiff(names(df), "..cyto_id..")
-  cat_cols <- all_cols[!sapply(df[all_cols], is.numeric)]
   shiny::updateCheckboxGroupInput(
     session,
     "selected_categorical_cols",
@@ -1694,8 +1700,7 @@ shiny::observeEvent(input$deselect_all_cat, {
 })
 shiny::observeEvent(input$select_all_num, {
   df <- userData()
-  all_cols <- setdiff(names(df), "..cyto_id..")
-  numeric_cols <- all_cols[sapply(df[all_cols], is.numeric)]
+  numeric_cols <- step2_classify_columns(df)$numerical
   shiny::updateCheckboxGroupInput(
     session,
     "selected_numerical_cols",
@@ -1704,8 +1709,6 @@ shiny::observeEvent(input$select_all_num, {
 })
 shiny::observeEvent(input$deselect_all_num, {
   df <- userData()
-  all_cols <- setdiff(names(df), "..cyto_id..")
-  numeric_cols <- all_cols[sapply(df[all_cols], is.numeric)]
   shiny::updateCheckboxGroupInput(
     session,
     "selected_numerical_cols",
@@ -2342,6 +2345,12 @@ shiny::observeEvent(input$next2, {
   userState$selected_categorical_cols <- input$selected_categorical_cols
   userState$selected_numerical_cols <- input$selected_numerical_cols
   userState$step2_scale <- input$step2_scale
+  userState$step2_factor_cols <- input$factor_cols %||% character(0)
+  userState$step2_numeric_override_cols <- input$numeric_override_cols %||%
+    character(0)
+  userState$step2_factor_order_enable <- isTRUE(input$factor_order_enable)
+  userState$step2_factor_order_col <- input$factor_order_col
+  userState$step2_factor_levels_csv <- input$factor_levels_csv %||% ""
   currentPage("step3")
   currentStep(3)
 })

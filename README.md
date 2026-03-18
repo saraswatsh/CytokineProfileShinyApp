@@ -9,7 +9,7 @@ Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShin
 [![Development](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CodeFactor](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/badge/devel)](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/overview/devel)
 [![R-CMD-check](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml)
-[![codecov](https://codecov.io/gh/saraswatsh/CytokineProfileShinyApp/branch/devel/graph/badge.svg?token=0SIQVV5WD3)](https://codecov.io/gh/saraswatsh/CytokineProfileShinyApp)
+[![codecov](https://codecov.io/gh/saraswatsh/CytokineProfileShinyApp/branch/devel/graph/badge.svg?token=0SIQVV5WD3)](https://app.codecov.io/gh/saraswatsh/CytokineProfileShinyApp/tree/devel)
 <!-- badges: end -->
 
 # CytokineProfile Shiny Application <a href="https://shinyinfo.cytokineprofile.org/"><img src="man/figures/logo.png" alt="CytokineProfileShiny App website" align="right" height="134"/></a>
@@ -87,6 +87,8 @@ The app is structured as a multi-step wizard:
 - Transformation: Apply log2 transformation if needed.
   - Preview data distribution with and without transformation.
 - Convert columns to categorical variables.
+- Convert selected columns back to numeric while keeping non-parsable values as missing.
+- Automatically recognize more numeric-looking columns even when common missing-value tokens are present.
 - Filter Data: Apply filters to categorical variables.
 - Missing Value Handling: Choose to impute them using various methods.
 

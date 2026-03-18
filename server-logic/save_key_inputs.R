@@ -18,14 +18,21 @@ shiny::observeEvent(
 shiny::observeEvent(
   list(input$selected_categorical_cols, input$selected_numerical_cols),
   {
+    if (
+      is.null(input$selected_categorical_cols) &&
+        is.null(input$selected_numerical_cols)
+    ) {
+      return()
+    }
+
     userState$selected_categorical_cols <- input$selected_categorical_cols
     userState$selected_numerical_cols <- input$selected_numerical_cols
 
     # Combine category + numeric selections into a single vector (may be empty)
-    sc <- c(
+    sc <- unique(c(
       input$selected_categorical_cols %||% character(0),
       input$selected_numerical_cols %||% character(0)
-    )
+    ))
     userState$selected_columns <- sc
 
     # Reset manual override flags so defaults will recompute when the
@@ -71,6 +78,21 @@ shiny::observeEvent(
 shiny::observeEvent(input$step2_scale, {
   userState$step2_scale <- input$step2_scale
 })
+shiny::observeEvent(input$factor_cols, {
+  userState$step2_factor_cols <- input$factor_cols
+}, ignoreNULL = TRUE)
+shiny::observeEvent(input$numeric_override_cols, {
+  userState$step2_numeric_override_cols <- input$numeric_override_cols
+}, ignoreNULL = TRUE)
+shiny::observeEvent(input$factor_order_enable, {
+  userState$step2_factor_order_enable <- input$factor_order_enable
+}, ignoreNULL = TRUE)
+shiny::observeEvent(input$factor_order_col, {
+  userState$step2_factor_order_col <- input$factor_order_col
+}, ignoreNULL = TRUE)
+shiny::observeEvent(input$factor_levels_csv, {
+  userState$step2_factor_levels_csv <- input$factor_levels_csv
+}, ignoreNULL = TRUE)
 shiny::observeEvent(selected_function(), {
   userState$selected_function <- selected_function()
 })

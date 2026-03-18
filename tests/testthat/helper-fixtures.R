@@ -147,3 +147,39 @@ heatmap_bad_df <- data.frame(
   Marker1 = c(1, NA_real_, 3),
   Marker2 = c(2, Inf, 4)
 )
+
+make_plsr_sparse_missing_fixture <- function() {
+  data.frame(
+    Outcome = c(10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32),
+    MarkerA = c(5, 6, 8, 9, 11, 12, 14, 15, 17, 18, 20, 21),
+    MarkerB = c(30, 29, 28, 26, 25, 23, 22, 20, 19, 18, 16, 15),
+    MarkerC = c(100, NA, 102, 103, NA, 105, 106, 107, 108, NA, 110, 111),
+    MarkerSparse = c(1.5, NA, NA, NA, NA, 2.5, NA, NA, NA, NA, NA, NA)
+  )
+}
+
+make_plsr_vip_single_predictor_fixture <- function() {
+  data.frame(
+    Outcome = c(5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27),
+    Driver = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24),
+    Weak = c(9, -8, 7, -6, 5, -4, 3, -2, 1, -3, 2, -1)
+  )
+}
+
+make_plsr_one_component_fixture <- function() {
+  data.frame(
+    Outcome = c(8, 10, 12, 14, 16, 18),
+    MarkerA = c(1, 2, 3, 4, 5, 6),
+    MarkerB = c(10, NA, 12, 13, NA, 15),
+    MarkerC = c(30, 31, 33, 34, 36, 37)
+  )
+}
+
+make_plsr_unusable_predictor_fixture <- function() {
+  data.frame(
+    Outcome = c(2, 4, 6, 8, 10, 12),
+    MissingAll = rep(NA_real_, 6),
+    SparseFew = c(1, NA, NA, NA, 2, NA),
+    Constant = rep(7, 6)
+  )
+}

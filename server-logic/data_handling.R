@@ -22,6 +22,22 @@ apply_stamp <- shiny::reactiveVal(0)
 shiny::observeEvent(
   input$apply_types,
   {
+    factor_cols <- shiny::isolate(input$factor_cols) %||% character(0)
+    numeric_cols <- shiny::isolate(input$numeric_override_cols) %||% character(0)
+    overlap <- step2_conflicting_type_cols(factor_cols, numeric_cols)
+
+    if (length(overlap)) {
+      shiny::showNotification(
+        paste(
+          "Choose only one type override per column.",
+          "Remove these overlaps:",
+          paste(overlap, collapse = ", ")
+        ),
+        type = "error"
+      )
+      return()
+    }
+
     apply_stamp(apply_stamp() + 1)
   },
   ignoreInit = TRUE
@@ -52,6 +68,15 @@ shiny::observeEvent(
     # selected sheet). Also clear the saved userState sheet name so the UI
     # doesn't re-populate with an invalid value.
     userState$sheet_name <- NULL
+    userState$selected_columns <- NULL
+    userState$selected_categorical_cols <- NULL
+    userState$selected_numerical_cols <- NULL
+    userState$step2_scale <- "none"
+    userState$step2_factor_cols <- NULL
+    userState$step2_numeric_override_cols <- NULL
+    userState$step2_factor_order_enable <- FALSE
+    userState$step2_factor_order_col <- NULL
+    userState$step2_factor_levels_csv <- NULL
     try(
       shiny::updateSelectizeInput(
         session,
@@ -83,6 +108,15 @@ shiny::observeEvent(
     bioplex$user_columns <- character(0)
     excel_cache(list())
     userState$sheet_name <- NULL
+    userState$selected_columns <- NULL
+    userState$selected_categorical_cols <- NULL
+    userState$selected_numerical_cols <- NULL
+    userState$step2_scale <- "none"
+    userState$step2_factor_cols <- NULL
+    userState$step2_numeric_override_cols <- NULL
+    userState$step2_factor_order_enable <- FALSE
+    userState$step2_factor_order_col <- NULL
+    userState$step2_factor_levels_csv <- NULL
     try(
       shiny::updateSelectizeInput(
         session,
@@ -166,11 +200,11 @@ userData <- shiny::reactive({
         cleaned <- tryCatch(
           .clean_bioplex_column(df[[nm]]),
           error = function(e) {
-            df[[nm]]
+            step2_parse_numeric_values(df[[nm]])
           }
         )
         if (is.numeric(cleaned)) {
-          df[[nm]] <- cleaned
+          df[[nm]] <- as.numeric(cleaned)
         } else {
           df[[nm]] <- as.character(df[[nm]])
         }
@@ -182,21 +216,47 @@ userData <- shiny::reactive({
 
   # --- apply user-chosen types when the button is pressed ---
   if (apply_stamp() > 0) {
-    fc <- shiny::isolate(input$factor_cols)
+    fc <- userState$step2_factor_cols %||%
+      shiny::isolate(input$factor_cols) %||%
+      character(0)
+    nc <- userState$step2_numeric_override_cols %||%
+      shiny::isolate(input$numeric_override_cols) %||%
+      character(0)
+    overlap <- step2_conflicting_type_cols(fc, nc)
+
+    if (length(overlap)) {
+      return(df)
+    }
+
+    if (length(nc)) {
+      keep_num <- intersect(nc, names(df))
+      df[keep_num] <- lapply(df[keep_num], step2_parse_numeric_values)
+    }
+
     if (length(fc)) {
-      keep <- intersect(fc, names(df))
-      df[keep] <- lapply(df[keep], function(x) factor(as.character(x)))
+      keep_factor <- intersect(fc, names(df))
+      df[keep_factor] <- lapply(df[keep_factor], function(x) {
+        factor(step2_normalize_missing_tokens(x))
+      })
+    } else {
+      keep_factor <- character(0)
     }
     if (
-      isTRUE(shiny::isolate(input$factor_order_enable)) &&
-        shiny::isTruthy(shiny::isolate(input$factor_order_col)) &&
-        shiny::isTruthy(shiny::isolate(input$factor_levels_csv))
+      isTRUE(userState$step2_factor_order_enable %||%
+        shiny::isolate(input$factor_order_enable)) &&
+        shiny::isTruthy(userState$step2_factor_order_col %||%
+          shiny::isolate(input$factor_order_col)) &&
+        shiny::isTruthy(userState$step2_factor_levels_csv %||%
+          shiny::isolate(input$factor_levels_csv))
     ) {
-      target <- shiny::isolate(input$factor_order_col)
-      if (target %in% names(df)) {
-        levs <- trimws(strsplit(shiny::isolate(input$factor_levels_csv), ",")[[
-          1
-        ]])
+      target <- userState$step2_factor_order_col %||%
+        shiny::isolate(input$factor_order_col)
+      if (target %in% keep_factor) {
+        levs <- trimws(strsplit(
+          userState$step2_factor_levels_csv %||%
+            shiny::isolate(input$factor_levels_csv),
+          ","
+        )[[1]])
         if (length(levs)) {
           df[[target]] <- factor(as.character(df[[target]]), levels = levs)
         }
@@ -1077,7 +1137,7 @@ shiny::observeEvent(input$bioplex_modal_delete_cols, {
   if (is.numeric(v)) {
     return(v)
   } # already numeric
-  v_chr <- as.character(v)
+  v_chr <- step2_normalize_missing_tokens(v)
 
   # Detect OOR tokens (case-insensitive)
   oor_gt <- grepl("(?i)\\bOOR\\s*>", v_chr, perl = TRUE)
@@ -1119,31 +1179,7 @@ shiny::observeEvent(input$bioplex_modal_delete_cols, {
 # Heuristic: should this column be treated as numeric?
 # Heuristic: should this column be treated as numeric?
 .is_numeric_like <- function(v) {
-  if (is.numeric(v)) {
-    return(TRUE)
-  }
-
-  v_chr <- as.character(v)
-
-  # tokens like "OOR >", "OOR<", with or without spaces
-  oor_token <- grepl("(?i)\\bOOR\\s*[<>]", v_chr, perl = TRUE)
-
-  # pre-clean the obvious noise so we can probe numeric-ness
-  base <- gsub("\\*|,", "", v_chr)
-  base <- gsub("(?i)\\bOOR\\s*[<>]", "", base, perl = TRUE)
-
-  num <- suppressWarnings(as.numeric(gsub("[^0-9eE+\\-\\.]", "", base)))
-
-  # After removing OOR, check if there are still letters left.
-  # This correctly ignores the letters in "OOR" itself.
-  v_no_oor <- gsub("(?i)\\bOOR\\b", "", v_chr)
-  prop_letters <- mean(grepl("[A-Za-z]", v_no_oor))
-
-  prop_numeric <- mean(!is.na(num) & nzchar(trimws(v_chr)))
-  prop_oor <- mean(oor_token) # count OOR as “numeric-like”
-
-  # Numeric-like if (numbers + OOR) dominate and column isn't mostly other text
-  isTRUE((prop_numeric + prop_oor) >= 0.7 && prop_letters < 0.4)
+  step2_is_numeric_like(v)
 }
 
 # Columns to never coerce (common label/meta names; case-insensitive)

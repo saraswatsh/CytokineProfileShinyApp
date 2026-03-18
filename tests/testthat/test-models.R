@@ -790,6 +790,92 @@ test_that("cyt_plsr supports CV, font settings, named labels, and PDF output", {
   expect_gt(length(progress$get_log()$inc), 0)
 })
 
+test_that("cyt_plsr drops sparse predictors and fits with partial missingness", {
+  with_temp_pdf_device({
+    plsr_df <- make_plsr_sparse_missing_fixture()
+
+    expect_warning(
+      result <- cyt_plsr(
+        plsr_df,
+        response_col = "Outcome",
+        predictor_cols = c("MarkerA", "MarkerB", "MarkerC", "MarkerSparse"),
+        comp_num = 2,
+        scale = "none"
+      ),
+      "PLSR dropped unusable predictors before fitting"
+    )
+
+    expect_true(inherits(result$scores_plot, "recordedplot"))
+    expect_true(inherits(result$pred_vs_obs, "recordedplot"))
+    expect_true(inherits(result$residuals_plot, "recordedplot"))
+    expect_true(
+      grepl("Dropped predictors before fitting", result$metrics_text, fixed = TRUE)
+    )
+    expect_true(grepl("MarkerSparse", result$metrics_text, fixed = TRUE))
+  })
+})
+
+test_that("cyt_plsr skips VIP preview when only one predictor remains above threshold", {
+  with_temp_pdf_device({
+    plsr_df <- make_plsr_vip_single_predictor_fixture()
+
+    result <- cyt_plsr(
+      plsr_df,
+      response_col = "Outcome",
+      predictor_cols = c("Driver", "Weak"),
+      comp_num = 2,
+      scale = "none"
+    )
+
+    expect_true(inherits(result$scores_plot, "recordedplot"))
+    expect_true(inherits(result$pred_vs_obs, "recordedplot"))
+    expect_true(inherits(first_non_null(result$vip_scores), "ggplot"))
+    expect_null(result$vip_scores_indiv)
+    expect_null(result$vip_cv_plot)
+    expect_true(
+      grepl(
+        "Skipped VIP>1 preview because only one predictor remained",
+        result$metrics_text,
+        fixed = TRUE
+      )
+    )
+  })
+})
+
+test_that("cyt_plsr supports one-component prediction with partial missingness", {
+  with_temp_pdf_device({
+    plsr_df <- make_plsr_one_component_fixture()
+
+    result <- cyt_plsr(
+      plsr_df,
+      response_col = "Outcome",
+      predictor_cols = c("MarkerA", "MarkerB", "MarkerC"),
+      comp_num = 1,
+      scale = "none"
+    )
+
+    expect_true(inherits(result$scores_plot, "recordedplot"))
+    expect_true(inherits(result$pred_vs_obs, "recordedplot"))
+    expect_true(inherits(result$residuals_plot, "recordedplot"))
+    expect_length(result$loadings, 1)
+  })
+})
+
+test_that("cyt_plsr errors when all selected predictors are unusable", {
+  plsr_df <- make_plsr_unusable_predictor_fixture()
+
+  expect_error(
+    suppressWarnings(cyt_plsr(
+      plsr_df,
+      response_col = "Outcome",
+      predictor_cols = c("MissingAll", "SparseFew", "Constant"),
+      comp_num = 2,
+      scale = "none"
+    )),
+    "PLSR requires at least 2 usable numeric predictors after filtering missingness"
+  )
+})
+
 test_that("cyt_rf returns summary text, importance data, and ROC plot", {
   with_temp_pdf_device({
     model_features <- names(ex1_binary_group)[vapply(ex1_binary_group, is.numeric, logical(1))][2:8]
