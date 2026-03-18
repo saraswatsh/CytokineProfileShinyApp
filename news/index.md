@@ -25,11 +25,18 @@ to read, and more reliable.
 - Columns that look like numbers, even when they include symbols or
   common missing-value markers, are now more likely to be recognized
   correctly.
+- Step 2 now lets you force selected columns back to numeric, and any
+  leftover non-numeric entries are converted to missing values instead
+  of blocking numeric workflows.
 - Column selections now update more smoothly, and related defaults stay
   in sync better as you change your data choices.
 - The missing-value help now gives clearer guidance on when to use mean,
   median, mode, and the two nearest-neighbor options, and the popup is
   easier to read.
+- PLSR now handles partially missing predictor data more gracefully by
+  keeping usable rows, dropping only unusable predictors, and giving
+  clearer guidance when sparse columns may need missing-value treatment
+  first.
 - If your uploaded data includes out-of-range values, the app now warns
   you when you click `Save & Use` and explains what was adjusted in
   plain language.
@@ -56,6 +63,11 @@ to read, and more reliable.
   consistently.
 - The missing-value help popup now opens more cleanly and is less likely
   to be cut off inside the app window.
+- PLSR is now more stable when only one component can be fit, and the
+  VIP\>1 follow-up preview now skips safely instead of failing when too
+  few predictors remain.
+- Deselecting all categorical columns in Step 2 now stays deselected
+  instead of snapping back to all selected.
 
 ### Behind the Scenes
 

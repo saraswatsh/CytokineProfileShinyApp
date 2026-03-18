@@ -73,6 +73,10 @@ The app is structured as a multi-step wizard:
 - Transformation: Apply log2 transformation if needed.
   - Preview data distribution with and without transformation.
 - Convert columns to categorical variables.
+- Convert selected columns back to numeric while keeping non-parsable
+  values as missing.
+- Automatically recognize more numeric-looking columns even when common
+  missing-value tokens are present.
 - Filter Data: Apply filters to categorical variables.
 - Missing Value Handling: Choose to impute them using various methods.
 
