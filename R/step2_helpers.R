@@ -1,4 +1,11 @@
-# Shared helpers for Step 2 column typing and selection restoration.
+#' Internal Step 2 helpers
+#'
+#' Shared helper functions for Step 2 column typing, missing-value handling,
+#' and selection restoration.
+#'
+#' @name step2_internal_helpers
+#' @noRd
+NULL
 
 step2_missing_token_mask <- function(x) {
   x_chr <- trimws(as.character(x))
@@ -57,14 +64,20 @@ step2_is_numeric_like <- function(
   isTRUE(prop_numeric >= min_fraction && prop_letters < max_letter_fraction)
 }
 
-step2_conflicting_type_cols <- function(factor_cols = NULL, numeric_cols = NULL) {
+step2_conflicting_type_cols <- function(
+  factor_cols = NULL,
+  numeric_cols = NULL
+) {
   factor_cols <- if (is.null(factor_cols)) character(0) else factor_cols
   numeric_cols <- if (is.null(numeric_cols)) character(0) else numeric_cols
 
   intersect(factor_cols, numeric_cols)
 }
 
-step2_restore_bucket_selection <- function(selected_columns, available_choices) {
+step2_restore_bucket_selection <- function(
+  selected_columns,
+  available_choices
+) {
   available_choices <- unique(as.character(available_choices))
 
   if (is.null(selected_columns)) {

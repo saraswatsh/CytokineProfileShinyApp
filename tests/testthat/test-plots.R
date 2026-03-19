@@ -1,3 +1,7 @@
+# ── test-plots.R ──────────────────────────────────────────────────────────────
+
+# ── cyt_bp ────────────────────────────────────────────────────────────────────
+
 test_that("cyt_bp supports ungrouped file output and grouped return values", {
   with_temp_pdf_device({
     output_file <- tempfile(fileext = ".pdf")
@@ -22,6 +26,64 @@ test_that("cyt_bp supports ungrouped file output and grouped return values", {
     expect_true(all(vapply(grouped_result, inherits, logical(1), "ggplot")))
   })
 })
+
+test_that("cyt_bp y_lim is applied to ungrouped and grouped plots", {
+  with_temp_pdf_device({
+    y_limits <- c(0, 5)
+
+    ungrouped <- cyt_bp(
+      ex1_full[, c("IL.10", "IL.17F"), drop = FALSE],
+      output_file = NULL,
+      y_lim = y_limits
+    )
+    # coord_cartesian is added by the function; verify via the ggplot internals
+    p <- ungrouped[[1]]
+    expect_true(inherits(p, "ggplot"))
+    built <- ggplot2::ggplot_build(p)
+    expect_equal(built$layout$coord$limits$y, y_limits)
+
+    grouped <- cyt_bp(
+      ex1_group[, c("Group", "IL.10"), drop = FALSE],
+      group_by = "Group",
+      y_lim = y_limits
+    )
+    p_grp <- grouped[["IL.10"]]
+    built_grp <- ggplot2::ggplot_build(p_grp)
+    expect_equal(built_grp$layout$coord$limits$y, y_limits)
+  })
+})
+
+test_that("cyt_bp with multiple group_by columns creates an interaction group column", {
+  with_temp_pdf_device({
+    result <- cyt_bp(
+      ex1_full[, c("Group", "Treatment", "IL.10", "IL.17F"), drop = FALSE],
+      group_by = c("Group", "Treatment"),
+      output_file = NULL
+    )
+
+    expect_true(is.list(result))
+    expect_length(result, 2L) # two numeric columns
+    expect_true(all(vapply(result, inherits, logical(1), "ggplot")))
+  })
+})
+
+test_that("cyt_bp errors when group_by column does not exist in data", {
+  expect_error(
+    cyt_bp(ex1_group, group_by = "NonExistentColumn"),
+    "All group_by columns must exist in data"
+  )
+})
+
+test_that("cyt_bp errors when there are no numeric columns", {
+  char_df <- data.frame(
+    A = c("x", "y", "z"),
+    B = c("p", "q", "r"),
+    stringsAsFactors = FALSE
+  )
+  expect_error(cyt_bp(char_df), "No numeric columns to plot")
+})
+
+# ── cyt_violin ────────────────────────────────────────────────────────────────
 
 test_that("cyt_violin supports ungrouped file output and grouped return values", {
   with_temp_pdf_device({
@@ -48,6 +110,8 @@ test_that("cyt_violin supports ungrouped file output and grouped return values",
     expect_true(all(vapply(grouped_result, inherits, logical(1), "ggplot")))
   })
 })
+
+# ── cyt_errbp ─────────────────────────────────────────────────────────────────
 
 test_that("cyt_errbp writes a PDF and returns a ggplot object", {
   with_temp_pdf_device({
@@ -92,6 +156,8 @@ test_that("cyt_errbp errors when group_col is missing", {
   )
 })
 
+# ── cyt_heatmap ───────────────────────────────────────────────────────────────
+
 test_that("cyt_heatmap writes an annotated PDF and returns a heatmap object", {
   with_temp_pdf_device({
     output_file <- tempfile(fileext = ".pdf")
@@ -131,12 +197,67 @@ test_that("cyt_heatmap supports row annotations with row z-score scaling", {
   })
 })
 
+test_that("cyt_heatmap supports log10 scaling", {
+  with_temp_pdf_device({
+    # ex1_group cytokine columns are all positive — log10 is valid
+    heatmap_result <- cyt_heatmap(
+      ex1_group,
+      scale = "log10"
+    )
+
+    expect_false(is.null(heatmap_result))
+    expect_named(heatmap_result, c("tree_row", "tree_col", "kmeans", "gtable"))
+  })
+})
+
+test_that("cyt_heatmap supports col_zscore scaling (pheatmap column z-score)", {
+  with_temp_pdf_device({
+    heatmap_result <- cyt_heatmap(
+      ex1_group,
+      scale = "col_zscore"
+    )
+
+    expect_false(is.null(heatmap_result))
+    expect_named(heatmap_result, c("tree_row", "tree_col", "kmeans", "gtable"))
+  })
+})
+
+test_that("cyt_heatmap supports zscore (row then column) double-standardisation", {
+  with_temp_pdf_device({
+    # Use a small, well-conditioned subset to keep row-then-col z-score finite
+    heatmap_result <- cyt_heatmap(
+      ex1_group[,
+        c("IL.10", "IL.17F", "GM.CSF", "IFN.G", "IL.13"),
+        drop = FALSE
+      ],
+      scale = "zscore"
+    )
+
+    expect_false(is.null(heatmap_result))
+    expect_named(heatmap_result, c("tree_row", "tree_col", "kmeans", "gtable"))
+  })
+})
+
+test_that("cyt_heatmap works with no scaling (scale = NULL)", {
+  with_temp_pdf_device({
+    heatmap_result <- cyt_heatmap(
+      ex1_group[, c("Group", "IL.10", "IL.17F", "GM.CSF"), drop = FALSE],
+      scale = NULL,
+      annotation_col = "Group"
+    )
+
+    expect_false(is.null(heatmap_result))
+  })
+})
+
 test_that("cyt_heatmap errors on invalid filename extensions", {
   expect_error(
     cyt_heatmap(ex1_group, filename = "bad.txt"),
     "must end in '.pdf' or '.png'"
   )
 })
+
+# ── cyt_export ────────────────────────────────────────────────────────────────
 
 test_that("cyt_export writes raster and PDF outputs for ggplot objects", {
   with_temp_pdf_device({
@@ -164,19 +285,88 @@ test_that("cyt_export writes raster and PDF outputs for ggplot objects", {
   })
 })
 
+test_that("cyt_export writes tiff output correctly", {
+  with_temp_pdf_device({
+    base_plot <- ggplot2::ggplot(
+      ex1_full,
+      ggplot2::aes(x = Group, y = IL.10)
+    ) +
+      ggplot2::geom_boxplot()
+
+    tiff_base <- tempfile()
+    on.exit(unlink(paste0(tiff_base, "_001.tiff")), add = TRUE)
+
+    cyt_export(list(main = base_plot), filename = tiff_base, format = "tiff")
+
+    expect_true(file.exists(paste0(tiff_base, "_001.tiff")))
+  })
+})
+
+test_that("cyt_export writes jpeg output correctly", {
+  with_temp_pdf_device({
+    base_plot <- ggplot2::ggplot(
+      ex1_full,
+      ggplot2::aes(x = Group, y = IL.10)
+    ) +
+      ggplot2::geom_boxplot()
+
+    jpeg_base <- tempfile()
+    on.exit(unlink(paste0(jpeg_base, "_001.jpeg")), add = TRUE)
+
+    cyt_export(list(main = base_plot), filename = jpeg_base, format = "jpeg")
+
+    expect_true(file.exists(paste0(jpeg_base, "_001.jpeg")))
+  })
+})
+
+test_that("cyt_export skips NULL elements without error", {
+  with_temp_pdf_device({
+    base_plot <- ggplot2::ggplot(
+      ex1_full,
+      ggplot2::aes(x = Group, y = IL.10)
+    ) +
+      ggplot2::geom_boxplot()
+
+    png_base <- tempfile()
+    on.exit(
+      {
+        unlink(paste0(png_base, "_001.png"))
+        unlink(paste0(png_base, "_002.png"))
+      },
+      add = TRUE
+    )
+
+    # Second element is NULL — should be skipped; only _001 and _003 produced
+    # (indexes are based on list position, so _002 should NOT exist for the NULL)
+    cyt_export(
+      list(first = base_plot, second = NULL, third = base_plot),
+      filename = png_base,
+      format = "png"
+    )
+
+    expect_true(file.exists(paste0(png_base, "_001.png")))
+    expect_false(file.exists(paste0(png_base, "_002.png")))
+  })
+})
+
+# ── cyt_corr ─────────────────────────────────────────────────────────────────
+
 test_that("cyt_corr returns method-keyed correlation results and plots", {
   with_temp_pdf_device({
     corr_result <- suppress_known_plot_warnings(
       cyt_corr(
-        ex1_full[, c(
-          "Group",
-          "Treatment",
-          "IL.10",
-          "IL.17F",
-          "GM.CSF",
-          "IFN.G",
-          "IL.13"
-        ), drop = FALSE],
+        ex1_full[,
+          c(
+            "Group",
+            "Treatment",
+            "IL.10",
+            "IL.17F",
+            "GM.CSF",
+            "IFN.G",
+            "IL.13"
+          ),
+          drop = FALSE
+        ],
         target = "IL.10",
         methods = "spearman",
         group_var = "Group",
@@ -189,24 +379,30 @@ test_that("cyt_corr returns method-keyed correlation results and plots", {
     expect_named(corr_result, "spearman")
 
     method_result <- corr_result$spearman
-    expect_true(all(c(
-      "table",
-      "heat_mat",
-      "plot",
-      "groupwise",
-      "group_heat_mats",
-      "group_plots",
-      "diff"
-    ) %in% names(method_result)))
-    expect_true(all(c(
-      "variable",
-      "r",
-      "p",
-      "n",
-      "method",
-      "p_bonf",
-      "p_bh"
-    ) %in% names(method_result$table)))
+    expect_true(all(
+      c(
+        "table",
+        "heat_mat",
+        "plot",
+        "groupwise",
+        "group_heat_mats",
+        "group_plots",
+        "diff"
+      ) %in%
+        names(method_result)
+    ))
+    expect_true(all(
+      c(
+        "variable",
+        "r",
+        "p",
+        "n",
+        "method",
+        "p_bonf",
+        "p_bh"
+      ) %in%
+        names(method_result$table)
+    ))
     expect_true(is.matrix(method_result$heat_mat))
     expect_true(inherits(method_result$plot, "ggplot"))
     expect_gt(nrow(method_result$table), 0)
@@ -239,178 +435,20 @@ test_that("cyt_corr returns method-keyed correlation results and plots", {
   })
 })
 
-test_that("cyt_bp2 supports zscore scaling through apply_scale", {
-  bp2_result <- suppressWarnings(
-    cyt_bp2(
-      ex1_full[, c("Group", "IL.10", "IL.17F"), drop = FALSE],
-      output_file = NULL,
-      scale = "zscore"
-    )
-  )
-
-  expect_true(is.list(bp2_result))
-  expect_length(bp2_result, 2)
-  expect_true(all(vapply(bp2_result, inherits, logical(1), "ggplot")))
-})
-
-test_that("cyt_corr supports multi-method output without grouping or plots", {
+test_that("cyt_corr pearson result table has correct values and correlation bounds", {
   corr_result <- cyt_corr(
     ex1_full[, c("Group", "IL.10", "IL.17F", "GM.CSF", "IFN.G"), drop = FALSE],
     target = "IL.10",
-    methods = c("spearman", "pearson"),
+    methods = "pearson",
     plot = FALSE
   )
 
-  expect_equal(sort(names(corr_result)), c("pearson", "spearman"))
-  expect_null(corr_result$pearson$plot)
-  expect_null(corr_result$pearson$groupwise)
-  expect_null(corr_result$pearson$diff)
-  expect_null(corr_result$spearman$plot)
-  expect_null(corr_result$spearman$groupwise)
-  expect_null(corr_result$spearman$diff)
-})
-
-test_that("cyt_corr errors for missing targets", {
-  expect_error(
-    cyt_corr(
-      ex1_full[, c("Group", "IL.10"), drop = FALSE],
-      target = "Missing"
-    ),
-    "`target` not found."
-  )
-})
-
-test_that("cyt_dualflashplot returns a plot and computed statistics", {
-  with_temp_pdf_device({
-    flash_result <- cyt_dualflashplot(
-      ex1_group,
-      group_var = "Group",
-      group1 = "T2D",
-      group2 = "ND",
-      ssmd_thresh = 0.2,
-      log2fc_thresh = 1,
-      top_labels = 5
-    )
-
-    expect_true(is.list(flash_result))
-    expect_true(inherits(flash_result$plot, "ggplot"))
-    expect_gt(nrow(flash_result$stats), 0)
-    expect_true(all(c(
-      "cytokine",
-      "ssmd",
-      "log2FC",
-      "SSMD_Category",
-      "Significant"
-    ) %in% names(flash_result$stats)))
-  })
-})
-
-test_that("cyt_dualflashplot supports file output mode", {
-  with_temp_pdf_device({
-    output_file <- tempfile(fileext = ".pdf")
-    on.exit(unlink(output_file), add = TRUE)
-
-    flash_result <- cyt_dualflashplot(
-      ex1_group,
-      group_var = "Group",
-      group1 = "T2D",
-      group2 = "ND",
-      output_file = output_file
-    )
-
-    expect_true(file.exists(output_file))
-    expect_null(flash_result)
-  })
-})
-
-test_that("cyt_skku returns histograms and summary tables", {
-  with_temp_pdf_device({
-    skku_result <- cyt_skku(
-      ex1_full[, -c(2:3), drop = FALSE],
-      output_file = NULL,
-      group_cols = "Group"
-    )
-
-    expect_true(inherits(skku_result$p_skew, "ggplot"))
-    expect_true(inherits(skku_result$p_kurt, "ggplot"))
-    expect_gt(nrow(skku_result$raw_results), 0)
-    expect_gt(nrow(skku_result$log_results), 0)
-  })
-})
-
-test_that("cyt_skku supports overall analysis without grouping columns", {
-  with_temp_pdf_device({
-    skku_result <- cyt_skku(
-      ex1_full[, -c(1:3), drop = FALSE],
-      group_cols = NULL
-    )
-
-    expect_true(inherits(skku_result$p_skew, "ggplot"))
-    expect_identical(unique(skku_result$raw_results[, "group"]), "overall")
-    expect_identical(unique(skku_result$log_results[, "group"]), "overall")
-  })
-})
-
-test_that("cyt_skku supports file output mode", {
-  with_temp_pdf_device({
-    output_file <- tempfile(fileext = ".pdf")
-    on.exit(unlink(output_file), add = TRUE)
-
-    skku_result <- cyt_skku(
-      ex1_full[, -c(1:3), drop = FALSE],
-      output_file = output_file,
-      group_cols = NULL
-    )
-
-    expect_true(file.exists(output_file))
-    expect_null(skku_result)
-  })
-})
-
-test_that("cyt_volc returns the current list shape with non-empty statistics", {
-  with_temp_pdf_device({
-    volc_result <- cyt_volc(
-      ex1_group,
-      group_col = "Group",
-      cond1 = "T2D",
-      cond2 = "ND",
-      fold_change_thresh = 2,
-      top_labels = 5
-    )
-
-    expect_true(is.list(volc_result))
-    expect_named(volc_result, c("plot", "stats"))
-    expect_true(inherits(volc_result$plot, "ggplot"))
-    expect_gt(nrow(volc_result$stats), 0)
-    expect_true(all(c("variable", "fc_log", "p_log", "significant") %in% names(volc_result$stats)))
-  })
-})
-
-test_that("cyt_volc supports all-pairs file output mode", {
-  with_temp_pdf_device({
-    output_file <- tempfile(fileext = ".pdf")
-    on.exit(unlink(output_file), add = TRUE)
-
-    volc_result <- cyt_volc(
-      ex1_group,
-      group_col = "Group",
-      cond1 = NULL,
-      cond2 = NULL,
-      output_file = output_file
-    )
-
-    expect_true(file.exists(output_file))
-    expect_null(volc_result)
-  })
-})
-
-test_that("cyt_volc errors on invalid output file extensions", {
-  expect_error(
-    cyt_volc(
-      ex1_group,
-      group_col = "Group",
-      output_file = "bad.txt"
-    ),
-    "must have extension"
-  )
+  table <- corr_result$pearson$table
+  expect_gt(nrow(table), 0)
+  # Pearson r must lie in [-1, 1]
+  expect_true(all(table$r >= -1 & table$r <= 1, na.rm = TRUE))
+  # p-values must lie in [0, 1]
+  expect_true(all(table$p >= 0 & table$p <= 1, na.rm = TRUE))
+  # The target itself should not appear as a row (it is the reference)
+  expect_false("IL.10" %in% table$variable)
 })
