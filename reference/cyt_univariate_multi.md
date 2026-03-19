@@ -7,8 +7,8 @@ test followed by pairwise comparisons when appropriate. Users may choose
 between classical ANOVA with Tukey's Honest Significant Difference (HSD)
 or a non-parametric Kruskal-Wallis test followed by pairwise Wilcoxon
 rank-sum tests. The function also supports explicit two-way ANOVA and
-ANCOVA designs with optional `primary:secondary` and `primary:covariate`
-interaction terms.
+ANCOVA designs with optional `primary:secondary`, `primary:covariate`,
+and `secondary:covariate` interaction terms.
 
 ## Usage
 
@@ -25,6 +25,7 @@ cyt_univariate_multi(
   covariate_col = NULL,
   include_primary_secondary_interaction = FALSE,
   include_primary_covariate_interaction = FALSE,
+  include_secondary_covariate_interaction = FALSE,
   format_output = FALSE,
   progress = NULL
 )
@@ -91,6 +92,11 @@ cyt_univariate_multi(
 
   Logical. Whether to include the `primary:covariate` interaction term
   when `covariate_col` is supplied.
+
+- include_secondary_covariate_interaction:
+
+  Logical. Whether to include the `secondary:covariate` interaction term
+  when both `secondary_cat_var` and `covariate_col` are supplied.
 
 - format_output:
 

@@ -7,7 +7,8 @@ Users may choose between classical ANOVA with Tukey's Honest
 Significant Difference (HSD) or a non-parametric Kruskal-Wallis test
 followed by pairwise Wilcoxon rank-sum tests. The function also
 supports explicit two-way ANOVA and ANCOVA designs with optional
-primary:secondary and primary:covariate interaction terms."><meta property="og:description" content="cyt_univariate_multi provides univariate statistical testing for
+primary:secondary, primary:covariate, and secondary:covariate
+interaction terms."><meta property="og:description" content="cyt_univariate_multi provides univariate statistical testing for
 categorical predictors with more than two levels. For one-way
 designs, each categorical predictor and numeric outcome pair receives
 a global test followed by pairwise comparisons when appropriate.
@@ -15,7 +16,8 @@ Users may choose between classical ANOVA with Tukey's Honest
 Significant Difference (HSD) or a non-parametric Kruskal-Wallis test
 followed by pairwise Wilcoxon rank-sum tests. The function also
 supports explicit two-way ANOVA and ANCOVA designs with optional
-primary:secondary and primary:covariate interaction terms."><meta property="og:image" content="https://shinyinfo.cytokineprofile.org/logo.png"></head><body>
+primary:secondary, primary:covariate, and secondary:covariate
+interaction terms."><meta property="og:image" content="https://shinyinfo.cytokineprofile.org/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -67,7 +69,8 @@ Users may choose between classical ANOVA with Tukey's Honest
 Significant Difference (HSD) or a non-parametric Kruskal-Wallis test
 followed by pairwise Wilcoxon rank-sum tests. The function also
 supports explicit two-way ANOVA and ANCOVA designs with optional
-<code>primary:secondary</code> and <code>primary:covariate</code> interaction terms.</p>
+<code>primary:secondary</code>, <code>primary:covariate</code>, and <code>secondary:covariate</code>
+interaction terms.</p>
     </div>
 
     <div class="section level2">
@@ -84,6 +87,7 @@ supports explicit two-way ANOVA and ANCOVA designs with optional
 <span>  covariate_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_primary_secondary_interaction <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_primary_covariate_interaction <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  include_secondary_covariate_interaction <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  format_output <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  progress <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -155,6 +159,12 @@ include the <code>primary:secondary</code> interaction term when
 <dd><p>Logical. Whether to
 include the <code>primary:covariate</code> interaction term when
 <code>covariate_col</code> is supplied.</p></dd>
+
+
+<dt id="arg-include-secondary-covariate-interaction">include_secondary_covariate_interaction<a class="anchor" aria-label="anchor" href="#arg-include-secondary-covariate-interaction"></a></dt>
+<dd><p>Logical. Whether to
+include the <code>secondary:covariate</code> interaction term when both
+<code>secondary_cat_var</code> and <code>covariate_col</code> are supplied.</p></dd>
 
 
 <dt id="arg-format-output">format_output<a class="anchor" aria-label="anchor" href="#arg-format-output"></a></dt>

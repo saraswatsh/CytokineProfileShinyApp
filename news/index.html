@@ -47,8 +47,10 @@
 <div class="section level3">
 <h3 id="whats-new-0-0-0-9000">What’s New<a class="anchor" aria-label="anchor" href="#whats-new-0-0-0-9000"></a></h3>
 <ul><li>You can now run <code>Two-way ANOVA</code> and <code>ANCOVA</code> directly in the app.</li>
+<li>ANCOVA now supports optional <code>secondary:covariate</code> interactions, with clearer slope checks and more appropriate follow-up comparisons when factor-by-covariate effects are included.</li>
 <li>The app now gives clearer warnings when interaction effects may make results harder to interpret on their own.</li>
 <li>Many figure-based analyses now include easier text controls, so you can adjust titles, axis labels, legends, and other plot text without digging into code.</li>
+<li>Random Forest and XGBoost outputs now report model setup details more clearly, including split settings, class balance, cross-validation status, and key tuning choices.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="easier-to-use-0-0-0-9000">Easier to Use<a class="anchor" aria-label="anchor" href="#easier-to-use-0-0-0-9000"></a></h3>
@@ -59,9 +61,11 @@
 <li>Step 2 now lets you force selected columns back to numeric, and any leftover non-numeric entries are converted to missing values instead of blocking numeric workflows.</li>
 <li>Column selections now update more smoothly, and related defaults stay in sync better as you change your data choices.</li>
 <li>The missing-value help now gives clearer guidance on when to use mean, median, mode, and the two nearest-neighbor options, and the popup is easier to read.</li>
+<li>Two-group testing controls now label <code>Welch t-test</code> more explicitly, so the manual choice matches the app’s underlying behavior more clearly.</li>
 <li>PLSR now handles partially missing predictor data more gracefully by keeping usable rows, dropping only unusable predictors, and giving clearer guidance when sparse columns may need missing-value treatment first.</li>
 <li>If your uploaded data includes out-of-range values, the app now warns you when you click <code>Save &amp; Use</code> and explains what was adjusted in plain language.</li>
 <li>The app now starts more reliably in different R workflows.</li>
+<li>Progress notifications are easier to read during longer analyses, with cleaner spacing and clearer separation between the main task and detail text.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="better-figures-0-0-0-9000">Better Figures<a class="anchor" aria-label="anchor" href="#better-figures-0-0-0-9000"></a></h3>
@@ -77,12 +81,14 @@
 <li>The XGBoost workflow now chooses the best training step more reliably across different scoring methods.</li>
 <li>Editing data in the built-in editor now preserves values more consistently.</li>
 <li>The missing-value help popup now opens more cleanly and is less likely to be cut off inside the app window.</li>
+<li>The missing-value method selector now keeps its nearest-neighbor options in sync more reliably instead of dropping or mismatching those controls.</li>
 <li>PLSR is now more stable when only one component can be fit, and the VIP&gt;1 follow-up preview now skips safely instead of failing when too few predictors remain.</li>
 <li>Deselecting all categorical columns in Step 2 now stays deselected instead of snapping back to all selected.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="behind-the-scenes-0-0-0-9000">Behind the Scenes<a class="anchor" aria-label="anchor" href="#behind-the-scenes-0-0-0-9000"></a></h3>
 <ul><li>Several parts of the app were cleaned up to reduce small startup and package-loading problems.</li>
+<li>Internal helper code and UI regression checks were cleaned up so package checks behave more consistently across local testing and staged installs.</li>
 </ul></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
