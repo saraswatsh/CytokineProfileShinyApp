@@ -159,6 +159,7 @@ resetState <- function() {
   userState$anc_covariate_col = NULL
   userState$anc_include_primary_secondary_interaction = NULL
   userState$anc_include_primary_covariate_interaction = NULL
+  userState$anc_include_secondary_covariate_interaction = NULL
 
   # Error-Bar Plot
   userState$eb_group_col = NULL
@@ -336,6 +337,7 @@ shiny::observeEvent(input$new_reuse, {
     userState$anc_covariate_col = NULL
     userState$anc_include_primary_secondary_interaction = NULL
     userState$anc_include_primary_covariate_interaction = NULL
+    userState$anc_include_secondary_covariate_interaction = NULL
 
     # Error-Bar Plot
     userState$eb_group_col = NULL
@@ -1947,7 +1949,7 @@ shiny::observeEvent(input$open_impute_modal, {
       shiny::column(
         4,
         shiny::radioButtons(
-          "impute_method",
+          ui_imputation_method_input_id(),
           label = shiny::tagList(
             shiny::span("Method", style = "margin-right:10px;"),
             bslib::popover(
@@ -2013,17 +2015,11 @@ shiny::observeEvent(input$open_impute_modal, {
               )
             )
           ),
-          choices = c(
-            "Mean",
-            "Median",
-            "Mode",
-            "kNN (sample-wise)",
-            "kNN (feature-wise)"
-          ),
+          choices = ui_imputation_method_choices(),
           selected = userState$impute_meta$method %||% "mean"
         ),
         shiny::conditionalPanel(
-          "input.imp_method == 'knn_sample' || input.imp_method == 'knn_feature'",
+          ui_imputation_knn_condition_expr(),
           shiny::numericInput(
             "imp_k",
             "k neighbors",
@@ -2134,6 +2130,7 @@ impute_data <- function(df, include, method, k = 5, scale_for_knn = TRUE) {
   dat
 }
 shiny::observeEvent(input$apply_impute, {
+  impute_method <- input[[ui_imputation_method_input_id()]]
   df <- data_after_filters() # <-- impute the *filtered* data
   sel <- input$imp_cols
   if (!length(sel)) {
@@ -2144,13 +2141,13 @@ shiny::observeEvent(input$apply_impute, {
   dat_imp <- impute_data(
     df,
     include = sel,
-    method = input$imp_method,
+    method = impute_method,
     k = input$imp_k %||% 5,
     scale_for_knn = isTRUE(input$imp_scale)
   )
   imputed_data(dat_imp)
   userState$impute_meta <- list(
-    method = input$imp_method,
+    method = impute_method,
     k = input$imp_k %||% 5,
     cols = sel,
     scaled = isTRUE(input$imp_scale)
@@ -2434,6 +2431,8 @@ shiny::observeEvent(input$next4, {
         input$anc_include_primary_secondary_interaction
       userState$anc_include_primary_covariate_interaction <-
         input$anc_include_primary_covariate_interaction
+      userState$anc_include_secondary_covariate_interaction <-
+        input$anc_include_secondary_covariate_interaction
     }
     if (selected_function() == "Boxplots") {
       userState$bp_group_by <- input$bp_group_by

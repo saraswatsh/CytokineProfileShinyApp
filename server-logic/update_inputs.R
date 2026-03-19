@@ -239,6 +239,11 @@ shiny::observeEvent(currentStep(), {
         "anc_include_primary_covariate_interaction",
         value = userState$anc_include_primary_covariate_interaction
       )
+      shiny::updateCheckboxInput(
+        session,
+        "anc_include_secondary_covariate_interaction",
+        value = userState$anc_include_secondary_covariate_interaction
+      )
     }
     if (userState$selected_function == "Error-Bar Plot") {
       shiny::updateSelectInput(
@@ -744,6 +749,8 @@ analysis_inputs <- shiny::reactive({
         input$anc_include_primary_secondary_interaction,
       anc_include_primary_covariate_interaction =
         input$anc_include_primary_covariate_interaction,
+      anc_include_secondary_covariate_interaction =
+        input$anc_include_secondary_covariate_interaction,
 
       # Error-Bar Plot
       eb_group_col = input$eb_group_col,

@@ -55,6 +55,7 @@ userState <- shiny::reactiveValues(
   anc_covariate_col = NULL,
   anc_include_primary_secondary_interaction = NULL,
   anc_include_primary_covariate_interaction = NULL,
+  anc_include_secondary_covariate_interaction = NULL,
 
   # Error-Bar Plot
   eb_group_col = NULL,

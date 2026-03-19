@@ -9,7 +9,8 @@
 #' Significant Difference (HSD) or a non-parametric Kruskal-Wallis test
 #' followed by pairwise Wilcoxon rank-sum tests. The function also
 #' supports explicit two-way ANOVA and ANCOVA designs with optional
-#' `primary:secondary` and `primary:covariate` interaction terms.
+#' `primary:secondary`, `primary:covariate`, and `secondary:covariate`
+#' interaction terms.
 #'
 #' @param data A data frame or matrix containing both categorical
 #'   and continuous variables. Character columns will be converted
@@ -42,6 +43,9 @@
 #' @param include_primary_covariate_interaction Logical. Whether to
 #'   include the `primary:covariate` interaction term when
 #'   `covariate_col` is supplied.
+#' @param include_secondary_covariate_interaction Logical. Whether to
+#'   include the `secondary:covariate` interaction term when both
+#'   `secondary_cat_var` and `covariate_col` are supplied.
 #' @param format_output Logical. If `TRUE`, returns a list with
 #'   global results, pairwise results, and assumption summaries;
 #'   otherwise (default) returns a list of numeric vectors keyed by
@@ -74,6 +78,7 @@ cyt_univariate_multi <- function(
   covariate_col = NULL,
   include_primary_secondary_interaction = FALSE,
   include_primary_covariate_interaction = FALSE,
+  include_secondary_covariate_interaction = FALSE,
   format_output = FALSE,
   progress = NULL
 ) {
@@ -174,8 +179,11 @@ cyt_univariate_multi <- function(
       Design = character(),
       Model_Formula = character(),
       Effect = character(),
+      Comparison_Type = character(),
       Contrast = character(),
       Method = character(),
+      Covariate_Reference = numeric(),
+      Covariate_Reference_Label = character(),
       Estimate = numeric(),
       P_adj = numeric(),
       Interpret_Caution = character(),
@@ -195,8 +203,10 @@ cyt_univariate_multi <- function(
       Cell_Count_Min = numeric(),
       Low_Cell_Count = character(),
       Covariate_Variation_Issue = character(),
-      Slope_Homogeneity_P = numeric(),
-      Slope_Homogeneity_Met = character(),
+      Primary_Slope_Homogeneity_P = numeric(),
+      Primary_Slope_Homogeneity_Met = character(),
+      Secondary_Slope_Homogeneity_P = numeric(),
+      Secondary_Slope_Homogeneity_Met = character(),
       Interaction_Significant = character(),
       Interaction_Term = character(),
       Interaction_P = numeric(),
@@ -212,7 +222,8 @@ cyt_univariate_multi <- function(
     secondary,
     covariate,
     include_ps,
-    include_pc
+    include_pc,
+    include_sc
   ) {
     rhs_terms <- primary
 
@@ -232,9 +243,36 @@ cyt_univariate_multi <- function(
       if (isTRUE(include_pc)) {
         rhs_terms <- c(rhs_terms, paste(primary, covariate, sep = ":"))
       }
+      if (isTRUE(include_sc) && !is.null(secondary)) {
+        rhs_terms <- c(rhs_terms, paste(secondary, covariate, sep = ":"))
+      }
     }
 
     paste(outcome, "~", paste(rhs_terms, collapse = " + "))
+  }
+
+  build_covariate_reference_grid <- function(values) {
+    finite_values <- values[is.finite(values)]
+    if (!length(finite_values)) {
+      return(data.frame(
+        label = character(),
+        value = numeric(),
+        stringsAsFactors = FALSE
+      ))
+    }
+
+    cov_mean <- mean(finite_values)
+    cov_sd <- stats::sd(finite_values)
+    ref_values <- data.frame(
+      label = c("Mean - 1 SD", "Mean", "Mean + 1 SD"),
+      value = c(cov_mean - cov_sd, cov_mean, cov_mean + cov_sd),
+      stringsAsFactors = FALSE
+    )
+    ref_values <- ref_values[is.finite(ref_values$value), , drop = FALSE]
+    ref_values$rounded_value <- signif(ref_values$value, digits = 10)
+    ref_values <- ref_values[!duplicated(ref_values$rounded_value), , drop = FALSE]
+    ref_values$rounded_value <- NULL
+    ref_values
   }
 
   extract_ss_rows <- function(table_obj, ss_type, outcome, meta, caution_text) {
@@ -493,6 +531,24 @@ cyt_univariate_multi <- function(
         call. = FALSE
       )
     }
+    if (
+      isTRUE(include_secondary_covariate_interaction) &&
+        is.null(secondary_cat_var)
+    ) {
+      stop(
+        "include_secondary_covariate_interaction requires secondary_cat_var.",
+        call. = FALSE
+      )
+    }
+    if (
+      isTRUE(include_secondary_covariate_interaction) &&
+        is.null(covariate_col)
+    ) {
+      stop(
+        "include_secondary_covariate_interaction requires covariate_col.",
+        call. = FALSE
+      )
+    }
 
     if (!is.null(primary_cat_var) &&
       !factor_or_character(x1_df[[primary_cat_var]])) {
@@ -566,7 +622,8 @@ cyt_univariate_multi <- function(
         secondary = secondary_cat_var,
         covariate = covariate_col,
         include_ps = include_primary_secondary_interaction,
-        include_pc = include_primary_covariate_interaction
+        include_pc = include_primary_covariate_interaction,
+        include_sc = include_secondary_covariate_interaction
       )
       meta <- list(
         design = design,
@@ -602,8 +659,10 @@ cyt_univariate_multi <- function(
           Cell_Count_Min = NA_real_,
           Low_Cell_Count = NA_character_,
           Covariate_Variation_Issue = NA_character_,
-          Slope_Homogeneity_P = NA_real_,
-          Slope_Homogeneity_Met = NA_character_,
+          Primary_Slope_Homogeneity_P = NA_real_,
+          Primary_Slope_Homogeneity_Met = NA_character_,
+          Secondary_Slope_Homogeneity_P = NA_real_,
+          Secondary_Slope_Homogeneity_Met = NA_character_,
           Interaction_Significant = NA_character_,
           Interaction_Term = NA_character_,
           Interaction_P = NA_real_,
@@ -664,6 +723,13 @@ cyt_univariate_multi <- function(
 
       covariate_variation_issue <- FALSE
       primary_covariate_issue <- FALSE
+      secondary_covariate_issue <- FALSE
+      covariate_reference_grid <- data.frame(
+        label = character(),
+        value = numeric(),
+        stringsAsFactors = FALSE
+      )
+      marginal_covariate_reference <- NA_real_
       if (design == "ancova") {
         covariate_split <- split(outcome_df[[covariate_col]], cell_factor)
         covariate_variation_issue <- any(vapply(
@@ -674,6 +740,17 @@ cyt_univariate_multi <- function(
           },
           logical(1)
         ))
+        covariate_reference_grid <- build_covariate_reference_grid(
+          outcome_df[[covariate_col]]
+        )
+        if (length(covariate_reference_grid$value) > 0L) {
+          mean_idx <- match("Mean", covariate_reference_grid$label)
+          if (!is.na(mean_idx)) {
+            marginal_covariate_reference <- covariate_reference_grid$value[mean_idx]
+          } else {
+            marginal_covariate_reference <- covariate_reference_grid$value[1]
+          }
+        }
 
         if (isTRUE(include_primary_covariate_interaction)) {
           primary_split <- split(
@@ -687,6 +764,27 @@ cyt_univariate_multi <- function(
               vals <- primary_split[[level_name]]
               vals <- vals[is.finite(vals)]
               cnt <- as.numeric(primary_counts[level_name])
+              cnt < 3 || length(unique(vals)) < 2L || stats::sd(vals) == 0
+            },
+            logical(1)
+          ))
+        }
+
+        if (
+          !is.null(secondary_cat_var) &&
+            isTRUE(include_secondary_covariate_interaction)
+        ) {
+          secondary_split <- split(
+            outcome_df[[covariate_col]],
+            outcome_df[[secondary_cat_var]]
+          )
+          secondary_counts <- table(outcome_df[[secondary_cat_var]])
+          secondary_covariate_issue <- any(vapply(
+            names(secondary_split),
+            function(level_name) {
+              vals <- secondary_split[[level_name]]
+              vals <- vals[is.finite(vals)]
+              cnt <- as.numeric(secondary_counts[level_name])
               cnt < 3 || length(unique(vals)) < 2L || stats::sd(vals) == 0
             },
             logical(1)
@@ -723,10 +821,19 @@ cyt_univariate_multi <- function(
           )
         )
       }
+      if (isTRUE(secondary_covariate_issue)) {
+        preflight_messages <- c(
+          preflight_messages,
+          paste0(
+            "Outcome '", outcome, "': at least one secondary-factor level has fewer ",
+            "than 3 complete cases or insufficient covariate variation for the ",
+            "secondary:covariate interaction."
+          )
+        )
+      }
 
-      if (length(skip_messages) > 0L) {
-        warning_messages <- c(warning_messages, skip_messages, preflight_messages)
-        complex_assumptions[[length(complex_assumptions) + 1L]] <- data.frame(
+      append_complex_assumption_stub <- function(warning_text) {
+        complex_assumptions[[length(complex_assumptions) + 1L]] <<- data.frame(
           Outcome = outcome,
           Design = design,
           Model_Formula = model_formula,
@@ -737,15 +844,26 @@ cyt_univariate_multi <- function(
           Cell_Count_Min = min_cell_count,
           Low_Cell_Count = bool_label(low_cell_count),
           Covariate_Variation_Issue = bool_label(
-            covariate_variation_issue || primary_covariate_issue
+            covariate_variation_issue ||
+              primary_covariate_issue ||
+              secondary_covariate_issue
           ),
-          Slope_Homogeneity_P = NA_real_,
-          Slope_Homogeneity_Met = NA_character_,
+          Primary_Slope_Homogeneity_P = NA_real_,
+          Primary_Slope_Homogeneity_Met = NA_character_,
+          Secondary_Slope_Homogeneity_P = NA_real_,
+          Secondary_Slope_Homogeneity_Met = NA_character_,
           Interaction_Significant = NA_character_,
           Interaction_Term = NA_character_,
           Interaction_P = NA_real_,
-          Warnings = paste(c(skip_messages, preflight_messages), collapse = " "),
+          Warnings = warning_text,
           stringsAsFactors = FALSE
+        )
+      }
+
+      if (length(skip_messages) > 0L) {
+        warning_messages <- c(warning_messages, skip_messages, preflight_messages)
+        append_complex_assumption_stub(
+          paste(c(skip_messages, preflight_messages), collapse = " ")
         )
         next
       }
@@ -762,26 +880,8 @@ cyt_univariate_multi <- function(
           rank_message,
           preflight_messages
         )
-        complex_assumptions[[length(complex_assumptions) + 1L]] <- data.frame(
-          Outcome = outcome,
-          Design = design,
-          Model_Formula = model_formula,
-          Normality_P = NA_real_,
-          Normality_Met = NA_character_,
-          Variance_P = NA_real_,
-          Variance_Met = NA_character_,
-          Cell_Count_Min = min_cell_count,
-          Low_Cell_Count = bool_label(low_cell_count),
-          Covariate_Variation_Issue = bool_label(
-            covariate_variation_issue || primary_covariate_issue
-          ),
-          Slope_Homogeneity_P = NA_real_,
-          Slope_Homogeneity_Met = NA_character_,
-          Interaction_Significant = NA_character_,
-          Interaction_Term = NA_character_,
-          Interaction_P = NA_real_,
-          Warnings = paste(c(rank_message, preflight_messages), collapse = " "),
-          stringsAsFactors = FALSE
+        append_complex_assumption_stub(
+          paste(c(rank_message, preflight_messages), collapse = " ")
         )
         next
       }
@@ -800,26 +900,8 @@ cyt_univariate_multi <- function(
           fit_message,
           preflight_messages
         )
-        complex_assumptions[[length(complex_assumptions) + 1L]] <- data.frame(
-          Outcome = outcome,
-          Design = design,
-          Model_Formula = model_formula,
-          Normality_P = NA_real_,
-          Normality_Met = NA_character_,
-          Variance_P = NA_real_,
-          Variance_Met = NA_character_,
-          Cell_Count_Min = min_cell_count,
-          Low_Cell_Count = bool_label(low_cell_count),
-          Covariate_Variation_Issue = bool_label(
-            covariate_variation_issue || primary_covariate_issue
-          ),
-          Slope_Homogeneity_P = NA_real_,
-          Slope_Homogeneity_Met = NA_character_,
-          Interaction_Significant = NA_character_,
-          Interaction_Term = NA_character_,
-          Interaction_P = NA_real_,
-          Warnings = paste(c(fit_message, preflight_messages), collapse = " "),
-          stringsAsFactors = FALSE
+        append_complex_assumption_stub(
+          paste(c(fit_message, preflight_messages), collapse = " ")
         )
         next
       }
@@ -854,26 +936,8 @@ cyt_univariate_multi <- function(
           fit3_message,
           preflight_messages
         )
-        complex_assumptions[[length(complex_assumptions) + 1L]] <- data.frame(
-          Outcome = outcome,
-          Design = design,
-          Model_Formula = model_formula,
-          Normality_P = NA_real_,
-          Normality_Met = NA_character_,
-          Variance_P = NA_real_,
-          Variance_Met = NA_character_,
-          Cell_Count_Min = min_cell_count,
-          Low_Cell_Count = bool_label(low_cell_count),
-          Covariate_Variation_Issue = bool_label(
-            covariate_variation_issue || primary_covariate_issue
-          ),
-          Slope_Homogeneity_P = NA_real_,
-          Slope_Homogeneity_Met = NA_character_,
-          Interaction_Significant = NA_character_,
-          Interaction_Term = NA_character_,
-          Interaction_P = NA_real_,
-          Warnings = paste(c(fit3_message, preflight_messages), collapse = " "),
-          stringsAsFactors = FALSE
+        append_complex_assumption_stub(
+          paste(c(fit3_message, preflight_messages), collapse = " ")
         )
         next
       }
@@ -910,6 +974,16 @@ cyt_univariate_multi <- function(
         interaction_terms <- c(
           interaction_terms,
           paste(primary_cat_var, covariate_col, sep = ":")
+        )
+      }
+      if (
+        isTRUE(include_secondary_covariate_interaction) &&
+          !is.null(secondary_cat_var) &&
+          !is.null(covariate_col)
+      ) {
+        interaction_terms <- c(
+          interaction_terms,
+          paste(secondary_cat_var, covariate_col, sep = ":")
         )
       }
 
@@ -952,6 +1026,136 @@ cyt_univariate_multi <- function(
         secondary_cat_var
       ))
       for (effect_name in factor_effects) {
+        has_covariate_interaction <- identical(design, "ancova") && isTRUE(
+          (!is.null(primary_cat_var) &&
+            identical(effect_name, primary_cat_var) &&
+            isTRUE(include_primary_covariate_interaction)) ||
+            (!is.null(secondary_cat_var) &&
+              identical(effect_name, secondary_cat_var) &&
+              isTRUE(include_secondary_covariate_interaction))
+        )
+
+        if (has_covariate_interaction) {
+          trend_obj <- tryCatch(
+            suppressMessages(
+              emmeans::emtrends(
+                fit_base,
+                specs = effect_name,
+                var = covariate_col
+              )
+            ),
+            error = function(e) NULL
+          )
+          if (!is.null(trend_obj)) {
+            trend_pairs <- tryCatch(
+              suppressMessages(
+                emmeans::contrast(
+                  trend_obj,
+                  method = "pairwise",
+                  adjust = "tukey"
+                )
+              ),
+              error = function(e) NULL
+            )
+            trend_df <- tryCatch(
+              suppressMessages(as.data.frame(summary(trend_pairs))),
+              error = function(e) NULL
+            )
+            if (!is.null(trend_df) && nrow(trend_df) > 0L) {
+              effect_pairwise[[length(effect_pairwise) + 1L]] <- data.frame(
+                Outcome = outcome,
+                Design = design,
+                Model_Formula = model_formula,
+                Effect = effect_name,
+                Comparison_Type = "Slope comparison",
+                Contrast = trend_df$contrast,
+                Method = "emtrends (Tukey)",
+                Covariate_Reference = NA_real_,
+                Covariate_Reference_Label = "Trend",
+                Estimate = suppressWarnings(as.numeric(trend_df$estimate)),
+                P_adj = suppressWarnings(as.numeric(trend_df$p.value)),
+                Interpret_Caution = caution_info$caution_text,
+                stringsAsFactors = FALSE,
+                row.names = NULL
+              )
+            }
+          }
+
+          if (nrow(covariate_reference_grid) > 0L) {
+            ref_values <- covariate_reference_grid$value
+            emm_obj <- tryCatch(
+              suppressMessages(
+                emmeans::emmeans(
+                  fit_base,
+                  specs = effect_name,
+                  by = covariate_col,
+                  at = stats::setNames(list(ref_values), covariate_col)
+                )
+              ),
+              error = function(e) NULL
+            )
+            if (!is.null(emm_obj)) {
+              pair_obj <- tryCatch(
+                suppressMessages(
+                  emmeans::contrast(
+                    emm_obj,
+                    method = "pairwise",
+                    adjust = "tukey"
+                  )
+                ),
+                error = function(e) NULL
+              )
+              pair_df <- tryCatch(
+                suppressMessages(as.data.frame(summary(pair_obj))),
+                error = function(e) NULL
+              )
+              if (!is.null(pair_df) && nrow(pair_df) > 0L) {
+                cov_refs <- suppressWarnings(as.numeric(pair_df[[covariate_col]]))
+                cov_labels <- vapply(
+                  cov_refs,
+                  function(ref_value) {
+                    if (!is.finite(ref_value)) {
+                      return(NA_character_)
+                    }
+                    match_idx <- which.min(abs(
+                      covariate_reference_grid$value - ref_value
+                    ))
+                    if (
+                      length(match_idx) &&
+                        is.finite(
+                          abs(covariate_reference_grid$value[match_idx] - ref_value)
+                        ) &&
+                        abs(covariate_reference_grid$value[match_idx] - ref_value) < 1e-8
+                    ) {
+                      return(covariate_reference_grid$label[match_idx])
+                    }
+                    sprintf("%.3f", ref_value)
+                  },
+                  character(1)
+                )
+                effect_pairwise[[length(effect_pairwise) + 1L]] <- data.frame(
+                  Outcome = outcome,
+                  Design = design,
+                  Model_Formula = model_formula,
+                  Effect = effect_name,
+                  Comparison_Type = "Contrast at covariate value",
+                  Contrast = pair_df$contrast,
+                  Method = "emmeans (Tukey at covariate value)",
+                  Covariate_Reference = cov_refs,
+                  Covariate_Reference_Label = cov_labels,
+                  Estimate = suppressWarnings(as.numeric(pair_df$estimate)),
+                  P_adj = suppressWarnings(as.numeric(pair_df$p.value)),
+                  Interpret_Caution = caution_info$caution_text,
+                  stringsAsFactors = FALSE,
+                  row.names = NULL
+                )
+              }
+            }
+          }
+
+          next
+        }
+
         emm_obj <- tryCatch(
           suppressMessages(
             emmeans::emmeans(fit_base, specs = effect_name)
@@ -989,8 +1193,23 @@ cyt_univariate_multi <- function(
           Design = design,
           Model_Formula = model_formula,
           Effect = effect_name,
+          Comparison_Type = if (identical(design, "ancova")) {
+            "Marginal mean contrast"
+          } else {
+            "Pairwise contrast"
+          },
           Contrast = pair_df$contrast,
           Method = "emmeans (Tukey)",
+          Covariate_Reference = if (identical(design, "ancova")) {
+            rep(marginal_covariate_reference, nrow(pair_df))
+          } else {
+            rep(NA_real_, nrow(pair_df))
+          },
+          Covariate_Reference_Label = if (identical(design, "ancova")) {
+            rep("Mean", nrow(pair_df))
+          } else {
+            rep(NA_character_, nrow(pair_df))
+          },
           Estimate = suppressWarnings(as.numeric(pair_df$estimate)),
           P_adj = suppressWarnings(as.numeric(pair_df$p.value)),
           Interpret_Caution = caution_info$caution_text,
@@ -1015,42 +1234,62 @@ cyt_univariate_multi <- function(
         error = function(e) NA_real_
       )
 
-      slope_p <- NA_real_
-      slope_label <- NA_character_
-      if (design == "ancova") {
-        if (isTRUE(include_primary_covariate_interaction)) {
-          slope_label <- "Modeled"
-        } else {
-          slope_formula <- stats::as.formula(
-            paste(
-              outcome,
-              "~",
-              paste(
-                c(
-                  primary_cat_var,
-                  covariate_col,
-                  paste(primary_cat_var, covariate_col, sep = ":")
-                ),
-                collapse = " + "
-              )
-            )
-          )
-          slope_fit <- tryCatch(
-            stats::lm(slope_formula, data = outcome_df_type3),
-            error = function(e) NULL
-          )
-          if (!is.null(slope_fit)) {
-            slope_table <- tryCatch(
-              car::Anova(slope_fit, type = 3),
-              error = function(e) NULL
-            )
-            slope_p <- get_interaction_p(
-              slope_table,
-              paste(primary_cat_var, covariate_col, sep = ":")
-            )
-          }
-          slope_label <- bool_label(!is.na(slope_p) && slope_p > 0.05)
+      assess_slope_homogeneity <- function(factor_name, modeled) {
+        if (is.null(factor_name)) {
+          return(list(p = NA_real_, label = NA_character_))
         }
+        if (isTRUE(modeled)) {
+          return(list(p = NA_real_, label = "Modeled"))
+        }
+
+        slope_formula <- stats::as.formula(
+          paste(
+            outcome,
+            "~",
+            paste(
+              c(
+                factor_name,
+                covariate_col,
+                paste(factor_name, covariate_col, sep = ":")
+              ),
+              collapse = " + "
+            )
+          )
+        )
+        slope_fit <- tryCatch(
+          stats::lm(slope_formula, data = outcome_df_type3),
+          error = function(e) NULL
+        )
+        if (is.null(slope_fit)) {
+          return(list(p = NA_real_, label = NA_character_))
+        }
+
+        slope_table <- tryCatch(
+          car::Anova(slope_fit, type = 3),
+          error = function(e) NULL
+        )
+        slope_p <- get_interaction_p(
+          slope_table,
+          paste(factor_name, covariate_col, sep = ":")
+        )
+
+        list(
+          p = slope_p,
+          label = bool_label(!is.na(slope_p) && slope_p > 0.05)
+        )
+      }
+
+      primary_slope <- list(p = NA_real_, label = NA_character_)
+      secondary_slope <- list(p = NA_real_, label = NA_character_)
+      if (design == "ancova") {
+        primary_slope <- assess_slope_homogeneity(
+          primary_cat_var,
+          include_primary_covariate_interaction
+        )
+        secondary_slope <- assess_slope_homogeneity(
+          secondary_cat_var,
+          include_secondary_covariate_interaction
+        )
       }
 
       warning_texts <- preflight_messages
@@ -1072,10 +1311,14 @@ cyt_univariate_multi <- function(
         Cell_Count_Min = min_cell_count,
         Low_Cell_Count = bool_label(low_cell_count),
         Covariate_Variation_Issue = bool_label(
-          covariate_variation_issue || primary_covariate_issue
+          covariate_variation_issue ||
+            primary_covariate_issue ||
+            secondary_covariate_issue
         ),
-        Slope_Homogeneity_P = slope_p,
-        Slope_Homogeneity_Met = slope_label,
+        Primary_Slope_Homogeneity_P = primary_slope$p,
+        Primary_Slope_Homogeneity_Met = primary_slope$label,
+        Secondary_Slope_Homogeneity_P = secondary_slope$p,
+        Secondary_Slope_Homogeneity_Met = secondary_slope$label,
         Interaction_Significant = bool_label(caution_info$significant),
         Interaction_Term = caution_info$interaction_term,
         Interaction_P = caution_info$interaction_p,
@@ -1154,8 +1397,12 @@ cyt_univariate_multi <- function(
       assumption_df$Normality_P <- round(assumption_df$Normality_P, 3)
       assumption_df$Variance_P <- round(assumption_df$Variance_P, 3)
       assumption_df$Cell_Count_Min <- round(assumption_df$Cell_Count_Min, 3)
-      assumption_df$Slope_Homogeneity_P <- round(
-        assumption_df$Slope_Homogeneity_P,
+      assumption_df$Primary_Slope_Homogeneity_P <- round(
+        assumption_df$Primary_Slope_Homogeneity_P,
+        3
+      )
+      assumption_df$Secondary_Slope_Homogeneity_P <- round(
+        assumption_df$Secondary_Slope_Homogeneity_P,
         3
       )
       assumption_df$Interaction_P <- round(assumption_df$Interaction_P, 3)

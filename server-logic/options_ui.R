@@ -406,7 +406,8 @@ output$function_options_ui <- shiny::renderUI({
     secondary = NULL,
     covariate = NULL,
     include_ps = FALSE,
-    include_pc = FALSE
+    include_pc = FALSE,
+    include_sc = FALSE
   ) {
     if (is.null(primary) || !nzchar(primary)) {
       return("outcome ~ <choose predictors>")
@@ -434,6 +435,9 @@ output$function_options_ui <- shiny::renderUI({
       }
       if (isTRUE(include_pc)) {
         rhs_terms <- c(rhs_terms, paste(primary, covariate, sep = ":"))
+      }
+      if (isTRUE(include_sc) && !is.null(secondary) && nzchar(secondary)) {
+        rhs_terms <- c(rhs_terms, paste(secondary, covariate, sep = ":"))
       }
     }
 
@@ -540,13 +544,9 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Test Method",
                 "Two-Level Test Method",
-                "Choose how the app compares two groups for each numeric outcome. Use Auto if you are unsure. The app will pick between the t-test and Wilcoxon test based on the data, while the other options force one method for every outcome."
+                ui_two_group_univariate_help_text()
               ),
-              choices = c(
-                "Auto" = "auto",
-                "T-test" = "ttest",
-                "Wilcoxon" = "wilcox"
-              ),
+              choices = ui_two_group_test_choices(),
               selected = shiny::isolate(userState$uv2_method) %||% "auto"
             )
           ),
@@ -719,6 +719,10 @@ output$function_options_ui <- shiny::renderUI({
         include_pc = isTRUE(
           input$anc_include_primary_covariate_interaction %||%
             shiny::isolate(userState$anc_include_primary_covariate_interaction)
+        ),
+        include_sc = isTRUE(
+          input$anc_include_secondary_covariate_interaction %||%
+            shiny::isolate(userState$anc_include_secondary_covariate_interaction)
         )
       )
 
@@ -781,7 +785,7 @@ output$function_options_ui <- shiny::renderUI({
             )
           ),
           shiny::column(
-            6,
+            4,
             shiny::checkboxInput(
               "anc_include_primary_covariate_interaction",
               label = helper_label(
@@ -793,6 +797,20 @@ output$function_options_ui <- shiny::renderUI({
                 userState$anc_include_primary_covariate_interaction
               ) %||% FALSE
             )
+          ),
+          shiny::column(
+            4,
+            shiny::checkboxInput(
+              "anc_include_secondary_covariate_interaction",
+              label = helper_label(
+                "Include secondary:covariate interaction",
+                "ANCOVA Secondary Slope Interaction",
+                "Turn this on to model a secondary:covariate interaction directly when a secondary factor is selected. Leave it off to keep the secondary effect additive and assess secondary slope homogeneity in the assumptions table."
+              ),
+              value = shiny::isolate(
+                userState$anc_include_secondary_covariate_interaction
+              ) %||% FALSE
+            )
           )
         ),
         shiny::fluidRow(
@@ -800,7 +818,7 @@ output$function_options_ui <- shiny::renderUI({
             12,
             formula_preview_ui(
               preview_formula,
-              note = "secondary:covariate is excluded by design in this version."
+              note = "Supported here: primary:secondary, primary:covariate, and secondary:covariate. Out of scope in this version: primary:secondary:covariate and factor-by-factor simple effects."
             )
           )
         )
@@ -1006,13 +1024,9 @@ output$function_options_ui <- shiny::renderUI({
               label = helper_label(
                 "Test Method",
                 "Error-Bar Statistical Test",
-                "Choose which statistical test is used when the plot adds pairwise significance labels. Use Auto if you are unsure. The app will choose between the t-test and Wilcoxon test, while the other options force one method across all outcomes."
+                ui_error_bar_test_help_text()
               ),
-              choices = c(
-                "Auto" = "auto",
-                "T-test" = "ttest",
-                "Wilcoxon" = "wilcox"
-              ),
+              choices = ui_two_group_test_choices(),
               selected = shiny::isolate(userState$eb_method) %||% "auto"
             )
           )

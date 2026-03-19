@@ -272,6 +272,9 @@ analysisResult <- shiny::eventReactive(input$next4, {
               include_primary_covariate_interaction = isTRUE(
                 input$anc_include_primary_covariate_interaction
               ),
+              include_secondary_covariate_interaction = isTRUE(
+                input$anc_include_secondary_covariate_interaction
+              ),
               progress = prog,
               format_output = TRUE
             ),
@@ -1913,9 +1916,10 @@ output$result_display <- shiny::renderUI({
               shiny::br(),
               shiny::helpText(
                 shiny::icon("circle-info"),
-                "Pairwise comparisons are based on adjusted marginal means at the covariate mean.",
-                "Interaction-specific simple effects are not shown in this version."
-              ),
+              "Pairwise comparisons are based on adjusted marginal means at the covariate mean.",
+              "When a factor:covariate interaction is modeled, this table also reports slope comparisons and factor contrasts at the covariate mean and mean +/- 1 SD.",
+              "Factor-by-factor simple effects are not shown in this version."
+            ),
               shinycssloaders::withSpinner(
                 DT::dataTableOutput("univariatePairwiseResults"),
                 type = 8
@@ -1928,7 +1932,8 @@ output$result_display <- shiny::renderUI({
                 shiny::icon("circle-info"),
                 "Residual normality is assessed via Shapiro-Wilk on model residuals.",
                 "Homogeneity of variance is assessed via Levene's test across the effective factor cells.",
-                "If primary:covariate is not modeled directly, the table also reports a slope-homogeneity check."
+                "If primary:covariate or secondary:covariate is not modeled directly, the table also reports the corresponding slope-homogeneity check.",
+                "Slope fields show Modeled when the interaction term is included in the ANCOVA directly."
               ),
               shiny::br(),
               shinycssloaders::withSpinner(

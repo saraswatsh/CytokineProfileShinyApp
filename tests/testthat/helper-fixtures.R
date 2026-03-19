@@ -183,3 +183,38 @@ make_plsr_unusable_predictor_fixture <- function() {
     Constant = rep(7, 6)
   )
 }
+
+make_ancova_interaction_fixture <- function() {
+  design_grid <- expand.grid(
+    Group = c("A", "B"),
+    Treatment = c("T1", "T2"),
+    Replicate = seq_len(6),
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  design_grid$Time <- rep(seq(1, 6), times = 4)
+  design_grid$IL.10 <- with(
+    design_grid,
+    10 +
+      ifelse(Group == "B", 1.5, 0) +
+      ifelse(Treatment == "T2", 1.0, 0) +
+      0.6 * Time +
+      ifelse(Group == "B", 0.25 * Time, 0) +
+      ifelse(Treatment == "T2", 0.35 * Time, 0) +
+      Replicate * 0.02
+  )
+  design_grid$IL.17F <- with(
+    design_grid,
+    6 +
+      ifelse(Group == "B", 0.8, 0) +
+      ifelse(Treatment == "T2", 0.5, 0) +
+      0.4 * Time +
+      ifelse(Treatment == "T2", 0.2 * Time, 0) +
+      Replicate * 0.01
+  )
+
+  design_grid$Group <- factor(design_grid$Group)
+  design_grid$Treatment <- factor(design_grid$Treatment)
+  design_grid
+}

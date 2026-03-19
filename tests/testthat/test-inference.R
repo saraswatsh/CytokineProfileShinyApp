@@ -29,6 +29,16 @@ test_that("cyt_univariate supports raw list output with explicit t-tests", {
   expect_true(all(nzchar(names(univariate_result))))
 })
 
+test_that("cyt_univariate formatted output reports Welch t-test labels", {
+  univariate_result <- cyt_univariate(
+    ex1_binary_group_treatment[, c("Group", "Treatment", "IL.10", "IL.17F"), drop = FALSE],
+    method = "ttest",
+    format_output = TRUE
+  )
+
+  expect_true(all(grepl("Welch", univariate_result$Test, fixed = TRUE)))
+})
+
 test_that("cyt_univariate supports adjusted wilcoxon output", {
   raw_tests <- cyt_univariate(
     ex1_binary_group_treatment[, c("Group", "Treatment", "IL.10", "IL.17F"), drop = FALSE],
@@ -146,6 +156,101 @@ test_that("cyt_univariate_multi supports ANCOVA with interaction", {
   expect_gt(nrow(multi_result$results), 0)
   expect_gt(nrow(multi_result$pairwise), 0)
   expect_gt(nrow(multi_result$assumptions), 0)
+})
+
+test_that("cyt_univariate_multi supports secondary covariate ANCOVA follow-up output", {
+  testthat::skip_if_not_installed("car")
+  testthat::skip_if_not_installed("emmeans")
+
+  ancova_df <- make_ancova_interaction_fixture()
+  multi_result <- suppressWarnings(
+    cyt_univariate_multi(
+      ancova_df[, c("Group", "Treatment", "Time", "IL.10", "IL.17F"), drop = FALSE],
+      design = "ancova",
+      primary_cat_var = "Group",
+      secondary_cat_var = "Treatment",
+      covariate_col = "Time",
+      cont_vars = c("IL.10", "IL.17F"),
+      include_secondary_covariate_interaction = TRUE,
+      format_output = TRUE
+    )
+  )
+
+  expect_true(all(c(
+    "Primary_Slope_Homogeneity_P",
+    "Primary_Slope_Homogeneity_Met",
+    "Secondary_Slope_Homogeneity_P",
+    "Secondary_Slope_Homogeneity_Met"
+  ) %in% names(multi_result$assumptions)))
+  expect_true(all(multi_result$assumptions$Secondary_Slope_Homogeneity_Met == "Modeled"))
+  expect_false(any(is.na(multi_result$assumptions$Primary_Slope_Homogeneity_Met)))
+  expect_true(any(
+    multi_result$pairwise$Effect == "Treatment" &
+      multi_result$pairwise$Comparison_Type == "Slope comparison"
+  ))
+  expect_true(any(
+    multi_result$pairwise$Effect == "Treatment" &
+      multi_result$pairwise$Comparison_Type == "Contrast at covariate value"
+  ))
+  expect_true(any(
+    multi_result$pairwise$Effect == "Group" &
+      multi_result$pairwise$Comparison_Type == "Marginal mean contrast"
+  ))
+  expect_true(all(c(
+    "Covariate_Reference",
+    "Covariate_Reference_Label"
+  ) %in% names(multi_result$pairwise)))
+})
+
+test_that("cyt_univariate_multi supports primary and secondary covariate interactions together", {
+  testthat::skip_if_not_installed("car")
+  testthat::skip_if_not_installed("emmeans")
+
+  ancova_df <- make_ancova_interaction_fixture()
+  multi_result <- suppressWarnings(
+    cyt_univariate_multi(
+      ancova_df[, c("Group", "Treatment", "Time", "IL.10"), drop = FALSE],
+      design = "ancova",
+      primary_cat_var = "Group",
+      secondary_cat_var = "Treatment",
+      covariate_col = "Time",
+      cont_vars = "IL.10",
+      include_primary_covariate_interaction = TRUE,
+      include_secondary_covariate_interaction = TRUE,
+      format_output = TRUE
+    )
+  )
+
+  expect_true(all(multi_result$assumptions$Primary_Slope_Homogeneity_Met == "Modeled"))
+  expect_true(all(multi_result$assumptions$Secondary_Slope_Homogeneity_Met == "Modeled"))
+  expect_true(any(
+    multi_result$pairwise$Effect == "Group" &
+      multi_result$pairwise$Comparison_Type == "Slope comparison"
+  ))
+  expect_true(any(
+    multi_result$pairwise$Effect == "Treatment" &
+      multi_result$pairwise$Comparison_Type == "Slope comparison"
+  ))
+  expect_true(any(multi_result$pairwise$Covariate_Reference_Label == "Mean"))
+})
+
+test_that("cyt_univariate_multi reports secondary slope checks when interaction is not modeled", {
+  testthat::skip_if_not_installed("car")
+  testthat::skip_if_not_installed("emmeans")
+
+  ancova_df <- make_ancova_interaction_fixture()
+  multi_result <- cyt_univariate_multi(
+    ancova_df[, c("Group", "Treatment", "Time", "IL.10"), drop = FALSE],
+    design = "ancova",
+    primary_cat_var = "Group",
+    secondary_cat_var = "Treatment",
+    covariate_col = "Time",
+    cont_vars = "IL.10",
+    format_output = TRUE
+  )
+
+  expect_false(any(multi_result$assumptions$Secondary_Slope_Homogeneity_Met == "Modeled"))
+  expect_true(all(multi_result$pairwise$Comparison_Type == "Marginal mean contrast"))
 })
 
 test_that("cyt_univariate_multi adjusts one-way kruskal pairwise p-values with adjust_p", {

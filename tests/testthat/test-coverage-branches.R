@@ -248,6 +248,16 @@ test_that("cyt_univariate_multi validates complex-design arguments before fittin
     ),
     "requires secondary_cat_var"
   )
+  expect_error(
+    cyt_univariate_multi(
+      complex_df,
+      design = "ancova",
+      primary_cat_var = "Group",
+      covariate_col = "Covariate",
+      include_secondary_covariate_interaction = TRUE
+    ),
+    "include_secondary_covariate_interaction requires secondary_cat_var"
+  )
 })
 
 test_that("cyt_plsr and cyt_splsda validate common argument errors", {

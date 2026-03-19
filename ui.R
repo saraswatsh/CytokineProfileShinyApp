@@ -127,15 +127,47 @@ ui <- shiny::fluidPage(
       max-width: calc(100vw - 2rem);
     }
     .shiny-progress-notification {
-      padding: 0.85rem 1rem !important;
+      padding: 0.8rem 2.75rem 0.75rem 1rem !important;
+    }
+    .shiny-progress-notification .progress {
+      margin-bottom: 0.45rem;
+    }
+    .shiny-progress-notification .progress-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.2rem;
+      width: 100%;
     }
     .shiny-progress-notification .progress-message {
-      font-size: 1rem;
-      font-weight: 600;
+      display: block;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      color: #1f2328;
+      font-size: 1.02rem;
+      font-weight: 650;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
     }
     .shiny-progress-notification .progress-detail {
-      font-size: 0.92rem;
-      line-height: 1.4;
+      display: block;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      color: #4b5563;
+      font-size: 0.89rem;
+      line-height: 1.3;
+    }
+    .shiny-progress-notification .shiny-notification-close {
+      color: #6b7280;
+      opacity: 0.8;
+      transition: color 0.15s ease, opacity 0.15s ease;
+    }
+    .shiny-progress-notification .shiny-notification-close:hover {
+      color: #111827;
+      opacity: 1;
+      font-weight: normal;
     }
 
     /* ── Full‑height page, hide Shiny errors offscreen ─────────────── */

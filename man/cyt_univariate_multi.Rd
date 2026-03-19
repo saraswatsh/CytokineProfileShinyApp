@@ -16,6 +16,7 @@ cyt_univariate_multi(
   covariate_col = NULL,
   include_primary_secondary_interaction = FALSE,
   include_primary_covariate_interaction = FALSE,
+  include_secondary_covariate_interaction = FALSE,
   format_output = FALSE,
   progress = NULL
 )
@@ -63,6 +64,10 @@ include the \code{primary:secondary} interaction term when
 include the \code{primary:covariate} interaction term when
 \code{covariate_col} is supplied.}
 
+\item{include_secondary_covariate_interaction}{Logical. Whether to
+include the \code{secondary:covariate} interaction term when both
+\code{secondary_cat_var} and \code{covariate_col} are supplied.}
+
 \item{format_output}{Logical. If \code{TRUE}, returns a list with
 global results, pairwise results, and assumption summaries;
 otherwise (default) returns a list of numeric vectors keyed by
@@ -88,7 +93,8 @@ Users may choose between classical ANOVA with Tukey's Honest
 Significant Difference (HSD) or a non-parametric Kruskal-Wallis test
 followed by pairwise Wilcoxon rank-sum tests. The function also
 supports explicit two-way ANOVA and ANCOVA designs with optional
-\code{primary:secondary} and \code{primary:covariate} interaction terms.
+\code{primary:secondary}, \code{primary:covariate}, and \code{secondary:covariate}
+interaction terms.
 }
 \examples{
 data("ExampleData1")

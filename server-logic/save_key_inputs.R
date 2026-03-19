@@ -221,6 +221,10 @@ shiny::observeEvent(input$anc_include_primary_covariate_interaction, {
   userState$anc_include_primary_covariate_interaction <-
     input$anc_include_primary_covariate_interaction
 })
+shiny::observeEvent(input$anc_include_secondary_covariate_interaction, {
+  userState$anc_include_secondary_covariate_interaction <-
+    input$anc_include_secondary_covariate_interaction
+})
 # For Dual-Flashlight Plot
 shiny::observeEvent(input$df_group_var, {
   userState$df_group_var <- input$df_group_var

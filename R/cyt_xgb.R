@@ -112,6 +112,24 @@ cyt_xgb <- function(
   font_settings = NULL,
   progress = NULL
 ) {
+  format_class_balance <- function(values, labels = NULL) {
+    factor_values <- if (is.null(labels)) {
+      droplevels(as.factor(values))
+    } else {
+      factor(values, levels = seq_along(labels) - 1L, labels = labels)
+    }
+    counts <- table(factor_values)
+    if (!length(counts)) {
+      return("NA")
+    }
+
+    props <- round(100 * counts / sum(counts), 1)
+    paste(
+      paste0(names(counts), "=", as.integer(counts), " (", props, "%)"),
+      collapse = ", "
+    )
+  }
+
   # ── 0. Initialize ──────────────────────────────────────────────────────────
   if (!is.null(progress)) {
     progress$set(message = "Running XGBoost...", value = 0)
@@ -152,7 +170,8 @@ cyt_xgb <- function(
     progress$inc(0.05, detail = "Preparing class labels")
   }
   data[[group_col]] <- as.factor(data[[group_col]])
-  class_labels <- levels(data[[group_col]])
+  original_group <- droplevels(data[[group_col]])
+  class_labels <- levels(original_group)
   class_mapping <- stats::setNames(seq_along(class_labels) - 1L, class_labels)
 
   if (print_results) {
@@ -160,7 +179,7 @@ cyt_xgb <- function(
     print(class_mapping)
   }
 
-  data[[group_col]] <- as.numeric(data[[group_col]]) - 1L
+  data[[group_col]] <- as.numeric(original_group) - 1L
 
   # ── 3. Prepare matrices ────────────────────────────────────────────────────
   if (!is.null(progress)) {
@@ -180,6 +199,9 @@ cyt_xgb <- function(
   y_train <- y[train_idx]
   X_test <- X[-train_idx, ]
   y_test <- y[-train_idx]
+  total_samples <- nrow(X)
+  train_samples <- nrow(X_train)
+  test_samples <- nrow(X_test)
 
   dtrain <- xgboost::xgb.DMatrix(data = X_train, label = y_train)
   dtest <- xgboost::xgb.DMatrix(data = X_test, label = y_test)
@@ -371,6 +393,7 @@ cyt_xgb <- function(
   # ── 10. xgb.cv cross-validation ────────────────────────────────────────────
   cv_results <- NULL
   best_cv_iter <- NULL
+  cv_accuracy <- NA_real_
   if (cv) {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Running xgb.cv cross-validation")
@@ -417,8 +440,10 @@ cyt_xgb <- function(
       if (print_results) {
         cat("\nCross-Validation Confusion Matrix\n")
         print(cv_confusion_mat)
-        cv_acc <- sum(cv_pred_labels == actual_labels) / length(actual_labels)
-        cat("\nCross-Validation Accuracy:", round(cv_acc, 3), "\n")
+      }
+      cv_accuracy <- sum(cv_pred_labels == actual_labels) / length(actual_labels)
+      if (print_results) {
+        cat("\nCross-Validation Accuracy:", round(cv_accuracy, 3), "\n")
       }
     }
   }
@@ -430,9 +455,53 @@ cyt_xgb <- function(
   summary_text <- paste(
     utils::capture.output({
       cat("### XGBOOST RESULTS ###\n\n")
-      cat("1) Group -> Numeric Label Mapping:\n")
+      cat("1) Analysis Design:\n")
+      cat("Performance provenance: holdout train/test split.\n")
+      cat("Samples after filtering:", total_samples, "\n")
+      cat("Predictors used:", ncol(X), "\n")
+      cat("Requested train fraction:", round(train_fraction, 3), "\n")
+      cat(
+        "Observed split: train =",
+        train_samples,
+        ", test =",
+        test_samples,
+        "\n"
+      )
+      cat("Class balance (all data):", format_class_balance(y, class_labels), "\n")
+      cat("Class balance (train):", format_class_balance(y_train, class_labels), "\n")
+      cat("Class balance (test):", format_class_balance(y_test, class_labels), "\n")
+      cat("Seed:", seed, "\n")
+      cat(
+        "Hyperparameters: nrounds =",
+        nrounds,
+        ", max_depth =",
+        max_depth,
+        ", learning_rate =",
+        learning_rate,
+        ", min_split_loss =",
+        min_split_loss,
+        ", colsample_bytree =",
+        colsample_bytree,
+        ", subsample =",
+        subsample,
+        ", min_child_weight =",
+        min_child_weight,
+        "\n"
+      )
+      cat("Objective:", objective, "\n")
+      cat("Evaluation metric:", eval_metric, "\n")
+      cat(
+        "Early stopping rounds:",
+        if (is.null(early_stopping_rounds)) "None" else early_stopping_rounds,
+        "\n"
+      )
+      cat("Cross-validation enabled:", if (cv) "Yes" else "No", "\n")
+      if (cv) {
+        cat("Cross-validation folds:", nfold, "\n")
+      }
+      cat("\n2) Group -> Numeric Label Mapping:\n")
       print(class_mapping)
-      cat("\n2) Confusion Matrix on Test Set:\n")
+      cat("\n3) Confusion Matrix on Test Set:\n")
       print(confusion_mat$table)
       cat("\nTest Accuracy:", round(accuracy_test, 3), "\n")
       if (num_class == 2L) {
@@ -450,10 +519,12 @@ cyt_xgb <- function(
           cat("\nAUC:", round(auc_value, 3), "\n")
         }
       }
-      cat("\n3) Top", top_n_features, "Important Features:\n")
+      cat("\n4) Top", top_n_features, "Important Features:\n")
       print(top_features)
       if (cv && !is.null(cv_results)) {
-        cat("\n4) Cross-Validation Results:\n")
+        cat("\n5) Cross-Validation Results:\n")
+        cat("CV provenance: xgb.cv run on the training split only.\n")
+        cat("CV Accuracy:", round(cv_accuracy, 3), "\n")
         cat("Best iteration:\n")
         print(cv_results$evaluation_log[best_cv_iter, ])
       }
