@@ -29,19 +29,22 @@ ui <- shiny::fluidPage(
 
   # 2) Global CSS to tighten up spacing
   shiny::tags$head(
+    shiny::tags$script(shiny::HTML(
+      "
+      $(document).on('shiny:connected', function() {
+        var saved = localStorage.getItem('user_theme');
+        if (saved) {
+          var el = document.getElementById('theme_choice');
+          if (el) {
+            el.value = saved;
+            $(el).trigger('change');
+          }
+        }
+      });
+      "
+    )),
     shiny::tags$style(shiny::HTML(
       "
-  // On page load, tell Shiny about a previously saved theme
-  $(document).on('shiny:connected', function() {
-    var saved = localStorage.getItem('user_theme');
-    if (saved) {
-      var el = document.getElementById('theme_choice');
-      if (el) {
-        el.value = saved;
-        $(el).trigger('change');  // ensures Shiny input binding sees it
-      }
-    }
-  });
     /* ── App header padding & bottom border ───────────────────────── */
     .app-header {
       padding: 1rem;
@@ -205,11 +208,23 @@ ui <- shiny::fluidPage(
     /* ─────────────────────────────────────────────
        Inline checkboxes for scrollable checkboxes
     ───────────────────────────────────────────── */
+    .scrollable-checkbox-group .shiny-options-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 0.35rem 1.5rem;
+    }
     .scrollable-checkbox-group .checkbox-inline,
     .scrollable-checkbox-group .form-check-inline {
-      display:        inline-block !important; margin-right:   1.5rem     !important;  /* gutter */
-      vertical-align: middle     !important; white-space:    nowrap      !important; /* no wrapping between box+label */
-      padding:        0.25rem 0  !important; /* tiny top/bottom padding */
+      display: flex !important;
+      align-items: center;
+      margin: 0 !important;
+      padding: 0.15rem 0 !important;
+      white-space: nowrap;
+    }
+    .scrollable-checkbox-group .checkbox-inline input,
+    .scrollable-checkbox-group .form-check-inline input {
+      margin-right: 0.35rem;
     }
     /* Brand row: title + version + logo */
     #brand { display:flex; align-items:center; gap:.55rem; }

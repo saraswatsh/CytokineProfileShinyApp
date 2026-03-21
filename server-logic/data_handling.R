@@ -24,6 +24,9 @@ shiny::observeEvent(
   {
     factor_cols <- shiny::isolate(input$factor_cols) %||% character(0)
     numeric_cols <- shiny::isolate(input$numeric_override_cols) %||% character(0)
+    factor_order_enable <- isTRUE(shiny::isolate(input$factor_order_enable))
+    factor_order_col <- shiny::isolate(input$factor_order_col)
+    factor_levels_csv <- shiny::isolate(input$factor_levels_csv) %||% ""
     overlap <- step2_conflicting_type_cols(factor_cols, numeric_cols)
 
     if (length(overlap)) {
@@ -38,6 +41,16 @@ shiny::observeEvent(
       return()
     }
 
+    userState$step2_factor_cols <- factor_cols
+    userState$step2_numeric_override_cols <- numeric_cols
+    userState$step2_factor_order_enable <- factor_order_enable
+    userState$step2_factor_order_col <- factor_order_col
+    userState$step2_factor_levels_csv <- factor_levels_csv
+    userState$step2_applied_factor_cols <- factor_cols
+    userState$step2_applied_numeric_override_cols <- numeric_cols
+    userState$step2_applied_factor_order_enable <- factor_order_enable
+    userState$step2_applied_factor_order_col <- factor_order_col
+    userState$step2_applied_factor_levels_csv <- factor_levels_csv
     apply_stamp(apply_stamp() + 1)
   },
   ignoreInit = TRUE
@@ -77,6 +90,11 @@ shiny::observeEvent(
     userState$step2_factor_order_enable <- FALSE
     userState$step2_factor_order_col <- NULL
     userState$step2_factor_levels_csv <- NULL
+    userState$step2_applied_factor_cols <- NULL
+    userState$step2_applied_numeric_override_cols <- NULL
+    userState$step2_applied_factor_order_enable <- FALSE
+    userState$step2_applied_factor_order_col <- NULL
+    userState$step2_applied_factor_levels_csv <- NULL
     try(
       shiny::updateSelectizeInput(
         session,
@@ -117,6 +135,11 @@ shiny::observeEvent(
     userState$step2_factor_order_enable <- FALSE
     userState$step2_factor_order_col <- NULL
     userState$step2_factor_levels_csv <- NULL
+    userState$step2_applied_factor_cols <- NULL
+    userState$step2_applied_numeric_override_cols <- NULL
+    userState$step2_applied_factor_order_enable <- FALSE
+    userState$step2_applied_factor_order_col <- NULL
+    userState$step2_applied_factor_levels_csv <- NULL
     try(
       shiny::updateSelectizeInput(
         session,
@@ -213,58 +236,40 @@ userData <- shiny::reactive({
       }
     }
   }
-
-  # --- apply user-chosen types when the button is pressed ---
-  if (apply_stamp() > 0) {
-    fc <- userState$step2_factor_cols %||%
-      shiny::isolate(input$factor_cols) %||%
-      character(0)
-    nc <- userState$step2_numeric_override_cols %||%
-      shiny::isolate(input$numeric_override_cols) %||%
-      character(0)
-    overlap <- step2_conflicting_type_cols(fc, nc)
-
-    if (length(overlap)) {
-      return(df)
-    }
-
-    if (length(nc)) {
-      keep_num <- intersect(nc, names(df))
-      df[keep_num] <- lapply(df[keep_num], step2_parse_numeric_values)
-    }
-
-    if (length(fc)) {
-      keep_factor <- intersect(fc, names(df))
-      df[keep_factor] <- lapply(df[keep_factor], function(x) {
-        factor(step2_normalize_missing_tokens(x))
-      })
-    } else {
-      keep_factor <- character(0)
-    }
-    if (
-      isTRUE(userState$step2_factor_order_enable %||%
-        shiny::isolate(input$factor_order_enable)) &&
-        shiny::isTruthy(userState$step2_factor_order_col %||%
-          shiny::isolate(input$factor_order_col)) &&
-        shiny::isTruthy(userState$step2_factor_levels_csv %||%
-          shiny::isolate(input$factor_levels_csv))
-    ) {
-      target <- userState$step2_factor_order_col %||%
-        shiny::isolate(input$factor_order_col)
-      if (target %in% keep_factor) {
-        levs <- trimws(strsplit(
-          userState$step2_factor_levels_csv %||%
-            shiny::isolate(input$factor_levels_csv),
-          ","
-        )[[1]])
-        if (length(levs)) {
-          df[[target]] <- factor(as.character(df[[target]]), levels = levs)
-        }
-      }
-    }
-  }
   df
 })
+
+step2_applied_type_state <- shiny::reactive({
+  apply_stamp()
+
+  list(
+    factor_cols = userState$step2_applied_factor_cols %||% character(0),
+    numeric_cols = userState$step2_applied_numeric_override_cols %||%
+      character(0),
+    factor_order_enable = isTRUE(userState$step2_applied_factor_order_enable),
+    factor_order_col = userState$step2_applied_factor_order_col,
+    factor_levels_csv = userState$step2_applied_factor_levels_csv %||% ""
+  )
+})
+
+step2_typed_data <- shiny::reactive({
+  df <- userData()
+  state <- step2_applied_type_state()
+
+  step2_apply_type_overrides(
+    df = df,
+    factor_cols = state$factor_cols,
+    numeric_cols = state$numeric_cols,
+    factor_order_enable = state$factor_order_enable,
+    factor_order_col = state$factor_order_col,
+    factor_levels_csv = state$factor_levels_csv
+  )
+})
+
+step2_typed_col_info <- shiny::reactive({
+  step2_classify_columns(step2_typed_data())
+})
+
 # Hide the internal ID from any UI choices
 safe_names <- function(df) setdiff(names(df), "..cyto_id..")
 

@@ -2,6 +2,42 @@
 ## Updating inputs by userState
 ## ---------------------------
 
+sync_step2_bucket_inputs <- function() {
+  col_info <- step2_typed_col_info()
+  categorical_cols <- col_info$categorical
+  numerical_cols <- col_info$numerical
+
+  cat_selected <- step2_restore_bucket_selection(
+    userState$selected_columns,
+    categorical_cols
+  )
+  num_selected <- step2_restore_bucket_selection(
+    userState$selected_columns,
+    numerical_cols
+  )
+
+  shiny::updateCheckboxGroupInput(
+    session,
+    "selected_categorical_cols",
+    choices = categorical_cols,
+    selected = cat_selected
+  )
+  shiny::updateCheckboxGroupInput(
+    session,
+    "selected_numerical_cols",
+    choices = numerical_cols,
+    selected = num_selected
+  )
+}
+
+shiny::observe({
+  if (!identical(currentStep(), 2)) {
+    return()
+  }
+
+  sync_step2_bucket_inputs()
+})
+
 shiny::observeEvent(currentStep(), {
   shiny::req(currentStep())
   if (currentStep() == 1) {
@@ -21,33 +57,9 @@ shiny::observeEvent(currentStep(), {
   }
   if (currentStep() == 2) {
     # recompute the same choices used in step2UI()
-    df <- userData()
-    shiny::req(df)
-    col_info <- step2_classify_columns(df)
+    col_info <- step2_typed_col_info()
     all_cols <- col_info$all
-    categorical_cols <- col_info$categorical
-    numerical_cols <- col_info$numerical
-
-    cat_selected <- step2_restore_bucket_selection(
-      userState$selected_columns,
-      categorical_cols
-    )
-    num_selected <- step2_restore_bucket_selection(
-      userState$selected_columns,
-      numerical_cols
-    )
-    shiny::updateCheckboxGroupInput(
-      session,
-      "selected_categorical_cols",
-      choices = categorical_cols,
-      selected = cat_selected
-    )
-    shiny::updateCheckboxGroupInput(
-      session,
-      "selected_numerical_cols",
-      choices = numerical_cols,
-      selected = num_selected
-    )
+    sync_step2_bucket_inputs()
     # restore the preprocessing selector
     shiny::updateSelectInput(
       session,

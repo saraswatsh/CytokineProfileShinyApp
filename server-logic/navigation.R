@@ -134,6 +134,11 @@ resetState <- function() {
   userState$step2_factor_order_enable = FALSE
   userState$step2_factor_order_col = NULL
   userState$step2_factor_levels_csv = NULL
+  userState$step2_applied_factor_cols = NULL
+  userState$step2_applied_numeric_override_cols = NULL
+  userState$step2_applied_factor_order_enable = FALSE
+  userState$step2_applied_factor_order_col = NULL
+  userState$step2_applied_factor_levels_csv = NULL
 
   # Boxplots options
   userState$bp_bin_size = NULL
@@ -880,8 +885,8 @@ step1UI <- function() {
 
 step2UI <- function() {
   {
-    df <- userData()
-    col_info <- step2_classify_columns(df)
+    df <- step2_typed_data()
+    col_info <- step2_typed_col_info()
     numeric_cols <- col_info$numerical
     categorical_cols <- col_info$categorical
     selected_cat <- step2_restore_bucket_selection(
@@ -968,20 +973,10 @@ step2UI <- function() {
             class = "mb-3", # nice spacing below
             bslib::card_header(
               class = "bg-info",
-              "2a. Treat Columns as Categorical"
+              "2a. Override Column Types"
             ),
             bslib::card_body(
-              shiny::uiOutput("step2_factor_type_ui")
-            )
-          ),
-          bslib::card(
-            class = "mb-3",
-            bslib::card_header(
-              class = "bg-info",
-              "2b. Treat Columns as Numeric"
-            ),
-            bslib::card_body(
-              shiny::uiOutput("step2_numeric_type_ui")
+              shiny::uiOutput("step2_type_override_ui")
             )
           ),
           # 3) Optional: data transformation
@@ -1684,8 +1679,7 @@ selected_columns_combined <- shiny::reactive({
 
 # B) “Select / Deselect All” observers
 shiny::observeEvent(input$select_all_cat, {
-  df <- userData()
-  cat_cols <- step2_classify_columns(df)$categorical
+  cat_cols <- step2_typed_col_info()$categorical
   shiny::updateCheckboxGroupInput(
     session,
     "selected_categorical_cols",
@@ -1693,7 +1687,6 @@ shiny::observeEvent(input$select_all_cat, {
   )
 })
 shiny::observeEvent(input$deselect_all_cat, {
-  df <- userData()
   shiny::updateCheckboxGroupInput(
     session,
     "selected_categorical_cols",
@@ -1701,8 +1694,7 @@ shiny::observeEvent(input$deselect_all_cat, {
   )
 })
 shiny::observeEvent(input$select_all_num, {
-  df <- userData()
-  numeric_cols <- step2_classify_columns(df)$numerical
+  numeric_cols <- step2_typed_col_info()$numerical
   shiny::updateCheckboxGroupInput(
     session,
     "selected_numerical_cols",
@@ -1710,7 +1702,6 @@ shiny::observeEvent(input$select_all_num, {
   )
 })
 shiny::observeEvent(input$deselect_all_num, {
-  df <- userData()
   shiny::updateCheckboxGroupInput(
     session,
     "selected_numerical_cols",
@@ -1720,14 +1711,19 @@ shiny::observeEvent(input$deselect_all_num, {
 # C) Base reactive to apply row‐deletions and categorical filters
 # 1. Always keep the filtered-but-raw data
 raw_filtered <- shiny::reactive({
-  df <- userData()
+  df <- step2_typed_data()
+  col_info <- step2_typed_col_info()
   # (1) apply any row‐deletions
   if (!is.null(userState$deleted_row_ids)) {
     df <- df[!df$..cyto_id.. %in% userState$deleted_row_ids, , drop = FALSE]
   }
   # (2) apply filters
-  if (length(input$selected_categorical_cols)) {
-    for (col in input$selected_categorical_cols) {
+  filter_cols <- intersect(
+    input$selected_categorical_cols %||% character(0),
+    col_info$categorical
+  )
+  if (length(filter_cols)) {
+    for (col in filter_cols) {
       fid <- paste0("filter_", col)
       if (fid %in% names(input)) {
         df <- df[df[[col]] %in% input[[fid]], , drop = FALSE]
@@ -1753,7 +1749,10 @@ data_after_filters <- shiny::reactive({
   shiny::req(df)
   scale_choice <- input$step2_scale %||% "none"
   if (!identical(scale_choice, "none")) {
-    num_cols <- intersect(input$selected_numerical_cols, names(df))
+    num_cols <- intersect(
+      input$selected_numerical_cols %||% character(0),
+      step2_typed_col_info()$numerical
+    )
     if (length(num_cols)) {
       df <- tryCatch(
         apply_scale(
@@ -2342,12 +2341,18 @@ shiny::observeEvent(input$next2, {
   userState$selected_categorical_cols <- input$selected_categorical_cols
   userState$selected_numerical_cols <- input$selected_numerical_cols
   userState$step2_scale <- input$step2_scale
-  userState$step2_factor_cols <- input$factor_cols %||% character(0)
-  userState$step2_numeric_override_cols <- input$numeric_override_cols %||%
+  userState$step2_factor_cols <- userState$step2_applied_factor_cols %||%
     character(0)
-  userState$step2_factor_order_enable <- isTRUE(input$factor_order_enable)
-  userState$step2_factor_order_col <- input$factor_order_col
-  userState$step2_factor_levels_csv <- input$factor_levels_csv %||% ""
+  userState$step2_numeric_override_cols <-
+    userState$step2_applied_numeric_override_cols %||%
+      character(0)
+  userState$step2_factor_order_enable <- isTRUE(
+    userState$step2_applied_factor_order_enable
+  )
+  userState$step2_factor_order_col <- userState$step2_applied_factor_order_col
+  userState$step2_factor_levels_csv <-
+    userState$step2_applied_factor_levels_csv %||%
+      ""
   currentPage("step3")
   currentStep(3)
 })

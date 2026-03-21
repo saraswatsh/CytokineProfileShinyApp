@@ -78,21 +78,6 @@ shiny::observeEvent(
 shiny::observeEvent(input$step2_scale, {
   userState$step2_scale <- input$step2_scale
 })
-shiny::observeEvent(input$factor_cols, {
-  userState$step2_factor_cols <- input$factor_cols
-}, ignoreNULL = TRUE)
-shiny::observeEvent(input$numeric_override_cols, {
-  userState$step2_numeric_override_cols <- input$numeric_override_cols
-}, ignoreNULL = TRUE)
-shiny::observeEvent(input$factor_order_enable, {
-  userState$step2_factor_order_enable <- input$factor_order_enable
-}, ignoreNULL = TRUE)
-shiny::observeEvent(input$factor_order_col, {
-  userState$step2_factor_order_col <- input$factor_order_col
-}, ignoreNULL = TRUE)
-shiny::observeEvent(input$factor_levels_csv, {
-  userState$step2_factor_levels_csv <- input$factor_levels_csv
-}, ignoreNULL = TRUE)
 shiny::observeEvent(selected_function(), {
   userState$selected_function <- selected_function()
 })

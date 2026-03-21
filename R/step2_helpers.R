@@ -97,3 +97,64 @@ step2_classify_columns <- function(df, exclude = "..cyto_id..") {
     numerical = all_cols[is_numeric_col]
   )
 }
+
+step2_apply_type_overrides <- function(
+  df,
+  factor_cols = NULL,
+  numeric_cols = NULL,
+  factor_order_enable = FALSE,
+  factor_order_col = NULL,
+  factor_levels_csv = NULL
+) {
+  if (is.null(df) || !ncol(df)) {
+    return(df)
+  }
+
+  factor_cols <- intersect(
+    if (is.null(factor_cols)) character(0) else factor_cols,
+    names(df)
+  )
+  numeric_cols <- intersect(
+    if (is.null(numeric_cols)) character(0) else numeric_cols,
+    names(df)
+  )
+
+  if (length(step2_conflicting_type_cols(factor_cols, numeric_cols))) {
+    return(df)
+  }
+
+  if (length(numeric_cols)) {
+    df[numeric_cols] <- lapply(df[numeric_cols], step2_parse_numeric_values)
+  }
+
+  if (length(factor_cols)) {
+    df[factor_cols] <- lapply(df[factor_cols], function(x) {
+      factor(step2_normalize_missing_tokens(x))
+    })
+  }
+
+  factor_order_col <- if (length(factor_order_col)) {
+    factor_order_col[[1]]
+  } else {
+    NULL
+  }
+  factor_levels_csv <- if (is.null(factor_levels_csv)) "" else factor_levels_csv
+
+  if (
+    isTRUE(factor_order_enable) &&
+      !is.null(factor_order_col) &&
+      factor_order_col %in% factor_cols &&
+      nzchar(trimws(factor_levels_csv))
+  ) {
+    levs <- trimws(strsplit(factor_levels_csv, ",", fixed = TRUE)[[1]])
+    levs <- unique(levs[nzchar(levs)])
+    if (length(levs)) {
+      df[[factor_order_col]] <- factor(
+        as.character(df[[factor_order_col]]),
+        levels = levs
+      )
+    }
+  }
+
+  df
+}

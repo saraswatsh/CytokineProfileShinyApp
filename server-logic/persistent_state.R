@@ -26,6 +26,11 @@ userState <- shiny::reactiveValues(
   step2_factor_order_enable = FALSE,
   step2_factor_order_col = NULL,
   step2_factor_levels_csv = NULL,
+  step2_applied_factor_cols = NULL,
+  step2_applied_numeric_override_cols = NULL,
+  step2_applied_factor_order_enable = FALSE,
+  step2_applied_factor_order_col = NULL,
+  step2_applied_factor_levels_csv = NULL,
 
   # Boxplots options
   bp_bin_size = NULL,

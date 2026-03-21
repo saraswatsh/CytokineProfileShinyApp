@@ -4,12 +4,13 @@
 
 # Decoupled UI generation to prevent reactive loops
 output$filter_ui <- shiny::renderUI({
-  df <- userData()
+  df <- step2_typed_data()
   shiny::req(df, input$selected_categorical_cols)
+  col_info <- step2_typed_col_info()
 
   # Only create filters for the categorical columns the user has selected
   factor_cols <- intersect(
-    names(df)[sapply(df, function(x) is.factor(x) || is.character(x))],
+    col_info$categorical,
     input$selected_categorical_cols
   )
 
@@ -37,19 +38,25 @@ output$filter_ui <- shiny::renderUI({
 })
 
 # ---- Step 2: Type controls ----
-output$step2_factor_type_ui <- shiny::renderUI({
-  df <- userData()
+output$step2_type_override_ui <- shiny::renderUI({
+  df <- step2_typed_data()
   shiny::req(df)
   cols <- safe_names(df)
   selected_factor_cols <- intersect(
-    userState$step2_factor_cols %||%
-      shiny::isolate(input$factor_cols) %||%
+    shiny::isolate(input$factor_cols) %||%
+      userState$step2_factor_cols %||%
+      character(0),
+    cols
+  )
+  selected_numeric_cols <- intersect(
+    shiny::isolate(input$numeric_override_cols) %||%
+      userState$step2_numeric_override_cols %||%
       character(0),
     cols
   )
   factor_order_choices <- selected_factor_cols
-  factor_order_selected <- userState$step2_factor_order_col %||%
-    shiny::isolate(input$factor_order_col)
+  factor_order_selected <- shiny::isolate(input$factor_order_col) %||%
+    userState$step2_factor_order_col
   factor_order_selected <- intersect(
     factor_order_selected %||% character(0),
     factor_order_choices
@@ -57,20 +64,43 @@ output$step2_factor_type_ui <- shiny::renderUI({
   if (!length(factor_order_selected) && length(factor_order_choices)) {
     factor_order_selected <- factor_order_choices[1]
   }
+  factor_order_enabled <- isTRUE(
+    shiny::isolate(input$factor_order_enable) %||%
+      userState$step2_factor_order_enable
+  )
+  factor_levels_value <- shiny::isolate(input$factor_levels_csv) %||%
+    userState$step2_factor_levels_csv %||%
+    ""
 
   shiny::tagList(
-    shiny::selectizeInput(
-      "factor_cols",
-      "Treat these columns as categorical:",
-      choices = cols,
-      selected = selected_factor_cols,
-      multiple = TRUE,
-      options = list(plugins = "remove_button")
+    shiny::fluidRow(
+      shiny::column(
+        6,
+        shiny::selectizeInput(
+          "factor_cols",
+          "Treat these columns as categorical:",
+          choices = cols,
+          selected = selected_factor_cols,
+          multiple = TRUE,
+          options = list(plugins = "remove_button")
+        )
+      ),
+      shiny::column(
+        6,
+        shiny::selectizeInput(
+          "numeric_override_cols",
+          "Treat these columns as numeric:",
+          choices = cols,
+          selected = selected_numeric_cols,
+          multiple = TRUE,
+          options = list(plugins = "remove_button")
+        )
+      )
     ),
     shiny::checkboxInput(
       "factor_order_enable",
       "Specify level order for one selected categorical column (optional)",
-      value = isTRUE(userState$step2_factor_order_enable)
+      value = factor_order_enabled
     ),
     shiny::conditionalPanel(
       "input.factor_order_enable",
@@ -83,32 +113,9 @@ output$step2_factor_type_ui <- shiny::renderUI({
       shiny::textInput(
         "factor_levels_csv",
         "Level order (comma-separated):",
-        value = userState$step2_factor_levels_csv %||% "",
+        value = factor_levels_value,
         placeholder = "e.g. Control, Case, Unknown"
       )
-    )
-  )
-})
-
-output$step2_numeric_type_ui <- shiny::renderUI({
-  df <- userData()
-  shiny::req(df)
-  cols <- safe_names(df)
-  selected_numeric_cols <- intersect(
-    userState$step2_numeric_override_cols %||%
-      shiny::isolate(input$numeric_override_cols) %||%
-      character(0),
-    cols
-  )
-
-  shiny::tagList(
-    shiny::selectizeInput(
-      "numeric_override_cols",
-      "Treat these columns as numeric:",
-      choices = cols,
-      selected = selected_numeric_cols,
-      multiple = TRUE,
-      options = list(plugins = "remove_button")
     ),
     shiny::helpText(
       "Values that cannot be parsed as numbers will become missing (NA) while the column stays numeric."
