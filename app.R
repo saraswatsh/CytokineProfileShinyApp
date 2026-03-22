@@ -1,5 +1,4 @@
-source("global.R") # Sourcing built in data set R script and functions
-# Source the UI and server code
+source("global.R")
 source("ui.R")
-source("server.R")
-shiny::shinyApp(ui = ui, server = server)
+
+shiny::shinyApp(ui = ui, server = app_server)

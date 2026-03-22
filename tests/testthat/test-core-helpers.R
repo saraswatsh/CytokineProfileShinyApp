@@ -2,8 +2,8 @@ test_that("run_app forwards the resolved app directory to shiny::runApp", {
   called <- NULL
 
   testthat::local_mocked_bindings(
-    run_app_path = function() "C:/pkg/inst/app.R",
-    .env = environment(run_app)
+    run_app_path = function() "C:/pkg/inst/app",
+    .package = "CytokineProfileShinyApp"
   )
   testthat::local_mocked_bindings(
     runApp = function(appDir, display.mode) {
@@ -14,17 +14,39 @@ test_that("run_app forwards the resolved app directory to shiny::runApp", {
   )
 
   expect_invisible(run_app())
-  expect_equal(called$appDir, "C:/pkg/inst")
+  expect_equal(called$appDir, "C:/pkg/inst/app")
   expect_equal(called$display.mode, "normal")
 })
 
 test_that("run_app errors when the installed app file cannot be found", {
   testthat::local_mocked_bindings(
     run_app_path = function() "",
-    .env = environment(run_app)
+    .package = "CytokineProfileShinyApp"
   )
 
   expect_error(run_app(), "Could not find app directory.")
+})
+
+test_that("app runtime helpers resolve package assets and built-in datasets", {
+  expect_equal(
+    app_builtin_dataset_names(),
+    c(
+      "ExampleData1",
+      "ExampleData2",
+      "ExampleData3",
+      "ExampleData4",
+      "ExampleData5"
+    )
+  )
+  expect_match(app_asset_href("logo.png"), "^app-www/logo\\.png$")
+
+  data_df <- app_builtin_dataset("ExampleData1")
+  expect_s3_class(data_df, "data.frame")
+  expect_true("Group" %in% names(data_df))
+  expect_error(
+    app_builtin_dataset("MissingDataset"),
+    "Unknown built-in dataset"
+  )
 })
 
 test_that("font setting helpers validate and normalize supported values", {
@@ -88,7 +110,10 @@ test_that("font setting helpers validate and normalize supported values", {
     supported_fields = c("plot_title", "legend_text", "x_title"),
     legacy = list(base_size = 12, x_title = 15, plot_title = 18, ignored = 99)
   )
-  expect_equal(names(normalized), c("base_size", "plot_title", "legend_text", "x_title"))
+  expect_equal(
+    names(normalized),
+    c("base_size", "plot_title", "legend_text", "x_title")
+  )
   expect_equal(normalized$base_size, 13)
   expect_equal(normalized$plot_title, 20)
   expect_equal(normalized$legend_text, 8)
@@ -102,19 +127,42 @@ test_that("font setting plotting helpers compute expected sizes", {
 
   themed_plot <- apply_font_settings_ggplot(base_plot, helper_font_settings)
   expect_equal(themed_plot$theme$text$size, helper_font_settings$base_size)
-  expect_equal(themed_plot$theme$plot.title$size, helper_font_settings$plot_title)
-  expect_equal(themed_plot$theme$axis.title.x$size, helper_font_settings$x_title)
+  expect_equal(
+    themed_plot$theme$plot.title$size,
+    helper_font_settings$plot_title
+  )
+  expect_equal(
+    themed_plot$theme$axis.title.x$size,
+    helper_font_settings$x_title
+  )
   expect_equal(themed_plot$theme$axis.text.y$size, helper_font_settings$y_text)
   expect_identical(apply_font_settings_ggplot(base_plot, NULL), base_plot)
 
   expect_equal(font_settings_ggplot_text_size(NULL), 4)
-  expect_equal(font_settings_ggplot_text_size(20, reference_points = 10, default_size = 4), 8)
+  expect_equal(
+    font_settings_ggplot_text_size(20, reference_points = 10, default_size = 4),
+    8
+  )
 
   expect_equal(font_settings_mixomics_text_scale(NULL), 1)
-  expect_equal(font_settings_mixomics_text_scale(22, reference_points = 11, default_scale = 1), 2)
+  expect_equal(
+    font_settings_mixomics_text_scale(
+      22,
+      reference_points = 11,
+      default_scale = 1
+    ),
+    2
+  )
 
   expect_equal(font_settings_mixomics_indiv_cex(NULL), 3)
-  expect_equal(font_settings_mixomics_indiv_cex(22, reference_points = 11, default_cex = 3), 6)
+  expect_equal(
+    font_settings_mixomics_indiv_cex(
+      22,
+      reference_points = 11,
+      default_cex = 3
+    ),
+    6
+  )
 
   expect_equal(font_settings_mixomics_scale(NULL), 1)
   expect_equal(font_settings_mixomics_scale(list(base_size = 22)), 2)
@@ -122,7 +170,10 @@ test_that("font setting plotting helpers compute expected sizes", {
   indiv_args <- font_settings_mixomics_indiv_args(helper_font_settings)
   expect_equal(indiv_args$size.title, helper_font_settings$plot_title)
   expect_equal(indiv_args$size.legend.title, helper_font_settings$legend_title)
-  expect_equal(indiv_args$cex, font_settings_mixomics_indiv_cex(helper_font_settings$point_labels))
+  expect_equal(
+    indiv_args$cex,
+    font_settings_mixomics_indiv_cex(helper_font_settings$point_labels)
+  )
   expect_equal(font_settings_mixomics_indiv_args(NULL), list())
 
   loading_args <- font_settings_mixomics_loadings_args(helper_font_settings)
@@ -131,9 +182,15 @@ test_that("font setting plotting helpers compute expected sizes", {
   expect_equal(font_settings_mixomics_loadings_args(NULL), list())
 
   expect_equal(font_settings_plotvar_cex(NULL), 4)
-  expect_equal(font_settings_plotvar_cex(20, reference_points = 10, default_cex = 4), 8)
+  expect_equal(
+    font_settings_plotvar_cex(20, reference_points = 10, default_cex = 4),
+    8
+  )
   expect_equal(font_settings_plotvar_args(NULL), list())
-  expect_equal(font_settings_plotvar_args(helper_font_settings, show_var_names = FALSE), list())
+  expect_equal(
+    font_settings_plotvar_args(helper_font_settings, show_var_names = FALSE),
+    list()
+  )
   expect_equal(
     font_settings_plotvar_args(helper_font_settings, show_var_names = TRUE)$cex,
     font_settings_plotvar_cex(helper_font_settings$variable_names)
@@ -141,7 +198,10 @@ test_that("font setting plotting helpers compute expected sizes", {
 
   base_graphics <- font_settings_base_graphics(helper_font_settings)
   expect_equal(base_graphics$cex, helper_font_settings$base_size / 11)
-  expect_equal(base_graphics$variable_cex, helper_font_settings$variable_names / 10)
+  expect_equal(
+    base_graphics$variable_cex,
+    helper_font_settings$variable_names / 10
+  )
   expect_equal(font_settings_base_graphics(NULL), list())
 
   heatmap_args <- font_settings_heatmap_args(helper_font_settings)
@@ -169,7 +229,9 @@ test_that("numeric validation helpers summarize invalid values", {
   expect_equal(filtered_issue_df$column, "has_inf")
   expect_equal(filtered_issue_df$issues, "Inf")
 
-  empty_issue_df <- summarize_invalid_numeric_columns(data.frame(group = letters[1:3]))
+  empty_issue_df <- summarize_invalid_numeric_columns(data.frame(
+    group = letters[1:3]
+  ))
   expect_s3_class(empty_issue_df, "data.frame")
   expect_equal(nrow(empty_issue_df), 0)
 
@@ -240,7 +302,10 @@ test_that("apply_scale supports automatic selection and strict validation branch
   )
 
   expect_equal(apply_scale(input_df, scale = "none"), input_df)
-  expect_equal(apply_scale(input_df, columns = character(), scale = "log2"), input_df)
+  expect_equal(
+    apply_scale(input_df, columns = character(), scale = "log2"),
+    input_df
+  )
   expect_equal(
     apply_scale(input_df, scale = "log10")$x,
     log10(input_df$x)
@@ -274,5 +339,8 @@ test_that("apply_scale supports automatic selection and strict validation branch
 
 test_that("adjust_p remains a thin wrapper over stats::p.adjust", {
   p_values <- c(0.01, 0.02, 0.1)
-  expect_equal(adjust_p(p_values, method = "holm"), stats::p.adjust(p_values, method = "holm"))
+  expect_equal(
+    adjust_p(p_values, method = "holm"),
+    stats::p.adjust(p_values, method = "holm")
+  )
 })

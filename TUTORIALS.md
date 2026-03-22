@@ -1,7 +1,7 @@
 # Tutorials for Using CytokineProfile Shiny Application
 
 ### Installation for RStudio 
-* [R Installation](https://shinyinfo.cytokineprofile.org/articles/R_installation.html)
+* [R Installation](https://shinyinfo.cytokineprofile.org/articles/R-installation.html)
 
 ### Basic Tutorial of CytokineProfile Shiny
 * [Basic Tutorial](https://shinyinfo.cytokineprofile.org/articles/Basic-Tutorial-of-CytokineProfile-Shiny.html)

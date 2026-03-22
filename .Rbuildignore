@@ -18,3 +18,13 @@
 ^\.vscode$
 ^server_old\.R$
 ^testing_code\.R$
+^app\.R$
+^ui\.R$
+^global\.R$
+^server-logic$
+^shinyTest\.R$
+^benchmark_cytokineprofile\.R$
+^ShinyLoadTest$
+^server\.R$
+^TUTORIALS.md$
+^config.yml$

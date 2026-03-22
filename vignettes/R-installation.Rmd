@@ -16,43 +16,45 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This guide shows how to **get the source code**, **install the app’s R packages**, and **launch the Shiny app locally** (assuming R and RStudio are already installed). Please make sure to have at least **R Version 4.3 or greater installed**.
+This guide shows how to install the **CytokineProfileShinyApp** package from GitHub and launch the Shiny app locally. Please make sure to have at least **R Version 4.3 or greater installed**.
 
-The repository includes `app.R`, `ui.R`, `server.R`, and an RStudio project file `CytokineProfile Shiny.Rproj` so you can open and run the app with a couple of commands.
+The package now includes the app runtime, and the supported local-user launch path is `CytokineProfileShinyApp::run_app()`.
 
-## 1. Get the Code
+## 1. Install `pak`
 
-**Option A - Git**
-
-```{bash, eval = FALSE}
-# In a terminal 
-git clone https://github.com/saraswatsh/CytokineProfileShinyApp.git
-cd CytokineProfileShinyApp
-```
-
-**Option B - Download ZIP from GitHub**
-
-1.  Visit the [GitHub repository](https://github.com/saraswatsh/CytokineProfileShinyApp), click **Code -\> Download ZIP**.
-2.  Unzip and open the folder.
-
-## 2. Open the project
-
--   Double-click the **`CytokineProfile Shiny.Rproj`** file *or* open RStudio and use **File -\> Open Project** and select the downloaded folder.
-
-Opening the project gives you a clean R session scoped to this app.
-
-## 3. Install the app's packages and dependencies
-
-Run the following lines in the R console. It installs all CRAN packages and Bioconductor packages needed to run the app.
+Run the following line in the R console if `pak` is not already installed:
 
 ```{r, eval = FALSE}
 if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
-pak::local_install_deps(upgrade = TRUE, ask = FALSE, dependencies = TRUE)
 ```
 
-## 4. Run the app
+## 2. Install the package from GitHub
 
-Navigate to the **app.R** file and run all the lines of code *or* click **Run App** in the toolbar.
+Install the package directly from GitHub with:
+
+```{r, eval = FALSE}
+pak::pak("saraswatsh/CytokineProfileShinyApp")
+```
+
+`pak` will resolve and install the package dependencies, including Bioconductor dependencies required by the app.
+
+## 3. Launch the app
+
+After installation, launch the app with:
+
+```{r, eval = FALSE}
+CytokineProfileShinyApp::run_app()
+```
+
+## 4. Optional note for developers using a local repository checkout
+
+If you are developing from a checked-out copy of the repository, you can still run the app from the project root with:
+
+```{r, eval = FALSE}
+shiny::runApp(".")
+```
+
+In that workflow, the root `app.R` file remains a development entrypoint, but it is not the primary end-user launch path.
 
 ------------------------------------------------------------------------
 

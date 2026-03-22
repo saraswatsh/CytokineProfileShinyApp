@@ -1,14 +1,15 @@
-# Internal helper for locating the installed app entrypoint.
+# Internal helper for locating the installed app directory.
 run_app_path <- function() {
-  system.file("app.R", package = "CytokineProfileShinyApp")
+  system.file("app", package = "CytokineProfileShinyApp")
 }
 
 #' Launch the CytokineProfile Shiny App
 #' @export
 run_app <- function() {
-  app_file <- run_app_path()
-  if (!nzchar(app_file)) {
+  app_dir <- run_app_path()
+  if (!nzchar(app_dir)) {
     stop("Could not find app directory.")
   }
-  shiny::runApp(dirname(app_file), display.mode = "normal")
+
+  shiny::runApp(app_dir, display.mode = "normal")
 }
