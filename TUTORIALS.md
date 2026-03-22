@@ -3,7 +3,7 @@
 ### Installation for RStudio
 
 - [R
-  Installation](https://shinyinfo.cytokineprofile.org/articles/R_installation.html)
+  Installation](https://shinyinfo.cytokineprofile.org/articles/R-installation.html)
 
 ### Basic Tutorial of CytokineProfile Shiny
 

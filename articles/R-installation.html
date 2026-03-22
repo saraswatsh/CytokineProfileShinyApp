@@ -80,56 +80,49 @@
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>This guide shows how to <strong>get the source code</strong>,
-<strong>install the app’s R packages</strong>, and <strong>launch the
-Shiny app locally</strong> (assuming R and RStudio are already
-installed). Please make sure to have at least <strong>R Version 4.3 or
-greater installed</strong>.</p>
-<p>The repository includes <code>app.R</code>, <code>ui.R</code>,
-<code>server.R</code>, and an RStudio project file
-<code>CytokineProfile Shiny.Rproj</code> so you can open and run the app
-with a couple of commands.</p>
+<p>This guide shows how to install the
+<strong>CytokineProfileShinyApp</strong> package from GitHub and launch
+the Shiny app locally. Please make sure to have at least <strong>R
+Version 4.3 or greater installed</strong>.</p>
+<p>The package now includes the app runtime, and the supported
+local-user launch path is
+<code><a href="../reference/run_app.html">CytokineProfileShinyApp::run_app()</a></code>.</p>
 </div>
 <div class="section level2">
-<h2 id="get-the-code">1. Get the Code<a class="anchor" aria-label="anchor" href="#get-the-code"></a>
+<h2 id="install-pak">1. Install <code>pak</code><a class="anchor" aria-label="anchor" href="#install-pak"></a>
 </h2>
-<p><strong>Option A - Git</strong></p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># In a terminal </span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/saraswatsh/CytokineProfileShinyApp.git</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="bu">cd</span> CytokineProfileShinyApp</span></code></pre></div>
-<p><strong>Option B - Download ZIP from GitHub</strong></p>
-<ol style="list-style-type: decimal">
-<li>Visit the <a href="https://github.com/saraswatsh/CytokineProfileShinyApp" class="external-link">GitHub
-repository</a>, click <strong>Code -&gt; Download ZIP</strong>.</li>
-<li>Unzip and open the folder.</li>
-</ol>
+<p>Run the following line in the R console if <code>pak</code> is not
+already installed:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"pak"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="open-the-project">2. Open the project<a class="anchor" aria-label="anchor" href="#open-the-project"></a>
+<h2 id="install-the-package-from-github">2. Install the package from GitHub<a class="anchor" aria-label="anchor" href="#install-the-package-from-github"></a>
 </h2>
-<ul>
-<li>Double-click the
-<strong><code>CytokineProfile Shiny.Rproj</code></strong> file
-<em>or</em> open RStudio and use <strong>File -&gt; Open
-Project</strong> and select the downloaded folder.</li>
-</ul>
-<p>Opening the project gives you a clean R session scoped to this
-app.</p>
-</div>
-<div class="section level2">
-<h2 id="install-the-apps-packages-and-dependencies">3. Install the app’s packages and dependencies<a class="anchor" aria-label="anchor" href="#install-the-apps-packages-and-dependencies"></a>
-</h2>
-<p>Run the following lines in the R console. It installs all CRAN
-packages and Bioconductor packages needed to run the app.</p>
+<p>Install the package directly from GitHub with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"pak"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/local_install_deps.html" class="external-link">local_install_deps</a></span><span class="op">(</span>upgrade <span class="op">=</span> <span class="cn">TRUE</span>, ask <span class="op">=</span> <span class="cn">FALSE</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"saraswatsh/CytokineProfileShinyApp"</span><span class="op">)</span></span></code></pre></div>
+<p><code>pak</code> will resolve and install the package dependencies,
+including Bioconductor dependencies required by the app.</p>
 </div>
 <div class="section level2">
-<h2 id="run-the-app">4. Run the app<a class="anchor" aria-label="anchor" href="#run-the-app"></a>
+<h2 id="launch-the-app">3. Launch the app<a class="anchor" aria-label="anchor" href="#launch-the-app"></a>
 </h2>
-<p>Navigate to the <strong>app.R</strong> file and run all the lines of
-code <em>or</em> click <strong>Run App</strong> in the toolbar.</p>
+<p>After installation, launch the app with:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">CytokineProfileShinyApp</span><span class="fu">::</span><span class="fu"><a href="../reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="optional-note-for-developers-using-a-local-repository-checkout">4. Optional note for developers using a local repository
+checkout<a class="anchor" aria-label="anchor" href="#optional-note-for-developers-using-a-local-repository-checkout"></a>
+</h2>
+<p>If you are developing from a checked-out copy of the repository, you
+can still run the app from the project root with:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/runApp.html" class="external-link">runApp</a></span><span class="op">(</span><span class="st">"."</span><span class="op">)</span></span></code></pre></div>
+<p>In that workflow, the root <code>app.R</code> file remains a
+development entrypoint, but it is not the primary end-user launch
+path.</p>
 <hr>
 <p><em>Last updated:</em> March 22, 2026</p>
 </div>
