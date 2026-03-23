@@ -7223,10 +7223,10 @@
     "vignettes/Understanding-XGBoost.Rmd": {
       "checksum": "ec2b760b51a2798288cf743a709d217b"
     },
-    "WWW/logo.png": {
+    "www/logo.png": {
       "checksum": "3d968826327814265c06b8853caca17d"
     },
-    "WWW/user_theme.txt": {
+    "www/user_theme.txt": {
       "checksum": "8b442cca4575da9ba610dc3035eabc47"
     }
   },

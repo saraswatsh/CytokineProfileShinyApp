@@ -9,7 +9,7 @@
 ^manifest\.json$
 ^cytoprofile_logo\.png$
 ^cytoprofile_logo2\.png$
-^WWW$
+^www$
 ^rsconnect$
 ^README\.rmd$
 ^CODE_OF_CONDUCT\.md$

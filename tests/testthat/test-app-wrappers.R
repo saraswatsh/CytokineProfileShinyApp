@@ -16,7 +16,7 @@ test_that("app runtime path helpers respect installed and source fallbacks", {
   source_root <- tempfile("app-source-")
   dir.create(source_root)
   app_test_write_file(file.path(source_root, "config.yml"), "default:\n  mode: source")
-  dir.create(file.path(source_root, "WWW"), recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path(source_root, "www"), recursive = TRUE, showWarnings = FALSE)
   app_test_write_file(
     file.path(source_root, "server-logic", "logic.R"),
     "logic_flag <- TRUE"
