@@ -526,6 +526,60 @@ test_that("cyt_dualflashplot supports file output mode", {
   })
 })
 
+test_that("cyt_dualflashplot covers raster output, progress, fonts, and validation", {
+  output_file <- tempfile(fileext = ".jpg")
+  on.exit(unlink(output_file), add = TRUE)
+  progress <- make_progress_recorder()
+
+  flash_result <- cyt_dualflashplot(
+    ex1_group,
+    group_var = "Group",
+    group1 = "T2D",
+    group2 = "ND",
+    output_file = output_file,
+    font_settings = helper_font_settings,
+    progress = progress
+  )
+
+  expect_true(file.exists(output_file))
+  expect_null(flash_result)
+  expect_gt(length(progress$get_log()$set), 0)
+  expect_gt(length(progress$get_log()$inc), 0)
+  expect_equal(
+    progress$get_log()$set[[length(progress$get_log()$set)]]$detail,
+    "Finished"
+  )
+
+  expect_error(
+    cyt_dualflashplot(
+      as.matrix(ex1_group),
+      group_var = "Group",
+      group1 = "T2D",
+      group2 = "ND"
+    ),
+    "Input must be a data frame."
+  )
+})
+
+test_that("cyt_dualflashplot warns and falls back to pdf for unknown extensions", {
+  output_file <- tempfile(fileext = ".weird")
+  on.exit(unlink(output_file), add = TRUE)
+
+  expect_warning(
+    flash_result <- cyt_dualflashplot(
+      ex1_group,
+      group_var = "Group",
+      group1 = "T2D",
+      group2 = "ND",
+      output_file = output_file
+    ),
+    "Unknown file extension; defaulting to PDF"
+  )
+
+  expect_true(file.exists(output_file))
+  expect_null(flash_result)
+})
+
 # ── cyt_skku ──────────────────────────────────────────────────────────────────
 
 test_that("cyt_skku returns histograms and summary tables", {
@@ -622,5 +676,42 @@ test_that("cyt_volc errors on invalid output file extensions", {
       output_file = "bad.txt"
     ),
     "must have extension"
+  )
+})
+
+test_that("cyt_volc covers progress, font settings, raster output, and validation", {
+  output_file <- tempfile(fileext = ".png")
+  on.exit(unlink(output_file), add = TRUE)
+  progress <- make_progress_recorder()
+
+  volc_result <- cyt_volc(
+    ex1_group,
+    group_col = "Group",
+    cond1 = NULL,
+    cond2 = NULL,
+    output_file = output_file,
+    font_settings = helper_font_settings,
+    progress = progress
+  )
+
+  expect_true(file.exists(output_file))
+  expect_null(volc_result)
+  expect_gt(length(progress$get_log()$set), 0)
+  expect_gt(length(progress$get_log()$inc), 0)
+  expect_equal(
+    progress$get_log()$set[[length(progress$get_log()$set)]]$detail,
+    "Finished"
+  )
+
+  expect_error(
+    cyt_volc(as.matrix(ex1_group), group_col = "Group"),
+    "Input data must be a data frame."
+  )
+  expect_error(
+    cyt_volc(
+      data.frame(Group = c("A", "B"), stringsAsFactors = FALSE),
+      group_col = "Group"
+    ),
+    "No numeric columns found in data."
   )
 })

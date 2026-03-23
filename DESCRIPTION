@@ -61,6 +61,7 @@ Suggests:
     devtools,
     plotly,
     learnr,
+    htmltools,
     shinytest2
 NeedsCompilation: no
 License: GPL (>= 2)

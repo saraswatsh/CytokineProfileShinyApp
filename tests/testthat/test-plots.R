@@ -111,6 +111,67 @@ test_that("cyt_violin supports ungrouped file output and grouped return values",
   })
 })
 
+test_that("cyt_violin supports grouped interactions, limits, progress, and multi-file export", {
+  with_temp_pdf_device({
+    grouped_df <- ex1_full[, c("Group", "Treatment", "IL.10", "IL.17F"), drop = FALSE]
+    y_limits <- c(0, max(grouped_df$IL.17F, na.rm = TRUE))
+    progress <- make_progress_recorder()
+
+    grouped_result <- cyt_violin(
+      grouped_df,
+      group_by = c("Group", "Treatment"),
+      y_lim = y_limits,
+      boxplot_overlay = TRUE,
+      font_settings = helper_font_settings,
+      progress = progress
+    )
+
+    expect_true(is.list(grouped_result))
+    expect_length(grouped_result, 2L)
+    expect_equal(
+      ggplot2::ggplot_build(grouped_result[[1]])$layout$coord$limits$y,
+      y_limits
+    )
+    expect_gt(length(progress$get_log()$set), 0)
+    expect_gt(length(progress$get_log()$inc), 0)
+    expect_equal(
+      progress$get_log()$set[[length(progress$get_log()$set)]]$detail,
+      "Finished"
+    )
+  })
+
+  output_file <- tempfile(fileext = ".png")
+  file_result <- cyt_violin(
+    ex1_numeric[, 1:5, drop = FALSE],
+    output_file = output_file,
+    bin_size = 2
+  )
+  expected_files <- file.path(
+    dirname(output_file),
+    paste0(
+      tools::file_path_sans_ext(basename(output_file)),
+      "_",
+      seq_along(file_result),
+      ".png"
+    )
+  )
+  on.exit(unlink(expected_files), add = TRUE)
+
+  expect_true(all(file.exists(expected_files)))
+  expect_length(file_result, 3L)
+})
+
+test_that("cyt_violin errors for invalid grouping columns and missing numeric data", {
+  expect_error(
+    cyt_violin(ex1_group, group_by = "Missing"),
+    "All group_by columns must exist in data."
+  )
+  expect_error(
+    cyt_violin(data.frame(A = c("x", "y"), B = c("u", "v"))),
+    "No numeric columns to plot."
+  )
+})
+
 # ── cyt_errbp ─────────────────────────────────────────────────────────────────
 
 test_that("cyt_errbp writes a PDF and returns a ggplot object", {
@@ -154,6 +215,85 @@ test_that("cyt_errbp errors when group_col is missing", {
     ),
     "was not found"
   )
+})
+
+test_that("cyt_errbp covers automatic test selection, spread branches, facets, and progress", {
+  err_df <- data.frame(
+    Group = factor(rep(c("A", "B", "C"), each = 4)),
+    Marker1 = c(2, 2.5, 3, 3.5, 3, 3.5, 4, 4.5, 4, 4.5, 5, 5.5),
+    Marker2 = c(1, 1.2, 1.4, 1.6, 4, 8, 16, 32, 3, 6, 12, 24)
+  )
+  progress <- make_progress_recorder()
+  output_file <- tempfile(fileext = ".pdf")
+  on.exit(unlink(output_file), add = TRUE)
+  ttest_called <- FALSE
+
+  testthat::local_mocked_bindings(
+    shapiro.test = function(x) list(p.value = 0.2),
+    t.test = function(x, y, ...) {
+      ttest_called <<- TRUE
+      list(p.value = 0.01)
+    },
+    wilcox.test = function(...) stop("wilcox branch should not run"),
+    .package = "stats"
+  )
+
+  plot_result <- cyt_errbp(
+    err_df,
+    group_col = "Group",
+    method = "auto",
+    error = "ci",
+    n_col = 1,
+    font_settings = helper_font_settings,
+    output_file = output_file,
+    progress = progress
+  )
+
+  expect_true(ttest_called)
+  expect_true(file.exists(output_file))
+  expect_true(inherits(plot_result, "ggplot"))
+  expect_equal(plot_result$facet$params$ncol, 1)
+  expect_gt(length(progress$get_log()$set), 0)
+  expect_gt(length(progress$get_log()$inc), 0)
+  expect_equal(
+    progress$get_log()$set[[length(progress$get_log()$set)]]$detail,
+    "Finished"
+  )
+})
+
+test_that("cyt_errbp supports MAD spread and symbol-only label branches", {
+  err_df <- data.frame(
+    Group = factor(rep(c("A", "B", "C"), each = 4)),
+    Marker1 = c(2, 2.5, 3, 3.5, 3, 3.5, 4, 4.5, 4, 4.5, 5, 5.5),
+    Marker2 = c(1, 1.2, 1.4, 1.6, 4, 8, 16, 32, 3, 6, 12, 24)
+  )
+  wilcox_called <- FALSE
+
+  testthat::local_mocked_bindings(
+    shapiro.test = function(x) list(p.value = 0.01),
+    t.test = function(...) stop("t.test branch should not run"),
+    wilcox.test = function(x, y, ...) {
+      wilcox_called <<- TRUE
+      list(p.value = 0.02, statistic = 4)
+    },
+    .package = "stats"
+  )
+
+  plot_result <- cyt_errbp(
+    err_df,
+    group_col = "Group",
+    method = "auto",
+    error = "mad",
+    p_lab = TRUE,
+    es_lab = FALSE,
+    class_symbol = TRUE
+  )
+
+  expect_true(wilcox_called)
+  expect_true(inherits(plot_result, "ggplot"))
+  expect_equal(sum(vapply(plot_result$layers, function(layer) {
+    inherits(layer$geom, "GeomText")
+  }, logical(1))), 1)
 })
 
 # ── cyt_heatmap ───────────────────────────────────────────────────────────────

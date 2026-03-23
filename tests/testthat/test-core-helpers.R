@@ -276,6 +276,65 @@ test_that("Step 2 helpers normalize missing tokens and restore selections safely
   )
 })
 
+test_that("Step 2 classification and override helpers cover the remaining branches", {
+  numeric_values <- c(1, 2, NA_real_)
+  expect_equal(step2_normalize_missing_tokens(numeric_values), numeric_values)
+  expect_equal(step2_parse_numeric_values(numeric_values), numeric_values)
+  expect_true(step2_is_numeric_like(numeric_values))
+  expect_false(step2_is_numeric_like(c(" NA ", "", "null")))
+  expect_true(step2_is_numeric_like(c("1", "OOR <5", "7", "NA")))
+
+  classified <- step2_classify_columns(data.frame(
+    ..cyto_id.. = 1:3,
+    Group = c("A", "B", "C"),
+    Batch = factor(c("X", "X", "Y")),
+    IL6 = c(1, 2, 3),
+    IL10 = c(4, 5, 6),
+    stringsAsFactors = FALSE
+  ))
+  expect_equal(classified$all, c("Group", "Batch", "IL6", "IL10"))
+  expect_equal(classified$categorical, c("Group", "Batch"))
+  expect_equal(classified$numerical, c("IL6", "IL10"))
+
+  expect_null(step2_apply_type_overrides(NULL))
+
+  empty_df <- data.frame()
+  expect_identical(step2_apply_type_overrides(empty_df), empty_df)
+
+  original_df <- data.frame(
+    Group = c("B", "A", "NA"),
+    Dose = c("1,200", "*3", "OOR <5"),
+    Batch = c("late", "early", ""),
+    stringsAsFactors = FALSE
+  )
+
+  expect_identical(
+    step2_apply_type_overrides(
+      original_df,
+      factor_cols = "Group",
+      numeric_cols = "Group"
+    ),
+    original_df
+  )
+
+  overridden <- step2_apply_type_overrides(
+    original_df,
+    factor_cols = c("Group", "Batch"),
+    numeric_cols = "Dose",
+    factor_order_enable = TRUE,
+    factor_order_col = c("Group", "Batch"),
+    factor_levels_csv = "A, B"
+  )
+  expect_equal(overridden$Dose, c(1200, 3, 5))
+  expect_true(is.factor(overridden$Group))
+  expect_true(is.factor(overridden$Batch))
+  expect_equal(levels(overridden$Group), c("A", "B"))
+  expect_equal(as.character(overridden$Group[1:2]), c("B", "A"))
+  expect_true(is.na(overridden$Group[3]))
+  expect_equal(as.character(overridden$Batch[1:2]), c("late", "early"))
+  expect_true(is.na(overridden$Batch[3]))
+})
+
 test_that("safe_zscore_column handles all-missing, non-finite, zero-variance, and standard inputs", {
   expect_error(
     safe_zscore_column(c(NA_real_, NA_real_)),

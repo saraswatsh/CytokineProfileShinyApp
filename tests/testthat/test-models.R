@@ -1029,3 +1029,134 @@ test_that("cyt_xgb supports multi-class CV and PDF output branches", {
     expect_true(any(grepl("XGBOOST RESULTS", pdf_result, fixed = TRUE)))
   })
 })
+
+test_that("cyt_rf covers scaling, verbose output, progress, and validation branches", {
+  with_temp_pdf_device({
+    model_features <- names(ex1_binary_group)[vapply(ex1_binary_group, is.numeric, logical(1))][2:6]
+    rf_df <- ex1_binary_group[, c("Group", model_features), drop = FALSE]
+    predictor_cols <- setdiff(names(rf_df), "Group")
+    rf_df[, predictor_cols] <- rf_df[, predictor_cols, drop = FALSE] + 1
+
+    output_file <- tempfile(fileext = ".pdf")
+    on.exit(unlink(output_file), add = TRUE)
+    progress <- make_progress_recorder()
+
+    verbose_output <- capture.output(
+      cyt_rf(
+        rf_df,
+        group_col = "Group",
+        ntree = 15,
+        mtry = 2,
+        run_rfcv = FALSE,
+        plot_roc = TRUE,
+        verbose = TRUE,
+        cv = FALSE,
+        scale = "log2",
+        output_file = output_file,
+        font_settings = helper_font_settings,
+        progress = progress,
+        seed = 123
+      )
+    )
+
+    expect_true(file.exists(output_file))
+    expect_true(any(grepl("RANDOM FOREST RESULTS ON TRAINING SET", verbose_output, fixed = TRUE)))
+    expect_true(any(grepl("### PREDICTIONS ON TEST SET ###", verbose_output, fixed = TRUE)))
+    expect_true(any(grepl("AUC:", verbose_output, fixed = TRUE)))
+    expect_gt(length(progress$get_log()$set), 0)
+    expect_gt(length(progress$get_log()$inc), 0)
+    expect_equal(
+      progress$get_log()$set[[length(progress$get_log()$set)]]$detail,
+      "Finished"
+    )
+  })
+
+  expect_error(
+    cyt_rf(
+      ex1_binary_group[, c("Group", "IL.10", "IL.17F"), drop = FALSE],
+      group_col = "Missing",
+      ntree = 5,
+      mtry = 1,
+      run_rfcv = FALSE,
+      cv = FALSE
+    ),
+    "Column 'Missing' not found in data."
+  )
+  expect_error(
+    cyt_rf(
+      data.frame(Group = factor(rep("A", 4)), Marker = c(2, 3, 4, 5)),
+      group_col = "Group",
+      ntree = 5,
+      mtry = 1,
+      run_rfcv = FALSE,
+      cv = FALSE
+    ),
+    "Grouping variable must have at least two levels."
+  )
+})
+
+test_that("cyt_xgb covers scaling, console output, progress, warning fallback, and validation", {
+  with_temp_pdf_device({
+    model_features <- names(ex1_binary_group)[vapply(ex1_binary_group, is.numeric, logical(1))][2:6]
+    xgb_df <- ex1_binary_group[, c("Group", model_features), drop = FALSE]
+    predictor_cols <- setdiff(names(xgb_df), "Group")
+    xgb_df[, predictor_cols] <- xgb_df[, predictor_cols, drop = FALSE] + 1
+
+    output_file <- tempfile(fileext = ".pdf")
+    on.exit(unlink(output_file), add = TRUE)
+    progress <- make_progress_recorder()
+    base_require_namespace <- base::get("requireNamespace", baseenv())
+
+    testthat::local_mocked_bindings(
+      requireNamespace = function(package, quietly = TRUE) {
+        if (identical(package, "Ckmeans.1d.dp")) {
+          return(FALSE)
+        }
+        base_require_namespace(package, quietly = quietly)
+      },
+      .package = "base"
+    )
+
+    printed_output <- capture.output(
+      expect_warning(
+        cyt_xgb(
+          xgb_df,
+          group_col = "Group",
+          nrounds = 10,
+          max_depth = 3,
+          learning_rate = 0.1,
+          cv = FALSE,
+          plot_roc = TRUE,
+          print_results = TRUE,
+          scale = "log2",
+          output_file = output_file,
+          font_settings = helper_font_settings,
+          progress = progress,
+          seed = 123
+        ),
+        "Install 'Ckmeans.1d.dp' for a clustered importance plot"
+      )
+    )
+
+    expect_true(file.exists(output_file))
+    expect_true(any(grepl("Group to Numeric Label Mapping", printed_output, fixed = TRUE)))
+    expect_true(any(grepl("Confusion Matrix on Test Set", printed_output, fixed = TRUE)))
+    expect_true(any(grepl("AUC:", printed_output, fixed = TRUE)))
+    expect_gt(length(progress$get_log()$set), 0)
+    expect_gt(length(progress$get_log()$inc), 0)
+    expect_equal(
+      progress$get_log()$set[[length(progress$get_log()$set)]]$detail,
+      "Finished"
+    )
+  })
+
+  expect_error(
+    cyt_xgb(
+      ex1_binary_group[, c("Group", "IL.10", "IL.17F"), drop = FALSE],
+      group_col = "Missing",
+      nrounds = 5,
+      cv = FALSE
+    ),
+    "Column 'Missing' not found in data."
+  )
+})
