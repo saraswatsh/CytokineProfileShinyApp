@@ -117,12 +117,13 @@ including Bioconductor dependencies required by the app.</p>
 checkout<a class="anchor" aria-label="anchor" href="#optional-note-for-developers-using-a-local-repository-checkout"></a>
 </h2>
 <p>If you are developing from a checked-out copy of the repository, you
-can still run the app from the project root with:</p>
+can still run the app directly from the packaged launcher with:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/runApp.html" class="external-link">runApp</a></span><span class="op">(</span><span class="st">"."</span><span class="op">)</span></span></code></pre></div>
-<p>In that workflow, the root <code>app.R</code> file remains a
-development entrypoint, but it is not the primary end-user launch
-path.</p>
+<code class="sourceCode R"><span><span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/runApp.html" class="external-link">runApp</a></span><span class="op">(</span><span class="st">"inst/app"</span><span class="op">)</span></span></code></pre></div>
+<p>You can also open <code>inst/app/app.R</code> and click <strong>Run
+App</strong>. All Shiny code lives in <code>R/</code>, and the runtime
+launcher, config, and static assets live under
+<code>inst/app/</code>.</p>
 <hr>
 <p><em>Last updated:</em> March 23, 2026</p>
 </div>

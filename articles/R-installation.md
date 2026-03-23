@@ -41,14 +41,15 @@ CytokineProfileShinyApp::run_app()
 ## 4. Optional note for developers using a local repository checkout
 
 If you are developing from a checked-out copy of the repository, you can
-still run the app from the project root with:
+still run the app directly from the packaged launcher with:
 
 ``` r
-shiny::runApp(".")
+shiny::runApp("inst/app")
 ```
 
-In that workflow, the root `app.R` file remains a development
-entrypoint, but it is not the primary end-user launch path.
+You can also open `inst/app/app.R` and click **Run App**. All Shiny code
+lives in `R/`, and the runtime launcher, config, and static assets live
+under `inst/app/`.
 
 ------------------------------------------------------------------------
 
