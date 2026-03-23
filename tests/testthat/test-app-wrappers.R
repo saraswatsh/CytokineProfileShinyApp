@@ -243,6 +243,7 @@ test_that("app_logic_exec injects runtime objects and writes results back to app
   script_path <- app_test_write_file(
     file.path(tempfile("logic-"), "logic.R"),
     c(
+      "stopifnot(!exists('existing_value', inherits = FALSE))",
       "stopifnot(existing_value == 5L)",
       "stopifnot(identical(input$token, 'in'))",
       "stopifnot(identical(output$token, 'out'))",
@@ -254,8 +255,10 @@ test_that("app_logic_exec injects runtime objects and writes results back to app
 
   app_ctx <- new.env(parent = emptyenv())
   app_ctx$existing_value <- 5L
+  parent_env <- baseenv()
 
   testthat::local_mocked_bindings(
+    app_logic_parent_env = function() parent_env,
     app_server_logic_file = function(filename) {
       expect_equal(filename, "logic.R")
       script_path
@@ -272,11 +275,54 @@ test_that("app_logic_exec injects runtime objects and writes results back to app
   )
 
   expect_identical(result, app_ctx)
+  expect_identical(parent.env(app_ctx), parent_env)
   expect_equal(app_ctx$existing_value, 6L)
   expect_equal(app_ctx$generated_value, "in-out-session")
   expect_false(exists("input", envir = app_ctx, inherits = FALSE))
   expect_false(exists("output", envir = app_ctx, inherits = FALSE))
   expect_false(exists("session", envir = app_ctx, inherits = FALSE))
+})
+
+test_that("app_logic_exec closures can resolve bindings created by later stages", {
+  reader_path <- app_test_write_file(
+    file.path(tempfile("logic-reader-"), "reader.R"),
+    "deferred_reader <- function() filteredData()"
+  )
+  writer_path <- app_test_write_file(
+    file.path(tempfile("logic-writer-"), "writer.R"),
+    "filteredData <- function() 123L"
+  )
+
+  app_ctx <- new.env(parent = emptyenv())
+
+  testthat::local_mocked_bindings(
+    app_server_logic_file = function(filename) {
+      switch(
+        filename,
+        "reader.R" = reader_path,
+        "writer.R" = writer_path,
+        stop("Unexpected file: ", filename)
+      )
+    },
+    .package = "CytokineProfileShinyApp"
+  )
+
+  app_logic_exec(
+    "reader.R",
+    input = list(),
+    output = list(),
+    session = list(),
+    app_ctx = app_ctx
+  )
+  app_logic_exec(
+    "writer.R",
+    input = list(),
+    output = list(),
+    session = list(),
+    app_ctx = app_ctx
+  )
+
+  expect_equal(app_ctx$deferred_reader(), 123L)
 })
 
 test_that("app server init wrappers delegate to app_logic_exec with expected files", {

@@ -28,3 +28,5 @@
 ^server\.R$
 ^TUTORIALS.md$
 ^config.yml$
+^benchmark-results$
+_\.new\.png$
