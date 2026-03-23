@@ -46,6 +46,23 @@ if (getRversion() >= "4.3") {
     "Feature",
     "Gain",
     "p_y",
-    "es_y"
+    "es_y",
+    "character.min",
+    "character.max",
+    "character.empty",
+    "character.whitespace",
+    "skim_type",
+    "skim_variable",
+    "n_missing",
+    "complete_rate",
+    "character.n_unique",
+    "numeric.p0",
+    "numeric.p25",
+    "numeric.p50",
+    "numeric.p75",
+    "numeric.p100",
+    "numeric.mean",
+    "numeric.sd",
+    "numeric.hist"
   ))
 }

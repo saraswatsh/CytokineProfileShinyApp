@@ -14,12 +14,10 @@ app_test_render_html <- function(tag) {
 
 test_that("app runtime path helpers respect installed and source fallbacks", {
   source_root <- tempfile("app-source-")
-  dir.create(source_root)
-  app_test_write_file(file.path(source_root, "config.yml"), "default:\n  mode: source")
-  dir.create(file.path(source_root, "www"), recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path(source_root, "inst", "app", "www"), recursive = TRUE)
   app_test_write_file(
-    file.path(source_root, "server-logic", "logic.R"),
-    "logic_flag <- TRUE"
+    file.path(source_root, "inst", "app", "config.yml"),
+    "default:\n  mode: source"
   )
   source_root <- app_test_normalize_path(source_root)
 
@@ -34,12 +32,11 @@ test_that("app runtime path helpers respect installed and source fallbacks", {
     .package = "CytokineProfileShinyApp"
   )
 
-  expect_equal(app_config_path(), file.path(source_root, "config.yml"))
-  expect_equal(app_www_dir(), file.path(source_root, "www"))
   expect_equal(
-    app_server_logic_file("logic.R"),
-    file.path(source_root, "server-logic", "logic.R")
+    app_config_path(),
+    file.path(source_root, "inst", "app", "config.yml")
   )
+  expect_equal(app_www_dir(), file.path(source_root, "inst", "app", "www"))
 })
 
 test_that("app runtime helpers cover installed-file branches and missing-source errors", {
@@ -56,7 +53,7 @@ test_that("app runtime helpers cover installed-file branches and missing-source 
   expect_equal(app_installed_file("config.yml"), "")
 })
 
-test_that("app config, asset, and logic helpers use installed files when present", {
+test_that("app config and asset helpers use installed files when present", {
   captured_config_path <- NULL
 
   testthat::local_mocked_bindings(
@@ -75,10 +72,6 @@ test_that("app config, asset, and logic helpers use installed files when present
   expect_equal(app_config(), list(mode = "installed"))
   expect_equal(captured_config_path, "C:/installed/app/config.yml")
   expect_equal(app_www_dir(), "C:/installed/app/www")
-  expect_equal(
-    app_server_logic_file("theme_toggle.R"),
-    "C:/installed/app/server-logic/theme_toggle.R"
-  )
   expect_match(app_asset_href("logo.png"), "^app-www/logo\\.png$")
 })
 
@@ -94,11 +87,8 @@ test_that("app runtime helpers error cleanly when source assets are missing", {
     .package = "CytokineProfileShinyApp"
   )
 
+  expect_error(app_config_path(), "Could not find the app config file.")
   expect_error(app_www_dir(), "Could not find the app asset directory.")
-  expect_error(
-    app_server_logic_file("missing_logic.R"),
-    "Could not find server logic file: missing_logic.R"
-  )
 })
 
 test_that("app description helpers prefer package metadata then source files", {
@@ -171,7 +161,7 @@ test_that("app built-in datasets fall back to source data files when needed", {
 
 test_that("app resource helpers add missing resource paths and skip duplicates", {
   source_root <- tempfile("app-www-")
-  dir.create(file.path(source_root, "www"), recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path(source_root, "inst", "app", "www"), recursive = TRUE)
   source_root <- app_test_normalize_path(source_root)
 
   old_options <- options(cytokineprofile.app_source_root = source_root)
@@ -200,7 +190,7 @@ test_that("app resource helpers add missing resource paths and skip duplicates",
   expect_equal(captured[[1]]$prefix, app_resource_prefix())
   expect_equal(
     captured[[1]]$directoryPath,
-    app_test_normalize_path(file.path(source_root, "www"))
+    app_test_normalize_path(file.path(source_root, "inst", "app", "www"))
   )
 
   testthat::local_mocked_bindings(
@@ -211,168 +201,77 @@ test_that("app resource helpers add missing resource paths and skip duplicates",
   expect_invisible(app_register_resources())
 })
 
-test_that("app logic parent environment switches across source and namespace modes", {
-  testthat::local_mocked_bindings(
-    app_using_source_root = function() TRUE,
-    .package = "CytokineProfileShinyApp"
-  )
-  expect_identical(app_logic_parent_env(), globalenv())
-})
+test_that("stage helpers persist stage state and support deferred cross-stage lookups", {
+  stage_reader <- function(app_ctx) {
+    input <- list(token = "in")
+    output <- list(token = "out")
+    session <- list(token = "session")
+    stage_env <- app_stage_init(app_ctx)
 
-test_that("app logic parent environment uses the package namespace when available", {
-  testthat::local_mocked_bindings(
-    app_using_source_root = function() FALSE,
-    app_namespace_loaded = function() TRUE,
-    .package = "CytokineProfileShinyApp"
-  )
+    existing_value <- existing_value + 1L
+    generated_value <- paste(input$token, output$token, session$token, sep = "-")
+    deferred_reader <- function() filteredData()
 
-  expect_identical(app_logic_parent_env(), asNamespace(app_package_name()))
-})
+    invisible(app_stage_commit(app_ctx, stage_env))
+  }
 
-test_that("app logic parent environment falls back to the global environment", {
-  testthat::local_mocked_bindings(
-    app_using_source_root = function() FALSE,
-    app_namespace_loaded = function() FALSE,
-    .package = "CytokineProfileShinyApp"
-  )
+  stage_writer <- function(app_ctx) {
+    input <- list()
+    output <- list()
+    session <- list()
+    stage_env <- app_stage_init(app_ctx)
 
-  expect_identical(app_logic_parent_env(), globalenv())
-})
+    filteredData <- function() 123L
 
-test_that("app_logic_exec injects runtime objects and writes results back to app_ctx", {
-  script_path <- app_test_write_file(
-    file.path(tempfile("logic-"), "logic.R"),
-    c(
-      "stopifnot(!exists('existing_value', inherits = FALSE))",
-      "stopifnot(existing_value == 5L)",
-      "stopifnot(identical(input$token, 'in'))",
-      "stopifnot(identical(output$token, 'out'))",
-      "stopifnot(identical(session$token, 'session'))",
-      "existing_value <- existing_value + 1L",
-      "generated_value <- paste(input$token, output$token, session$token, sep = '-')"
-    )
-  )
+    invisible(app_stage_commit(app_ctx, stage_env))
+  }
 
-  app_ctx <- new.env(parent = emptyenv())
+  app_ctx <- new.env(parent = environment(app_server))
   app_ctx$existing_value <- 5L
-  parent_env <- baseenv()
 
-  testthat::local_mocked_bindings(
-    app_logic_parent_env = function() parent_env,
-    app_server_logic_file = function(filename) {
-      expect_equal(filename, "logic.R")
-      script_path
-    },
-    .package = "CytokineProfileShinyApp"
-  )
+  stage_reader(app_ctx)
+  stage_writer(app_ctx)
 
-  result <- app_logic_exec(
-    "logic.R",
-    input = list(token = "in"),
-    output = list(token = "out"),
-    session = list(token = "session"),
-    app_ctx = app_ctx
-  )
-
-  expect_identical(result, app_ctx)
-  expect_identical(parent.env(app_ctx), parent_env)
   expect_equal(app_ctx$existing_value, 6L)
   expect_equal(app_ctx$generated_value, "in-out-session")
+  expect_equal(app_ctx$deferred_reader(), 123L)
   expect_false(exists("input", envir = app_ctx, inherits = FALSE))
   expect_false(exists("output", envir = app_ctx, inherits = FALSE))
   expect_false(exists("session", envir = app_ctx, inherits = FALSE))
 })
 
-test_that("app_logic_exec closures can resolve bindings created by later stages", {
-  reader_path <- app_test_write_file(
-    file.path(tempfile("logic-reader-"), "reader.R"),
-    "deferred_reader <- function() filteredData()"
-  )
-  writer_path <- app_test_write_file(
-    file.path(tempfile("logic-writer-"), "writer.R"),
-    "filteredData <- function() 123L"
-  )
+test_that("stage commit preserves borrowed callable bindings", {
+  borrow_stage <- function(app_ctx) {
+    input <- list()
+    output <- list()
+    session <- list()
+    stage_env <- app_stage_init(app_ctx)
 
-  app_ctx <- new.env(parent = emptyenv())
+    currentStep <- app_ctx$currentStep
+    borrowed_value <- currentStep()
 
-  testthat::local_mocked_bindings(
-    app_server_logic_file = function(filename) {
-      switch(
-        filename,
-        "reader.R" = reader_path,
-        "writer.R" = writer_path,
-        stop("Unexpected file: ", filename)
-      )
-    },
-    .package = "CytokineProfileShinyApp"
-  )
-
-  app_logic_exec(
-    "reader.R",
-    input = list(),
-    output = list(),
-    session = list(),
-    app_ctx = app_ctx
-  )
-  app_logic_exec(
-    "writer.R",
-    input = list(),
-    output = list(),
-    session = list(),
-    app_ctx = app_ctx
-  )
-
-  expect_equal(app_ctx$deferred_reader(), 123L)
-})
-
-test_that("app server init wrappers delegate to app_logic_exec with expected files", {
-  wrapper_map <- c(
-    init_theme_server = "theme_toggle.R",
-    init_wizard_step_control_server = "wizard_step_control.R",
-    init_persistent_state_server = "persistent_state.R",
-    init_data_handling_server = "data_handling.R",
-    init_data_filtering_server = "data_filtering.R",
-    init_options_server = "options_ui.R",
-    init_navigation_server = "navigation.R",
-    init_update_inputs_server = "update_inputs.R",
-    init_analysis_results_server = "analysis_results.R",
-    init_save_key_inputs_server = "save_key_inputs.R"
-  )
-  captured <- list()
-
-  testthat::local_mocked_bindings(
-    app_logic_exec = function(filename, input, output, session, app_ctx) {
-      captured[[length(captured) + 1L]] <<- list(
-        filename = filename,
-        input = input,
-        output = output,
-        session = session,
-        app_ctx = app_ctx
-      )
-      invisible(app_ctx)
-    },
-    .package = "CytokineProfileShinyApp"
-  )
-
-  input <- list(id = "input")
-  output <- list(id = "output")
-  session <- list(id = "session")
-  app_ctx <- new.env(parent = emptyenv())
-
-  for (wrapper_name in names(wrapper_map)) {
-    getFromNamespace(wrapper_name, "CytokineProfileShinyApp")(
-      input,
-      output,
-      session,
-      app_ctx
-    )
+    invisible(app_stage_commit(app_ctx, stage_env))
   }
 
-  expect_equal(vapply(captured, `[[`, character(1), "filename"), unname(wrapper_map))
-  expect_true(all(vapply(captured, function(x) identical(x$input, input), logical(1))))
-  expect_true(all(vapply(captured, function(x) identical(x$output, output), logical(1))))
-  expect_true(all(vapply(captured, function(x) identical(x$session, session), logical(1))))
-  expect_true(all(vapply(captured, function(x) identical(x$app_ctx, app_ctx), logical(1))))
+  app_ctx <- new.env(parent = environment(app_server))
+  app_ctx$currentStep <- local({
+    value <- 2L
+
+    function(new_value) {
+      if (missing(new_value)) {
+        return(value)
+      }
+
+      value <<- new_value
+      invisible(value)
+    }
+  })
+
+  borrow_stage(app_ctx)
+
+  expect_equal(app_ctx$borrowed_value, 2L)
+  expect_true(is.function(app_ctx$currentStep))
+  expect_equal(app_ctx$currentStep(), 2L)
 })
 
 test_that("app_server initializes session state and invokes wrapper stages in order", {
@@ -434,12 +333,52 @@ test_that("app_server initializes session state and invokes wrapper stages in or
 
   first_ctx <- calls[[1]]$app_ctx
   expect_identical(result, first_ctx)
+  expect_identical(parent.env(first_ctx), environment(app_server))
   expect_equal(first_ctx$upload_dir, "C:/tmp/uploads")
   expect_equal(first_ctx$builtins_dir, "C:/tmp/builtins")
   expect_equal(first_ctx$builtInList, c("ExampleData1", "ExampleData2"))
   expect_true(all(vapply(calls, function(x) identical(x$app_ctx, first_ctx), logical(1))))
   expect_true(exists("stored_theme", envir = session$userData, inherits = FALSE))
   expect_null(session$userData$stored_theme)
+})
+
+test_that("app_server boots without recursive startup errors", {
+  testthat::local_mocked_bindings(
+    observe_helpers = function() invisible(NULL),
+    .package = "shinyhelper"
+  )
+
+  expect_no_error(
+    shiny::testServer(app_server, {
+      shiny:::flushReact()
+      expect_true(TRUE)
+    })
+  )
+})
+
+test_that("source launcher in inst/app boots from a source checkout", {
+  launch_env <- new.env(parent = globalenv())
+  launcher_dir <- testthat::test_path("..", "..", "inst", "app")
+  if (!dir.exists(launcher_dir) || !file.exists(file.path(launcher_dir, "app.R"))) {
+    testthat::skip(
+      "Source-checkout launcher layout is not available in the installed test tree."
+    )
+  }
+  launcher_dir <- normalizePath(launcher_dir, winslash = "/", mustWork = TRUE)
+  old_wd <- setwd(launcher_dir)
+  old_options <- options(cytokineprofile.app_source_root = "")
+  on.exit(options(old_options), add = TRUE)
+  on.exit(setwd(old_wd), add = TRUE)
+
+  expect_no_error(sys.source("app.R", envir = launch_env, keep.source = TRUE))
+  expect_true(exists("ui", envir = launch_env, inherits = FALSE))
+  expect_true(exists("server", envir = launch_env, inherits = FALSE))
+  expect_true(inherits(launch_env$ui, "shiny.tag.list"))
+  expect_true(is.function(launch_env$server))
+  expect_equal(
+    getOption("cytokineprofile.app_source_root"),
+    app_test_normalize_path(file.path(launcher_dir, "..", ".."))
+  )
 })
 
 test_that("announcement_banner and app_ui include the expected structure", {

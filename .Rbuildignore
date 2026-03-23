@@ -11,7 +11,7 @@
 ^cytoprofile_logo2\.png$
 ^www$
 ^rsconnect$
-^README\.rmd$
+^README\.Rmd$
 ^CODE_OF_CONDUCT\.md$
 ^doc$
 ^Meta$

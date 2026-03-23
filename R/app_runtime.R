@@ -22,12 +22,21 @@ app_source_root <- function() {
   normalizePath(getwd(), winslash = "/", mustWork = FALSE)
 }
 
+app_source_app_file <- function(...) {
+  file.path(app_source_root(), "inst", "app", ...)
+}
+
 app_config_path <- function() {
   config_file <- app_installed_file("config.yml")
   if (nzchar(config_file)) {
     return(config_file)
   }
-  file.path(app_source_root(), "config.yml")
+
+  config_file <- app_source_app_file("config.yml")
+  if (!file.exists(config_file)) {
+    stop("Could not find the app config file.")
+  }
+  config_file
 }
 
 app_config <- function() {
@@ -40,25 +49,11 @@ app_www_dir <- function() {
     return(installed_dir)
   }
 
-  source_candidates <- file.path(app_source_root(), c("www", "WWW"))
-  source_dir <- source_candidates[dir.exists(source_candidates)][1]
-  if (is.na(source_dir) || !nzchar(source_dir)) {
+  source_dir <- app_source_app_file("www")
+  if (!dir.exists(source_dir)) {
     stop("Could not find the app asset directory.")
   }
   source_dir
-}
-
-app_server_logic_file <- function(filename) {
-  logic_file <- app_installed_file("server-logic", filename)
-  if (nzchar(logic_file)) {
-    return(logic_file)
-  }
-
-  logic_file <- file.path(app_source_root(), "server-logic", filename)
-  if (!file.exists(logic_file)) {
-    stop("Could not find server logic file: ", filename)
-  }
-  logic_file
 }
 
 app_resource_prefix <- function() {
@@ -141,40 +136,6 @@ app_description_field <- function(field, default = NULL) {
 
 app_version_string <- function() {
   as.character(app_description_field("Version", default = "0.0.0.9000"))
-}
-
-app_logic_parent_env <- function() {
-  if (app_using_source_root()) {
-    return(globalenv())
-  }
-  if (app_namespace_loaded()) {
-    return(asNamespace(app_package_name()))
-  }
-  globalenv()
-}
-
-app_logic_exec <- function(filename, input, output, session, app_ctx) {
-  parent_env <- app_logic_parent_env()
-  if (!identical(parent.env(app_ctx), parent_env)) {
-    parent.env(app_ctx) <- parent_env
-  }
-
-  # Keep app_ctx as the shared lexical parent so closures created in one
-  # server-logic stage can resolve bindings added by later stages.
-  logic_env <- new.env(parent = app_ctx)
-
-  assign("input", input, envir = logic_env)
-  assign("output", output, envir = logic_env)
-  assign("session", session, envir = logic_env)
-
-  sys.source(app_server_logic_file(filename), envir = logic_env, keep.source = TRUE)
-
-  logic_names <- setdiff(ls(logic_env, all.names = TRUE), c("input", "output", "session"))
-  for (nm in logic_names) {
-    assign(nm, base::get(nm, envir = logic_env, inherits = FALSE), envir = app_ctx)
-  }
-
-  invisible(app_ctx)
 }
 
 app_session_temp_dir <- function(name) {
