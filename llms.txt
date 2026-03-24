@@ -13,6 +13,7 @@ Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShin
 
 [![CodeFactor](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/badge/devel)](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/overview/devel)
 [![codecov](https://codecov.io/gh/saraswatsh/CytokineProfileShinyApp/branch/devel/graph/badge.svg?token=0SIQVV5WD3)](https://app.codecov.io/gh/saraswatsh/CytokineProfileShinyApp/tree/devel)
+![check-app](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/check-app.yaml/badge.svg)
 
 The goal of CytokineProfile Shiny is to conduct quality control using
 biological meaningful cutoff on raw measured values of cytokines.
