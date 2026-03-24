@@ -134,7 +134,7 @@ Example data compiled for cytokine profiling.
 Pugh GH, Fouladvand S, SantaCruz-Calvo S, Agrawal M, Zhang XD, Chen J,
 Kern PA, Nikolajczyk BS. T cells dominate peripheral inflammation in a
 cross-sectional analysis of obesity-associated diabetes. *Obesity
-(Silver Spring)*. 2022;30(10): 1983–1994. doi:10.1002/oby.23528.
+(Silver Spring)*. 2022;30(10): 1983-1994. doi:10.1002/oby.23528.
 
 ## Examples
 

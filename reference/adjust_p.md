@@ -2,7 +2,7 @@
 
 A thin wrapper around
 [`stats::p.adjust`](https://rdrr.io/r/stats/p.adjust.html) that defaults
-to the Benjamini–Hochberg procedure. Useful for unifying multiple
+to the Benjamini-Hochberg procedure. Useful for unifying multiple
 testing adjustments across the package.
 
 ## Usage
@@ -19,8 +19,8 @@ adjust_p(p_values, method = "BH")
 
 - method:
 
-  A character string specifying the p‑value adjustment method. Passed
-  directly to `p.adjust`. Defaults to "BH" (Benjamini–Hochberg). See
+  A character string specifying the p-value adjustment method. Passed
+  directly to `p.adjust`. Defaults to "BH" (Benjamini-Hochberg). See
   `p.adjust.methods` for other options.
 
 ## Value
