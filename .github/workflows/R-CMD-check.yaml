@@ -29,6 +29,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      CYTOKINEPROFILE_RUN_APPDRIVER: ${{ matrix.config.r == 'release' && 'true' || 'false' }}
 
     steps:
       - uses: actions/checkout@v4

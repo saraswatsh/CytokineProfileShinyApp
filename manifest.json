@@ -6633,6 +6633,9 @@
     }
   },
   "files": {
+    ".github/workflows/check-app.yaml": {
+      "checksum": "700c5ed12ddaabbe80dbc209c36d25d7"
+    },
     ".github/workflows/pkgdown.yaml": {
       "checksum": "002faabdbbaac9799074b7e95527eb01"
     },
@@ -6700,7 +6703,7 @@
       "checksum": "d29a40278434f9d67efcdf14046c6469"
     },
     "DESCRIPTION": {
-      "checksum": "04ac8602d3f938b600e615513057a7c1"
+      "checksum": "638d8e1a5545bbac458c312b2669a9bf"
     },
     "doc/Basic-Tutorial-of-CytokineProfile-Shiny.html": {
       "checksum": "2f207b1bf615b8b6255f5befb1900b73"
@@ -7342,10 +7345,10 @@
       "checksum": "8e37d7de575b4c556aaed64b86dc8b49"
     },
     "man/adjust_p.Rd": {
-      "checksum": "5f3e5c5522de297236d417da3c32665f"
+      "checksum": "c40a29592fc53ec8728f6aefe4e06ef5"
     },
     "man/apply_scale.Rd": {
-      "checksum": "ccf71b8c5909a33e29716a43b73576ab"
+      "checksum": "31561226e7e97f285d6813dba678c91b"
     },
     "man/cyt_anova.Rd": {
       "checksum": "decf64e449501c4d7eae605429ac013d"
@@ -7372,7 +7375,7 @@
       "checksum": "d49d6cc8af5b2743a5b34cb3a3915339"
     },
     "man/cyt_mint_splsda.Rd": {
-      "checksum": "9dc5fbb8c0c224de86f4eb49030c32bf"
+      "checksum": "5949afc724ee45fab3f0063a46569d5b"
     },
     "man/cyt_pca.Rd": {
       "checksum": "a52aff7211719fa361ed566aab8d8a0a"
@@ -7393,7 +7396,7 @@
       "checksum": "d41e4103fb1cbc452d95b5bc7f802c50"
     },
     "man/cyt_univariate.Rd": {
-      "checksum": "7ae377fee630fa67aff60daedbfb6e81"
+      "checksum": "279aa09e1f0e88e6f0c59dd89928928a"
     },
     "man/cyt_univariate_multi.Rd": {
       "checksum": "7cc6748cecadad5af1a66d5ed7c4306c"
@@ -7411,7 +7414,7 @@
       "checksum": "79ccd7a8664479cc27009acf5f3f290f"
     },
     "man/ExampleData1.Rd": {
-      "checksum": "d94abb04c96697b7e7f747b4a5a9d3f0"
+      "checksum": "f4f24e21dc85aabf0c2f78c1e83ceb07"
     },
     "man/ExampleData2.Rd": {
       "checksum": "77e38b5a9e5a279e7ebe26c4c3b66fed"
@@ -7423,7 +7426,7 @@
       "checksum": "00d1a18e0fe69077bd2c6f11a9dc9e02"
     },
     "man/ExampleData5.Rd": {
-      "checksum": "38d33ae5ee33805f416e19b1922cd9dd"
+      "checksum": "b61072c33e947b68a7f575b81427577a"
     },
     "man/figures/DualFlashlightPlot.gif": {
       "checksum": "d67e72d979011db98727e9369bde2651"
@@ -7510,7 +7513,7 @@
       "checksum": "712c7432dc6d3713143301ec246e126a"
     },
     "NAMESPACE": {
-      "checksum": "b25fe84381b2e1c84932e9690d067d89"
+      "checksum": "ef4c821976a5e383a943bf96fe836822"
     },
     "NEWS.md": {
       "checksum": "47aa4793c3c15698e911de6316204e92"
@@ -7543,7 +7546,7 @@
       "checksum": "ec685418c77d462469e9a315abc97d88"
     },
     "R/app_server_stages.R": {
-      "checksum": "3b3fdd1ded7c617b85f49ea0946857db"
+      "checksum": "8f5aef1651d8fd4a3fe78b17cc123ae0"
     },
     "R/app_ui.R": {
       "checksum": "fa0889cd2cd99499b46a2da4aad04435"
@@ -7552,7 +7555,7 @@
       "checksum": "466f9ce129f21185f312f1620b741715"
     },
     "R/cyt_bp.R": {
-      "checksum": "c8b5f9ad2c044e4b2da8a63e3c1fae1d"
+      "checksum": "d93714110808ac28edbe29c2bc8f04e8"
     },
     "R/cyt_bp2.R": {
       "checksum": "aa49153035ab24bafcd3194a0f71d49f"
@@ -7564,16 +7567,16 @@
       "checksum": "f6c56356aa80e7a8d00556b3238e31f1"
     },
     "R/cyt_errbp.R": {
-      "checksum": "0187b127d410f19bb343837e985e4a96"
+      "checksum": "e181f694e53cd92de11224e5ae2d5519"
     },
     "R/cyt_export.R": {
       "checksum": "76c2b4cee1ca853fb76535b4a265bcbf"
     },
     "R/cyt_heatmap.R": {
-      "checksum": "206925a912efb117a12bd1ea4591248f"
+      "checksum": "533e128976478a7606a4bbf90f652fe5"
     },
     "R/cyt_mint_splsda.R": {
-      "checksum": "310ad83791ebe8185c4635aae925de3a"
+      "checksum": "4bb868cd119b16a37259e3f402024a08"
     },
     "R/cyt_pca.R": {
       "checksum": "09e2211e1aad6b13567b6956d78ef813"
@@ -7582,7 +7585,7 @@
       "checksum": "5c8eef454797fc1cd8d9e48fc9dd2fee"
     },
     "R/cyt_rf.R": {
-      "checksum": "4218ccf8f2e79b407bb75040ff22c190"
+      "checksum": "d9f75632ccf785cbd1f63fc4beb86c70"
     },
     "R/cyt_skku.R": {
       "checksum": "f3caa95717f2864b4c02d9d2353b18ed"
@@ -7594,25 +7597,25 @@
       "checksum": "7aa5537a0909e4ba39208a7f7ae295c5"
     },
     "R/cyt_univariate.R": {
-      "checksum": "2ab36ec61769f0904bcfc9ed29e002b7"
+      "checksum": "ddc1ae4486cd21ff99a82e1bf1cdbdbf"
     },
     "R/cyt_univariate_multi.R": {
       "checksum": "9e99379383facf34a4c60c5f099f4114"
     },
     "R/cyt_violin.R": {
-      "checksum": "61365da9ee8b961afb5b65886cd00264"
+      "checksum": "d7d38e392552ff2c662f146c00645218"
     },
     "R/cyt_volc.R": {
       "checksum": "96c46db710f80a9a30a4c978a2867944"
     },
     "R/cyt_xgb.R": {
-      "checksum": "1704ee0cf8eff0e5d271ef9c49b8502e"
+      "checksum": "90169528f5c551a88f3e479e0cd15428"
     },
     "R/CytokineProfileShinyApp-package.R": {
-      "checksum": "b1d84240521163c8db2ca4df98f94995"
+      "checksum": "4ac49d5d02367913574b6a995e96c1b0"
     },
     "R/data.R": {
-      "checksum": "50d5d01925ce3a16e1d569dc21f9bb8d"
+      "checksum": "c5165fc17a2d4ab3445ba9dd9342dd9c"
     },
     "R/font_settings.R": {
       "checksum": "852a51980303f01e85f22e4548454064"
@@ -7633,13 +7636,13 @@
       "checksum": "a2512d5ce5673ab9811141d1011251eb"
     },
     "R/utils.R": {
-      "checksum": "fafc5267c0c642c9e22b2544931084f6"
+      "checksum": "c63107fcbbe82fd4c5caf0dd2847807a"
     },
     "README.md": {
-      "checksum": "5dd6816a3c390335ebd02cb747d37917"
+      "checksum": "db8f0400ca69d8176c2afd68d7aa81f3"
     },
     "README.Rmd": {
-      "checksum": "248d8a8e428b18a68d743a0a3403bda3"
+      "checksum": "e59040fd07159617906755454a7d7f6c"
     },
     "server_old.R": {
       "checksum": "db6d4a42ff01fa7ead056a02eb401caf"
@@ -7732,16 +7735,118 @@
       "checksum": "ba048eb1e602346b5b055848cb7f84c2"
     },
     "shinyTest.R": {
-      "checksum": "85944ea4d061f8be7ca8489e0e7039ec"
+      "checksum": "38bd6c9a0e0b515ee058eb8046308483"
     },
     "testing_code.R": {
       "checksum": "fdf0f1fc3d96d65249a8813491a16450"
     },
     "tests/testthat.R": {
-      "checksum": "6882aafe5714ad8a2ca60fc3a7f20967"
+      "checksum": "252f5c27f2b4d046d5454ab74e1c2afd"
+    },
+    "tests/testthat/_snaps/windows-4.5/app-data/app-data-filtered_data.png": {
+      "checksum": "bc52cbaf3002418ab835bcffdabf26d7"
+    },
+    "tests/testthat/_snaps/windows-4.5/app-data/app-data-preview_data.png": {
+      "checksum": "c624ebb32295ccf72ee5837818e0305e"
+    },
+    "tests/testthat/_snaps/windows-4.5/app-data/app-data-preview_transform.png": {
+      "checksum": "e185fcc5702f625fa0b9188533e7154d"
+    },
+    "tests/testthat/_snaps/windows-4.5/app-data/app-data-summary_statistics.png": {
+      "checksum": "bce15496c275a3097341f89d591ef5c2"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-001.png": {
+      "checksum": "5792dd77b8254e71c34ccabb675bbd54"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-002.png": {
+      "checksum": "dab835e9b97f110980d8263642c091cc"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-003.png": {
+      "checksum": "a7e6a28819484f42184e351436f7bd02"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-004.png": {
+      "checksum": "6e5af72137450ed8acae999a33fcdec5"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-005.png": {
+      "checksum": "4dc93fecc5efd808817d5513854d02cc"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-006.png": {
+      "checksum": "b2bc005aeec13fbdb1ecc743fd71d081"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-007.png": {
+      "checksum": "c0bb424a699fb73f2f61ca9b3e5807d8"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-008.png": {
+      "checksum": "a62213a59b2ecf291f80f77da1431f16"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-009.png": {
+      "checksum": "5c1c83a2a729b40d69566fe73d1294a2"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-010.png": {
+      "checksum": "bb86beee77c5448d68eebd5b3c76807f"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-011.png": {
+      "checksum": "1f1aaf971b750323bde2d0e3d6741023"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-012.png": {
+      "checksum": "3a4fb1a030518100f5a39dab4b6f57a9"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-013.png": {
+      "checksum": "65cf1dcdf2db11901f4a61ddc6651f3b"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-014.png": {
+      "checksum": "2e99b6af3486315a9406dde49cab59e7"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-015.png": {
+      "checksum": "031240d9cecb5c71ba771fd1d095eea9"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-016.png": {
+      "checksum": "617769ed7487349956d29171b321e7e7"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-017.png": {
+      "checksum": "c545d088ab2486ebe3a69a4799ac9f99"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-018.png": {
+      "checksum": "5ec922c165df4bcc328d7711f6654ed9"
+    },
+    "tests/testthat/_snaps/windows-4.5/menu-routing/menus-019.png": {
+      "checksum": "2eca538532f66cc081ca813bc7580e99"
+    },
+    "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-confusion_matrix.png": {
+      "checksum": "98b1074d4d082fbbebdf29c597805ca7"
+    },
+    "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-cross_validation.png": {
+      "checksum": "5be5b057d2790b055e11b1eca411c633"
+    },
+    "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-loadings.png": {
+      "checksum": "eb530cfad33b539707825410c0e22a6b"
+    },
+    "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-roc.png": {
+      "checksum": "0ccbef5d8645d584abac724065efe5d0"
+    },
+    "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-splsda_plot.png": {
+      "checksum": "5953c3f3f939744530c1d8c4889771f1"
+    },
+    "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-vip_loadings.png": {
+      "checksum": "3ff90ac1a8283f024dc3a4a77e86e2ba"
+    },
+    "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-vip_model_plot.png": {
+      "checksum": "37007934ca533e3f75641d4d036a275d"
+    },
+    "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-vip_scores.png": {
+      "checksum": "2eaa96c751b04336776d29c4957be4a5"
+    },
+    "tests/testthat/_snaps/windows-4.5/splsda-2/splsda-group-trt-results_group_treatment.png": {
+      "checksum": "2cefad59e3cf5a59a5ea9dccc94b9922"
+    },
+    "tests/testthat/ExampleData1.csv": {
+      "checksum": "e4319e440f4603b6b058cbe400d41a42"
     },
     "tests/testthat/helper-fixtures.R": {
-      "checksum": "8a4f3165a37d8558dbd4de5621377831"
+      "checksum": "7d864d30270d8a79bb7979bb69e378be"
+    },
+    "tests/testthat/test-app-data.R": {
+      "checksum": "4faac32ac76dcd574c4661fc33688998"
     },
     "tests/testthat/test-app-wrappers.R": {
       "checksum": "737034ccfff9edcbc247ef6df456d762"
@@ -7750,22 +7855,34 @@
       "checksum": "3fec8776e7d559b0b9186cc2ea813ad0"
     },
     "tests/testthat/test-coverage-branches.R": {
-      "checksum": "d88d737e3ec63dbbaaa29befdd061fb9"
+      "checksum": "98600c2f1b9fdca66742eedf7b87e366"
     },
     "tests/testthat/test-helpers.R": {
-      "checksum": "2494bb2a8ed36849f1392757f7f1ded2"
+      "checksum": "1919278a9bbe39bd2e640339a4ee1e52"
     },
     "tests/testthat/test-inference.R": {
-      "checksum": "3cd6908696b961628b9d8bdc1101ebfa"
+      "checksum": "2a41f2b6dd15e7129e0bf80bec7293ed"
+    },
+    "tests/testthat/test-menu-routing.R": {
+      "checksum": "83a05258e0e5c9e033241dd09b1c3bbf"
     },
     "tests/testthat/test-models.R": {
       "checksum": "939c25ae617efb2214cecba6e507365f"
     },
     "tests/testthat/test-plots.R": {
-      "checksum": "a406368c8f74a754e3aa1beb5c00de8c"
+      "checksum": "c0284dbef88bc3b8fd661ea1c12397ae"
+    },
+    "tests/testthat/test-splsda-1.R": {
+      "checksum": "038e0a5d470a3d6d3ee4248d4c7bb82e"
+    },
+    "tests/testthat/test-splsda-2.R": {
+      "checksum": "5a3f581f1fc495f89cb80a7c964b901d"
     },
     "tests/testthat/test-ui-regressions.R": {
       "checksum": "83fbbab327ca87a4e2059771bebafabd"
+    },
+    "todo.md": {
+      "checksum": "317a9ef0d9fb16e77cc192d9ff0be08b"
     },
     "TUTORIALS.md": {
       "checksum": "ea65a106086602770e97480a74a27422"

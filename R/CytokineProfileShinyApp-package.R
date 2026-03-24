@@ -21,5 +21,6 @@
 #' @importFrom shinyjs addClass hidden hide removeClass runjs show toggle useShinyjs
 #' @importFrom skimr skim
 #' @importFrom vroom vroom
+#' @import shinytest2
 ## usethis namespace: end
 NULL

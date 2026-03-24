@@ -51,7 +51,8 @@ Imports:
     lifecycle,
     car,
     Ckmeans.1d.dp,
-    emmeans
+    emmeans,
+    shinytest2
 Suggests:
     spelling,
     BiocManager,
@@ -61,8 +62,7 @@ Suggests:
     devtools,
     plotly,
     learnr,
-    htmltools,
-    shinytest2
+    htmltools
 NeedsCompilation: no
 License: GPL (>= 2)
 LazyData: true

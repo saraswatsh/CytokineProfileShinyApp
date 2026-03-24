@@ -1,6 +1,140 @@
 data("ExampleData1", package = "CytokineProfileShinyApp", envir = environment())
 data("ExampleData5", package = "CytokineProfileShinyApp", envir = environment())
 
+app_test_dir <- function() {
+  installed_dir <- system.file("app", package = "CytokineProfileShinyApp")
+  source_dir <- testthat::test_path("../../inst/app")
+
+  app_dir <- if (nzchar(installed_dir)) installed_dir else source_dir
+  app_dir <- normalizePath(app_dir, winslash = "/", mustWork = FALSE)
+
+  if (!dir.exists(app_dir)) {
+    stop(
+      paste0(
+        "Could not find Shiny app directory for shinytest2 tests. ",
+        "Installed path: '", installed_dir, "'. ",
+        "Source path: '", source_dir, "'."
+      ),
+      call. = FALSE
+    )
+  }
+
+  app_dir
+}
+
+appdriver_ci_enabled <- function() {
+  flag <- Sys.getenv("CYTOKINEPROFILE_RUN_APPDRIVER", unset = "true")
+  tolower(flag) %in% c("1", "true", "yes", "on")
+}
+
+skip_if_appdriver_disabled <- function() {
+  if (!appdriver_ci_enabled()) {
+    testthat::skip("AppDriver tests are disabled for this CI job.")
+  }
+}
+
+app_test_js_string <- function(value) {
+  value <- gsub("\\\\", "\\\\\\\\", value)
+  value <- gsub('"', '\\"', value, fixed = TRUE)
+  sprintf('"%s"', value)
+}
+
+app_wait_for_js_true <- function(
+  app,
+  script,
+  timeout = 30000,
+  interval = 100,
+  idle_duration = 500
+) {
+  app$wait_for_js(script, timeout = timeout, interval = interval)
+  app$wait_for_idle(duration = idle_duration, timeout = timeout)
+  invisible(app)
+}
+
+app_wait_for_dom <- function(app, selector, timeout = 30000, interval = 100) {
+  app_wait_for_js_true(
+    app,
+    sprintf(
+      "(function() { return document.querySelector(%s) !== null; })();",
+      app_test_js_string(selector)
+    ),
+    timeout = timeout,
+    interval = interval
+  )
+}
+
+app_wait_for_input_binding <- function(
+  app,
+  id,
+  timeout = 30000,
+  interval = 100
+) {
+  app_wait_for_js_true(
+    app,
+    sprintf(
+      paste0(
+        "(function() {",
+        "var el = document.querySelector(%s);",
+        "if (!el) { return false; }",
+        "if (el.classList && el.classList.contains('shiny-bound-input')) { return true; }",
+        "if (window.jQuery) { return !!window.jQuery(el).data('shiny-input-binding'); }",
+        "return false;",
+        "})();"
+      ),
+      app_test_js_string(paste0("#", id))
+    ),
+    timeout = timeout,
+    interval = interval
+  )
+}
+
+app_wait_for_result_ui <- function(
+  app,
+  selectors,
+  timeout = 60000,
+  interval = 100,
+  idle_duration = 1000
+) {
+  selectors <- as.character(selectors)
+  if (!length(selectors)) {
+    stop("app_wait_for_result_ui() requires at least one selector.", call. = FALSE)
+  }
+
+  checks <- vapply(
+    selectors,
+    function(selector) {
+      sprintf(
+        "document.querySelector(%s) !== null",
+        app_test_js_string(selector)
+      )
+    },
+    character(1)
+  )
+
+  app_wait_for_js_true(
+    app,
+    sprintf("(function() { return %s; })();", paste(checks, collapse = " || ")),
+    timeout = timeout,
+    interval = interval,
+    idle_duration = idle_duration
+  )
+}
+
+app_expect_stable_screenshot <- function(
+  app,
+  ...,
+  threshold = 100,
+  kernel_size = 5,
+  timeout = 30000
+) {
+  app$wait_for_idle(duration = 1000, timeout = timeout)
+  app$expect_screenshot(
+    ...,
+    threshold = threshold,
+    kernel_size = kernel_size
+  )
+}
+
 ex1_full <- as.data.frame(ExampleData1)
 ex1_numeric <- ex1_full[, -c(1:3), drop = FALSE]
 ex1_group <- ex1_full[, -c(2:3), drop = FALSE]
