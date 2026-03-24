@@ -9,9 +9,9 @@ adjust_p(p_values, method = "BH")
 \arguments{
 \item{p_values}{A numeric vector of raw p-values.}
 
-\item{method}{A character string specifying the p‑value adjustment
+\item{method}{A character string specifying the p-value adjustment
 method.  Passed directly to \code{p.adjust}.  Defaults to "BH"
-(Benjamini–Hochberg).  See \code{p.adjust.methods} for other
+(Benjamini-Hochberg).  See \code{p.adjust.methods} for other
 options.}
 }
 \value{
@@ -20,6 +20,6 @@ A numeric vector of adjusted p-values of the same length as
 }
 \description{
 A thin wrapper around \code{stats::p.adjust} that defaults to the
-Benjamini–Hochberg procedure.  Useful for unifying multiple
+Benjamini-Hochberg procedure.  Useful for unifying multiple
 testing adjustments across the package.
 }

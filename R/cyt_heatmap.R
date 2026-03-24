@@ -79,7 +79,7 @@ cyt_heatmap <- function(
   filename = NULL,
   progress = NULL
 ) {
-  # ── 0. Initialize ──────────────────────────────────────────────────────────
+  # 0. Initialize
   if (!is.null(progress)) {
     progress$set(message = "Running Heatmap...", value = 0)
   }
@@ -118,7 +118,7 @@ cyt_heatmap <- function(
   )
   heatmap_font_args <- font_settings_heatmap_args(resolved_fonts)
 
-  # ── 1. Extract numeric columns ─────────────────────────────────────────────
+  # 1. Extract numeric columns
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Selecting numeric measures")
   }
@@ -135,7 +135,7 @@ cyt_heatmap <- function(
     colnames(mat) <- paste0("V", seq_len(ncol(mat)))
   }
 
-  # ── 2. Scaling ─────────────────────────────────────────────────────────────
+  # 2. Scaling
   if (!is.null(progress)) {
     progress$inc(
       0.05,
@@ -266,7 +266,7 @@ cyt_heatmap <- function(
     }
   }
 
-  # ── 3. Annotation handling ─────────────────────────────────────────────────
+  # 3. Annotation handling
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Preparing annotation")
   }
@@ -378,7 +378,7 @@ cyt_heatmap <- function(
     }
   }
 
-  # ── 4. Resolve title and filename ─────────────────────────────────────────
+  # 4. Resolve title and filename
   if (
     !is.null(filename) && !grepl("\\.(pdf|png)$", filename, ignore.case = TRUE)
   ) {
@@ -387,7 +387,7 @@ cyt_heatmap <- function(
   main <- title %||% NA_character_
   silent <- !is.null(filename)
 
-  # ── 5. Draw heatmap ────────────────────────────────────────────────────────
+  # 5. Draw heatmap
   if (!is.null(progress)) {
     progress$inc(0.10, detail = "Building heatmap")
   }

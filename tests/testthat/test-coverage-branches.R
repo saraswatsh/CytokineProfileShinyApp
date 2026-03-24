@@ -1,9 +1,8 @@
-# ── test-coverage-branches.R ──────────────────────────────────────────────────
+# test-coverage-branches.R
 # Supplementary branch coverage: tests that exercise paths not covered in the
 # primary test files.
 
-# ── cyt_anova ─────────────────────────────────────────────────────────────────
-
+# cyt_anova
 test_that("cyt_anova format_output = TRUE with valid data returns a list with correct structure", {
   result <- suppressWarnings(
     cyt_anova(anova_test_df, format_output = TRUE)
@@ -44,8 +43,7 @@ test_that("cyt_anova reports when no valid comparisons can be performed", {
   expect_match(result, "No valid comparisons were performed")
 })
 
-# ── cyt_ttest ─────────────────────────────────────────────────────────────────
-
+# cyt_ttest
 test_that("cyt_ttest supports raw output and empty-result branches", {
   raw_result <- suppressWarnings(
     cyt_ttest(
@@ -70,8 +68,7 @@ test_that("cyt_ttest supports raw output and empty-result branches", {
   expect_identical(empty_result, "No valid tests were performed.")
 })
 
-# ── cyt_bp2 ───────────────────────────────────────────────────────────────────
-
+# cyt_bp2
 test_that("cyt_bp2 supports PDF output, y limits, progress, and validation errors", {
   with_temp_pdf_device({
     output_file <- tempfile(fileext = ".pdf")
@@ -127,8 +124,7 @@ test_that("cyt_bp2 supports zscore scaling through apply_scale", {
   expect_true(all(vapply(bp2_result, inherits, logical(1), "ggplot")))
 })
 
-# ── cyt_export ────────────────────────────────────────────────────────────────
-
+# cyt_export
 test_that("cyt_export supports named subsetting, recorded plots, closures, and svg output", {
   with_temp_pdf_device({
     base_plot <- ggplot2::ggplot(ex1_full, ggplot2::aes(Group, IL.10)) +
@@ -229,8 +225,7 @@ test_that("cyt_export supports numeric which subsetting", {
   })
 })
 
-# ── cyt_heatmap ───────────────────────────────────────────────────────────────
-
+# cyt_heatmap
 test_that("cyt_heatmap covers validation and annotation warning branches", {
   expect_error(
     cyt_heatmap(as.matrix(ex1_group)),
@@ -277,8 +272,7 @@ test_that("cyt_heatmap covers validation and annotation warning branches", {
   )
 })
 
-# ── cyt_univariate_multi (complex design validation) ──────────────────────────
-
+# cyt_univariate_multi (complex design validation)
 test_that("cyt_univariate_multi validates complex-design arguments before fitting", {
   testthat::skip_if_not_installed("car")
   testthat::skip_if_not_installed("emmeans")
@@ -357,8 +351,7 @@ test_that("cyt_univariate_multi validates complex-design arguments before fittin
   )
 })
 
-# ── cyt_plsr / cyt_splsda (argument validation) ───────────────────────────────
-
+# cyt_plsr / cyt_splsda (argument validation)
 test_that("cyt_plsr and cyt_splsda validate common argument errors", {
   plsr_df <- ex1_binary_group[,
     c("Group", "IL.10", "IL.17F", "GM.CSF"),
@@ -441,8 +434,7 @@ test_that("cyt_plsr and cyt_splsda validate common argument errors", {
   )
 })
 
-# ── cyt_corr ─────────────────────────────────────────────────────────────────
-
+# cyt_corr
 test_that("cyt_corr supports multi-method output without grouping or plots", {
   corr_result <- cyt_corr(
     ex1_full[, c("Group", "IL.10", "IL.17F", "GM.CSF", "IFN.G"), drop = FALSE],
@@ -478,8 +470,7 @@ test_that("cyt_corr errors for missing targets", {
   )
 })
 
-# ── cyt_dualflashplot ─────────────────────────────────────────────────────────
-
+# cyt_dualflashplot
 test_that("cyt_dualflashplot returns a plot and computed statistics", {
   with_temp_pdf_device({
     flash_result <- cyt_dualflashplot(
@@ -580,8 +571,7 @@ test_that("cyt_dualflashplot warns and falls back to pdf for unknown extensions"
   expect_null(flash_result)
 })
 
-# ── cyt_skku ──────────────────────────────────────────────────────────────────
-
+# cyt_skku
 test_that("cyt_skku returns histograms and summary tables", {
   with_temp_pdf_device({
     skku_result <- cyt_skku(
@@ -626,8 +616,7 @@ test_that("cyt_skku supports file output mode", {
   })
 })
 
-# ── cyt_volc ─────────────────────────────────────────────────────────────────
-
+# cyt_volc
 test_that("cyt_volc returns the current list shape with non-empty statistics", {
   with_temp_pdf_device({
     volc_result <- cyt_volc(

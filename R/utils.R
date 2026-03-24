@@ -1,5 +1,46 @@
 # Utility functions used throughout the CytoProfile package.
 
+read_uploaded_flat_file <- function(datapath, ext) {
+  ext <- tolower(ext)
+
+  read_args <- switch(
+    ext,
+    csv = list(
+      input = datapath,
+      data.table = FALSE,
+      check.names = FALSE
+    ),
+    txt = list(
+      input = datapath,
+      sep = "\t",
+      data.table = FALSE,
+      check.names = FALSE
+    ),
+    NULL
+  )
+
+  if (is.null(read_args)) {
+    stop(
+      sprintf("Unsupported uploaded flat-file extension: %s", ext),
+      call. = FALSE
+    )
+  }
+
+  tryCatch(
+    do.call(data.table::fread, read_args),
+    error = function(e) {
+      stop(
+        sprintf(
+          "Failed to read uploaded %s file: %s",
+          toupper(ext),
+          conditionMessage(e)
+        ),
+        call. = FALSE
+      )
+    }
+  )
+}
+
 summarize_invalid_numeric_columns <- function(data, columns = NULL) {
   data <- as.data.frame(data)
 
@@ -100,9 +141,9 @@ safe_zscore_column <- function(x) {
 #' Apply a scale transformation to numeric columns
 #'
 #' This helper function applies a chosen scaling or transformation to
-#' specified numeric columns in a data frame.  Supported built‑in
+#' specified numeric columns in a data frame.  Supported built-in
 #' transformations include no transformation ("none"), log2, log10,
-#' and z‑score scaling.  A custom function can also be supplied to
+#' and z-score scaling.  A custom function can also be supplied to
 #' perform arbitrary transformations.
 #'
 #' @param data A data.frame or matrix containing the data to be
@@ -243,13 +284,13 @@ apply_scale <- function(
 #' Adjust p-values using a specified method
 #'
 #' A thin wrapper around `stats::p.adjust` that defaults to the
-#' Benjamini–Hochberg procedure.  Useful for unifying multiple
+#' Benjamini-Hochberg procedure.  Useful for unifying multiple
 #' testing adjustments across the package.
 #'
 #' @param p_values A numeric vector of raw p-values.
-#' @param method A character string specifying the p‑value adjustment
+#' @param method A character string specifying the p-value adjustment
 #'   method.  Passed directly to `p.adjust`.  Defaults to "BH"
-#'   (Benjamini–Hochberg).  See `p.adjust.methods` for other
+#'   (Benjamini-Hochberg).  See `p.adjust.methods` for other
 #'   options.
 #' @return A numeric vector of adjusted p-values of the same length as
 #'   `p_values`.

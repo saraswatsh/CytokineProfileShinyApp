@@ -102,7 +102,7 @@ cyt_rf <- function(
     )
   }
 
-  # ── 0. Initialize ──────────────────────────────────────────────────────────
+  # 0. Initialize
   if (!is.null(progress)) {
     progress$set(message = "Running Random Forest...", value = 0)
   }
@@ -122,7 +122,7 @@ cyt_rf <- function(
     stop(sprintf("Column '%s' not found in data.", group_col))
   }
 
-  # ── 1. Scaling via shared utility ──────────────────────────────────────────
+  # 1. Scaling via shared utility
   numeric_cols <- setdiff(names(data)[sapply(data, is.numeric)], group_col)
   if (scale != "none" && length(numeric_cols) > 0L) {
     if (!is.null(progress)) {
@@ -136,7 +136,7 @@ cyt_rf <- function(
     )
   }
 
-  # ── 2. Coerce grouping variable ────────────────────────────────────────────
+  # 2. Coerce grouping variable
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Preparing outcome groups")
   }
@@ -145,7 +145,7 @@ cyt_rf <- function(
     stop("Grouping variable must have at least two levels.")
   }
 
-  # ── 3. Train / test split ──────────────────────────────────────────────────
+  # 3. Train / test split
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Splitting data into training and test sets")
   }
@@ -161,7 +161,7 @@ cyt_rf <- function(
   train_samples <- nrow(train_data)
   test_samples <- nrow(test_data)
 
-  # ── 4. Fit Random Forest ───────────────────────────────────────────────────
+  # 4. Fit Random Forest
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Preparing model formula")
   }
@@ -187,7 +187,7 @@ cyt_rf <- function(
     cat(paste(utils::capture.output(rf_model), collapse = "\n"), "\n")
   }
 
-  # ── 5. Training set performance ────────────────────────────────────────────
+  # 5. Training set performance
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Evaluating training set performance")
   }
@@ -214,7 +214,7 @@ cyt_rf <- function(
     }
   }
 
-  # ── 6. Test set performance ────────────────────────────────────────────────
+  # 6. Test set performance
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Evaluating test set performance")
   }
@@ -231,7 +231,7 @@ cyt_rf <- function(
     cat("\nAccuracy on test set:", round(accuracy_test, 3), "\n")
   }
 
-  # ── 7. ROC curve (binary only) ─────────────────────────────────────────────
+  # 7. ROC curve (binary only)
   roc_plot <- NULL
   auc_value <- NA_real_
   if (plot_roc && length(levels(data[[group_col]])) == 2L) {
@@ -269,7 +269,7 @@ cyt_rf <- function(
     roc_plot <- apply_font_settings_ggplot(roc_plot, resolved_fonts)
   }
 
-  # ── 8. Variable importance ─────────────────────────────────────────────────
+  # 8. Variable importance
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Building variable importance plot")
   }
@@ -289,7 +289,7 @@ cyt_rf <- function(
     ggplot2::theme_minimal()
   vip_plot <- apply_font_settings_ggplot(vip_plot, resolved_fonts)
 
-  # ── 9. RFCV ───────────────────────────────────────────────────────────────
+  # 9. RFCV
   rfcv_result <- NULL
   rfcv_data <- NULL
   rfcv_plot <- NULL
@@ -327,7 +327,7 @@ cyt_rf <- function(
     if (verbose) cat("Random Forest CV completed for feature selection.\n")
   }
 
-  # ── 10. Optional caret k-fold CV ──────────────────────────────────────────
+  # 10. Optional caret k-fold CV
   cv_results <- NULL
   if (cv) {
     if (!is.null(progress)) {
@@ -355,7 +355,7 @@ cyt_rf <- function(
     }
   }
 
-  # ── 11. Build summary text ─────────────────────────────────────────────────
+  # 11. Build summary text
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Formatting results")
   }
@@ -443,7 +443,7 @@ cyt_rf <- function(
     collapse = "\n"
   )
 
-  # ── 12. Output ─────────────────────────────────────────────────────────────
+  # 12. Output
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Writing output file")

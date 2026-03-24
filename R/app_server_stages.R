@@ -488,19 +488,15 @@ init_data_handling_server <- function(input, output, session, app_ctx) {
     } else {
       shiny::req(input$datafile)
       safe_name <- basename(input$datafile$name)
-      dest <- file.path(upload_dir, safe_name)
-      # Always copy the uploaded file into our upload dir, overwriting previous
-      # copies with the same filename so re-uploading a wrong file refreshes
-      # the stored file immediately.
-      file.copy(input$datafile$datapath, dest, overwrite = TRUE)
-      ext <- tolower(tools::file_ext(dest))
-      if (ext == "csv") {
-        df <- vroom::vroom(dest, delim = ",", show_col_types = FALSE) |>
-          as.data.frame() # convert tibble to data.frame for DT
-      } else if (ext == "txt") {
-        df <- vroom::vroom(dest, delim = "\t", show_col_types = FALSE) |>
-          as.data.frame()
+      ext <- tolower(tools::file_ext(safe_name))
+      if (ext %in% c("csv", "txt")) {
+        df <- read_uploaded_flat_file(input$datafile$datapath, ext)
       } else if (ext %in% c("xls", "xlsx")) {
+        dest <- file.path(upload_dir, safe_name)
+        # Always copy Excel uploads into our upload dir, overwriting previous
+        # copies with the same filename so re-uploading a wrong file refreshes
+        # the stored file immediately.
+        file.copy(input$datafile$datapath, dest, overwrite = TRUE)
         all_sheets <- tryCatch(readxl::excel_sheets(dest), error = function(e) {
           character()
         })
@@ -820,15 +816,15 @@ init_data_handling_server <- function(input, output, session, app_ctx) {
     }
     shiny::req(input$datafile)
     safe_name <- basename(input$datafile$name)
-    dest <- file.path(upload_dir, safe_name)
-    # Always overwrite the stored file when opening the editor so that if the
-    # user re-uploads a file with the same name (e.g. they selected the wrong
-    # file initially) the latest upload is used for editing.
-    file.copy(input$datafile$datapath, dest, overwrite = TRUE)
-    ext <- tolower(tools::file_ext(dest))
+    ext <- tolower(tools::file_ext(safe_name))
 
     if (ext %in% c("xls", "xlsx") && length(input$sheet_name) >= 1) {
       # SHEETS MODE a?' tabs appear
+      dest <- file.path(upload_dir, safe_name)
+      # Always overwrite the stored Excel file when opening the editor so that
+      # if the user re-uploads a workbook with the same name the latest upload
+      # is used for downstream persisted reads.
+      file.copy(input$datafile$datapath, dest, overwrite = TRUE)
       bioplex$editor_mode <- "sheets"
       ps <- bioplex_per_sheet() # now points at Option A inputs
       shiny::req(length(ps) >= 1)
@@ -841,11 +837,11 @@ init_data_handling_server <- function(input, output, session, app_ctx) {
       # PERSISTED MODE for csv/txt or single-sheet Excel
       df <- switch(
         ext,
-        "csv" = vroom::vroom(dest, delim = ",", show_col_types = FALSE) |>
-          as.data.frame(),
-        "txt" = vroom::vroom(dest, delim = "\t", show_col_types = FALSE) |>
-          as.data.frame(),
+        "csv" = read_uploaded_flat_file(input$datafile$datapath, ext),
+        "txt" = read_uploaded_flat_file(input$datafile$datapath, ext),
         "xls" = {
+          dest <- file.path(upload_dir, safe_name)
+          file.copy(input$datafile$datapath, dest, overwrite = TRUE)
           all_sheets <- tryCatch(
             readxl::excel_sheets(dest),
             error = function(e) {
@@ -863,6 +859,8 @@ init_data_handling_server <- function(input, output, session, app_ctx) {
           as.data.frame(readxl::read_excel(dest, sheet = sheet_choice))
         },
         "xlsx" = {
+          dest <- file.path(upload_dir, safe_name)
+          file.copy(input$datafile$datapath, dest, overwrite = TRUE)
           all_sheets <- tryCatch(
             readxl::excel_sheets(dest),
             error = function(e) {
@@ -7807,7 +7805,7 @@ init_navigation_server <- function(input, output, session, app_ctx) {
     scale_label <- cmp$scale_label %||% "Transformation"
     shiny::req(length(num_cols) > 0)
 
-    # a"?a"? Cap variables shown in boxplots for readability a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?
+    # Cap variables shown in boxplots for readability
     MAX_BOX_VARS <- 40
     box_cols <- if (length(num_cols) > MAX_BOX_VARS) {
       num_cols[seq_len(MAX_BOX_VARS)]
@@ -7815,7 +7813,7 @@ init_navigation_server <- function(input, output, session, app_ctx) {
       num_cols
     }
 
-    # a"?a"? Long-format data a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?
+    # Long-format data
     make_long <- function(df, cols) {
       out <- tidyr::pivot_longer(
         df[, cols, drop = FALSE],
@@ -7834,7 +7832,7 @@ init_navigation_server <- function(input, output, session, app_ctx) {
 
     shiny::req(nrow(df_before_hist) > 0, nrow(df_after_hist) > 0)
 
-    # a"?a"? Shared theme a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?
+    # Shared theme
     base_theme <- ggplot2::theme_minimal(base_size = 11) +
       ggplot2::theme(
         plot.title = ggplot2::element_text(size = 12, face = "bold"),
@@ -7848,7 +7846,7 @@ init_navigation_server <- function(input, output, session, app_ctx) {
     }
     before_lims <- trim_limits(df_before_hist$value)
     after_lims <- trim_limits(df_after_hist$value)
-    # a"?a"? 1. Density plots (top row) a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?
+    # 1. Density plots (top row)
     dens_before <- ggplot2::ggplot(
       df_before_hist,
       ggplot2::aes(x = value)
@@ -7893,7 +7891,7 @@ init_navigation_server <- function(input, output, session, app_ctx) {
       ) +
       base_theme
 
-    # a"?a"? 2. Horizontal boxplots (bottom row) a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?
+    # 2. Horizontal boxplots (bottom row)
     box_before <- ggplot2::ggplot(
       df_before_box,
       ggplot2::aes(x = variable, y = value)
@@ -7943,7 +7941,7 @@ init_navigation_server <- function(input, output, session, app_ctx) {
         axis.text.x = ggplot2::element_text(size = 8)
       )
 
-    # a"?a"? 3. Compose a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?a"?
+    # 3. Compose
     comparison_plot <- patchwork::wrap_plots(
       dens_before,
       dens_after,

@@ -61,7 +61,7 @@ cyt_violin <- function(
   font_settings = NULL,
   progress = NULL
 ) {
-  # ── 0. Initialize ──────────────────────────────────────────────────────────
+  # 0. Initialize
   if (!is.null(progress)) {
     progress$set(message = "Running Violin Plots...", value = 0)
   }
@@ -78,14 +78,14 @@ cyt_violin <- function(
     activate = !is.null(font_settings)
   )
 
-  # ── 1. Validate group_by ───────────────────────────────────────────────────
+  # 1. Validate group_by
   if (!is.null(group_by)) {
     if (!all(group_by %in% names(df))) {
       stop("All group_by columns must exist in data.")
     }
   }
 
-  # ── 2. Identify numeric columns ────────────────────────────────────────────
+  # 2. Identify numeric columns
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Selecting numeric measures")
   }
@@ -97,7 +97,7 @@ cyt_violin <- function(
     stop("No numeric columns to plot.")
   }
 
-  # ── 3. Scaling via shared utility ──────────────────────────────────────────
+  # 3. Scaling via shared utility
   if (scale != "none") {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = paste("Applying", scale, "transformation"))
@@ -110,7 +110,7 @@ cyt_violin <- function(
     )
   }
 
-  # ── 4. Resolve grouping column ─────────────────────────────────────────────
+  # 4. Resolve grouping column
   if (!is.null(group_by)) {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Preparing grouping columns")
@@ -132,7 +132,7 @@ cyt_violin <- function(
 
   plot_list <- list()
 
-  # ── 5a. GROUPED path ───────────────────────────────────────────────────────
+  # 5a. GROUPED path
   if (!is.null(grp_col)) {
     iter_inc <- 0.65 / length(numeric_cols)
 
@@ -180,7 +180,7 @@ cyt_violin <- function(
       plot_list[[var]] <- p
     }
 
-    # ── 5b. UNGROUPED path ─────────────────────────────────────────────────────
+    # 5b. UNGROUPED path
   } else {
     n_col <- length(numeric_cols)
     n_chunks <- ceiling(n_col / bin_size)
@@ -250,7 +250,7 @@ cyt_violin <- function(
     }
   }
 
-  # ── 6. Output ──────────────────────────────────────────────────────────────
+  # 6. Output
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Writing output file")

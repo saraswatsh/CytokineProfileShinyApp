@@ -1,10 +1,9 @@
-# ── test-helpers.R ────────────────────────────────────────────────────────────
+# test-helpers.R
 # Tests for exported utility helpers: adjust_p, apply_scale, and internal
 # numeric-validation helpers (summarize_invalid_numeric_columns,
 # format_invalid_numeric_summary, safe_zscore_column).
 
-# ── adjust_p ──────────────────────────────────────────────────────────────────
-
+# adjust_p
 test_that("adjust_p matches stats::p.adjust for multiple methods", {
   p_values <- c(0.001, 0.02, 0.15, 0.9)
 
@@ -22,8 +21,7 @@ test_that("adjust_p handles edge cases: single value, all-NA, and empty input", 
   expect_true(is.na(adjust_p(NA_real_)))
 })
 
-# ── apply_scale ───────────────────────────────────────────────────────────────
-
+# apply_scale
 test_that("apply_scale preserves structure and transforms requested columns", {
   input_df <- ex1_full[1:5, c("Group", "IL.10", "IL.17F"), drop = FALSE]
 
@@ -91,7 +89,7 @@ test_that("apply_scale auto-detects all numeric columns when columns = NULL", {
 
   result <- apply_scale(input_df, columns = NULL, scale = "log2")
 
-  # Group is not numeric — should be unchanged
+  # Group is not numeric -- should be unchanged
   expect_equal(result$Group, input_df$Group)
   # Both numeric columns should be log2-transformed
   expect_equal(result$IL.10, log2(input_df$IL.10))
@@ -161,8 +159,7 @@ test_that("apply_scale returns data unchanged when there are no numeric columns 
   expect_equal(result, char_df)
 })
 
-# ── safe_zscore_column ────────────────────────────────────────────────────────
-
+# safe_zscore_column
 test_that("safe_zscore_column standardises a normal vector correctly", {
   x <- c(2, 4, 6, 8, 10)
   result <- CytokineProfileShinyApp:::safe_zscore_column(x)
@@ -204,15 +201,14 @@ test_that("safe_zscore_column errors when non-missing values are non-finite", {
   )
 })
 
-# ── summarize_invalid_numeric_columns ─────────────────────────────────────────
-
+# summarize_invalid_numeric_columns
 test_that("summarize_invalid_numeric_columns correctly identifies NA, NaN, Inf, and -Inf", {
   result <- CytokineProfileShinyApp:::summarize_invalid_numeric_columns(
     helper_invalid_numeric_df
   )
 
   expect_s3_class(result, "data.frame")
-  # "good" column should NOT appear — it has no issues
+  # "good" column should NOT appear -- it has no issues
   expect_false("good" %in% result$column)
   # The four bad columns should each be flagged
   expect_true("has_na" %in% result$column)
@@ -261,8 +257,7 @@ test_that("summarize_invalid_numeric_columns respects a column subset", {
   expect_equal(result$column, "has_na")
 })
 
-# ── format_invalid_numeric_summary ────────────────────────────────────────────
-
+# format_invalid_numeric_summary
 test_that("format_invalid_numeric_summary produces semicolon-delimited label text", {
   issue_df <- data.frame(
     column = c("x", "y"),

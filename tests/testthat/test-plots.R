@@ -1,7 +1,5 @@
-# ── test-plots.R ──────────────────────────────────────────────────────────────
-
-# ── cyt_bp ────────────────────────────────────────────────────────────────────
-
+# test-plots.R
+# cyt_bp
 test_that("cyt_bp supports ungrouped file output and grouped return values", {
   with_temp_pdf_device({
     output_file <- tempfile(fileext = ".pdf")
@@ -83,8 +81,7 @@ test_that("cyt_bp errors when there are no numeric columns", {
   expect_error(cyt_bp(char_df), "No numeric columns to plot")
 })
 
-# ── cyt_violin ────────────────────────────────────────────────────────────────
-
+# cyt_violin
 test_that("cyt_violin supports ungrouped file output and grouped return values", {
   with_temp_pdf_device({
     output_file <- tempfile(fileext = ".pdf")
@@ -172,8 +169,7 @@ test_that("cyt_violin errors for invalid grouping columns and missing numeric da
   )
 })
 
-# ── cyt_errbp ─────────────────────────────────────────────────────────────────
-
+# cyt_errbp
 test_that("cyt_errbp writes a PDF and returns a ggplot object", {
   with_temp_pdf_device({
     output_file <- tempfile(fileext = ".pdf")
@@ -296,8 +292,7 @@ test_that("cyt_errbp supports MAD spread and symbol-only label branches", {
   }, logical(1))), 1)
 })
 
-# ── cyt_heatmap ───────────────────────────────────────────────────────────────
-
+# cyt_heatmap
 test_that("cyt_heatmap writes an annotated PDF and returns a heatmap object", {
   with_temp_pdf_device({
     output_file <- tempfile(fileext = ".pdf")
@@ -339,7 +334,7 @@ test_that("cyt_heatmap supports row annotations with row z-score scaling", {
 
 test_that("cyt_heatmap supports log10 scaling", {
   with_temp_pdf_device({
-    # ex1_group cytokine columns are all positive — log10 is valid
+    # ex1_group cytokine columns are all positive -- log10 is valid
     heatmap_result <- cyt_heatmap(
       ex1_group,
       scale = "log10"
@@ -397,8 +392,7 @@ test_that("cyt_heatmap errors on invalid filename extensions", {
   )
 })
 
-# ── cyt_export ────────────────────────────────────────────────────────────────
-
+# cyt_export
 test_that("cyt_export writes raster and PDF outputs for ggplot objects", {
   with_temp_pdf_device({
     base_plot <- ggplot2::ggplot(
@@ -476,7 +470,7 @@ test_that("cyt_export skips NULL elements without error", {
       add = TRUE
     )
 
-    # Second element is NULL — should be skipped; only _001 and _003 produced
+    # Second element is NULL -- should be skipped; only _001 and _003 produced
     # (indexes are based on list position, so _002 should NOT exist for the NULL)
     cyt_export(
       list(first = base_plot, second = NULL, third = base_plot),
@@ -489,8 +483,7 @@ test_that("cyt_export skips NULL elements without error", {
   })
 })
 
-# ── cyt_corr ─────────────────────────────────────────────────────────────────
-
+# cyt_corr
 test_that("cyt_corr returns method-keyed correlation results and plots", {
   with_temp_pdf_device({
     corr_result <- suppress_known_plot_warnings(

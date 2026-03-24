@@ -4,7 +4,7 @@
 #' `cyt_univariate` supports additional scaling options and explicit
 #' choice of statistical test.
 #' For each categorical predictor with exactly two levels and each
-#' numeric outcome, a two‑sample t‑test or Wilcoxon rank–sum test is
+#' numeric outcome, a two-sample t-test or Wilcoxon rank-sum test is
 #' performed.  Results are returned either as a list of test objects
 #' or, if `format_output = TRUE`, as a tidy data frame with one
 #' row per comparison.
@@ -17,10 +17,10 @@
 #'   "custom".  When set to "custom", supply a function via
 #'   `custom_fn`.
 #' @param method Character specifying the test to perform.  Use
-#'   "auto" (default) to select between t‑test and Wilcoxon based
-#'   on Shapiro–Wilk normality tests for each outcome; "ttest" to
-#'   always use Student's t‑test; or "wilcox" to always use the
-#'   Wilcoxon rank–sum test.
+#'   "auto" (default) to select between t-test and Wilcoxon based
+#'   on Shapiro-Wilk normality tests for each outcome; "ttest" to
+#'   always use Student's t-test; or "wilcox" to always use the
+#'   Wilcoxon rank-sum test.
 #' @param verbose Logical indicating whether to return the results.
 #'   Provided for backward compatibility but has no effect on printing.
 #' @param format_output Logical.  If `TRUE`, returns the results as

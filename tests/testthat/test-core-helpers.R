@@ -403,3 +403,58 @@ test_that("adjust_p remains a thin wrapper over stats::p.adjust", {
     stats::p.adjust(p_values, method = "holm")
   )
 })
+
+test_that("read_uploaded_flat_file reads CSV uploads directly and preserves headers", {
+  path <- tempfile(pattern = "csv upload ", fileext = ".csv")
+  writeLines(
+    c(
+      "\"Group Name\",\"IL-6 (pg/mL)\"",
+      "\"A\",1.5",
+      "\"B\",2.5"
+    ),
+    path
+  )
+
+  result <- read_uploaded_flat_file(path, "csv")
+
+  expect_identical(class(result), "data.frame")
+  expect_false(inherits(result, "data.table"))
+  expect_identical(names(result), c("Group Name", "IL-6 (pg/mL)"))
+  expect_equal(result[["Group Name"]], c("A", "B"))
+  expect_equal(result[["IL-6 (pg/mL)"]], c(1.5, 2.5))
+})
+
+test_that("read_uploaded_flat_file reads tab-delimited uploads from spaced paths", {
+  dir_path <- tempfile(pattern = "tab upload dir ")
+  dir.create(dir_path)
+  path <- file.path(dir_path, "upload file.txt")
+  writeLines(
+    c(
+      "Sample ID\tTNF-alpha",
+      "S1\t10",
+      "S2\t20"
+    ),
+    path
+  )
+
+  result <- read_uploaded_flat_file(path, "txt")
+
+  expect_identical(class(result), "data.frame")
+  expect_identical(names(result), c("Sample ID", "TNF-alpha"))
+  expect_equal(result[["Sample ID"]], c("S1", "S2"))
+  expect_equal(result[["TNF-alpha"]], c(10, 20))
+})
+
+test_that("read_uploaded_flat_file reports unsupported extensions and read failures clearly", {
+  expect_error(
+    read_uploaded_flat_file(tempfile(fileext = ".xlsx"), "xlsx"),
+    "Unsupported uploaded flat-file extension: xlsx"
+  )
+
+  missing_path <- tempfile(pattern = "missing csv upload ")
+  dir.create(missing_path)
+  expect_error(
+    read_uploaded_flat_file(missing_path, "csv"),
+    "Failed to read uploaded CSV file:"
+  )
+})

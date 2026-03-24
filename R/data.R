@@ -40,7 +40,7 @@
 #' Kern PA, Nikolajczyk BS.
 #' T cells dominate peripheral inflammation in a cross-sectional analysis of
 #' obesity-associated diabetes. \emph{Obesity (Silver Spring)}. 2022;30(10):
-#' 1983–1994. doi:10.1002/oby.23528.
+#' 1983-1994. doi:10.1002/oby.23528.
 #'
 #' @examples
 #' data(ExampleData1)
@@ -208,7 +208,7 @@
 #' Kern PA, Nikolajczyk BS.
 #' T cells dominate peripheral inflammation in a cross-sectional analysis of
 #' obesity-associated diabetes. \emph{Obesity (Silver Spring)}. 2022;30(10):
-#' 1983–1994. doi:10.1002/oby.23528.
+#' 1983-1994. doi:10.1002/oby.23528.
 #'
 #' @note
 #' The ExampleData5 dataset is the same data as ExampleData1 but with a new

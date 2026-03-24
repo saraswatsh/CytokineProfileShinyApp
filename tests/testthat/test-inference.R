@@ -1,7 +1,5 @@
-# ── test-inference.R ──────────────────────────────────────────────────────────
-
-# ── cyt_univariate ────────────────────────────────────────────────────────────
-
+# test-inference.R
+# cyt_univariate
 test_that("cyt_univariate returns the expected formatted binary comparisons", {
   univariate_result <- cyt_univariate(
     ex1_binary_group_treatment[,
@@ -144,8 +142,7 @@ test_that("cyt_univariate applies scale transformations before testing", {
   expect_false(all(result_log2$Statistic == result_none$Statistic))
 })
 
-# ── cyt_univariate_multi ──────────────────────────────────────────────────────
-
+# cyt_univariate_multi
 test_that("cyt_univariate_multi supports one-way kruskal output", {
   multi_result <- cyt_univariate_multi(
     ex1_full[,
@@ -374,8 +371,7 @@ test_that("cyt_univariate_multi adjusts one-way kruskal pairwise p-values with a
   }
 })
 
-# ── cyt_ttest ─────────────────────────────────────────────────────────────────
-
+# cyt_ttest
 test_that("cyt_ttest supports apply_scale transformations", {
   ttest_result <- suppressWarnings(
     cyt_ttest(
@@ -418,8 +414,7 @@ test_that("cyt_ttest format_output = TRUE returns a data frame with expected col
   expect_true(all(out_df$Categorical %in% c("Group", "Treatment")))
 })
 
-# ── cyt_anova ─────────────────────────────────────────────────────────────────
-
+# cyt_anova
 test_that("cyt_anova format_output = TRUE returns a valid list with correct structure and p-values", {
   result <- suppressWarnings(
     cyt_anova(anova_test_df, format_output = TRUE)
@@ -436,7 +431,7 @@ test_that("cyt_anova format_output = TRUE returns a valid list with correct stru
     c("Outcome", "Categorical", "Comparison", "P_adj") %in% names(out_df)
   ))
 
-  # There should be results — anova_test_df has two factor columns with valid levels
+  # There should be results -- anova_test_df has two factor columns with valid levels
   expect_gt(nrow(out_df), 0)
 
   # Adjusted p-values must lie in [0, 1]

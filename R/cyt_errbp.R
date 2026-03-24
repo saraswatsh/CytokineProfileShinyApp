@@ -103,7 +103,7 @@ cyt_errbp <- function(
   output_file = NULL,
   progress = NULL
 ) {
-  # ── 0. Initialize ──────────────────────────────────────────────────────────
+  # 0. Initialize
   if (!is.null(progress)) {
     progress$set(message = "Running Error-Bar Plot...", value = 0)
   }
@@ -159,13 +159,13 @@ cyt_errbp <- function(
     label_size
   }
 
-  # ── 1. Convert grouping column to factor ───────────────────────────────────
+  # 1. Convert grouping column to factor
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Preparing grouping column")
   }
   data[[group_col]] <- as.factor(data[[group_col]])
 
-  # ── 2. Identify numeric columns ────────────────────────────────────────────
+  # 2. Identify numeric columns
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Selecting numeric measures")
   }
@@ -174,7 +174,7 @@ cyt_errbp <- function(
     stop("No numeric columns found in the data.")
   }
 
-  # ── 3. Scaling via shared utility ──────────────────────────────────────────
+  # 3. Scaling via shared utility
   if (scale != "none") {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = paste("Applying", scale, "transformation"))
@@ -187,7 +187,7 @@ cyt_errbp <- function(
     )
   }
 
-  # ── 4. Reshape to long format ──────────────────────────────────────────────
+  # 4. Reshape to long format
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Reshaping data")
   }
@@ -199,7 +199,7 @@ cyt_errbp <- function(
       values_to = "Value"
     )
 
-  # ── 5. Summary statistics ──────────────────────────────────────────────────
+  # 5. Summary statistics
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Calculating summary statistics")
   }
@@ -240,7 +240,7 @@ cyt_errbp <- function(
   summarized <- summarized |>
     dplyr::mutate(spread = spread_values)
 
-  # ── 6. P-values and effect sizes ───────────────────────────────────────────
+  # 6. P-values and effect sizes
   group_levels <- levels(data[[group_col]])
   baseline <- group_levels[1]
 
@@ -334,7 +334,7 @@ cyt_errbp <- function(
     summarized$P_adj <- summarized$P_value
   }
 
-  # ── 7. Label positions ─────────────────────────────────────────────────────
+  # 7. Label positions
   y_range <- diff(range(summarized$center + summarized$spread, na.rm = TRUE))
   summarized <- summarized |>
     dplyr::mutate(
@@ -342,7 +342,7 @@ cyt_errbp <- function(
       es_y = center + spread + 0.15 * y_range
     )
 
-  # ── 8. Build text labels ───────────────────────────────────────────────────
+  # 8. Build text labels
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Creating annotation labels")
   }
@@ -476,7 +476,7 @@ cyt_errbp <- function(
     SIMPLIFY = FALSE
   ))
 
-  # ── 9. Default axis / title labels ────────────────────────────────────────
+  # 9. Default axis / title labels
   if (x_lab == "") {
     x_lab <- group_col
   }
@@ -490,7 +490,7 @@ cyt_errbp <- function(
     )
   }
 
-  # ── 10. Build plot ─────────────────────────────────────────────────────────
+  # 10. Build plot
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Building plot")
   }
@@ -573,7 +573,7 @@ cyt_errbp <- function(
       )
   }
 
-  # ── 11. Output ─────────────────────────────────────────────────────────────
+  # 11. Output
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Writing output file")

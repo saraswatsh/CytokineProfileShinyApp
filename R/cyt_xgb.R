@@ -130,7 +130,7 @@ cyt_xgb <- function(
     )
   }
 
-  # ── 0. Initialize ──────────────────────────────────────────────────────────
+  # 0. Initialize
   if (!is.null(progress)) {
     progress$set(message = "Running XGBoost...", value = 0)
   }
@@ -151,7 +151,7 @@ cyt_xgb <- function(
     stop(sprintf("Column '%s' not found in data.", group_col))
   }
 
-  # ── 1. Scaling via shared utility ──────────────────────────────────────────
+  # 1. Scaling via shared utility
   numeric_cols <- setdiff(names(data)[sapply(data, is.numeric)], group_col)
   if (scale != "none" && length(numeric_cols) > 0L) {
     if (!is.null(progress)) {
@@ -165,7 +165,7 @@ cyt_xgb <- function(
     )
   }
 
-  # ── 2. Class mapping & numeric encoding ────────────────────────────────────
+  # 2. Class mapping & numeric encoding
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Preparing class labels")
   }
@@ -181,7 +181,7 @@ cyt_xgb <- function(
 
   data[[group_col]] <- as.numeric(original_group) - 1L
 
-  # ── 3. Prepare matrices ────────────────────────────────────────────────────
+  # 3. Prepare matrices
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Preparing predictor matrix")
   }
@@ -189,7 +189,7 @@ cyt_xgb <- function(
   y <- data[[group_col]]
   num_class <- length(unique(y))
 
-  # ── 4. Train / test split ──────────────────────────────────────────────────
+  # 4. Train / test split
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Splitting data into training and test sets")
   }
@@ -206,7 +206,7 @@ cyt_xgb <- function(
   dtrain <- xgboost::xgb.DMatrix(data = X_train, label = y_train)
   dtest <- xgboost::xgb.DMatrix(data = X_test, label = y_test)
 
-  # ── 5. Hyperparameter list ─────────────────────────────────────────────────
+  # 5. Hyperparameter list
   params <- list(
     objective = objective,
     eval_metric = eval_metric,
@@ -219,7 +219,7 @@ cyt_xgb <- function(
     min_child_weight = min_child_weight
   )
 
-  # ── 6. Train model ─────────────────────────────────────────────────────────
+  # 6. Train model
   if (!is.null(progress)) {
     progress$inc(0.15, detail = "Training XGBoost model")
   }
@@ -236,7 +236,7 @@ cyt_xgb <- function(
     verbose = verbose
   )
 
-  # ── 7. Predictions & confusion matrix ─────────────────────────────────────
+  # 7. Predictions & confusion matrix
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Making predictions on test set")
   }
@@ -268,7 +268,7 @@ cyt_xgb <- function(
     print(confusion_mat)
   }
 
-  # ── 8. Feature importance plot ─────────────────────────────────────────────
+  # 8. Feature importance plot
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Building feature importance plot")
   }
@@ -329,7 +329,7 @@ cyt_xgb <- function(
   }
   imp_plot <- apply_font_settings_ggplot(imp_plot, resolved_fonts)
 
-  # ── 9. ROC curve (binary only) ─────────────────────────────────────────────
+  # 9. ROC curve (binary only)
   roc_plot <- NULL
   auc_value <- NA_real_
   if (plot_roc) {
@@ -390,7 +390,7 @@ cyt_xgb <- function(
     }
   }
 
-  # ── 10. xgb.cv cross-validation ────────────────────────────────────────────
+  # 10. xgb.cv cross-validation
   cv_results <- NULL
   best_cv_iter <- NULL
   cv_accuracy <- NA_real_
@@ -448,7 +448,7 @@ cyt_xgb <- function(
     }
   }
 
-  # ── 11. Build summary text ─────────────────────────────────────────────────
+  # 11. Build summary text
   if (!is.null(progress)) {
     progress$inc(0.05, detail = "Formatting results")
   }
@@ -532,7 +532,7 @@ cyt_xgb <- function(
     collapse = "\n"
   )
 
-  # ── 12. Output ─────────────────────────────────────────────────────────────
+  # 12. Output
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Writing output file")

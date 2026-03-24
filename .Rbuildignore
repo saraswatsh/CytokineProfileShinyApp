@@ -25,7 +25,7 @@
 ^shinyTest\.R$
 ^benchmark_cytokineprofile\.R$
 ^ShinyLoadTest$
-^server\.R$
+^app\.R$
 ^TUTORIALS.md$
 ^config.yml$
 ^benchmark-results$
