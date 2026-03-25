@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      CYTOKINEPROFILE_RUN_APPDRIVER: "true"
 
     steps:
       - uses: actions/checkout@v4
@@ -27,13 +26,6 @@ jobs:
         with:
           extra-packages: any::covr, any::xml2
           needs: coverage
-
-      - name: Set up virtual display (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-          nohup Xvfb :99 -screen 0 1024x768x16 &
-          echo "DISPLAY=:99.0" >> $GITHUB_ENV
 
       - name: Test coverage
         run: |

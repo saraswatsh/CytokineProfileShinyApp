@@ -23,7 +23,7 @@ app_test_dir <- function() {
 }
 
 appdriver_ci_enabled <- function() {
-  flag <- Sys.getenv("CYTOKINEPROFILE_RUN_APPDRIVER", unset = "true")
+  flag <- Sys.getenv("CYTOKINEPROFILE_RUN_APPDRIVER", unset = "false")
   tolower(flag) %in% c("1", "true", "yes", "on")
 }
 
