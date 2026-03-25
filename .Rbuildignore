@@ -30,3 +30,5 @@
 ^config.yml$
 ^benchmark-results$
 _\.new\.png$
+^\.Rprofile$
+^\.covrignore$

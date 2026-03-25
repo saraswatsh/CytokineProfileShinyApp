@@ -3,7 +3,7 @@ library(shinytest2)
 test_that("{shinytest2} recording: Menu Routing", {
   skip_on_cran()
   skip_if_appdriver_disabled()
-  app_dir <- app_test_dir()
+  app_dir <- testthat::test_path("../../inst/app")
   app <- AppDriver$new(
     app_dir,
     variant = platform_variant(),
@@ -14,37 +14,27 @@ test_that("{shinytest2} recording: Menu Routing", {
 
   route_and_capture <- function(menu_id) {
     app$click(menu_id, timeout_ = 30000)
-    app_expect_stable_screenshot(app, timeout = 30000)
+    app$wait_for_idle(4000)
+    app$expect_screenshot()
     app$click("back4", timeout_ = 30000)
-    app_wait_for_dom(app, paste0("#", menu_id), timeout = 30000)
+    app$wait_for_idle(4000)
   }
 
   app$click("nav_start_home")
   app$wait_for_idle(4000)
 
   app$set_inputs(use_builtin = TRUE)
-  app_wait_for_input_binding(app, "built_in_choice")
+  app$wait_for_idle(4000)
 
-  app$set_inputs(built_in_choice = "ExampleData1", wait_ = FALSE)
-  app_wait_for_js_true(
-    app,
-    paste0(
-      "(function() {",
-      "var checked = document.querySelector(",
-      app_test_js_string("input[name='built_in_choice']:checked"),
-      ");",
-      "return !!checked && checked.value === 'ExampleData1';",
-      "})();"
-    )
-  )
+  app$set_inputs(built_in_choice = "ExampleData1")
+  app$wait_for_idle(4000)
 
   app$click("next1", timeout_ = 30000)
-  app_wait_for_input_binding(app, "selected_categorical_cols")
-  app_wait_for_input_binding(app, "selected_numerical_cols")
+  app$wait_for_idle(7000)
 
   app$click("next2", timeout_ = 30000)
-  app_wait_for_dom(app, "#menu_univariate_2lvl")
-  app_expect_stable_screenshot(app, timeout = 30000)
+  app$wait_for_idle(4000)
+  app$expect_screenshot()
 
   route_and_capture("menu_univariate_2lvl")
   route_and_capture("menu_univariate_multi")
@@ -65,6 +55,6 @@ test_that("{shinytest2} recording: Menu Routing", {
   route_and_capture("menu_rf")
   route_and_capture("menu_xgb")
 
-  app$wait_for_idle(timeout = 30000)
+  app$wait_for_idle(4000)
   app$stop()
 })

@@ -3,7 +3,7 @@ library(shinytest2)
 test_that("{shinytest2} recording: sPLSDA-Group-Treatment", {
     skip_on_cran()
     skip_if_appdriver_disabled()
-    app_dir <- app_test_dir()
+    app_dir <- testthat::test_path("../../inst/app")
     app <- AppDriver$new(
         app_dir,
         variant = platform_variant(),
@@ -15,8 +15,7 @@ test_that("{shinytest2} recording: sPLSDA-Group-Treatment", {
     app$wait_for_idle(4000)
 
     app$upload_file(datafile = test_path("ExampleData1.csv"))
-    app$wait_for_idle()
-    app_wait_for_dom(app, "#open_editor")
+    app$wait_for_idle(4000)
 
     app$click("open_editor")
     app$wait_for_idle(4000)
@@ -26,7 +25,6 @@ test_that("{shinytest2} recording: sPLSDA-Group-Treatment", {
 
     app$click("next1", timeout_ = 30000)
     app$wait_for_idle(7000)
-    app_wait_for_input_binding(app, "selected_numerical_cols")
 
     app$set_inputs(
         selected_numerical_cols = c(
@@ -61,9 +59,9 @@ test_that("{shinytest2} recording: sPLSDA-Group-Treatment", {
     app$wait_for_idle(4000)
 
     app$click("next2", timeout_ = 30000)
-    app_wait_for_dom(app, "#menu_splsda")
+    app$wait_for_idle(4000)
     app$click("menu_splsda", timeout_ = 30000)
-    app_wait_for_input_binding(app, "splsda_group_col2")
+    app$wait_for_idle(4000)
     app$set_inputs(splsda_group_col2 = "Treatment")
     app$set_inputs(splsda_cv_opt = "LOOCV")
     app$set_inputs(splsda_pch = c("4", "16", "5"))
@@ -71,12 +69,9 @@ test_that("{shinytest2} recording: sPLSDA-Group-Treatment", {
     app$set_inputs(splsda_conf_mat = TRUE)
     app$set_inputs(splsda_style = "3D")
     app$set_inputs(splsda_roc = TRUE)
+    app$wait_for_idle(4000)
     app$click("next4", timeout_ = 60000)
-    app_wait_for_result_ui(
-        app,
-        c("#splsda_tabs", "#splsda_multigroup_tabs"),
-        timeout = 60000
-    )
-    app_expect_stable_screenshot(app, name = "results_group_treatment")
+    app$wait_for_idle(15000)
+    app$expect_screenshot(name = "results_group_treatment")
     app$stop()
 })

@@ -11,6 +11,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3
+Config/testthat/parallel: true
 URL: https://github.com/saraswatsh/CytokineProfileShinyApp, https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud, https://shinyinfo.cytokineprofile.org/
 Depends: 
     R (>= 4.3)
