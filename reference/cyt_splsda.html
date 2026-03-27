@@ -59,6 +59,7 @@
 <span>  comp_num <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  cv_opt <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fold_num <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">123</span>,</span>
 <span>  scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  custom_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ellipse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -128,6 +129,11 @@ Default is <code>NULL</code>.</p></dd>
 
 <dt id="arg-fold-num">fold_num<a class="anchor" aria-label="anchor" href="#arg-fold-num"></a></dt>
 <dd><p>Numeric. The number of folds to use if <code>cv_opt</code> is "Mfold". Default is 5.</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>Optional integer seed for reproducible cross-validation.
+Default is <code>123</code>.</p></dd>
 
 
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>

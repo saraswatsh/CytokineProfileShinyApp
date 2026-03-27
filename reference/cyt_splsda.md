@@ -17,6 +17,7 @@ cyt_splsda(
   comp_num = 2,
   cv_opt = NULL,
   fold_num = 5,
+  seed = 123,
   scale = NULL,
   custom_fn = NULL,
   ellipse = FALSE,
@@ -88,6 +89,11 @@ cyt_splsda(
 
   Numeric. The number of folds to use if `cv_opt` is "Mfold". Default is
   5.
+
+- seed:
+
+  Optional integer seed for reproducible cross-validation. Default is
+  `123`.
 
 - scale:
 
