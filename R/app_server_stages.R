@@ -9802,6 +9802,7 @@ init_analysis_results_server <- function(input, output, session, app_ctx) {
                     tolower(input$splsda_cv_opt)
                   },
                   fold_num = input$splsda_fold_num,
+                  seed = 123,
                   scale = NULL,
                   comp_num = input$splsda_comp_num,
                   style = if (input$splsda_style == "3D") "3d" else NULL,

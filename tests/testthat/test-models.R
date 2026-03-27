@@ -189,6 +189,7 @@ test_that("cyt_splsda supports overall ROC and LOOCV branches", {
         roc = TRUE,
         conf_mat = FALSE,
         cv_opt = "loocv",
+        seed = 123,
         splsda_colors = c("black", "purple"),
         pch_values = c(16, 4)
       )
@@ -196,6 +197,74 @@ test_that("cyt_splsda supports overall ROC and LOOCV branches", {
 
     expect_true(is.list(splsda_result))
     expect_true(inherits(splsda_result$overall_ROC, "recordedplot"))
+    expect_true(inherits(splsda_result$overall_CV, "ggplot"))
+  })
+})
+
+test_that("cyt_splsda returns reproducible LOOCV output when seed is fixed", {
+  with_temp_pdf_device({
+    first_result <- suppress_known_plot_warnings(
+      cyt_splsda(
+        ex1_binary_group_treatment,
+        group_col = "Group",
+        group_col2 = "Group",
+        var_num = 5,
+        comp_num = 2,
+        scale = "log2",
+        roc = FALSE,
+        conf_mat = FALSE,
+        cv_opt = "loocv",
+        seed = 123,
+        splsda_colors = c("black", "purple"),
+        pch_values = c(16, 4)
+      )
+    )
+    second_result <- suppress_known_plot_warnings(
+      cyt_splsda(
+        ex1_binary_group_treatment,
+        group_col = "Group",
+        group_col2 = "Group",
+        var_num = 5,
+        comp_num = 2,
+        scale = "log2",
+        roc = FALSE,
+        conf_mat = FALSE,
+        cv_opt = "loocv",
+        seed = 123,
+        splsda_colors = c("black", "purple"),
+        pch_values = c(16, 4)
+      )
+    )
+
+    expect_equal(
+      ggplot2::ggplot_build(first_result$overall_CV)$data,
+      ggplot2::ggplot_build(second_result$overall_CV)$data
+    )
+    expect_equal(first_result$overall_CV$labels, second_result$overall_CV$labels)
+  })
+})
+
+test_that("cyt_splsda accepts a seed for Mfold CV output", {
+  with_temp_pdf_device({
+    splsda_result <- suppress_known_plot_warnings(
+      cyt_splsda(
+        ex1_binary_group_treatment,
+        group_col = "Group",
+        group_col2 = "Group",
+        var_num = 5,
+        comp_num = 2,
+        scale = "log2",
+        roc = FALSE,
+        conf_mat = FALSE,
+        cv_opt = "mfold",
+        fold_num = 3,
+        seed = 123,
+        splsda_colors = c("black", "purple"),
+        pch_values = c(16, 4)
+      )
+    )
+
+    expect_true(is.list(splsda_result))
     expect_true(inherits(splsda_result$overall_CV, "ggplot"))
   })
 })
@@ -406,6 +475,7 @@ test_that("cyt_splsda supports PDF output, batch scaling, defaults, and confusio
         comp_num = 2,
         cv_opt = "mfold",
         fold_num = 3,
+        seed = 123,
         scale = "none",
         ellipse = TRUE,
         bg = TRUE,

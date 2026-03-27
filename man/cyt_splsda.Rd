@@ -15,6 +15,7 @@ cyt_splsda(
   comp_num = 2,
   cv_opt = NULL,
   fold_num = 5,
+  seed = 123,
   scale = NULL,
   custom_fn = NULL,
   ellipse = FALSE,
@@ -61,6 +62,9 @@ Default is 2.}
 Default is \code{NULL}.}
 
 \item{fold_num}{Numeric. The number of folds to use if \code{cv_opt} is "Mfold". Default is 5.}
+
+\item{seed}{Optional integer seed for reproducible cross-validation.
+Default is \code{123}.}
 
 \item{scale}{Character. Optional transformation applied to numeric
 predictors. Supported values are \code{NULL} (default; no

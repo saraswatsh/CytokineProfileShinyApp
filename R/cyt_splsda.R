@@ -27,6 +27,8 @@
 #' @param cv_opt Character. Option for cross-validation method: either "loocv" or "Mfold".
 #'   Default is \code{NULL}.
 #' @param fold_num Numeric. The number of folds to use if \code{cv_opt} is "Mfold". Default is 5.
+#' @param seed Optional integer seed for reproducible cross-validation.
+#'   Default is \code{123}.
 #' @param scale Character. Optional transformation applied to numeric
 #'   predictors. Supported values are \code{NULL} (default; no
 #'   transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
@@ -94,6 +96,7 @@ cyt_splsda <- function(
   comp_num = 2,
   cv_opt = NULL,
   fold_num = 5,
+  seed = 123,
   scale = NULL,
   custom_fn = NULL,
   ellipse = FALSE,
@@ -514,8 +517,7 @@ cyt_splsda <- function(
         )
       }
       if (identical(cv_opt, "loocv")) {
-        set.seed(123)
-        cv_res <- mixOmics::perf(mdl, validation = "loo")
+        cv_res <- mixOmics::perf(mdl, validation = "loo", seed = seed)
         dist_use <- "max.dist"
         er <- cv_res$error.rate$overall[, dist_use, drop = TRUE]
         k_star <- tryCatch(
@@ -544,13 +546,13 @@ cyt_splsda <- function(
           ggplot2::theme_minimal()
         indiv_CV <- apply_font_settings_ggplot(indiv_CV, resolved_fonts)
       } else if (identical(cv_opt, "mfold")) {
-        set.seed(123)
         folds_safe <- max(2, min(fold_num, nrow(X)))
         cv_res <- mixOmics::perf(
           mdl,
           validation = "Mfold",
           folds = folds_safe,
-          nrepeat = 100
+          nrepeat = 100,
+          seed = seed
         )
         dist_use <- "max.dist"
         er <- cv_res$error.rate$overall[, dist_use, drop = TRUE]
@@ -763,8 +765,7 @@ cyt_splsda <- function(
       }
       if (!is.null(cv_opt)) {
         if (identical(cv_opt, "loocv")) {
-          set.seed(123)
-          cv2 <- mixOmics::perf(mdl_vip, validation = "loo")
+          cv2 <- mixOmics::perf(mdl_vip, validation = "loo", seed = seed)
           dist_use <- "max.dist"
           er <- cv2$error.rate$overall[, dist_use, drop = TRUE]
           k_star <- tryCatch(cv2$choice.ncomp[[dist_use]], error = function(e) {
@@ -790,13 +791,13 @@ cyt_splsda <- function(
             ggplot2::theme_minimal()
           vip_CV <- apply_font_settings_ggplot(vip_CV, resolved_fonts)
         } else if (identical(cv_opt, "mfold")) {
-          set.seed(123)
           folds_safe <- max(2, min(fold_num, nrow(Xvip)))
           cv2 <- mixOmics::perf(
             mdl_vip,
             validation = "Mfold",
             folds = folds_safe,
-            nrepeat = 100
+            nrepeat = 100,
+            seed = seed
           )
           dist_use <- "max.dist"
           er <- cv2$error.rate$overall[, dist_use, drop = TRUE]
