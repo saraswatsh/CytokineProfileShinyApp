@@ -17,10 +17,11 @@
 #' @importFrom shinyFeedback feedbackWarning hideFeedback
 #' @importFrom shinyWidgets progressBar updateProgressBar
 #' @importFrom shinycssloaders withSpinner
-#' @importFrom shinyhelper helper
+#' @importFrom shinyhelper helper observe_helpers
 #' @importFrom shinyjs addClass hidden hide removeClass runjs show toggle useShinyjs
 #' @importFrom skimr skim
 #' @importFrom vroom vroom
+#' @importFrom utils getFromNamespace
 #' @import shinytest2
 ## usethis namespace: end
 NULL

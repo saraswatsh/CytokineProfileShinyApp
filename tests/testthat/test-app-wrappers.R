@@ -1,3 +1,22 @@
+app_using_source_root <- CytokineProfileShinyApp:::app_using_source_root
+app_source_root <- CytokineProfileShinyApp:::app_source_root
+app_package_name <- CytokineProfileShinyApp:::app_package_name
+app_installed_file <- CytokineProfileShinyApp:::app_installed_file
+app_config_path <- CytokineProfileShinyApp:::app_config_path
+app_config <- CytokineProfileShinyApp:::app_config
+app_www_dir <- CytokineProfileShinyApp:::app_www_dir
+app_asset_href <- CytokineProfileShinyApp:::app_asset_href
+app_description_field <- CytokineProfileShinyApp:::app_description_field
+app_version_string <- CytokineProfileShinyApp:::app_version_string
+app_builtin_dataset <- CytokineProfileShinyApp:::app_builtin_dataset
+app_register_resources <- CytokineProfileShinyApp:::app_register_resources
+app_resource_prefix <- CytokineProfileShinyApp:::app_resource_prefix
+app_stage_init <- CytokineProfileShinyApp:::app_stage_init
+app_stage_commit <- CytokineProfileShinyApp:::app_stage_commit
+app_server <- CytokineProfileShinyApp:::app_server
+announcement_banner <- CytokineProfileShinyApp:::announcement_banner
+app_ui <- CytokineProfileShinyApp:::app_ui
+
 app_test_normalize_path <- function(path) {
   normalizePath(path, winslash = "/", mustWork = FALSE)
 }
@@ -276,6 +295,7 @@ test_that("stage commit preserves borrowed callable bindings", {
 
 test_that("app_server initializes session state and invokes wrapper stages in order", {
   calls <- list()
+  observe_helper_calls <- list()
   capture_stage <- function(stage_name) {
     force(stage_name)
     function(input, output, session, app_ctx) {
@@ -293,20 +313,30 @@ test_that("app_server initializes session state and invokes wrapper stages in or
   testthat::local_mocked_bindings(
     app_session_temp_dir = function(name) paste0("C:/tmp/", name),
     app_builtin_dataset_names = function() c("ExampleData1", "ExampleData2"),
-    init_theme_server = capture_stage("theme"),
-    init_wizard_step_control_server = capture_stage("wizard"),
-    init_persistent_state_server = capture_stage("persistent"),
-    init_data_handling_server = capture_stage("data_handling"),
-    init_data_filtering_server = capture_stage("data_filtering"),
-    init_options_server = capture_stage("options"),
-    init_navigation_server = capture_stage("navigation"),
-    init_update_inputs_server = capture_stage("update_inputs"),
-    init_analysis_results_server = capture_stage("analysis_results"),
-    init_save_key_inputs_server = capture_stage("save_key_inputs"),
+    app_server_stage_runners = function() {
+      list(
+        theme = capture_stage("theme"),
+        wizard_step_control = capture_stage("wizard"),
+        persistent_state = capture_stage("persistent"),
+        data_handling = capture_stage("data_handling"),
+        data_filtering = capture_stage("data_filtering"),
+        options = capture_stage("options"),
+        navigation = capture_stage("navigation"),
+        update_inputs = capture_stage("update_inputs"),
+        analysis_results = capture_stage("analysis_results"),
+        save_key_inputs = capture_stage("save_key_inputs")
+      )
+    },
     .package = "CytokineProfileShinyApp"
   )
   testthat::local_mocked_bindings(
-    observe_helpers = function() invisible(NULL),
+    observe_helpers = function(session = NULL, ...) {
+      observe_helper_calls[[length(observe_helper_calls) + 1L]] <<- list(
+        session = session,
+        dots = list(...)
+      )
+      invisible(NULL)
+    },
     .package = "shinyhelper"
   )
 
@@ -333,18 +363,20 @@ test_that("app_server initializes session state and invokes wrapper stages in or
 
   first_ctx <- calls[[1]]$app_ctx
   expect_identical(result, first_ctx)
-  expect_identical(parent.env(first_ctx), environment(app_server))
+  expect_true(is.environment(parent.env(first_ctx)))
+  expect_identical(parent.env(parent.env(first_ctx)), environment(app_server))
   expect_equal(first_ctx$upload_dir, "C:/tmp/uploads")
   expect_equal(first_ctx$builtins_dir, "C:/tmp/builtins")
   expect_equal(first_ctx$builtInList, c("ExampleData1", "ExampleData2"))
   expect_true(all(vapply(calls, function(x) identical(x$app_ctx, first_ctx), logical(1))))
-  expect_true(exists("stored_theme", envir = session$userData, inherits = FALSE))
-  expect_null(session$userData$stored_theme)
+  expect_false(exists("stored_theme", envir = session$userData, inherits = FALSE))
+  expect_length(observe_helper_calls, 1L)
+  expect_identical(observe_helper_calls[[1]]$session, session)
 })
 
 test_that("app_server boots without recursive startup errors", {
   testthat::local_mocked_bindings(
-    observe_helpers = function() invisible(NULL),
+    observe_helpers = function(...) invisible(NULL),
     .package = "shinyhelper"
   )
 
@@ -371,10 +403,10 @@ test_that("source launcher in inst/app boots from a source checkout", {
   on.exit(setwd(old_wd), add = TRUE)
 
   expect_no_error(sys.source("app.R", envir = launch_env, keep.source = TRUE))
-  expect_true(exists("ui", envir = launch_env, inherits = FALSE))
-  expect_true(exists("server", envir = launch_env, inherits = FALSE))
-  expect_true(inherits(launch_env$ui, "shiny.tag.list"))
-  expect_true(is.function(launch_env$server))
+  expect_true(exists("components", envir = launch_env, inherits = FALSE))
+  expect_true(is.list(launch_env$components))
+  expect_true(inherits(launch_env$components$ui, "shiny.tag.list"))
+  expect_true(is.function(launch_env$components$server))
   expect_equal(
     getOption("cytokineprofile.app_source_root"),
     app_test_normalize_path(file.path(launcher_dir, "..", ".."))

@@ -298,3 +298,24 @@ apply_scale <- function(
 adjust_p <- function(p_values, method = "BH") {
   p.adjust(p_values, method = method)
 }
+
+resolve_analysis_display_label <- function(
+  comparison_col,
+  subset_label = NULL
+) {
+  if (!is.null(subset_label) && length(subset_label)) {
+    subset_label <- as.character(subset_label[[1]])
+    if (nzchar(subset_label)) {
+      return(subset_label)
+    }
+  }
+
+  if (!is.null(comparison_col) && length(comparison_col)) {
+    comparison_col <- as.character(comparison_col[[1]])
+    if (nzchar(comparison_col)) {
+      return(comparison_col)
+    }
+  }
+
+  ""
+}

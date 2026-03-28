@@ -339,7 +339,7 @@ cyt_pca <- function(
 
   # CASE 1: Single-level analysis (when group_col equals group_col2)
   if (group_col == group_col2) {
-    overall_analysis <- "Overall Analysis"
+    analysis_label <- resolve_analysis_display_label(group_col)
 
     # Subset numeric data.
     the_data_df <- data[, !(names(data) %in% unique(c(group_col, group_col2)))]
@@ -364,10 +364,10 @@ cyt_pca <- function(
 
     # Individuals plot.
     if (pdf_mode) {
-      draw_indiv_plot(pca_result, the_groups, paste("PCA:", overall_analysis))
+      draw_indiv_plot(pca_result, the_groups, paste("PCA:", analysis_label))
     } else {
       result_list$overall_indiv_plot <- record_base_plot(
-        draw_indiv_plot(pca_result, the_groups, paste("PCA:", overall_analysis))
+        draw_indiv_plot(pca_result, the_groups, paste("PCA:", analysis_label))
       )
     }
     if (!is.null(progress)) {
@@ -378,10 +378,10 @@ cyt_pca <- function(
     if (!is.null(style) && comp_num == 3 && (tolower(style) == "3d")) {
       cytokine_scores <- pca_result$variates$X
       if (pdf_mode) {
-        draw_3d_plot(cytokine_scores, paste("3D Plot:", overall_analysis))
+        draw_3d_plot(cytokine_scores, paste("3D Plot:", analysis_label))
       } else {
         result_list$overall_3D <- record_base_plot(
-          draw_3d_plot(cytokine_scores, paste("3D Plot:", overall_analysis))
+          draw_3d_plot(cytokine_scores, paste("3D Plot:", analysis_label))
         )
       }
       if (!is.null(progress)) {
@@ -395,7 +395,7 @@ cyt_pca <- function(
     scree_plot <- build_scree_plot(
       variances = variances,
       cumulative_variances = cumulative_variances,
-      plot_title = paste("Scree Plot:", overall_analysis)
+      plot_title = paste("Scree Plot:", analysis_label)
     )
 
     if (pdf_mode) {
@@ -420,7 +420,7 @@ cyt_pca <- function(
             "Loadings for Component",
             comp,
             ":",
-            overall_analysis
+            analysis_label
           )
         )
       } else {
@@ -432,7 +432,7 @@ cyt_pca <- function(
               "Loadings for Component",
               comp,
               ":",
-              overall_analysis
+              analysis_label
             )
           )
         )
@@ -449,11 +449,11 @@ cyt_pca <- function(
     # Create a prcomp object from the numeric data.
     prcomp_obj <- stats::prcomp(the_data_df, center = TRUE, scale. = TRUE)
     if (pdf_mode) {
-      draw_biplot(prcomp_obj, paste("Biplot:", overall_analysis))
+      draw_biplot(prcomp_obj, paste("Biplot:", analysis_label))
     } else {
       result_list$biplot <- record_base_plot({
         graphics::plot.new()
-        draw_biplot(prcomp_obj, paste("Biplot:", overall_analysis))
+        draw_biplot(prcomp_obj, paste("Biplot:", analysis_label))
       })
     }
 
@@ -461,13 +461,13 @@ cyt_pca <- function(
     if (pdf_mode) {
       draw_corr_circle(
         pca_result,
-        paste("Correlation Circle Plot:", overall_analysis)
+        paste("Correlation Circle Plot:", analysis_label)
       )
     } else {
       result_list$correlation_circle <- record_base_plot(
         draw_corr_circle(
           pca_result,
-          paste("Correlation Circle Plot:", overall_analysis)
+          paste("Correlation Circle Plot:", analysis_label)
         )
       )
     }
@@ -483,7 +483,7 @@ cyt_pca <- function(
     for (lev_idx in seq_along(levels_vec)) {
       lev <- levels_vec[[lev_idx]]
       current_level <- lev
-      title_sub <- current_level
+      title_sub <- resolve_analysis_display_label(group_col, current_level)
       if (!is.null(progress)) {
         progress$inc(
           level_inc,

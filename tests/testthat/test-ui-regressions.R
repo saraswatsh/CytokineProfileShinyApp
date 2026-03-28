@@ -23,7 +23,7 @@ test_that("two-group UI contract exposes Welch choices and help text", {
 test_that("imputation UI contract uses install-safe helper values", {
   expect_identical(
     CytokineProfileShinyApp:::ui_imputation_method_input_id(),
-    "impute_method"
+    "imputation_method"
   )
 
   expect_equal(
@@ -38,12 +38,12 @@ test_that("imputation UI contract uses install-safe helper values", {
   )
 
   expect_equal(
-    CytokineProfileShinyApp:::ui_imputation_knn_method_values(),
+    unname(CytokineProfileShinyApp:::ui_imputation_method_choices()[4:5]),
     c("knn_sample", "knn_feature")
   )
 
   expect_identical(
     CytokineProfileShinyApp:::ui_imputation_knn_condition_expr(),
-    "input.impute_method == 'knn_sample' || input.impute_method == 'knn_feature'"
+    "input.imputation_method === 'knn_sample' || input.imputation_method === 'knn_feature'"
   )
 })

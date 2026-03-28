@@ -40,8 +40,8 @@ cyt_export <- function(
   plots,
   filename = "cyto_output",
   format = c("pdf", "png", "jpeg", "tiff", "svg"),
-  width = 7,
-  height = 5,
+  width = 10,
+  height = 8,
   dpi = 300,
   which = NULL
 ) {

@@ -1,3 +1,41 @@
+capture_mock_plot_label <- function(title = NULL, subtitle = NULL) {
+  if (!is.null(title) && length(title)) {
+    title <- as.character(title[[1]])
+    if (nzchar(title)) {
+      return(title)
+    }
+  }
+
+  if (!is.null(subtitle) && length(subtitle)) {
+    subtitle <- as.character(subtitle[[1]])
+    if (nzchar(subtitle)) {
+      return(subtitle)
+    }
+  }
+
+  NULL
+}
+
+draw_mock_base_plot <- function(label = NULL) {
+  graphics::plot.new()
+  if (!is.null(label) && length(label)) {
+    label <- as.character(label[[1]])
+    if (nzchar(label)) {
+      graphics::title(main = label)
+    }
+  }
+  invisible(NULL)
+}
+
+mock_title_ggplot <- function(title = NULL) {
+  ggplot2::ggplot(
+    data.frame(x = 0, y = 0),
+    ggplot2::aes(x, y)
+  ) +
+    ggplot2::geom_blank() +
+    ggplot2::labs(title = title)
+}
+
 test_that("cyt_pca returns nested treatment results with recorded plots", {
   with_temp_pdf_device({
     pca_result <- suppress_known_plot_warnings(
@@ -49,6 +87,86 @@ test_that("cyt_pca supports the overall non-split path", {
       "correlation_circle"
     ) %in% names(pca_result)))
     expect_length(pca_result$loadings, 2)
+  })
+})
+
+test_that("cyt_pca uses comparison-column and split labels in plot titles", {
+  with_temp_pdf_device({
+    title_capture <- new.env(parent = emptyenv())
+    title_capture$plot_indiv <- character()
+    title_capture$plot_loadings <- character()
+    title_capture$plot_var <- character()
+    title_capture$biplot <- character()
+
+    testthat::local_mocked_bindings(
+      plotIndiv = function(..., title = NULL, subtitle = NULL) {
+        label <- capture_mock_plot_label(title = title, subtitle = subtitle)
+        title_capture$plot_indiv <- c(title_capture$plot_indiv, label)
+        draw_mock_base_plot(label)
+      },
+      plotLoadings = function(..., title = NULL) {
+        title_capture$plot_loadings <- c(title_capture$plot_loadings, title)
+        draw_mock_base_plot(title)
+      },
+      plotVar = function(..., title = NULL) {
+        title_capture$plot_var <- c(title_capture$plot_var, title)
+        mock_title_ggplot(title)
+      },
+      .package = "mixOmics"
+    )
+    testthat::local_mocked_bindings(
+      biplot = function(..., main = NULL) {
+        title_capture$biplot <- c(title_capture$biplot, main)
+        draw_mock_base_plot(main)
+      },
+      .package = "stats"
+    )
+
+    suppress_known_plot_warnings(
+      cyt_pca(
+        ex1_pca,
+        group_col = "Group",
+        group_col2 = "Group",
+        pca_colors = c("black", "red2"),
+        scale = "log2",
+        comp_num = 2,
+        pch_values = c(16, 4),
+        output_file = NULL
+      )
+    )
+
+    expect_equal(title_capture$plot_indiv[[1]], "PCA: Group")
+    expect_true(
+      any(grepl("Loadings for Component 1 : Group", title_capture$plot_loadings, fixed = TRUE))
+    )
+    expect_true("Correlation Circle Plot: Group" %in% title_capture$plot_var)
+    expect_true("Biplot: Group" %in% title_capture$biplot)
+    expect_false(any(grepl("Overall Analysis", title_capture$plot_indiv, fixed = TRUE)))
+
+    title_capture$plot_indiv <- character()
+    title_capture$plot_loadings <- character()
+    title_capture$plot_var <- character()
+    title_capture$biplot <- character()
+
+    split_label <- as.character(unique(ex1_pca$Treatment)[[1]])
+    suppress_known_plot_warnings(
+      cyt_pca(
+        ex1_pca,
+        group_col = "Group",
+        group_col2 = "Treatment",
+        pca_colors = c("black", "red2"),
+        scale = "log2",
+        comp_num = 2,
+        pch_values = c(16, 4),
+        output_file = NULL
+      )
+    )
+
+    expect_equal(title_capture$plot_indiv[[1]], paste("PCA:", split_label))
+    expect_true(any(grepl(split_label, title_capture$plot_loadings, fixed = TRUE)))
+    expect_true(any(grepl(split_label, title_capture$plot_var, fixed = TRUE)))
+    expect_true(any(grepl(split_label, title_capture$biplot, fixed = TRUE)))
+    expect_false(any(grepl("Overall Analysis", title_capture$plot_indiv, fixed = TRUE)))
   })
 })
 
@@ -173,6 +291,75 @@ test_that("cyt_splsda returns nested treatment results with VIP summaries", {
     expect_length(first_result$loadings, 2)
     expect_length(first_result$vip_scores, 2)
     expect_true(inherits(first_non_null(first_result$vip_scores), "ggplot"))
+  })
+})
+
+test_that("cyt_splsda uses comparison-column and split labels in plot titles", {
+  with_temp_pdf_device({
+    title_capture <- new.env(parent = emptyenv())
+    title_capture$plot_indiv <- character()
+    title_capture$plot_loadings <- character()
+
+    testthat::local_mocked_bindings(
+      plotIndiv = function(..., title = NULL, subtitle = NULL) {
+        label <- capture_mock_plot_label(title = title, subtitle = subtitle)
+        title_capture$plot_indiv <- c(title_capture$plot_indiv, label)
+        draw_mock_base_plot(label)
+      },
+      plotLoadings = function(..., title = NULL) {
+        title_capture$plot_loadings <- c(title_capture$plot_loadings, title)
+        draw_mock_base_plot(title)
+      },
+      .package = "mixOmics"
+    )
+
+    suppress_known_plot_warnings(
+      cyt_splsda(
+        ex1_binary_group_treatment,
+        group_col = "Group",
+        group_col2 = "Group",
+        var_num = 5,
+        comp_num = 2,
+        scale = "log2",
+        roc = FALSE,
+        conf_mat = FALSE,
+        cv_opt = NULL,
+        splsda_colors = c("black", "purple"),
+        pch_values = c(16, 4)
+      )
+    )
+
+    expect_true(startsWith(title_capture$plot_indiv[[1]], "Group With Accuracy:"))
+    expect_true(
+      any(grepl("Loadings Comp 1 : Group", title_capture$plot_loadings, fixed = TRUE))
+    )
+    expect_false(any(grepl("Overall Analysis", title_capture$plot_indiv, fixed = TRUE)))
+
+    title_capture$plot_indiv <- character()
+    title_capture$plot_loadings <- character()
+
+    split_label <- as.character(unique(ex1_binary_group_treatment$Treatment)[[1]])
+    suppress_known_plot_warnings(
+      cyt_splsda(
+        ex1_binary_group_treatment,
+        group_col = "Group",
+        group_col2 = "Treatment",
+        var_num = 5,
+        comp_num = 2,
+        scale = "log2",
+        roc = FALSE,
+        conf_mat = FALSE,
+        cv_opt = NULL,
+        splsda_colors = c("black", "purple"),
+        pch_values = c(16, 4)
+      )
+    )
+
+    expect_true(
+      startsWith(title_capture$plot_indiv[[1]], paste(split_label, "With Accuracy:"))
+    )
+    expect_true(any(grepl(split_label, title_capture$plot_loadings, fixed = TRUE)))
+    expect_false(any(grepl("Overall Analysis", title_capture$plot_indiv, fixed = TRUE)))
   })
 })
 
@@ -518,6 +705,110 @@ test_that("cyt_mint_splsda returns global and partial plots from ExampleData5", 
     expect_true(inherits(mint_result$partial_indiv_plot, "recordedplot"))
     expect_true(inherits(mint_result$correlation_circle_plot, "recordedplot"))
     expect_gt(length(mint_result$partial_loadings_plots), 0)
+  })
+})
+
+test_that("cyt_mint_splsda uses comparison-column and split labels in plot titles", {
+  with_temp_pdf_device({
+    title_capture <- new.env(parent = emptyenv())
+    title_capture$plot_indiv <- list()
+    title_capture$plot_var <- character()
+    title_capture$cim <- character()
+    title_capture$plot_loadings <- character()
+    non_split_pdf <- tempfile(fileext = ".pdf")
+    split_pdf <- tempfile(fileext = ".pdf")
+    on.exit(unlink(c(non_split_pdf, split_pdf)), add = TRUE)
+
+    testthat::local_mocked_bindings(
+      plotIndiv = function(..., title = NULL, subtitle = NULL) {
+        title_capture$plot_indiv[[length(title_capture$plot_indiv) + 1]] <- list(
+          title = title,
+          subtitle = subtitle
+        )
+        draw_mock_base_plot(capture_mock_plot_label(title = title, subtitle = subtitle))
+      },
+      plotVar = function(..., title = NULL) {
+        title_capture$plot_var <- c(title_capture$plot_var, title)
+        mock_title_ggplot(title)
+      },
+      cim = function(..., title = NULL) {
+        title_capture$cim <- c(title_capture$cim, title)
+        draw_mock_base_plot(title)
+      },
+      plotLoadings = function(..., title = NULL) {
+        title_capture$plot_loadings <- c(title_capture$plot_loadings, title)
+        draw_mock_base_plot(title)
+      },
+      .package = "mixOmics"
+    )
+
+    suppress_known_plot_warnings(
+      cyt_mint_splsda(
+        ex5_mint,
+        group_col = "Group",
+        batch_col = "Batch",
+        colors = c("black", "purple"),
+        output_file = non_split_pdf,
+        ellipse = TRUE,
+        var_num = 5,
+        comp_num = 2,
+        scale = "log2",
+        cim = TRUE,
+        roc = FALSE
+      )
+    )
+
+    expect_true(startsWith(
+      title_capture$plot_indiv[[1]]$subtitle,
+      "MINT sPLS-DA: Group - Accuracy:"
+    ))
+    expect_equal(title_capture$plot_indiv[[2]]$title, "Partial Plots: Group")
+    expect_true("Correlation Circle: Group" %in% title_capture$plot_var)
+    expect_true(paste("CIM (Comp 1 -", 2, "):", "Group") %in% title_capture$cim)
+    expect_true(
+      any(grepl("Partial Loadings for Component 1 in Group", title_capture$plot_loadings, fixed = TRUE))
+    )
+    expect_false(any(vapply(
+      title_capture$plot_indiv,
+      function(entry) identical(entry$title, "Partial Plots:"),
+      logical(1)
+    )))
+    expect_false(any(grepl("Overall Analysis", unlist(title_capture$plot_indiv), fixed = TRUE)))
+
+    title_capture$plot_indiv <- list()
+    title_capture$plot_var <- character()
+    title_capture$cim <- character()
+    title_capture$plot_loadings <- character()
+
+    split_label <- as.character(unique(ex5_mint_split$Treatment)[[1]])
+    suppress_known_plot_warnings(
+      cyt_mint_splsda(
+        ex5_mint_split,
+        group_col = "Group",
+        batch_col = "Batch",
+        group_col2 = "Treatment",
+        colors = c("black", "purple"),
+        output_file = split_pdf,
+        ellipse = TRUE,
+        var_num = 5,
+        comp_num = 2,
+        scale = "log2",
+        cim = TRUE,
+        roc = FALSE
+      )
+    )
+
+    expect_true(startsWith(
+      title_capture$plot_indiv[[1]]$subtitle,
+      paste("MINT sPLS-DA:", split_label, "- Accuracy:")
+    ))
+    expect_equal(
+      title_capture$plot_indiv[[2]]$title,
+      paste("Partial Plots:", split_label)
+    )
+    expect_true(any(grepl(split_label, title_capture$plot_var, fixed = TRUE)))
+    expect_true(any(grepl(split_label, title_capture$cim, fixed = TRUE)))
+    expect_false(any(grepl("Overall Analysis", unlist(title_capture$plot_indiv), fixed = TRUE)))
   })
 })
 

@@ -1,3 +1,34 @@
+app_builtin_dataset_names <- CytokineProfileShinyApp:::app_builtin_dataset_names
+app_asset_href <- CytokineProfileShinyApp:::app_asset_href
+app_builtin_dataset <- CytokineProfileShinyApp:::app_builtin_dataset
+font_settings_known_fields <- CytokineProfileShinyApp:::font_settings_known_fields
+font_settings_defaults <- CytokineProfileShinyApp:::font_settings_defaults
+font_settings_has_values <- CytokineProfileShinyApp:::font_settings_has_values
+validate_font_setting_scalar <- CytokineProfileShinyApp:::validate_font_setting_scalar
+normalize_font_settings <- CytokineProfileShinyApp:::normalize_font_settings
+apply_font_settings_ggplot <- CytokineProfileShinyApp:::apply_font_settings_ggplot
+font_settings_ggplot_text_size <- CytokineProfileShinyApp:::font_settings_ggplot_text_size
+font_settings_mixomics_text_scale <- CytokineProfileShinyApp:::font_settings_mixomics_text_scale
+font_settings_mixomics_indiv_cex <- CytokineProfileShinyApp:::font_settings_mixomics_indiv_cex
+font_settings_mixomics_scale <- CytokineProfileShinyApp:::font_settings_mixomics_scale
+font_settings_mixomics_indiv_args <- CytokineProfileShinyApp:::font_settings_mixomics_indiv_args
+font_settings_mixomics_loadings_args <- CytokineProfileShinyApp:::font_settings_mixomics_loadings_args
+font_settings_plotvar_cex <- CytokineProfileShinyApp:::font_settings_plotvar_cex
+font_settings_plotvar_args <- CytokineProfileShinyApp:::font_settings_plotvar_args
+font_settings_base_graphics <- CytokineProfileShinyApp:::font_settings_base_graphics
+font_settings_heatmap_args <- CytokineProfileShinyApp:::font_settings_heatmap_args
+summarize_invalid_numeric_columns <- CytokineProfileShinyApp:::summarize_invalid_numeric_columns
+format_invalid_numeric_summary <- CytokineProfileShinyApp:::format_invalid_numeric_summary
+step2_normalize_missing_tokens <- CytokineProfileShinyApp:::step2_normalize_missing_tokens
+step2_is_numeric_like <- CytokineProfileShinyApp:::step2_is_numeric_like
+step2_parse_numeric_values <- CytokineProfileShinyApp:::step2_parse_numeric_values
+step2_conflicting_type_cols <- CytokineProfileShinyApp:::step2_conflicting_type_cols
+step2_restore_bucket_selection <- CytokineProfileShinyApp:::step2_restore_bucket_selection
+step2_classify_columns <- CytokineProfileShinyApp:::step2_classify_columns
+step2_apply_type_overrides <- CytokineProfileShinyApp:::step2_apply_type_overrides
+safe_zscore_column <- CytokineProfileShinyApp:::safe_zscore_column
+read_uploaded_flat_file <- CytokineProfileShinyApp:::read_uploaded_flat_file
+
 test_that("run_app forwards the resolved app directory to shiny::runApp", {
   called <- NULL
 

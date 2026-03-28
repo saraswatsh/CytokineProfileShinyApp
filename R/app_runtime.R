@@ -26,6 +26,23 @@ app_source_app_file <- function(...) {
   file.path(app_source_root(), "inst", "app", ...)
 }
 
+app_content_file <- function(...) {
+  rel_path <- file.path(...)
+  candidates <- unique(c(
+    file.path(app_source_root(), rel_path),
+    file.path(getwd(), rel_path),
+    app_source_app_file(rel_path)
+  ))
+
+  for (candidate in candidates) {
+    if (file.exists(candidate)) {
+      return(normalizePath(candidate, winslash = "/", mustWork = TRUE))
+    }
+  }
+
+  stop("Could not locate app content file: ", rel_path)
+}
+
 app_config_path <- function() {
   config_file <- app_installed_file("config.yml")
   if (nzchar(config_file)) {
@@ -142,4 +159,77 @@ app_session_temp_dir <- function(name) {
   path <- file.path(tempdir(), name)
   dir.create(path, recursive = TRUE, showWarnings = FALSE)
   normalizePath(path, winslash = "/", mustWork = TRUE)
+}
+
+app_source_checkout_root <- function(app_dir = getwd()) {
+  app_dir <- normalizePath(app_dir, winslash = "/", mustWork = FALSE)
+  candidates <- unique(c(
+    app_dir,
+    normalizePath(file.path(app_dir, "..", ".."), winslash = "/", mustWork = FALSE)
+  ))
+
+  is_source_root <- function(root) {
+    file.exists(file.path(root, "DESCRIPTION")) &&
+      dir.exists(file.path(root, "R")) &&
+      dir.exists(file.path(root, "inst", "app"))
+  }
+
+  for (candidate in candidates) {
+    if (is_source_root(candidate)) {
+      return(candidate)
+    }
+  }
+
+  ""
+}
+
+app_source_runtime_env <- function(source_root) {
+  options(
+    cytokineprofile.app_source_root = normalizePath(
+      source_root,
+      winslash = "/",
+      mustWork = TRUE
+    )
+  )
+
+  app_env <- new.env(parent = globalenv())
+  assign("%||%", getFromNamespace("%||%", "rlang"), envir = app_env)
+  assign(".data", getFromNamespace(".data", "rlang"), envir = app_env)
+
+  r_files <- sort(list.files(
+    file.path(source_root, "R"),
+    full.names = TRUE,
+    pattern = "\\.R$"
+  ))
+  invisible(lapply(r_files, source, local = app_env))
+
+  app_env
+}
+
+app_runtime_env <- function(app_dir = getwd()) {
+  source_root <- app_source_checkout_root(app_dir = app_dir)
+  if (nzchar(source_root)) {
+    return(app_source_runtime_env(source_root))
+  }
+
+  if (!requireNamespace(app_package_name(), quietly = TRUE)) {
+    stop("Could not load the CytokineProfileShinyApp package namespace.")
+  }
+
+  asNamespace(app_package_name())
+}
+
+app_runtime_components <- function(app_dir = getwd()) {
+  app_env <- app_runtime_env(app_dir = app_dir)
+
+  list(
+    app_env = app_env,
+    ui = base::get("app_ui", envir = app_env)(),
+    server = base::get("app_server", envir = app_env)
+  )
+}
+
+app_build_shiny_app <- function(app_dir = getwd()) {
+  components <- app_runtime_components(app_dir = app_dir)
+  shiny::shinyApp(ui = components$ui, server = components$server)
 }

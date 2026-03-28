@@ -105,7 +105,10 @@ cyt_mint_splsda <- function(
     is_pdf_mode = !is.null(output_file),
     progress_share = 0
   ) {
-    display_label <- if (nzchar(analysis_label)) analysis_label else "Overall Analysis"
+    display_label <- resolve_analysis_display_label(
+      group_col,
+      analysis_label
+    )
     stage_weights <- list(
       prepare = 0.15,
       fit = 0.25,
@@ -122,7 +125,7 @@ cyt_mint_splsda <- function(
     if (nlevels(data_subset[[group_col]]) < 2) {
       message(paste(
         "Skipping '",
-        analysis_label,
+        display_label,
         "': requires at least two group levels.",
         sep = ""
       ))
@@ -131,7 +134,7 @@ cyt_mint_splsda <- function(
     if (nlevels(data_subset[[batch_col]]) < 2) {
       message(paste(
         "Skipping '",
-        analysis_label,
+        display_label,
         "': MINT requires at least two batches.",
         sep = ""
       ))
@@ -185,12 +188,11 @@ cyt_mint_splsda <- function(
     }
 
     # --- 4. Prepare plot titles and background object ---
-    title_label <- if (nzchar(analysis_label)) {
-      paste("MINT sPLS-DA:", analysis_label)
-    } else {
-      "MINT sPLS-DA Global Plot"
-    }
+    title_label <- paste("MINT sPLS-DA:", display_label)
     main_title <- paste(title_label, "- Accuracy:", acc_percent, "%")
+    partial_plot_title <- paste("Partial Plots:", display_label)
+    corr_circle_title <- paste("Correlation Circle:", display_label)
+    cim_title <- paste("CIM (Comp 1 -", comp_num, "):", display_label)
     bg_obj <- NULL
     if (bg) {
       try(
@@ -269,15 +271,12 @@ cyt_mint_splsda <- function(
             group = Y,
             col = colors,
             legend = TRUE,
-            title = paste("Partial Plots:", analysis_label)
+            title = partial_plot_title
           ),
           mixomics_indiv_args
         )
       )
-      draw_corr_circle_plot(
-        final_model,
-        paste("Correlation Circle:", analysis_label)
-      )
+      draw_corr_circle_plot(final_model, corr_circle_title)
       if (!is.null(progress)) {
         progress$inc(
           progress_share * stage_weights$corr,
@@ -296,7 +295,7 @@ cyt_mint_splsda <- function(
           comp = 1,
           row.sideColors = colors[as.numeric(Y)],
           row.names = FALSE,
-          title = paste("CIM (Comp 1 -", comp_num, "):", analysis_label)
+          title = cim_title
         )
       }
       for (i in 1:comp_num) {
@@ -314,7 +313,7 @@ cyt_mint_splsda <- function(
                 "Partial Loadings for Component",
                 i,
                 "in",
-                analysis_label
+                display_label
               )
             ),
             mixomics_loadings_args
@@ -361,7 +360,7 @@ cyt_mint_splsda <- function(
             comp = 1:comp_num,
             row.sideColors = colors[as.numeric(Y)],
             row.names = FALSE,
-            title = paste("CIM (Comp 1 -", comp_num, "):", analysis_label)
+            title = cim_title
           )
         })
       }
@@ -482,17 +481,14 @@ cyt_mint_splsda <- function(
                 group = Y,
                 col = colors,
                 legend = TRUE,
-                title = paste("Partial Plots:", analysis_label)
+                title = partial_plot_title
               ),
               mixomics_indiv_args
             )
           )
         }),
         correlation_circle_plot = record_base_plot({
-          draw_corr_circle_plot(
-            final_model,
-            paste("Correlation Circle:", analysis_label)
-          )
+          draw_corr_circle_plot(final_model, corr_circle_title)
         }),
         cim_obj = cim_obj, # Assign the CIM object here
         partial_loadings_plots = partial_loadings_plots, # Assign the list of plots here

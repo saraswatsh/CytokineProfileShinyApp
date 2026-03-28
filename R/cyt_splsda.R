@@ -1051,7 +1051,11 @@ cyt_splsda <- function(
 
   # --- overall vs split by group_col2 -------------------------------------
   if (is.null(group_col2) || identical(group_col, group_col2)) {
-    res <- run_one(data, "Overall Analysis", progress_share = 0.80)
+    res <- run_one(
+      data,
+      resolve_analysis_display_label(group_col),
+      progress_share = 0.80
+    )
     if (!is.null(output_file)) {
       res$pdf_file <- output_file
     }
@@ -1069,7 +1073,7 @@ cyt_splsda <- function(
     out <- lapply(trts, function(tt) {
       run_one(
         data[data[[group_col2]] == tt, , drop = FALSE],
-        as.character(tt),
+        resolve_analysis_display_label(group_col, as.character(tt)),
         progress_share = progress_share
       )
     })

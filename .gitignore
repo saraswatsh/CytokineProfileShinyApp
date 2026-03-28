@@ -20,6 +20,7 @@ R/libraries.R
 **/*.quarto_ipynb
 ShinyLoadTest/
 benchmark_cytokineprofile.R
+benchmark_shiny_app.R
 shinyTest.R
 server.R
 benchmark-results/
@@ -28,3 +29,5 @@ benchmark-results/
 .Rprofile
 .posit
 /scripts
+.codex
+app_server_stages.baseline.R

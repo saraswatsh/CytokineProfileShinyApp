@@ -23,9 +23,9 @@
 ^app\.R$
 ^ui\.R$
 ^global\.R$
-^server-logic$
 ^shinyTest\.R$
 ^benchmark_cytokineprofile\.R$
+^benchmark_shiny_app\.R$
 ^ShinyLoadTest$
 ^app\.R$
 ^TUTORIALS.md$
@@ -36,3 +36,5 @@ _\.new\.png$
 ^\.covrignore$
 ^\.posit$
 ^scripts$
+^app_server_stages\.baseline\.R$
+^.codex$
