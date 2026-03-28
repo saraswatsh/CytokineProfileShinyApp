@@ -64,7 +64,9 @@
 <li>Two-group testing controls now label <code>Welch t-test</code> more explicitly, so the manual choice matches the app’s underlying behavior more clearly.</li>
 <li>PLSR now handles partially missing predictor data more gracefully by keeping usable rows, dropping only unusable predictors, and giving clearer guidance when sparse columns may need missing-value treatment first.</li>
 <li>If your uploaded data includes out-of-range values, the app now warns you when you click <code>Save &amp; Use</code> and explains what was adjusted in plain language.</li>
-<li>The app now starts more reliably in different R workflows.</li>
+<li>The app now starts more reliably across repo-root, installed-app, and package launcher workflows.</li>
+<li>Step 2 now restores its state more consistently when you move forward and then return, including dynamic categorical filter selections.</li>
+<li>Fresh-start, reuse-data, upload, built-in editor, and Bio-Plex workflows now behave more consistently after recovery and cleanup work.</li>
 <li>Progress notifications are easier to read during longer analyses, with cleaner spacing and clearer separation between the main task and detail text.</li>
 </ul></div>
 <div class="section level3">
@@ -84,11 +86,15 @@
 <li>The missing-value method selector now keeps its nearest-neighbor options in sync more reliably instead of dropping or mismatching those controls.</li>
 <li>PLSR is now more stable when only one component can be fit, and the VIP&gt;1 follow-up preview now skips safely instead of failing when too few predictors remain.</li>
 <li>Deselecting all categorical columns in Step 2 now stays deselected instead of snapping back to all selected.</li>
+<li>Step 2 dynamic categorical filter selections now restore correctly after you return from Step 3.</li>
+<li>
+<code>kNN (feature-wise)</code> now safely blocks unsupported single-column use with a controlled message instead of a raw failure.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="behind-the-scenes-0-0-0-9000">Behind the Scenes<a class="anchor" aria-label="anchor" href="#behind-the-scenes-0-0-0-9000"></a></h3>
 <ul><li>Several parts of the app were cleaned up to reduce small startup and package-loading problems.</li>
 <li>Internal helper code and UI regression checks were cleaned up so package checks behave more consistently across local testing and staged installs.</li>
+<li>The server pipeline was re-extracted into dedicated <code>mod_*_server()</code> stage files, with shared stage helpers now centralized in <code>R/app_stage_helpers.R</code>.</li>
 </ul></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

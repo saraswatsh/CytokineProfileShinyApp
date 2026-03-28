@@ -49,7 +49,13 @@ to read, and more reliable.
 - If your uploaded data includes out-of-range values, the app now warns
   you when you click `Save & Use` and explains what was adjusted in
   plain language.
-- The app now starts more reliably in different R workflows.
+- The app now starts more reliably across repo-root, installed-app, and
+  package launcher workflows.
+- Step 2 now restores its state more consistently when you move forward
+  and then return, including dynamic categorical filter selections.
+- Fresh-start, reuse-data, upload, built-in editor, and Bio-Plex
+  workflows now behave more consistently after recovery and cleanup
+  work.
 - Progress notifications are easier to read during longer analyses, with
   cleaner spacing and clearer separation between the main task and
   detail text.
@@ -83,6 +89,10 @@ to read, and more reliable.
   few predictors remain.
 - Deselecting all categorical columns in Step 2 now stays deselected
   instead of snapping back to all selected.
+- Step 2 dynamic categorical filter selections now restore correctly
+  after you return from Step 3.
+- `kNN (feature-wise)` now safely blocks unsupported single-column use
+  with a controlled message instead of a raw failure.
 
 ### Behind the Scenes
 
@@ -91,3 +101,6 @@ to read, and more reliable.
 - Internal helper code and UI regression checks were cleaned up so
   package checks behave more consistently across local testing and
   staged installs.
+- The server pipeline was re-extracted into dedicated `mod_*_server()`
+  stage files, with shared stage helpers now centralized in
+  `R/app_stage_helpers.R`.
