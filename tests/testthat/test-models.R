@@ -59,7 +59,12 @@ test_that("cyt_pca returns nested treatment results with recorded plots", {
     expect_true(inherits(first_result$overall_indiv_plot, "recordedplot"))
     expect_true(inherits(first_result$overall_scree_plot, "recordedplot"))
     expect_length(first_result$loadings, 2)
-    expect_true(all(vapply(first_result$loadings, inherits, logical(1), "recordedplot")))
+    expect_true(all(vapply(
+      first_result$loadings,
+      inherits,
+      logical(1),
+      "recordedplot"
+    )))
   })
 })
 
@@ -79,13 +84,16 @@ test_that("cyt_pca supports the overall non-split path", {
     )
 
     expect_true(is.list(pca_result))
-    expect_true(all(c(
-      "overall_indiv_plot",
-      "overall_scree_plot",
-      "loadings",
-      "biplot",
-      "correlation_circle"
-    ) %in% names(pca_result)))
+    expect_true(all(
+      c(
+        "overall_indiv_plot",
+        "overall_scree_plot",
+        "loadings",
+        "biplot",
+        "correlation_circle"
+      ) %in%
+        names(pca_result)
+    ))
     expect_length(pca_result$loadings, 2)
   })
 })
@@ -137,11 +145,19 @@ test_that("cyt_pca uses comparison-column and split labels in plot titles", {
 
     expect_equal(title_capture$plot_indiv[[1]], "PCA: Group")
     expect_true(
-      any(grepl("Loadings for Component 1 : Group", title_capture$plot_loadings, fixed = TRUE))
+      any(grepl(
+        "Loadings for Component 1 : Group",
+        title_capture$plot_loadings,
+        fixed = TRUE
+      ))
     )
     expect_true("Correlation Circle Plot: Group" %in% title_capture$plot_var)
     expect_true("Biplot: Group" %in% title_capture$biplot)
-    expect_false(any(grepl("Overall Analysis", title_capture$plot_indiv, fixed = TRUE)))
+    expect_false(any(grepl(
+      "Overall Analysis",
+      title_capture$plot_indiv,
+      fixed = TRUE
+    )))
 
     title_capture$plot_indiv <- character()
     title_capture$plot_loadings <- character()
@@ -163,10 +179,18 @@ test_that("cyt_pca uses comparison-column and split labels in plot titles", {
     )
 
     expect_equal(title_capture$plot_indiv[[1]], paste("PCA:", split_label))
-    expect_true(any(grepl(split_label, title_capture$plot_loadings, fixed = TRUE)))
+    expect_true(any(grepl(
+      split_label,
+      title_capture$plot_loadings,
+      fixed = TRUE
+    )))
     expect_true(any(grepl(split_label, title_capture$plot_var, fixed = TRUE)))
     expect_true(any(grepl(split_label, title_capture$biplot, fixed = TRUE)))
-    expect_false(any(grepl("Overall Analysis", title_capture$plot_indiv, fixed = TRUE)))
+    expect_false(any(grepl(
+      "Overall Analysis",
+      title_capture$plot_indiv,
+      fixed = TRUE
+    )))
   })
 })
 
@@ -241,7 +265,7 @@ test_that("cyt_pca supports grouping fallbacks, font settings, and PDF output", 
           ex1_pca,
           group_col = "Group",
           group_col2 = NULL,
-          pca_colors = c("black"),
+          pca_colors = "black",
           scale = "log2",
           comp_num = 2,
           pch_values = c(16, 4),
@@ -329,16 +353,29 @@ test_that("cyt_splsda uses comparison-column and split labels in plot titles", {
       )
     )
 
-    expect_true(startsWith(title_capture$plot_indiv[[1]], "Group With Accuracy:"))
+    expect_true(startsWith(
+      title_capture$plot_indiv[[1]],
+      "Group With Accuracy:"
+    ))
     expect_true(
-      any(grepl("Loadings Comp 1 : Group", title_capture$plot_loadings, fixed = TRUE))
+      any(grepl(
+        "Loadings Comp 1 : Group",
+        title_capture$plot_loadings,
+        fixed = TRUE
+      ))
     )
-    expect_false(any(grepl("Overall Analysis", title_capture$plot_indiv, fixed = TRUE)))
+    expect_false(any(grepl(
+      "Overall Analysis",
+      title_capture$plot_indiv,
+      fixed = TRUE
+    )))
 
     title_capture$plot_indiv <- character()
     title_capture$plot_loadings <- character()
 
-    split_label <- as.character(unique(ex1_binary_group_treatment$Treatment)[[1]])
+    split_label <- as.character(unique(ex1_binary_group_treatment$Treatment)[[
+      1
+    ]])
     suppress_known_plot_warnings(
       cyt_splsda(
         ex1_binary_group_treatment,
@@ -356,10 +393,21 @@ test_that("cyt_splsda uses comparison-column and split labels in plot titles", {
     )
 
     expect_true(
-      startsWith(title_capture$plot_indiv[[1]], paste(split_label, "With Accuracy:"))
+      startsWith(
+        title_capture$plot_indiv[[1]],
+        paste(split_label, "With Accuracy:")
+      )
     )
-    expect_true(any(grepl(split_label, title_capture$plot_loadings, fixed = TRUE)))
-    expect_false(any(grepl("Overall Analysis", title_capture$plot_indiv, fixed = TRUE)))
+    expect_true(any(grepl(
+      split_label,
+      title_capture$plot_loadings,
+      fixed = TRUE
+    )))
+    expect_false(any(grepl(
+      "Overall Analysis",
+      title_capture$plot_indiv,
+      fixed = TRUE
+    )))
   })
 })
 
@@ -427,7 +475,10 @@ test_that("cyt_splsda returns reproducible LOOCV output when seed is fixed", {
       ggplot2::ggplot_build(first_result$overall_CV)$data,
       ggplot2::ggplot_build(second_result$overall_CV)$data
     )
-    expect_equal(first_result$overall_CV$labels, second_result$overall_CV$labels)
+    expect_equal(
+      first_result$overall_CV$labels,
+      second_result$overall_CV$labels
+    )
   })
 })
 
@@ -481,15 +532,18 @@ test_that("cyt_splsda supports the 3D branch", {
 
 test_that("cyt_splsda supports shared apply_scale options without UI changes", {
   with_temp_pdf_device({
-    scale_df <- ex1_binary_group_treatment[, c(
-      "Group",
-      "Treatment",
-      "IL.10",
-      "IL.17F",
-      "GM.CSF",
-      "IFN.G",
-      "IL.13"
-    ), drop = FALSE]
+    scale_df <- ex1_binary_group_treatment[,
+      c(
+        "Group",
+        "Treatment",
+        "IL.10",
+        "IL.17F",
+        "GM.CSF",
+        "IFN.G",
+        "IL.13"
+      ),
+      drop = FALSE
+    ]
     predictor_cols <- names(scale_df)[vapply(scale_df, is.numeric, logical(1))]
     scale_df[, predictor_cols] <- scale_df[, predictor_cols, drop = FALSE] + 1
 
@@ -586,15 +640,18 @@ test_that("cyt_splsda supports shared apply_scale options without UI changes", {
 })
 
 test_that("cyt_splsda errors on non-positive predictor values for log scales", {
-  bad_df <- ex1_binary_group_treatment[, c(
-    "Group",
-    "Treatment",
-    "IL.10",
-    "IL.17F",
-    "GM.CSF",
-    "IFN.G",
-    "IL.13"
-  ), drop = FALSE]
+  bad_df <- ex1_binary_group_treatment[,
+    c(
+      "Group",
+      "Treatment",
+      "IL.10",
+      "IL.17F",
+      "GM.CSF",
+      "IFN.G",
+      "IL.13"
+    ),
+    drop = FALSE
+  ]
   bad_df$GM.CSF[1] <- 0
   bad_df$IFN.G[2] <- -1
 
@@ -633,16 +690,22 @@ test_that("cyt_splsda errors on non-positive predictor values for log scales", {
 })
 
 test_that("cyt_splsda supports PDF output, batch scaling, defaults, and confusion matrices", {
-  splsda_df <- ex1_binary_group_treatment[, c(
-    "Group",
-    "Treatment",
-    "IL.10",
-    "IL.17F",
-    "GM.CSF",
-    "IFN.G",
-    "IL.13"
-  ), drop = FALSE]
-  splsda_df$Batch <- factor(rep(c("Study1", "Study2"), length.out = nrow(splsda_df)))
+  splsda_df <- ex1_binary_group_treatment[,
+    c(
+      "Group",
+      "Treatment",
+      "IL.10",
+      "IL.17F",
+      "GM.CSF",
+      "IFN.G",
+      "IL.13"
+    ),
+    drop = FALSE
+  ]
+  splsda_df$Batch <- factor(rep(
+    c("Study1", "Study2"),
+    length.out = nrow(splsda_df)
+  ))
   output_file <- tempfile(fileext = ".pdf")
   on.exit(unlink(output_file), add = TRUE)
   progress <- make_progress_recorder()
@@ -721,11 +784,16 @@ test_that("cyt_mint_splsda uses comparison-column and split labels in plot title
 
     testthat::local_mocked_bindings(
       plotIndiv = function(..., title = NULL, subtitle = NULL) {
-        title_capture$plot_indiv[[length(title_capture$plot_indiv) + 1]] <- list(
+        title_capture$plot_indiv[[
+          length(title_capture$plot_indiv) + 1
+        ]] <- list(
           title = title,
           subtitle = subtitle
         )
-        draw_mock_base_plot(capture_mock_plot_label(title = title, subtitle = subtitle))
+        draw_mock_base_plot(capture_mock_plot_label(
+          title = title,
+          subtitle = subtitle
+        ))
       },
       plotVar = function(..., title = NULL) {
         title_capture$plot_var <- c(title_capture$plot_var, title)
@@ -766,14 +834,22 @@ test_that("cyt_mint_splsda uses comparison-column and split labels in plot title
     expect_true("Correlation Circle: Group" %in% title_capture$plot_var)
     expect_true(paste("CIM (Comp 1 -", 2, "):", "Group") %in% title_capture$cim)
     expect_true(
-      any(grepl("Partial Loadings for Component 1 in Group", title_capture$plot_loadings, fixed = TRUE))
+      any(grepl(
+        "Partial Loadings for Component 1 in Group",
+        title_capture$plot_loadings,
+        fixed = TRUE
+      ))
     )
     expect_false(any(vapply(
       title_capture$plot_indiv,
       function(entry) identical(entry$title, "Partial Plots:"),
       logical(1)
     )))
-    expect_false(any(grepl("Overall Analysis", unlist(title_capture$plot_indiv), fixed = TRUE)))
+    expect_false(any(grepl(
+      "Overall Analysis",
+      unlist(title_capture$plot_indiv),
+      fixed = TRUE
+    )))
 
     title_capture$plot_indiv <- list()
     title_capture$plot_var <- character()
@@ -808,7 +884,11 @@ test_that("cyt_mint_splsda uses comparison-column and split labels in plot title
     )
     expect_true(any(grepl(split_label, title_capture$plot_var, fixed = TRUE)))
     expect_true(any(grepl(split_label, title_capture$cim, fixed = TRUE)))
-    expect_false(any(grepl("Overall Analysis", unlist(title_capture$plot_indiv), fixed = TRUE)))
+    expect_false(any(grepl(
+      "Overall Analysis",
+      unlist(title_capture$plot_indiv),
+      fixed = TRUE
+    )))
   })
 })
 
@@ -941,7 +1021,10 @@ test_that("cyt_mint_splsda supports PDF output and skip conditions", {
 
 test_that("cyt_plsr supports dense and sparse regression configurations", {
   with_temp_pdf_device({
-    plsr_df <- ex1_binary_group[, c("Group", "IL.10", "IL.17F", "GM.CSF", "IFN.G", "IL.13"), drop = FALSE]
+    plsr_df <- ex1_binary_group[,
+      c("Group", "IL.10", "IL.17F", "GM.CSF", "IFN.G", "IL.13"),
+      drop = FALSE
+    ]
 
     dense_result <- cyt_plsr(
       plsr_df,
@@ -979,14 +1062,17 @@ test_that("cyt_plsr supports dense and sparse regression configurations", {
 
 test_that("cyt_plsr supports shared apply_scale options on selected predictors", {
   with_temp_pdf_device({
-    plsr_df <- ex1_binary_group[, c(
-      "Group",
-      "IL.10",
-      "IL.17F",
-      "GM.CSF",
-      "IFN.G",
-      "IL.13"
-    ), drop = FALSE]
+    plsr_df <- ex1_binary_group[,
+      c(
+        "Group",
+        "IL.10",
+        "IL.17F",
+        "GM.CSF",
+        "IFN.G",
+        "IL.13"
+      ),
+      drop = FALSE
+    ]
     predictor_cols <- c("IL.17F", "GM.CSF", "IFN.G", "IL.13")
     plsr_df[, predictor_cols] <- plsr_df[, predictor_cols, drop = FALSE] + 1
 
@@ -1059,14 +1145,17 @@ test_that("cyt_plsr supports shared apply_scale options on selected predictors",
 })
 
 test_that("cyt_plsr errors on non-positive predictor values for log scales", {
-  plsr_df <- ex1_binary_group[, c(
-    "Group",
-    "IL.10",
-    "IL.17F",
-    "GM.CSF",
-    "IFN.G",
-    "IL.13"
-  ), drop = FALSE]
+  plsr_df <- ex1_binary_group[,
+    c(
+      "Group",
+      "IL.10",
+      "IL.17F",
+      "GM.CSF",
+      "IFN.G",
+      "IL.13"
+    ),
+    drop = FALSE
+  ]
   predictor_cols <- c("IL.17F", "GM.CSF", "IFN.G", "IL.13")
   plsr_df$GM.CSF[1] <- 0
   plsr_df$IFN.G[2] <- -1
@@ -1100,14 +1189,17 @@ test_that("cyt_plsr errors on non-positive predictor values for log scales", {
 })
 
 test_that("cyt_plsr supports CV, font settings, named labels, and PDF output", {
-  plsr_df <- ex1_binary_group[, c(
-    "Group",
-    "IL.10",
-    "IL.17F",
-    "GM.CSF",
-    "IFN.G",
-    "IL.13"
-  ), drop = FALSE]
+  plsr_df <- ex1_binary_group[,
+    c(
+      "Group",
+      "IL.10",
+      "IL.17F",
+      "GM.CSF",
+      "IFN.G",
+      "IL.13"
+    ),
+    drop = FALSE
+  ]
   predictor_cols <- c("IL.17F", "GM.CSF", "IFN.G", "IL.13")
   output_file <- tempfile(fileext = ".pdf")
   on.exit(unlink(output_file), add = TRUE)
@@ -1170,7 +1262,11 @@ test_that("cyt_plsr drops sparse predictors and fits with partial missingness", 
     expect_true(inherits(result$pred_vs_obs, "recordedplot"))
     expect_true(inherits(result$residuals_plot, "recordedplot"))
     expect_true(
-      grepl("Dropped predictors before fitting", result$metrics_text, fixed = TRUE)
+      grepl(
+        "Dropped predictors before fitting",
+        result$metrics_text,
+        fixed = TRUE
+      )
     )
     expect_true(grepl("MarkerSparse", result$metrics_text, fixed = TRUE))
   })
@@ -1239,7 +1335,11 @@ test_that("cyt_plsr errors when all selected predictors are unusable", {
 
 test_that("cyt_rf returns summary text, importance data, and ROC plot", {
   with_temp_pdf_device({
-    model_features <- names(ex1_binary_group)[vapply(ex1_binary_group, is.numeric, logical(1))][2:8]
+    model_features <- names(ex1_binary_group)[vapply(
+      ex1_binary_group,
+      is.numeric,
+      logical(1)
+    )][2:8]
     rf_df <- ex1_binary_group[, c("Group", model_features), drop = FALSE]
 
     rf_result <- cyt_rf(
@@ -1254,12 +1354,36 @@ test_that("cyt_rf returns summary text, importance data, and ROC plot", {
       seed = 123
     )
 
-    expect_true(grepl("RANDOM FOREST RESULTS", rf_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Performance provenance: holdout train/test split.", rf_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Samples after filtering:", rf_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Class balance (all data):", rf_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Caret CV enabled: No", rf_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Hyperparameters: ntree =", rf_result$summary_text, fixed = TRUE))
+    expect_true(grepl(
+      "RANDOM FOREST RESULTS",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Performance provenance: holdout train/test split.",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Samples after filtering:",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Class balance (all data):",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Caret CV enabled: No",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Hyperparameters: ntree =",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
     expect_true(inherits(rf_result$vip_plot, "ggplot"))
     expect_true(inherits(rf_result$roc_plot, "ggplot"))
     expect_gt(nrow(rf_result$importance_data), 0)
@@ -1268,7 +1392,9 @@ test_that("cyt_rf returns summary text, importance data, and ROC plot", {
 
 test_that("cyt_rf supports multi-class RFCV, caret CV, and PDF output", {
   with_temp_pdf_device({
-    model_features <- names(ex1_full)[vapply(ex1_full, is.numeric, logical(1))][2:8]
+    model_features <- names(ex1_full)[vapply(ex1_full, is.numeric, logical(1))][
+      2:8
+    ]
     rf_df <- ex1_full[, c("Group", model_features), drop = FALSE]
 
     rf_result <- cyt_rf(
@@ -1305,11 +1431,27 @@ test_that("cyt_rf supports multi-class RFCV, caret CV, and PDF output", {
     expect_false(is.null(rf_result$rfcv_data))
     expect_false(is.null(rf_result$cv_results))
     expect_null(rf_result$roc_plot)
-    expect_true(grepl("Caret CV enabled: Yes", rf_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Caret CV folds: 3", rf_result$summary_text, fixed = TRUE))
-    expect_true(grepl("RFCV enabled: Yes", rf_result$summary_text, fixed = TRUE))
+    expect_true(grepl(
+      "Caret CV enabled: Yes",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Caret CV folds: 3",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "RFCV enabled: Yes",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
     expect_true(grepl("RFCV folds: 3", rf_result$summary_text, fixed = TRUE))
-    expect_true(grepl("CV provenance: caret k-fold cross-validation across all filtered samples.", rf_result$summary_text, fixed = TRUE))
+    expect_true(grepl(
+      "CV provenance: caret k-fold cross-validation across all filtered samples.",
+      rf_result$summary_text,
+      fixed = TRUE
+    ))
     expect_true(file.exists(output_file))
     expect_true(any(grepl("RANDOM FOREST RESULTS", pdf_result, fixed = TRUE)))
   })
@@ -1317,7 +1459,11 @@ test_that("cyt_rf supports multi-class RFCV, caret CV, and PDF output", {
 
 test_that("cyt_xgb returns summary text, importance data, and ROC plot", {
   with_temp_pdf_device({
-    model_features <- names(ex1_binary_group)[vapply(ex1_binary_group, is.numeric, logical(1))][2:8]
+    model_features <- names(ex1_binary_group)[vapply(
+      ex1_binary_group,
+      is.numeric,
+      logical(1)
+    )][2:8]
     xgb_df <- ex1_binary_group[, c("Group", model_features), drop = FALSE]
 
     xgb_result <- cyt_xgb(
@@ -1333,11 +1479,31 @@ test_that("cyt_xgb returns summary text, importance data, and ROC plot", {
     )
 
     expect_true(grepl("XGBOOST RESULTS", xgb_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Performance provenance: holdout train/test split.", xgb_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Samples after filtering:", xgb_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Class balance (all data):", xgb_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Cross-validation enabled: No", xgb_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Hyperparameters: nrounds =", xgb_result$summary_text, fixed = TRUE))
+    expect_true(grepl(
+      "Performance provenance: holdout train/test split.",
+      xgb_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Samples after filtering:",
+      xgb_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Class balance (all data):",
+      xgb_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Cross-validation enabled: No",
+      xgb_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Hyperparameters: nrounds =",
+      xgb_result$summary_text,
+      fixed = TRUE
+    ))
     expect_true(inherits(xgb_result$importance_plot, "ggplot"))
     expect_true(inherits(xgb_result$roc_plot, "ggplot"))
     expect_gt(nrow(xgb_result$importance), 0)
@@ -1346,7 +1512,9 @@ test_that("cyt_xgb returns summary text, importance data, and ROC plot", {
 
 test_that("cyt_xgb supports multi-class CV and PDF output branches", {
   with_temp_pdf_device({
-    model_features <- names(ex1_full)[vapply(ex1_full, is.numeric, logical(1))][2:8]
+    model_features <- names(ex1_full)[vapply(ex1_full, is.numeric, logical(1))][
+      2:8
+    ]
     xgb_df <- ex1_full[, c("Group", model_features), drop = FALSE]
 
     xgb_result <- cyt_xgb(
@@ -1382,9 +1550,21 @@ test_that("cyt_xgb supports multi-class CV and PDF output branches", {
     expect_false(is.null(xgb_result$cv_results))
     expect_null(xgb_result$roc_plot)
     expect_equal(length(xgb_result$class_mapping), 3)
-    expect_true(grepl("Cross-validation enabled: Yes", xgb_result$summary_text, fixed = TRUE))
-    expect_true(grepl("Cross-validation folds: 3", xgb_result$summary_text, fixed = TRUE))
-    expect_true(grepl("CV provenance: xgb.cv run on the training split only.", xgb_result$summary_text, fixed = TRUE))
+    expect_true(grepl(
+      "Cross-validation enabled: Yes",
+      xgb_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "Cross-validation folds: 3",
+      xgb_result$summary_text,
+      fixed = TRUE
+    ))
+    expect_true(grepl(
+      "CV provenance: xgb.cv run on the training split only.",
+      xgb_result$summary_text,
+      fixed = TRUE
+    ))
     expect_true(grepl("CV Accuracy:", xgb_result$summary_text, fixed = TRUE))
     expect_true(file.exists(output_file))
     expect_true(any(grepl("XGBOOST RESULTS", pdf_result, fixed = TRUE)))
@@ -1393,7 +1573,11 @@ test_that("cyt_xgb supports multi-class CV and PDF output branches", {
 
 test_that("cyt_rf covers scaling, verbose output, progress, and validation branches", {
   with_temp_pdf_device({
-    model_features <- names(ex1_binary_group)[vapply(ex1_binary_group, is.numeric, logical(1))][2:6]
+    model_features <- names(ex1_binary_group)[vapply(
+      ex1_binary_group,
+      is.numeric,
+      logical(1)
+    )][2:6]
     rf_df <- ex1_binary_group[, c("Group", model_features), drop = FALSE]
     predictor_cols <- setdiff(names(rf_df), "Group")
     rf_df[, predictor_cols] <- rf_df[, predictor_cols, drop = FALSE] + 1
@@ -1421,8 +1605,16 @@ test_that("cyt_rf covers scaling, verbose output, progress, and validation branc
     )
 
     expect_true(file.exists(output_file))
-    expect_true(any(grepl("RANDOM FOREST RESULTS ON TRAINING SET", verbose_output, fixed = TRUE)))
-    expect_true(any(grepl("### PREDICTIONS ON TEST SET ###", verbose_output, fixed = TRUE)))
+    expect_true(any(grepl(
+      "RANDOM FOREST RESULTS ON TRAINING SET",
+      verbose_output,
+      fixed = TRUE
+    )))
+    expect_true(any(grepl(
+      "### PREDICTIONS ON TEST SET ###",
+      verbose_output,
+      fixed = TRUE
+    )))
     expect_true(any(grepl("AUC:", verbose_output, fixed = TRUE)))
     expect_gt(length(progress$get_log()$set), 0)
     expect_gt(length(progress$get_log()$inc), 0)
@@ -1458,7 +1650,11 @@ test_that("cyt_rf covers scaling, verbose output, progress, and validation branc
 
 test_that("cyt_xgb covers scaling, console output, progress, warning fallback, and validation", {
   with_temp_pdf_device({
-    model_features <- names(ex1_binary_group)[vapply(ex1_binary_group, is.numeric, logical(1))][2:6]
+    model_features <- names(ex1_binary_group)[vapply(
+      ex1_binary_group,
+      is.numeric,
+      logical(1)
+    )][2:6]
     xgb_df <- ex1_binary_group[, c("Group", model_features), drop = FALSE]
     predictor_cols <- setdiff(names(xgb_df), "Group")
     xgb_df[, predictor_cols] <- xgb_df[, predictor_cols, drop = FALSE] + 1
@@ -1500,8 +1696,16 @@ test_that("cyt_xgb covers scaling, console output, progress, warning fallback, a
     )
 
     expect_true(file.exists(output_file))
-    expect_true(any(grepl("Group to Numeric Label Mapping", printed_output, fixed = TRUE)))
-    expect_true(any(grepl("Confusion Matrix on Test Set", printed_output, fixed = TRUE)))
+    expect_true(any(grepl(
+      "Group to Numeric Label Mapping",
+      printed_output,
+      fixed = TRUE
+    )))
+    expect_true(any(grepl(
+      "Confusion Matrix on Test Set",
+      printed_output,
+      fixed = TRUE
+    )))
     expect_true(any(grepl("AUC:", printed_output, fixed = TRUE)))
     expect_gt(length(progress$get_log()$set), 0)
     expect_gt(length(progress$get_log()$inc), 0)

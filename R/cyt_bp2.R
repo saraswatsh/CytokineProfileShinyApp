@@ -135,11 +135,11 @@ cyt_bp2 <- function(
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "PDF saved")
     }
-    return(invisible(NULL))
+    invisible(NULL)
   } else {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Returning list of plots")
     }
-    return(plot_list)
+    plot_list
   }
 }

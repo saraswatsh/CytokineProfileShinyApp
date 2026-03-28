@@ -1066,7 +1066,7 @@ cyt_splsda <- function(
         detail = "Finished"
       )
     }
-    return(res)
+    res
   } else {
     trts <- unique(data[[group_col2]])
     progress_share <- 0.80 / max(length(trts), 1L)
@@ -1088,6 +1088,6 @@ cyt_splsda <- function(
         detail = "Finished"
       )
     }
-    return(out)
+    out
   }
 }

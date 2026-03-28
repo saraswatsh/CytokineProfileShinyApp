@@ -3,6 +3,19 @@
 # numeric-validation helpers (summarize_invalid_numeric_columns,
 # format_invalid_numeric_summary, safe_zscore_column).
 
+summarize_invalid_numeric_columns <- getFromNamespace(
+  "summarize_invalid_numeric_columns",
+  "CytokineProfileShinyApp"
+)
+format_invalid_numeric_summary <- getFromNamespace(
+  "format_invalid_numeric_summary",
+  "CytokineProfileShinyApp"
+)
+safe_zscore_column <- getFromNamespace(
+  "safe_zscore_column",
+  "CytokineProfileShinyApp"
+)
+
 # adjust_p
 test_that("adjust_p matches stats::p.adjust for multiple methods", {
   p_values <- c(0.001, 0.02, 0.15, 0.9)
@@ -162,7 +175,7 @@ test_that("apply_scale returns data unchanged when there are no numeric columns 
 # safe_zscore_column
 test_that("safe_zscore_column standardises a normal vector correctly", {
   x <- c(2, 4, 6, 8, 10)
-  result <- CytokineProfileShinyApp:::safe_zscore_column(x)
+  result <- safe_zscore_column(x)
 
   expect_equal(result, as.numeric(scale(x)), tolerance = 1e-12)
   expect_equal(mean(result), 0, tolerance = 1e-12)
@@ -170,7 +183,7 @@ test_that("safe_zscore_column standardises a normal vector correctly", {
 
 test_that("safe_zscore_column centres a constant vector instead of dividing by zero", {
   x <- c(5, 5, 5, 5)
-  result <- CytokineProfileShinyApp:::safe_zscore_column(x)
+  result <- safe_zscore_column(x)
 
   # sd == 0 path: returns x - mean(x) = all zeros
   expect_equal(result, x - mean(x))
@@ -179,7 +192,7 @@ test_that("safe_zscore_column centres a constant vector instead of dividing by z
 
 test_that("safe_zscore_column ignores NAs when computing mean and sd", {
   x <- c(2, NA_real_, 4, 6)
-  result <- CytokineProfileShinyApp:::safe_zscore_column(x)
+  result <- safe_zscore_column(x)
 
   obs <- x[!is.na(x)]
   expected <- (x - mean(obs)) / stats::sd(obs)
@@ -189,21 +202,21 @@ test_that("safe_zscore_column ignores NAs when computing mean and sd", {
 
 test_that("safe_zscore_column errors when all values are missing", {
   expect_error(
-    CytokineProfileShinyApp:::safe_zscore_column(c(NA_real_, NA_real_)),
+    safe_zscore_column(c(NA_real_, NA_real_)),
     "only missing values"
   )
 })
 
 test_that("safe_zscore_column errors when non-missing values are non-finite", {
   expect_error(
-    CytokineProfileShinyApp:::safe_zscore_column(c(1, Inf, 3)),
+    safe_zscore_column(c(1, Inf, 3)),
     "to be finite"
   )
 })
 
 # summarize_invalid_numeric_columns
 test_that("summarize_invalid_numeric_columns correctly identifies NA, NaN, Inf, and -Inf", {
-  result <- CytokineProfileShinyApp:::summarize_invalid_numeric_columns(
+  result <- summarize_invalid_numeric_columns(
     helper_invalid_numeric_df
   )
 
@@ -238,7 +251,7 @@ test_that("summarize_invalid_numeric_columns correctly identifies NA, NaN, Inf, 
 test_that("summarize_invalid_numeric_columns returns an empty frame for clean data", {
   clean_df <- data.frame(a = c(1, 2, 3), b = c(4, 5, 6))
 
-  result <- CytokineProfileShinyApp:::summarize_invalid_numeric_columns(
+  result <- summarize_invalid_numeric_columns(
     clean_df
   )
 
@@ -248,7 +261,7 @@ test_that("summarize_invalid_numeric_columns returns an empty frame for clean da
 })
 
 test_that("summarize_invalid_numeric_columns respects a column subset", {
-  result <- CytokineProfileShinyApp:::summarize_invalid_numeric_columns(
+  result <- summarize_invalid_numeric_columns(
     helper_invalid_numeric_df,
     columns = "has_na"
   )
@@ -265,7 +278,7 @@ test_that("format_invalid_numeric_summary produces semicolon-delimited label tex
     stringsAsFactors = FALSE
   )
 
-  result <- CytokineProfileShinyApp:::format_invalid_numeric_summary(issue_df)
+  result <- format_invalid_numeric_summary(issue_df)
 
   expect_type(result, "character")
   expect_match(result, "x [NA]", fixed = TRUE)
@@ -275,11 +288,11 @@ test_that("format_invalid_numeric_summary produces semicolon-delimited label tex
 
 test_that("format_invalid_numeric_summary returns empty string for NULL or zero-row input", {
   expect_equal(
-    CytokineProfileShinyApp:::format_invalid_numeric_summary(NULL),
+    format_invalid_numeric_summary(NULL),
     ""
   )
   expect_equal(
-    CytokineProfileShinyApp:::format_invalid_numeric_summary(
+    format_invalid_numeric_summary(
       data.frame(column = character(), issues = character())
     ),
     ""

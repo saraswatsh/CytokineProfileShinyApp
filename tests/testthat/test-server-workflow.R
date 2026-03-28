@@ -1,7 +1,9 @@
+app_server <- getFromNamespace("app_server", "CytokineProfileShinyApp")
+
 test_that("app server boots with default navigation and workflow state", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     expect_equal(app_ctx$currentStep(), 1)
     expect_equal(app_ctx$currentPage(), "home")
     expect_null(app_ctx$selected_function())
@@ -13,7 +15,7 @@ test_that("app server boots with default navigation and workflow state", {
 test_that("app server blocks advancing from step 1 until data is available", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     enter_app_workflow(session)
     click_test_input(session, "next1")
 
@@ -25,7 +27,7 @@ test_that("app server blocks advancing from step 1 until data is available", {
 test_that("built-in data and type overrides populate step 2 state", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     prepare_app_server_step2(session)
 
     typed_data <- app_ctx$step2_typed_data()
@@ -43,7 +45,7 @@ test_that("built-in data and type overrides populate step 2 state", {
 test_that("step 2 filtering and next2 persist selected workflow state", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     prepare_app_server_step3(
       session,
       app_ctx = app_ctx,
@@ -65,7 +67,7 @@ test_that("step 2 filtering and next2 persist selected workflow state", {
 test_that("preview transform stays inactive until a preprocessing method is chosen", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     prepare_app_server_step2(session)
 
     click_test_input(session, "preview_transform")
@@ -77,7 +79,7 @@ test_that("preview transform stays inactive until a preprocessing method is chos
 test_that("save-key-input observers keep selected columns in sync before analysis", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     prepare_app_server_step2(session)
 
     expect_setequal(
@@ -88,6 +90,8 @@ test_that("save-key-input observers keep selected columns in sync before analysi
       app_ctx$userState$selected_numerical_cols,
       example1_test_numerical_cols()
     )
-    expect_true(all(example1_test_categorical_cols() %in% app_ctx$userState$selected_columns))
+    expect_true(all(
+      example1_test_categorical_cols() %in% app_ctx$userState$selected_columns
+    ))
   })
 })

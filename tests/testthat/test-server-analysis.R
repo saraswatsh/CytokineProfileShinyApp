@@ -1,7 +1,13 @@
+app_server <- getFromNamespace(
+  "app_server",
+  "CytokineProfileShinyApp"
+)
+
+
 test_that("statistical analysis workflow routes a representative univariate path to step 5", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     run_app_server_analysis(
       session,
       app_ctx,
@@ -26,7 +32,7 @@ test_that("statistical analysis workflow routes a representative univariate path
 test_that("exploratory workflow routes a representative boxplot path to step 5", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     run_app_server_analysis(
       session,
       app_ctx,
@@ -50,7 +56,7 @@ test_that("multivariate workflow routes a representative PCA path to step 5", {
   testthat::skip_if_not_installed("mixOmics")
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     run_app_server_analysis(
       session,
       app_ctx,
@@ -66,7 +72,10 @@ test_that("multivariate workflow routes a representative PCA path to step 5", {
       )
     )
 
-    expect_equal(app_ctx$selected_function(), "Principal Component Analysis (PCA)")
+    expect_equal(
+      app_ctx$selected_function(),
+      "Principal Component Analysis (PCA)"
+    )
     expect_equal(app_ctx$currentStep(), 5)
     expect_equal(app_ctx$currentPage(), "step5")
     expect_equal(app_ctx$userState$pca_group_col, "Group")
@@ -79,7 +88,7 @@ test_that("machine-learning workflow routes a representative random forest path 
   testthat::skip_if_not_installed("randomForest")
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     run_app_server_analysis(
       session,
       app_ctx,

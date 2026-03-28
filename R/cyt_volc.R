@@ -54,8 +54,14 @@ cyt_volc <- function(
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
     supported_fields = c(
-      "base_size", "plot_title", "x_title", "y_title",
-      "x_text", "y_text", "legend_title", "legend_text",
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text",
       "annotation_text"
     ),
     activate = !is.null(font_settings)
@@ -217,9 +223,13 @@ cyt_volc <- function(
       grDevices::dev.off()
       if (!is.null(progress)) {
         progress$inc(0.05, detail = "Finished writing output file")
-        progress$set(message = "Running Volcano Plot...", value = 1, detail = "Finished")
+        progress$set(
+          message = "Running Volcano Plot...",
+          value = 1,
+          detail = "Finished"
+        )
       }
-      return(invisible(NULL))
+      invisible(NULL)
     } else if (tolower(ext) %in% c("png", "jpg", "jpeg")) {
       grDevices::png(
         filename = output_file,
@@ -232,17 +242,25 @@ cyt_volc <- function(
       grDevices::dev.off()
       if (!is.null(progress)) {
         progress$inc(0.05, detail = "Finished writing output file")
-        progress$set(message = "Running Volcano Plot...", value = 1, detail = "Finished")
+        progress$set(
+          message = "Running Volcano Plot...",
+          value = 1,
+          detail = "Finished"
+        )
       }
-      return(invisible(NULL))
+      invisible(NULL)
     } else {
       stop("Output file must have extension .pdf, .png, .jpg, or .jpeg")
     }
   } else {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Formatting results")
-      progress$set(message = "Running Volcano Plot...", value = 1, detail = "Finished")
+      progress$set(
+        message = "Running Volcano Plot...",
+        value = 1,
+        detail = "Finished"
+      )
     }
-    return(list(plot = p, stats = plot_data[, -5]))
+    list(plot = p, stats = plot_data[, -5])
   }
 }

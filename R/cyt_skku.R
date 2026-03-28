@@ -49,8 +49,14 @@ cyt_skku <- function(
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
     supported_fields = c(
-      "base_size", "plot_title", "x_title", "y_title",
-      "x_text", "y_text", "legend_title", "legend_text"
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text"
     ),
     activate = !is.null(font_settings)
   )
@@ -121,7 +127,14 @@ cyt_skku <- function(
     if (!is.null(progress)) {
       progress$inc(
         iter_inc,
-        detail = paste("Processing measurement", col_idx, "of", length(measure_cols), ":", col)
+        detail = paste(
+          "Processing measurement",
+          col_idx,
+          "of",
+          length(measure_cols),
+          ":",
+          col
+        )
       )
     }
   }
@@ -188,7 +201,7 @@ cyt_skku <- function(
         detail = "Finished"
       )
     }
-    return(invisible(NULL))
+    invisible(NULL)
   } else {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Formatting results")
@@ -198,11 +211,11 @@ cyt_skku <- function(
         detail = "Finished"
       )
     }
-    return(list(
+    list(
       p_skew = p_skew,
       p_kurt = p_kurt,
       raw_results = as.matrix(raw_results),
       log_results = as.matrix(log_results)
-    ))
+    )
   }
 }

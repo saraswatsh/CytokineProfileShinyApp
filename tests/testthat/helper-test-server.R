@@ -17,7 +17,14 @@ local_mocked_browser_side_effects <- function() {
     showNotification = function(...) invisible(NULL),
     showModal = function(...) invisible(NULL),
     removeModal = function(...) invisible(NULL),
-    debounce = function(r, millis, priority = 100, domain = shiny::getDefaultReactiveDomain()) r,
+    debounce = function(
+      r,
+      millis,
+      priority = 100,
+      domain = shiny::getDefaultReactiveDomain()
+    ) {
+      r
+    },
     .package = "shiny"
   )
   testthat::local_mocked_bindings(
@@ -68,13 +75,23 @@ click_test_input <- function(session, id) {
   set_test_input(session, id, current + 1)
 }
 
+app_server <- getFromNamespace("app_server", "CytokineProfileShinyApp")
+app_server_stage_runners <- getFromNamespace(
+  "app_server_stage_runners",
+  "CytokineProfileShinyApp"
+)
+mod_navigation_server <- getFromNamespace(
+  "mod_navigation_server",
+  "CytokineProfileShinyApp"
+)
+apply_scale <- getFromNamespace(
+  "apply_scale",
+  "CytokineProfileShinyApp"
+)
+
 new_test_app_ctx <- function() {
-  new.env(parent = environment(CytokineProfileShinyApp:::app_server))
+  new.env(parent = environment(app_server))
 }
-
-real_app_server_stage_runners <- CytokineProfileShinyApp:::app_server_stage_runners
-real_mod_navigation_server <- CytokineProfileShinyApp:::mod_navigation_server
-
 wrap_server_with_app_ctx <- function(server_fun, app_ctx) {
   force(server_fun)
   force(app_ctx)
@@ -122,7 +139,7 @@ materialize_test_filtered_data <- function(app_ctx, inputs) {
       col_info$numerical
     )
     if (length(num_cols)) {
-      df <- CytokineProfileShinyApp:::apply_scale(
+      df <- apply_scale(
         data = df,
         columns = num_cols,
         scale = scale_choice

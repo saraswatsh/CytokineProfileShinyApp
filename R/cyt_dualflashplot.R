@@ -56,8 +56,14 @@ cyt_dualflashplot <- function(
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
     supported_fields = c(
-      "base_size", "plot_title", "x_title", "y_title",
-      "x_text", "y_text", "legend_title", "legend_text",
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text",
       "annotation_text"
     ),
     activate = !is.null(font_settings)
@@ -104,7 +110,8 @@ cyt_dualflashplot <- function(
       values_from = c(mean, variance)
     ) |>
     dplyr::mutate(
-      ssmd = (base::get(paste0("mean_", group1)) - base::get(paste0("mean_", group2))) /
+      ssmd = (base::get(paste0("mean_", group1)) -
+        base::get(paste0("mean_", group2))) /
         sqrt(
           (base::get(paste0("variance_", group1)) +
             base::get(paste0("variance_", group2))) /
@@ -186,14 +193,22 @@ cyt_dualflashplot <- function(
     }
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Finished writing output file")
-      progress$set(message = "Running Dual-Flashlight Plot...", value = 1, detail = "Finished")
+      progress$set(
+        message = "Running Dual-Flashlight Plot...",
+        value = 1,
+        detail = "Finished"
+      )
     }
-    return(invisible(NULL))
+    invisible(NULL)
   } else {
     if (!is.null(progress)) {
       progress$inc(0.05, detail = "Formatting results")
-      progress$set(message = "Running Dual-Flashlight Plot...", value = 1, detail = "Finished")
+      progress$set(
+        message = "Running Dual-Flashlight Plot...",
+        value = 1,
+        detail = "Finished"
+      )
     }
-    return(list(plot = p, stats = top_stats))
+    list(plot = p, stats = top_stats)
   }
 }

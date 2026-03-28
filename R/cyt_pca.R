@@ -624,6 +624,6 @@ cyt_pca <- function(
     if (!is.null(progress)) {
       progress$set(message = "Running PCA...", value = 1, detail = "Finished")
     }
-    return(result_list)
+    result_list
   }
 }

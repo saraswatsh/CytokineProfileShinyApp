@@ -1,3 +1,5 @@
+app_server <- getFromNamespace("app_server", "CytokineProfileShinyApp")
+
 test_that("app server supports an end-to-end built-in workflow with server-side assertions", {
   local_mocked_browser_side_effects()
 
@@ -14,11 +16,16 @@ test_that("app server supports an end-to-end built-in workflow with server-side 
     )
 
     expect_equal(app_ctx$userState$step2_scale, "log2")
-    expect_equal(app_ctx$selected_function(), "Univariate Tests (T-test, Wilcoxon)")
+    expect_equal(
+      app_ctx$selected_function(),
+      "Univariate Tests (T-test, Wilcoxon)"
+    )
     expect_equal(app_ctx$currentStep(), 5)
     expect_equal(app_ctx$currentPage(), "step5")
     expect_true(all(app_ctx$filteredData()$Group %in% c("PreT2D", "T2D")))
-    expect_true(all(as.character(app_ctx$filteredData()$Time) %in% c("20", "72")))
+    expect_true(all(
+      as.character(app_ctx$filteredData()$Time) %in% c("20", "72")
+    ))
     expect_equal(app_ctx$userState$uv2_method %||% "auto", "auto")
     expect_null(app_ctx$errorMessage())
   })

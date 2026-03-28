@@ -1,21 +1,75 @@
-app_using_source_root <- CytokineProfileShinyApp:::app_using_source_root
-app_source_root <- CytokineProfileShinyApp:::app_source_root
-app_package_name <- CytokineProfileShinyApp:::app_package_name
-app_installed_file <- CytokineProfileShinyApp:::app_installed_file
-app_config_path <- CytokineProfileShinyApp:::app_config_path
-app_config <- CytokineProfileShinyApp:::app_config
-app_www_dir <- CytokineProfileShinyApp:::app_www_dir
-app_asset_href <- CytokineProfileShinyApp:::app_asset_href
-app_description_field <- CytokineProfileShinyApp:::app_description_field
-app_version_string <- CytokineProfileShinyApp:::app_version_string
-app_builtin_dataset <- CytokineProfileShinyApp:::app_builtin_dataset
-app_register_resources <- CytokineProfileShinyApp:::app_register_resources
-app_resource_prefix <- CytokineProfileShinyApp:::app_resource_prefix
-app_stage_init <- CytokineProfileShinyApp:::app_stage_init
-app_stage_commit <- CytokineProfileShinyApp:::app_stage_commit
-app_server <- CytokineProfileShinyApp:::app_server
-announcement_banner <- CytokineProfileShinyApp:::announcement_banner
-app_ui <- CytokineProfileShinyApp:::app_ui
+app_using_source_root <- getFromNamespace(
+  "app_using_source_root",
+  "CytokineProfileShinyApp"
+)
+app_source_root <- getFromNamespace(
+  "app_source_root",
+  "CytokineProfileShinyApp"
+)
+app_package_name <- getFromNamespace(
+  "app_package_name",
+  "CytokineProfileShinyApp"
+)
+app_installed_file <- getFromNamespace(
+  "app_installed_file",
+  "CytokineProfileShinyApp"
+)
+app_config_path <- getFromNamespace(
+  "app_config_path",
+  "CytokineProfileShinyApp"
+)
+app_config <- getFromNamespace(
+  "app_config",
+  "CytokineProfileShinyApp"
+)
+app_www_dir <- getFromNamespace(
+  "app_www_dir",
+  "CytokineProfileShinyApp"
+)
+app_asset_href <- getFromNamespace(
+  "app_asset_href",
+  "CytokineProfileShinyApp"
+)
+app_description_field <- getFromNamespace(
+  "app_description_field",
+  "CytokineProfileShinyApp"
+)
+app_version_string <- getFromNamespace(
+  "app_version_string",
+  "CytokineProfileShinyApp"
+)
+app_builtin_dataset <- getFromNamespace(
+  "app_builtin_dataset",
+  "CytokineProfileShinyApp"
+)
+app_register_resources <- getFromNamespace(
+  "app_register_resources",
+  "CytokineProfileShinyApp"
+)
+app_resource_prefix <- getFromNamespace(
+  "app_resource_prefix",
+  "CytokineProfileShinyApp"
+)
+app_stage_init <- getFromNamespace(
+  "app_stage_init",
+  "CytokineProfileShinyApp"
+)
+app_stage_commit <- getFromNamespace(
+  "app_stage_commit",
+  "CytokineProfileShinyApp"
+)
+app_server <- getFromNamespace(
+  "app_server",
+  "CytokineProfileShinyApp"
+)
+announcement_banner <- getFromNamespace(
+  "announcement_banner",
+  "CytokineProfileShinyApp"
+)
+app_ui <- getFromNamespace(
+  "app_ui",
+  "CytokineProfileShinyApp"
+)
 
 app_test_normalize_path <- function(path) {
   normalizePath(path, winslash = "/", mustWork = FALSE)
@@ -123,11 +177,16 @@ test_that("app description helpers prefer package metadata then source files", {
     .package = "CytokineProfileShinyApp"
   )
   testthat::local_mocked_bindings(
-    packageDescription = function(...) list(Version = "9.9.9", Title = "Pkg Title"),
+    packageDescription = function(...) {
+      list(Version = "9.9.9", Title = "Pkg Title")
+    },
     .package = "utils"
   )
 
-  expect_equal(app_description_field("Title", default = "fallback"), "Pkg Title")
+  expect_equal(
+    app_description_field("Title", default = "fallback"),
+    "Pkg Title"
+  )
   expect_equal(app_version_string(), "9.9.9")
 
   app_test_write_file(
@@ -148,16 +207,29 @@ test_that("app description helpers prefer package metadata then source files", {
     unname(app_description_field("Title", default = "fallback")),
     "Source Title"
   )
-  expect_equal(app_description_field("Missing", default = "fallback"), "fallback")
-  expect_equal(app_description_field("BlankField", default = "fallback"), "fallback")
+  expect_equal(
+    app_description_field("Missing", default = "fallback"),
+    "fallback"
+  )
+  expect_equal(
+    app_description_field("BlankField", default = "fallback"),
+    "fallback"
+  )
 
   unlink(desc_path)
-  expect_equal(app_description_field("Version", default = "fallback"), "fallback")
+  expect_equal(
+    app_description_field("Version", default = "fallback"),
+    "fallback"
+  )
 })
 
 test_that("app built-in datasets fall back to source data files when needed", {
   source_root <- tempfile("app-data-")
-  dir.create(file.path(source_root, "data"), recursive = TRUE, showWarnings = FALSE)
+  dir.create(
+    file.path(source_root, "data"),
+    recursive = TRUE,
+    showWarnings = FALSE
+  )
 
   ExampleData1 <- data.frame(Group = c("A", "B"), IL.10 = c(1, 2))
   save(ExampleData1, file = file.path(source_root, "data", "ExampleData1.rda"))
@@ -228,7 +300,12 @@ test_that("stage helpers persist stage state and support deferred cross-stage lo
     stage_env <- app_stage_init(app_ctx)
 
     existing_value <- existing_value + 1L
-    generated_value <- paste(input$token, output$token, session$token, sep = "-")
+    generated_value <- paste(
+      input$token,
+      output$token,
+      session$token,
+      sep = "-"
+    )
     deferred_reader <- function() filteredData()
 
     invisible(app_stage_commit(app_ctx, stage_env))
@@ -368,8 +445,16 @@ test_that("app_server initializes session state and invokes wrapper stages in or
   expect_equal(first_ctx$upload_dir, "C:/tmp/uploads")
   expect_equal(first_ctx$builtins_dir, "C:/tmp/builtins")
   expect_equal(first_ctx$builtInList, c("ExampleData1", "ExampleData2"))
-  expect_true(all(vapply(calls, function(x) identical(x$app_ctx, first_ctx), logical(1))))
-  expect_false(exists("stored_theme", envir = session$userData, inherits = FALSE))
+  expect_true(all(vapply(
+    calls,
+    function(x) identical(x$app_ctx, first_ctx),
+    logical(1)
+  )))
+  expect_false(exists(
+    "stored_theme",
+    envir = session$userData,
+    inherits = FALSE
+  ))
   expect_length(observe_helper_calls, 1L)
   expect_identical(observe_helper_calls[[1]]$session, session)
 })
@@ -391,7 +476,9 @@ test_that("app_server boots without recursive startup errors", {
 test_that("source launcher in inst/app boots from a source checkout", {
   launch_env <- new.env(parent = globalenv())
   launcher_dir <- testthat::test_path("..", "..", "inst", "app")
-  if (!dir.exists(launcher_dir) || !file.exists(file.path(launcher_dir, "app.R"))) {
+  if (
+    !dir.exists(launcher_dir) || !file.exists(file.path(launcher_dir, "app.R"))
+  ) {
     testthat::skip(
       "Source-checkout launcher layout is not available in the installed test tree."
     )
@@ -417,7 +504,9 @@ test_that("announcement_banner and app_ui include the expected structure", {
   expect_null(announcement_banner(list()))
 
   banner_html <- app_test_render_html(
-    announcement_banner(list(announcement = "<strong>Important</strong> update"))
+    announcement_banner(list(
+      announcement = "<strong>Important</strong> update"
+    ))
   )
   expect_match(banner_html, "alert alert-info", fixed = TRUE)
   expect_match(banner_html, "<strong>Important</strong> update", fixed = TRUE)
@@ -428,7 +517,9 @@ test_that("announcement_banner and app_ui include the expected structure", {
       registered_resources <<- TRUE
       invisible("app-www")
     },
-    app_config = function() list(announcement = "<strong>Important</strong> update"),
+    app_config = function() {
+      list(announcement = "<strong>Important</strong> update")
+    },
     app_asset_href = function(filename) paste0("assets/", filename),
     app_version_string = function() "1.2.3",
     .package = "CytokineProfileShinyApp"

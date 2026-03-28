@@ -134,7 +134,7 @@ cyt_ttest <- function(
   }
 
   # otherwise return the raw list of htest objects
-  return(list(
+  list(
     test_results = test_results
-  ))
+  )
 }

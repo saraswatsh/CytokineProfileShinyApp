@@ -1,6 +1,16 @@
-font_helper_specs <- CytokineProfileShinyApp:::ui_analysis_font_helper_specs
-font_helper_spec <- CytokineProfileShinyApp:::ui_analysis_font_helper_spec
+app_server <- getFromNamespace(
+  "app_server",
+  "CytokineProfileShinyApp"
+)
+font_helper_specs <- getFromNamespace(
+  "ui_analysis_font_helper_specs",
+  "CytokineProfileShinyApp"
+)
 
+font_helper_spec <- getFromNamespace(
+  "ui_analysis_font_helper_spec",
+  "CytokineProfileShinyApp"
+)
 font_test_prepare_step4 <- function(session, app_ctx, func_name) {
   set_test_input(session, "theme_choice", "flatly")
   prepare_app_server_step3(session, app_ctx = app_ctx)
@@ -24,7 +34,7 @@ font_test_ui_html <- function(output) {
 test_that("font helper metadata covers every configured analysis font field", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     helper_specs <- font_helper_specs()
 
     expect_true(length(helper_specs) > 0)
@@ -61,7 +71,7 @@ test_that("font helper metadata covers every configured analysis font field", {
 test_that("font settings stay local until apply button is clicked", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     font_test_prepare_step4(session, app_ctx, "Boxplots")
 
     expect_null(app_ctx$userState$bp_font_settings)
@@ -81,7 +91,7 @@ test_that("font settings stay local until apply button is clicked", {
 test_that("applied font settings restore after leaving and re-entering step 4", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     font_test_prepare_step4(session, app_ctx, "Boxplots")
 
     set_test_input(session, "bp_font_use_custom", TRUE)
@@ -102,7 +112,7 @@ test_that("applied font settings restore after leaving and re-entering step 4", 
 test_that("next4 implicitly persists current font inputs", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     font_test_prepare_step4(session, app_ctx, "Boxplots")
 
     set_test_input(session, "bp_font_use_custom", TRUE)
@@ -118,7 +128,9 @@ test_that("next4 implicitly persists current font inputs", {
     expect_equal(
       app_ctx$font_settings_state_to_backend(
         app_ctx$userState$bp_font_settings,
-        default_font_settings = app_ctx$get_analysis_font_spec("Boxplots")$default_font_settings
+        default_font_settings = app_ctx$get_analysis_font_spec(
+          "Boxplots"
+        )$default_font_settings
       )$plot_title,
       23
     )
@@ -128,7 +140,7 @@ test_that("next4 implicitly persists current font inputs", {
 test_that("every font-enabled analysis renders custom font and apply controls", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     set_test_input(session, "theme_choice", "flatly")
     prepare_app_server_step3(session, app_ctx = app_ctx)
 
@@ -166,14 +178,17 @@ test_that("every font-enabled analysis renders custom font and apply controls", 
 test_that("representative font sliders render helper modal titles and content", {
   local_mocked_browser_side_effects()
 
-  shiny::testServer(CytokineProfileShinyApp:::app_server, {
+  shiny::testServer(app_server, {
     set_test_input(session, "theme_choice", "flatly")
     prepare_app_server_step3(session, app_ctx = app_ctx)
 
     representative_fields <- list(
       list(func_name = "Boxplots", field = "plot_title"),
       list(func_name = "Heatmap", field = "row_names"),
-      list(func_name = "Principal Component Analysis (PCA)", field = "point_labels"),
+      list(
+        func_name = "Principal Component Analysis (PCA)",
+        field = "point_labels"
+      ),
       list(func_name = "Volcano Plot", field = "annotation_text")
     )
 

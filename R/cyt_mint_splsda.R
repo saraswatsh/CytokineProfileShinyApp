@@ -85,8 +85,17 @@ cyt_mint_splsda <- function(
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
     supported_fields = c(
-      "base_size", "plot_title", "x_title", "y_title", "x_text", "y_text",
-      "legend_title", "legend_text", "strip_text", "variable_names", "point_labels"
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text",
+      "strip_text",
+      "variable_names",
+      "point_labels"
     ),
     activate = !is.null(font_settings)
   )
@@ -508,7 +517,7 @@ cyt_mint_splsda <- function(
           detail = paste("Formatting results for", display_label)
         )
       }
-      return(results_list)
+      results_list
     }
   }
 
@@ -575,7 +584,11 @@ cyt_mint_splsda <- function(
     }
   }
   if (!is.null(progress)) {
-    progress$set(message = "Running MINT sPLS-DA...", value = 1, detail = "Finished")
+    progress$set(
+      message = "Running MINT sPLS-DA...",
+      value = 1,
+      detail = "Finished"
+    )
   }
-  return(results)
+  results
 }

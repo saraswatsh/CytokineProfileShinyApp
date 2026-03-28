@@ -122,9 +122,9 @@ cyt_anova <- function(data, format_output = FALSE, progress = NULL) {
     progress$inc(0.05, detail = "Done")
   }
 
-  return(list(
+  list(
     out_df = out_df,
     tukey_list = tukey_results,
     message = msg
-  ))
+  )
 }

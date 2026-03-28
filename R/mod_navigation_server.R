@@ -2165,10 +2165,13 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
           out
         },
         error = function(e) {
-          stop(sprintf(
-            "kNN (feature-wise) imputation failed: %s",
-            conditionMessage(e)
-          ), call. = FALSE)
+          stop(
+            sprintf(
+              "kNN (feature-wise) imputation failed: %s",
+              conditionMessage(e)
+            ),
+            call. = FALSE
+          )
         }
       )
       dat[num_cols] <- as.data.frame(out)
@@ -2194,7 +2197,7 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
       ),
       error = function(e) {
         shiny::showNotification(conditionMessage(e), type = "error")
-        return(NULL)
+        NULL
       }
     )
     if (is.null(dat_imp)) {
@@ -2435,7 +2438,7 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
       ),
       error = function(e) {
         shiny::showNotification(conditionMessage(e), type = "error")
-        return(NULL)
+        NULL
       }
     )
     shiny::req(!is.null(trans))
@@ -2659,4 +2662,3 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
 
   invisible(app_stage_commit(app_ctx, stage_env))
 }
-
