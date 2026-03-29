@@ -98,31 +98,31 @@ fold_change_thresh = 2.0, top_labels= 15)
 
 #> 
 #> $stats
-#>                    variable      fc_log      p_log significant
-#> IL.12.P70         IL.12.P70 -2.60117683 2.18641971        TRUE
-#> IL.6                   IL.6 -0.95013174 3.94758527       FALSE
-#> IL.27                 IL.27 -0.67878724 2.33099419       FALSE
-#> IL.23                 IL.23 -0.87320747 1.95290632       FALSE
-#> CCL.20.MIP.3A CCL.20.MIP.3A -0.48569948 1.40917287       FALSE
-#> IL.2                   IL.2 -0.80577278 1.22848122       FALSE
-#> IL.17F               IL.17F -0.93024059 1.16938373       FALSE
-#> IL.10                 IL.10 -0.48121242 1.01734902       FALSE
-#> IL.28A               IL.28A -0.31081278 0.98351262       FALSE
-#> IL.17A               IL.17A -0.80415853 0.90173665       FALSE
-#> IL.1B                 IL.1B -0.61564856 0.83381951       FALSE
-#> GM.CSF               GM.CSF  0.45980342 0.62042612       FALSE
-#> IL.21                 IL.21 -0.62254771 0.51843946       FALSE
-#> IL.17E.IL.25   IL.17E.IL.25  0.01449957 0.49515782       FALSE
-#> IL.22                 IL.22 -0.30363695 0.47550506       FALSE
-#> IL.9                   IL.9 -0.32752255 0.43117675       FALSE
-#> TNF.A                 TNF.A -0.15647551 0.21142412       FALSE
-#> IL.31                 IL.31  0.21056699 0.20929529       FALSE
-#> IL.4                   IL.4  0.21161574 0.20542291       FALSE
-#> IL.5                   IL.5 -0.20808037 0.17512546       FALSE
-#> IL.15                 IL.15 -0.05298748 0.12055764       FALSE
-#> IL.13                 IL.13 -0.07717527 0.06654004       FALSE
-#> IFN.G                 IFN.G -0.09088794 0.06221451       FALSE
-#> TNF.B                 TNF.B  0.07037796 0.05224667       FALSE
-#> IL.33                 IL.33  0.01213249 0.01719622       FALSE
+#>                    variable log2_fold_change    p_value       direction
+#> IL.12.P70         IL.12.P70       2.60117683 2.18641971     Upregulated
+#> IL.6                   IL.6       0.95013174 3.94758527 Not Significant
+#> IL.27                 IL.27       0.67878724 2.33099419 Not Significant
+#> IL.23                 IL.23       0.87320747 1.95290632 Not Significant
+#> CCL.20.MIP.3A CCL.20.MIP.3A       0.48569948 1.40917287 Not Significant
+#> IL.2                   IL.2       0.80577278 1.22848122 Not Significant
+#> IL.17F               IL.17F       0.93024059 1.16938373 Not Significant
+#> IL.10                 IL.10       0.48121242 1.01734902 Not Significant
+#> IL.28A               IL.28A       0.31081278 0.98351262 Not Significant
+#> IL.17A               IL.17A       0.80415853 0.90173665 Not Significant
+#> IL.1B                 IL.1B       0.61564856 0.83381951 Not Significant
+#> GM.CSF               GM.CSF      -0.45980342 0.62042612 Not Significant
+#> IL.21                 IL.21       0.62254771 0.51843946 Not Significant
+#> IL.17E.IL.25   IL.17E.IL.25      -0.01449957 0.49515782 Not Significant
+#> IL.22                 IL.22       0.30363695 0.47550506 Not Significant
+#> IL.9                   IL.9       0.32752255 0.43117675 Not Significant
+#> TNF.A                 TNF.A       0.15647551 0.21142412 Not Significant
+#> IL.31                 IL.31      -0.21056699 0.20929529 Not Significant
+#> IL.4                   IL.4      -0.21161574 0.20542291 Not Significant
+#> IL.5                   IL.5       0.20808037 0.17512546 Not Significant
+#> IL.15                 IL.15       0.05298748 0.12055764 Not Significant
+#> IL.13                 IL.13       0.07717527 0.06654004 Not Significant
+#> IFN.G                 IFN.G       0.09088794 0.06221451 Not Significant
+#> TNF.B                 TNF.B      -0.07037796 0.05224667 Not Significant
+#> IL.33                 IL.33      -0.01213249 0.01719622 Not Significant
 #> 
 ```
