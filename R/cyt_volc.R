@@ -129,7 +129,7 @@ cyt_volc <- function(
         if (length(x) < 2 || length(y) < 2) {
           NA
         } else {
-          mean(y, na.rm = TRUE) / mean(x, na.rm = TRUE)
+          mean(x, na.rm = TRUE) / mean(y, na.rm = TRUE)
         }
       },
       as.list(data_cond1[, numeric_cols, drop = FALSE]),
@@ -156,12 +156,28 @@ cyt_volc <- function(
 
     plot_data <- plot_data |>
       dplyr::mutate(
-        significant = (abs(fc_log) >= log2(fold_change_thresh)) &
-          (p_log >= -log10(p_value_thresh))
+        direction = dplyr::case_when(
+          fc_log >= log2(fold_change_thresh) &
+            p_log >= -log10(p_value_thresh) ~ "Upregulated",
+          fc_log <= -log2(fold_change_thresh) &
+            p_log >= -log10(p_value_thresh) ~ "Downregulated",
+          TRUE ~ "Not Significant"
+        ),
+        direction = factor(
+          direction,
+          levels = c("Upregulated", "Downregulated", "Not Significant")
+        )
       ) |>
-      dplyr::arrange(dplyr::desc(significant), dplyr::desc(p_log)) |>
+      dplyr::arrange(
+        dplyr::desc(direction != "Not Significant"),
+        dplyr::desc(p_log)
+      ) |>
       dplyr::mutate(
-        label = ifelse(dplyr::row_number() <= top_labels, variable, "")
+        label = ifelse(
+          dplyr::row_number() <= top_labels & direction != "Not Significant",
+          variable,
+          ""
+        )
       )
 
     if (!is.null(progress)) {
@@ -183,27 +199,75 @@ cyt_volc <- function(
       plot_data,
       ggplot2::aes(x = fc_log, y = p_log, label = label)
     ) +
-      ggplot2::geom_point(ggplot2::aes(color = significant), size = 2) +
+      ggplot2::geom_point(
+        ggplot2::aes(
+          color = direction,
+          size = p_log, # size encodes significance magnitude
+          alpha = direction # de-emphasize non-significant points
+        )
+      ) +
       ggplot2::geom_vline(
         xintercept = c(log2(fold_change_thresh), -log2(fold_change_thresh)),
         linetype = "dashed",
-        color = "blue"
+        color = "grey40"
       ) +
       ggplot2::geom_hline(
         yintercept = -log10(p_value_thresh),
         linetype = "dashed",
-        color = "blue"
+        color = "grey40"
       ) +
-      ggrepel::geom_text_repel(size = label_size, max.overlaps = 50) +
+      ggrepel::geom_text_repel(
+        size = label_size,
+        max.overlaps = 50,
+        min.segment.length = 0.2,
+        box.padding = 0.4
+      ) +
       ggplot2::scale_color_manual(
-        values = c("FALSE" = "gray", "TRUE" = "red")
+        name = "Regulation",
+        values = c(
+          "Upregulated" = "#E84646", # red
+          "Downregulated" = "#2166AC", # blue
+          "Not Significant" = "grey70"
+        )
+      ) +
+      ggplot2::scale_alpha_manual(
+        values = c(
+          "Upregulated" = 0.9,
+          "Downregulated" = 0.9,
+          "Not Significant" = 0.4
+        ),
+        guide = "none" # don't show alpha in legend
+      ) +
+      ggplot2::scale_size_continuous(
+        name = expression(-log[10](p)),
+        range = c(1.5, 5), # min/max point size
+        breaks = c(2, 5, 10), # meaningful p-value landmarks
+        labels = c("0.01", "1e-5", "1e-10")
+      ) +
+      ggplot2::guides(
+        color = ggplot2::guide_legend(
+          override.aes = list(size = 4), # make legend color swatches readable
+          order = 1
+        ),
+        size = ggplot2::guide_legend(order = 2)
       ) +
       ggplot2::labs(
         title = paste("Volcano Plot:", current_cond1, "vs", current_cond2),
-        x = "Log2 Fold Change",
-        y = "-Log10 P-Value"
+        subtitle = paste0(
+          "FC threshold: ",
+          fold_change_thresh,
+          "x  |  p-value threshold: ",
+          p_value_thresh
+        ),
+        x = expression(log[2] ~ "Fold Change"),
+        y = expression(-log[10] ~ "(p-value)")
       ) +
-      ggplot2::theme_minimal()
+      ggplot2::theme_minimal() +
+      ggplot2::theme(
+        legend.position = "right",
+        legend.box = "vertical",
+        panel.grid.minor = ggplot2::element_blank()
+      )
 
     p <- apply_font_settings_ggplot(p, resolved_fonts)
 
@@ -261,6 +325,16 @@ cyt_volc <- function(
         detail = "Finished"
       )
     }
-    list(plot = p, stats = plot_data[, -5])
+    list(
+      plot = p,
+      stats = plot_data |>
+        dplyr::select(
+          variable,
+          log2_fold_change = fc_log,
+          p_value = p_log,
+          direction
+        ) |>
+        dplyr::arrange(direction, dplyr::desc(p_value))
+    )
   }
 }

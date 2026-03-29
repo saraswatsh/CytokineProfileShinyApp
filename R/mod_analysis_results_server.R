@@ -649,7 +649,7 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                     tolower(input$splsda_cv_opt)
                   },
                   fold_num = input$splsda_fold_num,
-                  seed = 123,
+                  seed = 123456,
                   scale = NULL,
                   comp_num = input$splsda_comp_num,
                   style = if (input$splsda_style == "3D") "3d" else NULL,
@@ -711,7 +711,7 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                 k_folds = input$rf_k_folds,
                 step = input$rf_step,
                 scale = "none",
-                seed = 123,
+                seed = 123456,
                 font_settings = analysis_font_settings(input, "Random Forest")
               ),
 
@@ -729,7 +729,7 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                 top_n_features = input$xgb_top_n_features,
                 plot_roc = isTRUE(input$xgb_plot_roc),
                 scale = "none",
-                seed = 123,
+                seed = 123456,
                 font_settings = analysis_font_settings(
                   input,
                   "Extreme Gradient Boosting (XGBoost)"
@@ -2776,6 +2776,7 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
         {
           res$stats
         },
+        rownames = FALSE,
         options = list(pageLength = 10, scrollX = TRUE)
       )
     }
@@ -3097,4 +3098,3 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
 
   invisible(app_stage_commit(app_ctx, stage_env))
 }
-

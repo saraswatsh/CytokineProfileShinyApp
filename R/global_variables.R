@@ -63,6 +63,7 @@ if (getRversion() >= "4.3") {
     "numeric.p100",
     "numeric.mean",
     "numeric.sd",
-    "numeric.hist"
+    "numeric.hist",
+    "direction"
   ))
 }

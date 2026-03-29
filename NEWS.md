@@ -33,6 +33,7 @@ This development build focuses on making the app easier to use, easier to read, 
 - PCA, PLSR, sPLS-DA, and MINT sPLS-DA figures now use more readable default text sizes.
 - Correlation circle plots in PCA and MINT sPLS-DA now behave more reliably.
 - Heatmaps now display more consistently during interactive use.
+- Volcano plot now displays p-value in different sizes depending on how small the p-values are. Additionally, it shows upregulated vs. downregulated variables clearly. 
 
 ## Bug Fixes
 

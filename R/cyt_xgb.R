@@ -105,7 +105,7 @@ cyt_xgb <- function(
   verbose = 0,
   plot_roc = FALSE,
   print_results = FALSE,
-  seed = 123,
+  seed = 123456,
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
   output_file = NULL,
@@ -141,8 +141,14 @@ cyt_xgb <- function(
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
     supported_fields = c(
-      "base_size", "plot_title", "x_title", "y_title",
-      "x_text", "y_text", "legend_title", "legend_text"
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text"
     ),
     activate = !is.null(font_settings)
   )
@@ -441,7 +447,8 @@ cyt_xgb <- function(
         cat("\nCross-Validation Confusion Matrix\n")
         print(cv_confusion_mat)
       }
-      cv_accuracy <- sum(cv_pred_labels == actual_labels) / length(actual_labels)
+      cv_accuracy <- sum(cv_pred_labels == actual_labels) /
+        length(actual_labels)
       if (print_results) {
         cat("\nCross-Validation Accuracy:", round(cv_accuracy, 3), "\n")
       }
@@ -467,9 +474,21 @@ cyt_xgb <- function(
         test_samples,
         "\n"
       )
-      cat("Class balance (all data):", format_class_balance(y, class_labels), "\n")
-      cat("Class balance (train):", format_class_balance(y_train, class_labels), "\n")
-      cat("Class balance (test):", format_class_balance(y_test, class_labels), "\n")
+      cat(
+        "Class balance (all data):",
+        format_class_balance(y, class_labels),
+        "\n"
+      )
+      cat(
+        "Class balance (train):",
+        format_class_balance(y_train, class_labels),
+        "\n"
+      )
+      cat(
+        "Class balance (test):",
+        format_class_balance(y_test, class_labels),
+        "\n"
+      )
       cat("Seed:", seed, "\n")
       cat(
         "Hyperparameters: nrounds =",
@@ -546,7 +565,11 @@ cyt_xgb <- function(
     }
     if (!is.null(progress)) {
       progress$inc(0.02, detail = "Finished writing output file")
-      progress$set(message = "Running XGBoost...", value = 1, detail = "Finished")
+      progress$set(
+        message = "Running XGBoost...",
+        value = 1,
+        detail = "Finished"
+      )
     }
     return(invisible(NULL))
   }

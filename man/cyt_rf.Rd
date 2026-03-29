@@ -15,7 +15,7 @@ cyt_rf(
   step = 0.5,
   run_rfcv = TRUE,
   verbose = FALSE,
-  seed = 123,
+  seed = 123456,
   cv = FALSE,
   cv_folds = 5,
   scale = c("none", "log2", "log10", "zscore", "custom"),

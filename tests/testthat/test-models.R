@@ -424,7 +424,7 @@ test_that("cyt_splsda supports overall ROC and LOOCV branches", {
         roc = TRUE,
         conf_mat = FALSE,
         cv_opt = "loocv",
-        seed = 123,
+        seed = 123456,
         splsda_colors = c("black", "purple"),
         pch_values = c(16, 4)
       )
@@ -449,7 +449,7 @@ test_that("cyt_splsda returns reproducible LOOCV output when seed is fixed", {
         roc = FALSE,
         conf_mat = FALSE,
         cv_opt = "loocv",
-        seed = 123,
+        seed = 123456,
         splsda_colors = c("black", "purple"),
         pch_values = c(16, 4)
       )
@@ -465,7 +465,7 @@ test_that("cyt_splsda returns reproducible LOOCV output when seed is fixed", {
         roc = FALSE,
         conf_mat = FALSE,
         cv_opt = "loocv",
-        seed = 123,
+        seed = 123456,
         splsda_colors = c("black", "purple"),
         pch_values = c(16, 4)
       )
@@ -496,7 +496,7 @@ test_that("cyt_splsda accepts a seed for Mfold CV output", {
         conf_mat = FALSE,
         cv_opt = "mfold",
         fold_num = 3,
-        seed = 123,
+        seed = 123456,
         splsda_colors = c("black", "purple"),
         pch_values = c(16, 4)
       )
@@ -725,7 +725,7 @@ test_that("cyt_splsda supports PDF output, batch scaling, defaults, and confusio
         comp_num = 2,
         cv_opt = "mfold",
         fold_num = 3,
-        seed = 123,
+        seed = 123456,
         scale = "none",
         ellipse = TRUE,
         bg = TRUE,
@@ -1351,7 +1351,7 @@ test_that("cyt_rf returns summary text, importance data, and ROC plot", {
       plot_roc = TRUE,
       verbose = FALSE,
       cv = FALSE,
-      seed = 123
+      seed = 123456
     )
 
     expect_true(grepl(
@@ -1408,7 +1408,7 @@ test_that("cyt_rf supports multi-class RFCV, caret CV, and PDF output", {
       cv = TRUE,
       cv_folds = 3,
       k_folds = 3,
-      seed = 123
+      seed = 123456
     )
 
     output_file <- tempfile(fileext = ".pdf")
@@ -1423,7 +1423,7 @@ test_that("cyt_rf supports multi-class RFCV, caret CV, and PDF output", {
         run_rfcv = FALSE,
         verbose = FALSE,
         cv = FALSE,
-        seed = 123,
+        seed = 123456,
         output_file = output_file
       )
     )
@@ -1475,7 +1475,7 @@ test_that("cyt_xgb returns summary text, importance data, and ROC plot", {
       cv = FALSE,
       plot_roc = TRUE,
       print_results = FALSE,
-      seed = 123
+      seed = 123456
     )
 
     expect_true(grepl("XGBOOST RESULTS", xgb_result$summary_text, fixed = TRUE))
@@ -1527,7 +1527,7 @@ test_that("cyt_xgb supports multi-class CV and PDF output branches", {
       nfold = 3,
       plot_roc = FALSE,
       print_results = FALSE,
-      seed = 123
+      seed = 123456
     )
 
     output_file <- tempfile(fileext = ".pdf")
@@ -1542,7 +1542,7 @@ test_that("cyt_xgb supports multi-class CV and PDF output branches", {
         cv = FALSE,
         plot_roc = FALSE,
         print_results = FALSE,
-        seed = 123,
+        seed = 123456,
         output_file = output_file
       )
     )
@@ -1600,7 +1600,7 @@ test_that("cyt_rf covers scaling, verbose output, progress, and validation branc
         output_file = output_file,
         font_settings = helper_font_settings,
         progress = progress,
-        seed = 123
+        seed = 123456
       )
     )
 
@@ -1689,7 +1689,7 @@ test_that("cyt_xgb covers scaling, console output, progress, warning fallback, a
           output_file = output_file,
           font_settings = helper_font_settings,
           progress = progress,
-          seed = 123
+          seed = 123456
         ),
         "Install 'Ckmeans.1d.dp' for a clustered importance plot"
       )

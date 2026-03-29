@@ -80,7 +80,7 @@ cyt_rf <- function(
   step = 0.5,
   run_rfcv = TRUE,
   verbose = FALSE,
-  seed = 123,
+  seed = 123456,
   cv = FALSE,
   cv_folds = 5,
   scale = c("none", "log2", "log10", "zscore", "custom"),
@@ -112,8 +112,14 @@ cyt_rf <- function(
   resolved_fonts <- normalize_font_settings(
     font_settings = font_settings,
     supported_fields = c(
-      "base_size", "plot_title", "x_title", "y_title",
-      "x_text", "y_text", "legend_title", "legend_text"
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text"
     ),
     activate = !is.null(font_settings)
   )
@@ -374,9 +380,21 @@ cyt_rf <- function(
         test_samples,
         "\n"
       )
-      cat("Class balance (all data):", format_class_balance(data[[group_col]]), "\n")
-      cat("Class balance (train):", format_class_balance(train_data[[group_col]]), "\n")
-      cat("Class balance (test):", format_class_balance(test_data[[group_col]]), "\n")
+      cat(
+        "Class balance (all data):",
+        format_class_balance(data[[group_col]]),
+        "\n"
+      )
+      cat(
+        "Class balance (train):",
+        format_class_balance(train_data[[group_col]]),
+        "\n"
+      )
+      cat(
+        "Class balance (test):",
+        format_class_balance(test_data[[group_col]]),
+        "\n"
+      )
       cat("Seed:", seed, "\n")
       cat("Hyperparameters: ntree =", ntree, ", mtry =", mtry, "\n")
       cat("RFCV enabled:", if (run_rfcv) "Yes" else "No", "\n")
@@ -436,7 +454,9 @@ cyt_rf <- function(
       }
       if (cv && !is.null(cv_results)) {
         cat("\n--- Caret k-Fold CV ---\n")
-        cat("CV provenance: caret k-fold cross-validation across all filtered samples.\n")
+        cat(
+          "CV provenance: caret k-fold cross-validation across all filtered samples.\n"
+        )
         cat("CV Accuracy:", round(max(cv_results$results$Accuracy), 3), "\n")
       }
     }),
@@ -460,13 +480,21 @@ cyt_rf <- function(
     }
     if (!is.null(progress)) {
       progress$inc(0.02, detail = "Finished writing output file")
-      progress$set(message = "Running Random Forest...", value = 1, detail = "Finished")
+      progress$set(
+        message = "Running Random Forest...",
+        value = 1,
+        detail = "Finished"
+      )
     }
     return(invisible(NULL))
   }
 
   if (!is.null(progress)) {
-    progress$set(message = "Running Random Forest...", value = 1, detail = "Finished")
+    progress$set(
+      message = "Running Random Forest...",
+      value = 1,
+      detail = "Finished"
+    )
   }
 
   invisible(list(

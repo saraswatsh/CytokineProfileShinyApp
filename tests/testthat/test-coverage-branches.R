@@ -633,7 +633,7 @@ test_that("cyt_volc returns the current list shape with non-empty statistics", {
     expect_true(inherits(volc_result$plot, "ggplot"))
     expect_gt(nrow(volc_result$stats), 0)
     expect_true(all(
-      c("variable", "fc_log", "p_log", "significant") %in%
+      c("variable", "log2_fold_change", "p_value", "direction") %in%
         names(volc_result$stats)
     ))
   })
