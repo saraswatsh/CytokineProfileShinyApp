@@ -27,7 +27,7 @@ cyt_xgb(
   verbose = 0,
   plot_roc = FALSE,
   print_results = FALSE,
-  seed = 123,
+  seed = 123456,
   scale = c("none", "log2", "log10", "zscore", "custom"),
   custom_fn = NULL,
   output_file = NULL,

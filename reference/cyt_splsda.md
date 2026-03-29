@@ -17,7 +17,7 @@ cyt_splsda(
   comp_num = 2,
   cv_opt = NULL,
   fold_num = 5,
-  seed = 123,
+  seed = 123456,
   scale = NULL,
   custom_fn = NULL,
   ellipse = FALSE,
