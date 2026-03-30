@@ -98,19 +98,20 @@ cyt_dualflashplot(
 
 #> 
 #> $stats
-#> # A tibble: 10 × 11
-#>    cytokine        mean_ND mean_PreT2D   mean_T2D variance_ND variance_PreT2D
-#>    <chr>             <dbl>       <dbl>      <dbl>       <dbl>           <dbl>
-#>  1 CCL.20.MIP.3A  634.        404.       887.         6.72e+5         2.74e+5
-#>  2 IL.10          979.        836.      1366.         1.99e+6         1.19e+6
-#>  3 IL.12.P70       13.0        39.1       78.9        4.15e+2         2.56e+4
-#>  4 IL.17A         352.        653.       615.         9.40e+5         2.88e+6
-#>  5 IL.17F           1.63        2.35       3.11       1.56e+1         3.37e+1
-#>  6 IL.2          9227.      10718.     16129.         2.60e+8         4.10e+8
-#>  7 IL.23            0.147       0.243      0.269      3.13e-2         9.37e-2
-#>  8 IL.27            0.0662      0.0834     0.106      6.18e-3         5.66e-3
-#>  9 IL.28A           0.0537      0.0710     0.0666     2.45e-3         5.10e-3
-#> 10 IL.6          4620.       5197.      8925.         2.86e+7         5.72e+7
+#> # A tibble: 25 × 11
+#>    cytokine         mean_ND mean_PreT2D mean_T2D variance_ND variance_PreT2D
+#>    <chr>              <dbl>       <dbl>    <dbl>       <dbl>           <dbl>
+#>  1 CCL.20.MIP.3A   634.        404.       887.      6.72e+ 5         2.74e+5
+#>  2 GM.CSF            2.65        3.11       1.92    2.63e+ 1         3.14e+1
+#>  3 IFN.G         57730.      18303.     61484.      2.86e+10         2.30e+9
+#>  4 IL.10           979.        836.      1366.      1.99e+ 6         1.19e+6
+#>  5 IL.12.P70        13.0        39.1       78.9     4.15e+ 2         2.56e+4
+#>  6 IL.13          1064.       1543.      1122.      5.60e+ 6         1.11e+7
+#>  7 IL.15             7.92        4.29       8.22    3.54e+ 1         2.58e+1
+#>  8 IL.17A          352.        653.       615.      9.40e+ 5         2.88e+6
+#>  9 IL.17E.IL.25      0.0101      0.0163     0.01    1.01e- 6         3.88e-3
+#> 10 IL.17F            1.63        2.35       3.11    1.56e+ 1         3.37e+1
+#> # ℹ 15 more rows
 #> # ℹ 5 more variables: variance_T2D <dbl>, ssmd <dbl>, log2FC <dbl>,
 #> #   SSMD_Category <chr>, Significant <lgl>
 #> 
