@@ -110,15 +110,14 @@ cyt_dualflashplot <- function(
       values_from = c(mean, variance)
     ) |>
     dplyr::mutate(
-      ssmd = (base::get(paste0("mean_", group1)) -
-        base::get(paste0("mean_", group2))) /
+      ssmd = (.data[[paste0("mean_", group1)]] -
+        .data[[paste0("mean_", group2)]]) /
         sqrt(
-          (base::get(paste0("variance_", group1)) +
-            base::get(paste0("variance_", group2))) /
-            2
+          .data[[paste0("variance_", group1)]] +
+            .data[[paste0("variance_", group2)]]
         ),
       log2FC = log2(
-        base::get(paste0("mean_", group1)) / base::get(paste0("mean_", group2))
+        .data[[paste0("mean_", group1)]] / .data[[paste0("mean_", group2)]]
       ),
       SSMD_Category = dplyr::case_when(
         abs(ssmd) >= 1 ~ "Strong Effect",
@@ -152,6 +151,11 @@ cyt_dualflashplot <- function(
       max.overlaps = 50
     ) +
     ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+    ggplot2::geom_hline(
+      yintercept = c(ssmd_thresh, -ssmd_thresh),
+      linetype = "dashed",
+      color = "blue"
+    ) +
     ggplot2::geom_vline(
       xintercept = c(log2fc_thresh, -log2fc_thresh),
       linetype = "dashed",
@@ -161,6 +165,18 @@ cyt_dualflashplot <- function(
       x = "Average log2 Fold Change",
       y = "SSMD",
       title = paste("SSMD vs log2FC for", group1, "vs", group2)
+    ) +
+    ggplot2::scale_color_manual(
+      name = "SSMD Category",
+      values = c(
+        "Strong Effect" = "#2166AC",
+        "Moderate Effect" = "#F4A582",
+        "Weak Effect" = "grey70"
+      )
+    ) +
+    ggplot2::scale_shape_manual(
+      name = "Significant",
+      values = c("TRUE" = 17, "FALSE" = 16)
     ) +
     ggplot2::theme_minimal()
 
@@ -209,6 +225,6 @@ cyt_dualflashplot <- function(
         detail = "Finished"
       )
     }
-    list(plot = p, stats = top_stats)
+    list(plot = p, stats = stats)
   }
 }
