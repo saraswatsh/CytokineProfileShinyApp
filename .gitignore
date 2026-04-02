@@ -29,5 +29,5 @@ benchmark-results/
 .Rprofile
 .posit
 /scripts
-.codex
+notes
 app_server_stages.baseline.R

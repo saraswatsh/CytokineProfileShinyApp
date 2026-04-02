@@ -1,0 +1,120 @@
+---
+title: "Understanding Boxplots and Violin Plots"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Understanding Boxplots and Violin Plots}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.show = "hold",
+  fig.pos = "center",
+  out.width = "80%",
+  fig.retina = 2
+)
+```
+
+## When to use boxplots and violin plots
+
+Boxplots and violin plots are foundational exploratory views. They are useful when your main question is not yet "which formal model should I run?" but instead:
+
+* how are the cytokine values distributed?
+* do some groups look shifted, wider, or more variable than others?
+* are there obvious outliers or unusual shapes I should know before choosing a statistical test?
+
+These are often the best first plots to inspect after Step 2 filtering.
+
+## When not to use boxplots and violin plots
+
+These plots are less suitable when:
+
+* you want a compact many-variable summary rather than a full distribution view
+* you need a predictive or multivariate model
+* your next decision depends on effect size thresholds or model validation rather than raw spread
+
+In those cases, error-bar plots, volcano plots, PCA, or supervised methods may answer the question more directly.
+
+## What the app is showing
+
+`Boxplots` summarize each cytokine with quartiles, median, and potential outliers.
+
+`Violin Plots` emphasize the full distribution shape and can optionally add `Show Boxplot Overlay` so you can see both the density shape and the boxplot summary together.
+
+Both analyses can be ungrouped or split by selected categorical variables.
+
+## Which Step 4 arguments matter most
+
+For both methods, the most important controls are:
+
+* `Grouping Columns (Optional)`: whether the distributions are shown overall or split by group.
+* `Bin Size`: how many numeric variables are shown on one page.
+* `Y-Axis Limits`: whether to keep automatic scaling or force a shared scale across plots.
+
+For violin plots specifically:
+
+* `Show Boxplot Overlay`: adds quartile and median structure inside the violin.
+
+These decisions matter more than stylistic choices because they change what patterns are easy to see.
+
+## How to read the main outputs
+
+### Boxplots
+
+Boxplots are best for quick summary reading:
+
+* the median shows the central value
+* the box shows the middle spread
+* the whiskers and isolated points help flag potential outliers
+
+Use them when you want a cleaner, simpler overview.
+
+### Violin Plots
+
+Violin plots are best when the shape itself matters:
+
+* wide regions indicate where values are more concentrated
+* narrow regions indicate fewer observations
+* asymmetry or multiple bulges can reveal skewness or multimodality
+
+Use them when boxplots feel too compressed to describe the data shape.
+
+### Reading grouped views
+
+When `Grouping Columns (Optional)` is used:
+
+* compare both center and spread
+* ask whether one group is simply shifted or whether the shape is genuinely different
+* look for strong overlap before over-interpreting apparent differences
+
+## Common cautions
+
+Keep these limits in mind:
+
+* small groups can make violin shapes look more certain than they really are
+* auto-scaled y-axes can make panels look more different than they are
+* outliers may reflect biology, quality issues, or data-entry problems, so they deserve follow-up rather than automatic removal
+* grouped exploratory plots are not formal hypothesis tests
+
+## How to reproduce the result in the app
+
+1. Filter the dataset to the groups and cytokines you want to inspect.
+2. Choose `Boxplots` or `Violin Plots`.
+3. Decide whether to use `Grouping Columns (Optional)`.
+4. Adjust `Bin Size` if the page is too dense or too sparse.
+5. Leave `Y-Axis Limits` automatic unless you need consistent scales across pages.
+6. For violin plots, turn on `Show Boxplot Overlay` if you want both shape and quartile summaries.
+
+## What to read next
+
+Related articles:
+
+* [Understanding Error-Bar Plots](Understanding-Error-Bar-Plot.html) for a more compact group-summary view.
+* [Understanding Volcano Plot](Understanding-Volcano-Plot.html) when the question shifts to two-group differential screening.
+* [Understanding Univariate Test Selection](Understanding-Univariate-Test-Selection.html) when you are ready to move from exploratory views to formal testing.
+
+------------------------------------------------------------------------
+*Last updated:* `r format(Sys.Date(), "%B %d, %Y")`

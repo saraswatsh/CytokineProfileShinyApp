@@ -115,7 +115,7 @@
         "git_branch": "RELEASE_3_21",
         "git_last_commit": "dbadae1",
         "git_last_commit_date": "2025-07-17",
-        "Repository": "Bioconductor 3.21",
+        "Repository": "https://bioconductor.org/packages/3.21/bioc",
         "Date/Publication": "2025-09-14",
         "NeedsCompilation": "yes",
         "Packaged": "2025-09-14 20:29:11 UTC; biocbuild",
@@ -143,7 +143,7 @@
         "git_branch": "devel",
         "git_last_commit": "1e5e5af",
         "git_last_commit_date": "2024-10-29",
-        "Repository": "Bioconductor 3.21",
+        "Repository": "https://bioconductor.org/packages/3.21/bioc",
         "Date/Publication": "2025-03-25",
         "NeedsCompilation": "no",
         "Packaged": "2025-03-25 21:43:08 UTC; biocbuild",
@@ -315,9 +315,9 @@
       "Repository": "https://cran.rstudio.com",
       "description": {
         "Package": "Matrix",
-        "Version": "1.7-5",
+        "Version": "1.7-4",
         "VersionNote": "do also bump src/version.h, inst/include/Matrix/version.h",
-        "Date": "2026-03-20",
+        "Date": "2025-08-27",
         "Priority": "recommended",
         "Title": "Sparse and Dense Matrix Classes and Methods",
         "Description": "A rich hierarchy of sparse and dense matrix classes,\n\tincluding general, symmetric, triangular, and diagonal matrices\n\twith numeric, logical, or pattern entries.  Efficient methods for\n\toperating on such matrices, often wrapping the 'BLAS', 'LAPACK',\n\tand 'SuiteSparse' libraries.",
@@ -335,20 +335,13 @@
         "BuildResaveData": "no",
         "Encoding": "UTF-8",
         "NeedsCompilation": "yes",
-        "Packaged": "2026-03-20 19:40:14 UTC; maechler",
+        "Packaged": "2025-08-27 10:17:11 UTC; maechler",
         "Author": "Douglas Bates [aut] (ORCID: <https://orcid.org/0000-0001-8316-9503>),\n  Martin Maechler [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-8685-9910>),\n  Mikael Jagan [aut] (ORCID: <https://orcid.org/0000-0002-3542-2938>),\n  Timothy A. Davis [ctb] (ORCID: <https://orcid.org/0000-0001-7614-6899>,\n    SuiteSparse libraries, collaborators listed in\n    dir(system.file(\"doc\", \"SuiteSparse\", package=\"Matrix\"),\n    pattern=\"License\", full.names=TRUE, recursive=TRUE)),\n  George Karypis [ctb] (ORCID: <https://orcid.org/0000-0003-2753-1437>,\n    METIS library, Copyright: Regents of the University of Minnesota),\n  Jason Riedy [ctb] (ORCID: <https://orcid.org/0000-0002-4345-4200>, GNU\n    Octave's condest() and onenormest(), Copyright: Regents of the\n    University of California),\n  Jens Oehlschlägel [ctb] (initial nearPD()),\n  R Core Team [ctb] (ROR: <https://ror.org/02zz1nj61>, base R's matrix\n    implementation)",
         "Maintainer": "Martin Maechler <mmaechler+Matrix@gmail.com>",
         "Repository": "CRAN",
-        "Date/Publication": "2026-03-21 14:40:03 UTC",
-        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-03-22 00:51:38 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemoteRef": "Matrix",
-        "RemotePkgRef": "Matrix",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "1.7-5"
+        "Date/Publication": "2025-08-28 11:50:02 UTC",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-08 01:10:52 UTC; windows",
+        "Archs": "x64"
       }
     },
     "MatrixModels": {
@@ -2297,39 +2290,32 @@
       "description": {
         "Package": "fs",
         "Title": "Cross-Platform File System Operations Based on 'libuv'",
-        "Version": "2.0.1",
-        "Authors@R": "c(\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Hadley\", \"Wickham\", role = \"aut\"),\n    person(\"Gábor\", \"Csárdi\", role = \"aut\"),\n    person(\"Jeroen\", \"Ooms\", , \"jeroenooms@gmail.com\", role = \"cre\"),\n    person(\"libuv project contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Joyent, Inc. and other Node contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n           comment = c(ROR = \"03wc8by49\"))\n  )",
+        "Version": "1.6.6",
+        "Authors@R": "c(\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\"),\n    person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"libuv project contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Joyent, Inc. and other Node contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
         "Description": "A cross-platform interface to file system operations, built\n    on top of the 'libuv' C library.",
         "License": "MIT + file LICENSE",
         "URL": "https://fs.r-lib.org, https://github.com/r-lib/fs",
         "BugReports": "https://github.com/r-lib/fs/issues",
-        "Depends": "R (>= 4.1)",
+        "Depends": "R (>= 3.6)",
         "Imports": "methods",
         "Suggests": "covr, crayon, knitr, pillar (>= 1.0.0), rmarkdown, spelling,\ntestthat (>= 3.0.0), tibble (>= 1.1.0), vctrs (>= 0.3.0), withr",
         "VignetteBuilder": "knitr",
-        "SystemRequirements": "libuv: libuv-devel (rpm) or libuv1-dev (deb).\nAlternatively to build the vendored libuv 'cmake' is required.\nGNU make.",
+        "ByteCompile": "true",
         "Config/Needs/website": "tidyverse/tidytemplate",
         "Config/testthat/edition": "3",
-        "Config/usethis/last-upkeep": "2025-04-23",
         "Copyright": "file COPYRIGHTS",
         "Encoding": "UTF-8",
         "Language": "en-US",
-        "RoxygenNote": "7.3.3",
+        "RoxygenNote": "7.2.3",
+        "SystemRequirements": "GNU make",
         "NeedsCompilation": "yes",
-        "Packaged": "2026-03-23 14:30:54 UTC; jeroen",
-        "Author": "Jim Hester [aut],\n  Hadley Wickham [aut],\n  Gábor Csárdi [aut],\n  Jeroen Ooms [cre],\n  libuv project contributors [cph] (libuv library),\n  Joyent, Inc. and other Node contributors [cph] (libuv library),\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
-        "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
+        "Packaged": "2025-04-12 09:39:13 UTC; gaborcsardi",
+        "Author": "Jim Hester [aut],\n  Hadley Wickham [aut],\n  Gábor Csárdi [aut, cre],\n  libuv project contributors [cph] (libuv library),\n  Joyent, Inc. and other Node contributors [cph] (libuv library),\n  Posit Software, PBC [cph, fnd]",
+        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
         "Repository": "CRAN",
-        "Date/Publication": "2026-03-24 05:20:18 UTC",
-        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-03-25 00:51:05 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemoteRef": "fs",
-        "RemotePkgRef": "fs",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "2.0.1"
+        "Date/Publication": "2025-04-12 10:40:02 UTC",
+        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-13 23:51:13 UTC; windows",
+        "Archs": "x64"
       }
     },
     "futile.logger": {
@@ -3067,7 +3053,7 @@
         "git_branch": "RELEASE_3_21",
         "git_last_commit": "3e54bd4",
         "git_last_commit_date": "2025-04-15",
-        "Repository": "Bioconductor 3.21",
+        "Repository": "https://bioconductor.org/packages/3.21/bioc",
         "Date/Publication": "2025-04-15",
         "NeedsCompilation": "yes",
         "Packaged": "2025-04-16 01:24:26 UTC; biocbuild",
@@ -3924,7 +3910,7 @@
         "git_branch": "RELEASE_3_21",
         "git_last_commit": "36d4efc",
         "git_last_commit_date": "2025-04-15",
-        "Repository": "Bioconductor 3.21",
+        "Repository": "https://bioconductor.org/packages/3.21/bioc",
         "Date/Publication": "2025-04-15",
         "Author": "Kim-Anh Le Cao [aut],\n  Florian Rohart [aut],\n  Ignacio Gonzalez [aut],\n  Sebastien Dejean [aut],\n  Al J Abadi [ctb],\n  Max Bladen [ctb],\n  Benoit Gautier [ctb],\n  Francois Bartolo [ctb],\n  Pierre Monget [ctb],\n  Jeff Coquery [ctb],\n  FangZou Yao [ctb],\n  Benoit Liquet [ctb],\n  Eva Hamrud [ctb, cre]",
         "Maintainer": "Eva Hamrud <mixomicsdeveloper@gmail.com>",
@@ -4975,7 +4961,7 @@
         "Type": "Package",
         "Package": "ragg",
         "Title": "Graphic Devices Based on AGG",
-        "Version": "1.5.2",
+        "Version": "1.5.0",
         "Authors@R": "c(\n    person(\"Thomas Lin\", \"Pedersen\", , \"thomas.pedersen@posit.co\", role = c(\"cre\", \"aut\"),\n           comment = c(ORCID = \"0000-0002-5147-4711\")),\n    person(\"Maxim\", \"Shemanarev\", role = c(\"aut\", \"cph\"),\n           comment = \"Author of AGG\"),\n    person(\"Tony\", \"Juricic\", , \"tonygeek@yahoo.com\", role = c(\"ctb\", \"cph\"),\n           comment = \"Contributor to AGG\"),\n    person(\"Milan\", \"Marusinec\", , \"milan@marusinec.sk\", role = c(\"ctb\", \"cph\"),\n           comment = \"Contributor to AGG\"),\n    person(\"Spencer\", \"Garrett\", role = \"ctb\",\n           comment = \"Contributor to AGG\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n           comment = c(ROR = \"03wc8by49\"))\n  )",
         "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
         "Description": "Anti-Grain Geometry (AGG) is a high-quality and\n    high-performance 2D drawing library. The 'ragg' package provides a set\n    of graphic devices based on AGG to use as alternative to the raster\n    devices provided through the 'grDevices' package.",
@@ -4990,22 +4976,15 @@
         "Config/testthat/edition": "3",
         "Config/usethis/last-upkeep": "2025-04-25",
         "Encoding": "UTF-8",
-        "RoxygenNote": "7.3.3",
+        "RoxygenNote": "7.3.2",
         "SystemRequirements": "freetype2, libpng, libtiff, libjpeg, libwebp,\nlibwebpmux",
         "NeedsCompilation": "yes",
-        "Packaged": "2026-03-16 07:50:17 UTC; thomas",
+        "Packaged": "2025-09-02 06:41:57 UTC; thomas",
         "Author": "Thomas Lin Pedersen [cre, aut] (ORCID:\n    <https://orcid.org/0000-0002-5147-4711>),\n  Maxim Shemanarev [aut, cph] (Author of AGG),\n  Tony Juricic [ctb, cph] (Contributor to AGG),\n  Milan Marusinec [ctb, cph] (Contributor to AGG),\n  Spencer Garrett [ctb] (Contributor to AGG),\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
         "Repository": "CRAN",
-        "Date/Publication": "2026-03-23 08:50:08 UTC",
-        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-03-25 00:51:08 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemoteRef": "ragg",
-        "RemotePkgRef": "ragg",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "1.5.2"
+        "Date/Publication": "2025-09-02 07:20:02 UTC",
+        "Built": "R 4.5.1; x86_64-w64-mingw32; 2025-09-08 01:43:52 UTC; windows",
+        "Archs": "x64"
       }
     },
     "randomForest": {
@@ -5216,7 +5195,7 @@
         "Package": "renv",
         "Type": "Package",
         "Title": "Project Environments",
-        "Version": "1.2.0",
+        "Version": "1.1.7",
         "Authors@R": "c(\n    person(\"Kevin\", \"Ushey\", role = c(\"aut\", \"cre\"), email = \"kevin@rstudio.com\",\n           comment = c(ORCID = \"0000-0003-2880-7407\")),\n    person(\"Hadley\", \"Wickham\", role = c(\"aut\"), email = \"hadley@rstudio.com\",\n           comment = c(ORCID = \"0000-0003-4757-117X\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n    )",
         "Description": "A dependency management toolkit for R. Using 'renv', you can create\n    and manage project-local R libraries, save the state of these libraries to\n    a 'lockfile', and later restore your library as required. Together, these\n    tools can help make your projects more isolated, portable, and reproducible.",
         "License": "MIT + file LICENSE",
@@ -5225,26 +5204,19 @@
         "Imports": "utils",
         "Suggests": "BiocManager, cli, compiler, covr, cpp11, curl, devtools,\ngenerics, gitcreds, jsonlite, jsonvalidate, knitr, miniUI,\nmodules, packrat, pak, R6, remotes, reticulate, rmarkdown,\nrstudioapi, shiny, testthat, uuid, waldo, yaml, webfakes",
         "Encoding": "UTF-8",
-        "NeedsCompilation": "yes",
         "RoxygenNote": "7.3.3",
         "VignetteBuilder": "knitr",
         "Config/Needs/website": "tidyverse/tidytemplate",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
         "Config/testthat/start-first": "bioconductor,python,install,restore,snapshot,retrieve,remotes",
-        "Packaged": "2026-03-24 17:01:24 UTC; kevin",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-01-26 18:33:40 UTC; kevin",
         "Author": "Kevin Ushey [aut, cre] (ORCID: <https://orcid.org/0000-0003-2880-7407>),\n  Hadley Wickham [aut] (ORCID: <https://orcid.org/0000-0003-4757-117X>),\n  Posit Software, PBC [cph, fnd]",
         "Maintainer": "Kevin Ushey <kevin@rstudio.com>",
         "Repository": "CRAN",
-        "Date/Publication": "2026-03-25 10:30:11 UTC",
-        "Built": "R 4.5.3; ; 2026-03-26 13:45:24 UTC; windows",
-        "RemoteType": "standard",
-        "RemoteRef": "renv",
-        "RemotePkgRef": "renv",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "source",
-        "RemoteSha": "1.2.0"
+        "Date/Publication": "2026-01-27 11:50:02 UTC",
+        "Built": "R 4.5.3; ; 2026-04-02 18:07:03 UTC; windows"
       }
     },
     "repr": {
@@ -5311,7 +5283,7 @@
       "Repository": "https://cran.rstudio.com",
       "description": {
         "Package": "rgl",
-        "Version": "1.3.36",
+        "Version": "1.3.34",
         "Title": "3D Visualization Using OpenGL",
         "Authors@R": "c(person(\"Duncan\", \"Murdoch\", role = c(\"aut\", \"cre\"),\n                     email = \"murdoch.duncan@gmail.com\"),\n              person(\"Daniel\", \"Adler\", role = \"aut\",\n                     email = \"dadler@dyncall.org\"),\n              person(\"Oleg\", \"Nenadic\", role = \"ctb\"),\n              person(\"Simon\", \"Urbanek\", role = \"ctb\"),\n              person(\"Ming\", \"Chen\", role = \"ctb\"),\n              person(\"Albrecht\", \"Gebhardt\", role = \"ctb\"),\n              person(\"Ben\", \"Bolker\", role = \"ctb\"),\n              person(\"Gabor\", \"Csardi\", role = \"ctb\"),\n              person(\"Adam\", \"Strzelecki\", role = \"ctb\"),\n              person(\"Alexander\", \"Senger\", role = \"ctb\"),\n              person(\"The R Core Team\", role = c(\"ctb\", \"cph\")),\n              person(\"Dirk\",\"Eddelbuettel\", role = \"ctb\"),\n              person(\"The authors of Shiny\", role = \"cph\"),\n              person(\"The authors of knitr\", role = \"cph\"),\n              person(\"Jeroen\", \"Ooms\", role = \"ctb\"),\n              person(\"Yohann\", \"Demont\", role = \"ctb\"),\n              person(\"Joshua\", \"Ulrich\", role = \"ctb\"),\n              person(\"Xavier\", \"Fernandez i Marin\", role = \"ctb\"),\n              person(\"George\", \"Helffrich\", role = \"ctb\"),\n              person(\"Ivan\", \"Krylov\", role = \"ctb\"),\n              person(\"Michael\", \"Sumner\", role = \"ctb\"),\n              person(\"Mike\", \"Stein\", role = \"ctb\"),\n              person(\"Jonathon\", \"Love\", role = \"ctb\"),\n              person(\"Mapbox team\", role = c(\"ctb\", \"cph\")))",
         "Depends": "R (>= 3.6.0)",
@@ -5327,20 +5299,13 @@
         "Biarch": "true",
         "RoxygenNote": "7.3.3",
         "NeedsCompilation": "yes",
-        "Packaged": "2026-03-05 16:27:45 UTC; murdoch",
+        "Packaged": "2026-02-01 19:54:16 UTC; murdoch",
         "Author": "Duncan Murdoch [aut, cre],\n  Daniel Adler [aut],\n  Oleg Nenadic [ctb],\n  Simon Urbanek [ctb],\n  Ming Chen [ctb],\n  Albrecht Gebhardt [ctb],\n  Ben Bolker [ctb],\n  Gabor Csardi [ctb],\n  Adam Strzelecki [ctb],\n  Alexander Senger [ctb],\n  The R Core Team [ctb, cph],\n  Dirk Eddelbuettel [ctb],\n  The authors of Shiny [cph],\n  The authors of knitr [cph],\n  Jeroen Ooms [ctb],\n  Yohann Demont [ctb],\n  Joshua Ulrich [ctb],\n  Xavier Fernandez i Marin [ctb],\n  George Helffrich [ctb],\n  Ivan Krylov [ctb],\n  Michael Sumner [ctb],\n  Mike Stein [ctb],\n  Jonathon Love [ctb],\n  Mapbox team [ctb, cph]",
         "Maintainer": "Duncan Murdoch <murdoch.duncan@gmail.com>",
         "Repository": "CRAN",
-        "Date/Publication": "2026-03-06 05:00:02 UTC",
-        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-03-22 04:14:29 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemoteRef": "rgl",
-        "RemotePkgRef": "rgl",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "1.3.36"
+        "Date/Publication": "2026-02-02 09:30:02 UTC",
+        "Built": "R 4.5.2; x86_64-w64-mingw32; 2026-02-22 03:39:16 UTC; windows",
+        "Archs": "x64"
       }
     },
     "rlang": {
@@ -6459,7 +6424,7 @@
       "description": {
         "Package": "vctrs",
         "Title": "Vector Helpers",
-        "Version": "0.7.2",
+        "Version": "0.7.1",
         "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\"),\n    person(\"Lionel\", \"Henry\", , \"lionel@posit.co\", role = \"aut\"),\n    person(\"Davis\", \"Vaughan\", , \"davis@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"data.table team\", role = \"cph\",\n           comment = \"Radix sort based on data.table's forder() and their contribution to R's order()\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
         "Description": "Defines new notions of prototype and size that are used to\n    provide tools for consistent and well-founded type-coercion and\n    size-recycling, and are in turn connected to ideas of type- and\n    size-stability useful for analysing function interfaces.",
         "License": "MIT + file LICENSE",
@@ -6477,20 +6442,13 @@
         "Language": "en-GB",
         "RoxygenNote": "7.3.3",
         "NeedsCompilation": "yes",
-        "Packaged": "2026-03-20 19:53:17 UTC; davis",
+        "Packaged": "2026-01-22 13:56:47 UTC; davis",
         "Author": "Hadley Wickham [aut],\n  Lionel Henry [aut],\n  Davis Vaughan [aut, cre],\n  data.table team [cph] (Radix sort based on data.table's forder() and\n    their contribution to R's order()),\n  Posit Software, PBC [cph, fnd]",
         "Maintainer": "Davis Vaughan <davis@posit.co>",
         "Repository": "CRAN",
-        "Date/Publication": "2026-03-21 17:30:02 UTC",
-        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-03-22 00:51:35 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemoteRef": "vctrs",
-        "RemotePkgRef": "vctrs",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "0.7.2"
+        "Date/Publication": "2026-01-23 18:50:02 UTC",
+        "Built": "R 4.5.2; x86_64-w64-mingw32; 2026-02-25 02:56:11 UTC; windows",
+        "Archs": "x64"
       }
     },
     "viridisLite": {
@@ -6685,7 +6643,7 @@
         "Package": "xfun",
         "Type": "Package",
         "Title": "Supporting Functions for Packages Maintained by 'Yihui Xie'",
-        "Version": "0.57",
+        "Version": "0.56",
         "Authors@R": "c(\n  person(\"Yihui\", \"Xie\", role = c(\"aut\", \"cre\", \"cph\"), email = \"xie@yihui.name\", comment = c(ORCID = \"0000-0003-0645-5666\", URL = \"https://yihui.org\")),\n  person(\"Wush\", \"Wu\", role = \"ctb\"),\n  person(\"Daijiang\", \"Li\", role = \"ctb\"),\n  person(\"Xianying\", \"Tan\", role = \"ctb\"),\n  person(\"Salim\", \"Brüggemann\", role = \"ctb\", email = \"salim-b@pm.me\", comment = c(ORCID = \"0000-0002-5329-5987\")),\n  person(\"Christophe\", \"Dervieux\", role = \"ctb\"),\n  person()\n  )",
         "Description": "Miscellaneous functions commonly used in other packages maintained by 'Yihui Xie'.",
         "Depends": "R (>= 3.2.0)",
@@ -6698,20 +6656,13 @@
         "RoxygenNote": "7.3.3",
         "VignetteBuilder": "litedown",
         "NeedsCompilation": "yes",
-        "Packaged": "2026-03-19 17:27:02 UTC; yihui",
+        "Packaged": "2026-01-18 04:03:19 UTC; yihui",
         "Author": "Yihui Xie [aut, cre, cph] (ORCID:\n    <https://orcid.org/0000-0003-0645-5666>, URL: https://yihui.org),\n  Wush Wu [ctb],\n  Daijiang Li [ctb],\n  Xianying Tan [ctb],\n  Salim Brüggemann [ctb] (ORCID: <https://orcid.org/0000-0002-5329-5987>),\n  Christophe Dervieux [ctb]",
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "CRAN",
-        "Date/Publication": "2026-03-20 16:50:02 UTC",
-        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-03-22 00:51:30 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemoteRef": "xfun",
-        "RemotePkgRef": "xfun",
-        "RemoteRepos": "https://cran.rstudio.com",
-        "RemoteReposName": "CRAN",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "0.57"
+        "Date/Publication": "2026-01-18 06:10:03 UTC",
+        "Built": "R 4.5.2; x86_64-w64-mingw32; 2026-02-22 01:41:28 UTC; windows",
+        "Archs": "x64"
       }
     },
     "xgboost": {
@@ -6886,14 +6837,8 @@
     }
   },
   "files": {
-    ".codex/codex_todo_20260327_1745.md": {
-      "checksum": "0c8e4b5999a831db623b482c7f0b3776"
-    },
-    ".codex/summary.md": {
-      "checksum": "af5eccf0560f82c9f4824c275916f04e"
-    },
     ".covrignore": {
-      "checksum": "1df949837daa39b9c8190895ae675250"
+      "checksum": "7db78918147e1ce049dcdc8be29afe63"
     },
     ".github/workflows/pkgdown.yaml": {
       "checksum": "002faabdbbaac9799074b7e95527eb01"
@@ -6908,16 +6853,16 @@
       "checksum": "1cf188d2104d91a740655c7b66b05912"
     },
     ".posit/publish/deployments/deployment-VAD0.toml": {
-      "checksum": "0634f4c15468df7ebdeb917e04a1ccca"
+      "checksum": "eb34ec209917a024998c5f8b9fc753ae"
     },
     ".Rbuildignore": {
-      "checksum": "1d17bf46521d98e25fdca1adce2df2a2"
+      "checksum": "2ea9de3153c1a44d613e15bd7b84dd28"
     },
     ".Renviron": {
       "checksum": "09effb492dfdd262600517abad4a6c81"
     },
     ".Rprofile": {
-      "checksum": "ef4ed5971994a41776aa05b86e5822dc"
+      "checksum": "9432c6acf1ab80efeb85c0c551dbea7d"
     },
     ".vscode/launch.json": {
       "checksum": "8799f3582b7bab5f4fd39bc454c02787"
@@ -6926,7 +6871,7 @@
       "checksum": "50f14a6029329e3db4ade613d3256781"
     },
     "_pkgdown.yml": {
-      "checksum": "a7f95eb9ee48f3f16658c54de538b952"
+      "checksum": "32721d25c84fed360ecfcafa7405ae66"
     },
     "app.R": {
       "checksum": "fb08db2cafd5e0f801061ebcb68a18e9"
@@ -6935,19 +6880,19 @@
       "checksum": "09916881b82da84f625ba17d22d892d5"
     },
     "benchmark-results/benchmark_full_data_summary.TIFF": {
-      "checksum": "b13e829860b14a7286da3d5f160536eb"
+      "checksum": "0a1c8687a33166289ace23230d28760d"
     },
     "benchmark-results/benchmark_results.csv": {
-      "checksum": "f9226c30978f02adada7844ce164675d"
+      "checksum": "1b3f9cbebf53f46184e1f1f070c05f44"
     },
     "benchmark-results/benchmark_simulated_data_summary.TIFF": {
-      "checksum": "c6b4207b98cb389bcf20c96619434be8"
+      "checksum": "bc838367d7dca3345172df6ca3e56da8"
     },
     "benchmark-results/benchmark_summary.csv": {
-      "checksum": "642ab6ca9d6220b537eecb1f2f515004"
+      "checksum": "5df854d6f07825ddbf8062155f9b2923"
     },
     "benchmark-results/session_info.txt": {
-      "checksum": "426a2d49461d0f63bc0686bb51082d3c"
+      "checksum": "677f4c0d30d66e687e833c52db3b9970"
     },
     "benchmark_cytokineprofile.R": {
       "checksum": "16cc6056c43ef246e3bfaaac52aa9e9e"
@@ -7076,52 +7021,91 @@
       "checksum": "d38c3f0c1f6de044e2d5ecdbdcb15435"
     },
     "docs/articles/Basic-Tutorial-of-CytokineProfile-Shiny.html": {
-      "checksum": "3e2bad8aef233734d9a11d7d51350939"
+      "checksum": "33bc645ba3ee2fa81b4755f67c0eef4a"
     },
     "docs/articles/Basic-Tutorial-of-CytokineProfile-Shiny.md": {
-      "checksum": "a27d9051eec1f70b54d7ef6f880ad723"
+      "checksum": "cf56080f9862aa6e1eec161045680143"
     },
     "docs/articles/index.html": {
-      "checksum": "4b4e4c6babd877df85290cbfa2514612"
+      "checksum": "4e5c173b0961ddc03a9e822be8c78063"
     },
     "docs/articles/index.md": {
-      "checksum": "a7496531142b29e0c4e1f1bd8e633618"
+      "checksum": "b0eede7a20c9b422c1475d7942fe7a12"
     },
     "docs/articles/R-installation.html": {
-      "checksum": "4843c6e45e8fb3d8ca97f907d3bf066b"
+      "checksum": "92ab800971817d8435b9f0fa8e74245f"
     },
     "docs/articles/R-installation.md": {
-      "checksum": "fa5a1abb997ea5083f3bc3e0319cf807"
+      "checksum": "fdd1cfcbaf9ce0fd8ce6d3ef2d17ea61"
+    },
+    "docs/articles/Understanding-Boxplots-and-Violin-Plots.html": {
+      "checksum": "2f99126279dc883aed9b55c739622a8f"
+    },
+    "docs/articles/Understanding-Correlation-Analysis.html": {
+      "checksum": "eb3acce413563e5aa4e1f43a923c65c5"
+    },
+    "docs/articles/Understanding-Correlation-Analysis.md": {
+      "checksum": "4a14a501d9622086f74b76d26ab904f2"
     },
     "docs/articles/Understanding-Dual-Flashlight-Plot.html": {
-      "checksum": "b75c86503778794dede3b2c4fcdc9c9e"
+      "checksum": "19f9277ecc291ce314f82ed793ba2b6d"
     },
     "docs/articles/Understanding-Dual-Flashlight-Plot.md": {
-      "checksum": "554cf55ce1418730f0ea20c8cd25f678"
+      "checksum": "925a82bef5615c85f33a10fdaefa7582"
+    },
+    "docs/articles/Understanding-Error-Bar-Plot.html": {
+      "checksum": "0b162b7f4a4249590b6880b90014d5ab"
+    },
+    "docs/articles/Understanding-Heatmaps.html": {
+      "checksum": "1f4897f66497f539fa78f3ecb3f574b3"
+    },
+    "docs/articles/Understanding-Heatmaps.md": {
+      "checksum": "495dc25bb1f78a6f9378f299046a84b8"
+    },
+    "docs/articles/Understanding-MINT-sPLS-DA.html": {
+      "checksum": "6e25355211b2106d40837fbfbcfd05ab"
+    },
+    "docs/articles/Understanding-Multi-Level-Univariate-Analysis.html": {
+      "checksum": "41fb6ad23c2f53545a390a4a674bbd0b"
+    },
+    "docs/articles/Understanding-Multi-Level-Univariate-Analysis.md": {
+      "checksum": "efc9886067e568f07413dea9ce86831f"
+    },
+    "docs/articles/Understanding-PCA.html": {
+      "checksum": "ad909335398cc0028acb252928a83653"
+    },
+    "docs/articles/Understanding-PCA.md": {
+      "checksum": "e9e54e436c5bdccd102358192fab8487"
+    },
+    "docs/articles/Understanding-PLSR.html": {
+      "checksum": "6dd3f34e152db937c80fdea542d0877d"
     },
     "docs/articles/Understanding-Random-Forest.html": {
-      "checksum": "c411dec39b5ca3d9d31f5554630a8062"
+      "checksum": "9f3453ffcf0afdea4f565f9dd771e7e6"
     },
     "docs/articles/Understanding-Random-Forest.md": {
-      "checksum": "0ed246fe9bf5839371e3c39ff5f7fed0"
+      "checksum": "d21a9cfd14c3649b7ef9819e0c6f5fad"
     },
     "docs/articles/Understanding-sPLS-DA.html": {
-      "checksum": "405da1d150125c5f119e0ce1ed0ffea4"
+      "checksum": "88cedbdd32124914c6caabd72cbcc4ae"
     },
     "docs/articles/Understanding-sPLS-DA.md": {
-      "checksum": "152f1feff29ebf28007d63314113ecfa"
+      "checksum": "57e51f8d16b1a8e51df45db889a06d76"
+    },
+    "docs/articles/Understanding-Univariate-Test-Selection.html": {
+      "checksum": "e6a88ecf26ab46fa774c72f38825a378"
     },
     "docs/articles/Understanding-Volcano-Plot.html": {
-      "checksum": "bd51bf2aad8fcf9221abb7e28da2baba"
+      "checksum": "257fd67ea16a4f8111729b39ac15c47b"
     },
     "docs/articles/Understanding-Volcano-Plot.md": {
-      "checksum": "2127a29abc94b4abd91b1be47563a515"
+      "checksum": "5be84cbd575ce1ea73498351a4c456ee"
     },
     "docs/articles/Understanding-XGBoost.html": {
-      "checksum": "376723b592a5ce3ceddb6a58ef7d4ac1"
+      "checksum": "6d3eba621d3600c05b69ada64a469823"
     },
     "docs/articles/Understanding-XGBoost.md": {
-      "checksum": "4aa9ae706b10e7bad0f03c20dd9767f6"
+      "checksum": "59ceeb3ac52bbf4ab13d321784d60a7b"
     },
     "docs/authors.html": {
       "checksum": "152a39c69da27a99e926509a4de672e9"
@@ -7244,22 +7228,22 @@
       "checksum": "4759f31f8a585e9af173fc579d730265"
     },
     "docs/llms.txt": {
-      "checksum": "d96b3e505461a6f70bf2fa84eaa67cd6"
+      "checksum": "a139dea533f88d62cb603167e420021c"
     },
     "docs/logo.png": {
       "checksum": "3d968826327814265c06b8853caca17d"
     },
     "docs/news/index.html": {
-      "checksum": "084493d1c5a8992e571cb5a25297b305"
+      "checksum": "2bad706da125f2dd864ae14f9b507689"
     },
     "docs/news/index.md": {
-      "checksum": "841bc2eff1dd1eca1fb5c04653385dae"
+      "checksum": "462289abafa99d6210b821c465c4d22c"
     },
     "docs/pkgdown.js": {
       "checksum": "1c9c0d6bf54c521a9993e0b2d23c5d08"
     },
     "docs/pkgdown.yml": {
-      "checksum": "21cc1279ff296358f79a8ea4d08562ed"
+      "checksum": "580071af164141f6d5d40755903aaf01"
     },
     "docs/reference/adjust_p.html": {
       "checksum": "d157d4f2d746bd380799b635f53cb9e4"
@@ -7310,13 +7294,13 @@
       "checksum": "65e547f2f41cf779c64d91bf5ce66506"
     },
     "docs/reference/cyt_dualflashplot-1.png": {
-      "checksum": "856ef1657ee1e0b13e89c9c45ffe0a25"
+      "checksum": "649578aed8c0053f1f8b7c3d43c5cb22"
     },
     "docs/reference/cyt_dualflashplot.html": {
-      "checksum": "7df7c899eb9569c94333d1000865812b"
+      "checksum": "0f7b6138c3c9b69abfa458d8f6a2b1b9"
     },
     "docs/reference/cyt_dualflashplot.md": {
-      "checksum": "e099d833c28251ec6262c0a20bbea691"
+      "checksum": "6733b437c2a02f1fba172073f398bf97"
     },
     "docs/reference/cyt_errbp-1.png": {
       "checksum": "0f14fda9b752fc94661b91fc99291001"
@@ -7331,10 +7315,10 @@
       "checksum": "1555b15a2d0e81e99dcdcf573052c688"
     },
     "docs/reference/cyt_export.html": {
-      "checksum": "03a8fa0a487f7d62333a3bce626879cd"
+      "checksum": "f6037b047608b4c9dd59abafd5c76e63"
     },
     "docs/reference/cyt_export.md": {
-      "checksum": "2857d606b8ab09f621ddd0eb259944c2"
+      "checksum": "00324e28248f5c30266ef8ebb0d9509c"
     },
     "docs/reference/cyt_heatmap-1.png": {
       "checksum": "9d618d4ec21cb8dfb1f71799df71867c"
@@ -7370,10 +7354,10 @@
       "checksum": "a046239ab2fc1045c3cd29c3c58d7498"
     },
     "docs/reference/cyt_rf.html": {
-      "checksum": "d1eeb51b6dce1b4a62d3e7c8bcdbc7e1"
+      "checksum": "fe640b71c5e4ffb1a04f00fe532d575b"
     },
     "docs/reference/cyt_rf.md": {
-      "checksum": "338c72504638524af71402fcdf27a065"
+      "checksum": "4e4c4fa1b35de95204cf9188b8f40803"
     },
     "docs/reference/cyt_skku-1.png": {
       "checksum": "5bfae73901c21183fecf1f732b006225"
@@ -7415,10 +7399,10 @@
       "checksum": "b55ba9f432b2034d59b46e76acf278f2"
     },
     "docs/reference/cyt_splsda.html": {
-      "checksum": "e5712f4152dd69b0bf031f71b6fd6094"
+      "checksum": "4c87b5ab51632edcacc7708ec2944073"
     },
     "docs/reference/cyt_splsda.md": {
-      "checksum": "ff53c5ff6789f6ac4fa5c84f94c4fd14"
+      "checksum": "e6e1aad3dbd073daaa9370a2d5e03a11"
     },
     "docs/reference/cyt_ttest.html": {
       "checksum": "cda16dad8ccb538bf7639267c4b1057a"
@@ -7451,19 +7435,19 @@
       "checksum": "bf9ef9aa55ab72caaad1e14a0472e660"
     },
     "docs/reference/cyt_volc-1.png": {
-      "checksum": "8e70003a6ef9dd4e8b07c9dcc72e7223"
+      "checksum": "36f1acfe3176ecc58f2fbd135b02be74"
     },
     "docs/reference/cyt_volc.html": {
-      "checksum": "e3d4df8001c6d61e0e7b5f257e9121d4"
+      "checksum": "5dbc2a1a974a01b581d34263df12267e"
     },
     "docs/reference/cyt_volc.md": {
-      "checksum": "9f9d2273d7fc8aaf36e922299057a87e"
+      "checksum": "9bb3e9dd71d7c8c3ea9945b8cef4c02d"
     },
     "docs/reference/cyt_xgb.html": {
-      "checksum": "d635646cd1c5b0d73a0d123b50d55c37"
+      "checksum": "1adde7a78d709d3e68e9c47fee46bd09"
     },
     "docs/reference/cyt_xgb.md": {
-      "checksum": "73af6cf36f464636891f83dd6cb6024d"
+      "checksum": "56b6a837b2d7d29c31e9df42a90eaa95"
     },
     "docs/reference/CytokineProfileShinyApp-package.html": {
       "checksum": "137887474a815c41774e56d66c237bdd"
@@ -7595,13 +7579,13 @@
       "checksum": "aea6284902a08c2b7658484540fe8e67"
     },
     "docs/search.json": {
-      "checksum": "a03a8892f0985954feb0de672ddcb37e"
+      "checksum": "80e98e0f4826627f362d1c34d9c07f05"
     },
     "docs/site.webmanifest": {
       "checksum": "aa2a240255534cbd81d92a24956916f5"
     },
     "docs/sitemap.xml": {
-      "checksum": "7e6b891c687091ec6143c256597bff2b"
+      "checksum": "51935531c7e50d96142781319efbbe7f"
     },
     "docs/todo.html": {
       "checksum": "665922d5f3ee5a26e26c31a30af242c0"
@@ -7610,10 +7594,10 @@
       "checksum": "d46cd04dd9495d25bd69b00ac1adbc6f"
     },
     "docs/TUTORIALS.html": {
-      "checksum": "c3818a1097b713472b3e592e795fa1b4"
+      "checksum": "3fc11383bf2fde0db78b2e57fb408908"
     },
     "docs/TUTORIALS.md": {
-      "checksum": "f048dc951f9a582f1a39adc0a28e6972"
+      "checksum": "6a0d04db6df5930196f62cb186c0e35f"
     },
     "docs/web-app-manifest-192x192.png": {
       "checksum": "50535ea301dec5d63e47d6eaaca27916"
@@ -7664,7 +7648,7 @@
       "checksum": "359b94c831e62571a68c675f7f817127"
     },
     "man/cyt_export.Rd": {
-      "checksum": "cba263e25a5baa49d5e80d195e0e0e1d"
+      "checksum": "3d5622b1a72b10e528f9d7e6a2f4adbb"
     },
     "man/cyt_heatmap.Rd": {
       "checksum": "d49d6cc8af5b2743a5b34cb3a3915339"
@@ -7679,13 +7663,13 @@
       "checksum": "4b990ac68d05f9da886ffab606d9c274"
     },
     "man/cyt_rf.Rd": {
-      "checksum": "93ea2828db551479ca4913aa2a4279ff"
+      "checksum": "2dfc8a006a6d8ce29153e5b502ae82ad"
     },
     "man/cyt_skku.Rd": {
       "checksum": "da6f32427f1eb7278d662ea74bc29777"
     },
     "man/cyt_splsda.Rd": {
-      "checksum": "d6aedd3f2a8a8c69f37814a9bcdb627c"
+      "checksum": "b9decdb173eada7e3832be01b8a11f6c"
     },
     "man/cyt_ttest.Rd": {
       "checksum": "d41e4103fb1cbc452d95b5bc7f802c50"
@@ -7703,7 +7687,7 @@
       "checksum": "80cea6801e8637483326bb4de24c0d4f"
     },
     "man/cyt_xgb.Rd": {
-      "checksum": "b782a79f64cc1ab543c91fe7ff6f59bd"
+      "checksum": "bde0b700be49fba673f2304db55d93b0"
     },
     "man/CytokineProfileShinyApp-package.Rd": {
       "checksum": "79ccd7a8664479cc27009acf5f3f290f"
@@ -7808,10 +7792,13 @@
       "checksum": "712c7432dc6d3713143301ec246e126a"
     },
     "NAMESPACE": {
-      "checksum": "ef4c821976a5e383a943bf96fe836822"
+      "checksum": "8ce32a3495c20fae6dd8dd650202e008"
     },
     "NEWS.md": {
-      "checksum": "bc0d2443d16f94d42bc50e83ed117bd9"
+      "checksum": "6131d4e05abff4756d6f11ad2afa1ac8"
+    },
+    "notes/todo.md": {
+      "checksum": "89f89c56432fb92e8504518ee33fe767"
     },
     "pkgdown/favicon/apple-touch-icon.png": {
       "checksum": "d38c3f0c1f6de044e2d5ecdbdcb15435"
@@ -7841,7 +7828,7 @@
       "checksum": "c315ad2c3b5fd1e38846083807294936"
     },
     "R/app_server.R": {
-      "checksum": "c47d2979966c3f9051d3c268d65c96f8"
+      "checksum": "7f629579d2ced0e4a6e979d82206c713"
     },
     "R/app_stage_helpers.R": {
       "checksum": "7d84acf0a40d623bd5aed982ceb2e9d4"
@@ -7853,49 +7840,49 @@
       "checksum": "dec71aa7c60a415f192bfa6335143004"
     },
     "R/cyt_anova.R": {
-      "checksum": "466f9ce129f21185f312f1620b741715"
+      "checksum": "ea18f98eb68e53ae3eaa524da38952e9"
     },
     "R/cyt_bp.R": {
       "checksum": "d93714110808ac28edbe29c2bc8f04e8"
     },
     "R/cyt_bp2.R": {
-      "checksum": "aa49153035ab24bafcd3194a0f71d49f"
+      "checksum": "05d106a2a2592e18b93af4d0a8e9a740"
     },
     "R/cyt_corr.R": {
       "checksum": "9e98944260a76005a43660a318a1e814"
     },
     "R/cyt_dualflashplot.R": {
-      "checksum": "f6c56356aa80e7a8d00556b3238e31f1"
+      "checksum": "fce1c4b79030a017d1986a9574280861"
     },
     "R/cyt_errbp.R": {
       "checksum": "e181f694e53cd92de11224e5ae2d5519"
     },
     "R/cyt_export.R": {
-      "checksum": "76c2b4cee1ca853fb76535b4a265bcbf"
+      "checksum": "301e7467d074f20adf7eba5a8a65bf60"
     },
     "R/cyt_heatmap.R": {
       "checksum": "533e128976478a7606a4bbf90f652fe5"
     },
     "R/cyt_mint_splsda.R": {
-      "checksum": "4bb868cd119b16a37259e3f402024a08"
+      "checksum": "33932bb271b0042ae1e6382dc593f593"
     },
     "R/cyt_pca.R": {
-      "checksum": "09e2211e1aad6b13567b6956d78ef813"
+      "checksum": "142e54d9dc5fe979655812fe0b7a7c57"
     },
     "R/cyt_plsr.R": {
       "checksum": "5c8eef454797fc1cd8d9e48fc9dd2fee"
     },
     "R/cyt_rf.R": {
-      "checksum": "d9f75632ccf785cbd1f63fc4beb86c70"
+      "checksum": "d18793e4e15b6b67d8e7bd363195a309"
     },
     "R/cyt_skku.R": {
-      "checksum": "f3caa95717f2864b4c02d9d2353b18ed"
+      "checksum": "827cdd06f33c41ea53210a03624ed7e6"
     },
     "R/cyt_splsda.R": {
-      "checksum": "9eea9ab994603d4b6b710da18b1ad743"
+      "checksum": "97026c1eea122120ba045173e7d8e1e6"
     },
     "R/cyt_ttest.R": {
-      "checksum": "7aa5537a0909e4ba39208a7f7ae295c5"
+      "checksum": "960670d26ec69d3d13143d844a824fed"
     },
     "R/cyt_univariate.R": {
       "checksum": "ddc1ae4486cd21ff99a82e1bf1cdbdbf"
@@ -7907,13 +7894,13 @@
       "checksum": "d7d38e392552ff2c662f146c00645218"
     },
     "R/cyt_volc.R": {
-      "checksum": "96c46db710f80a9a30a4c978a2867944"
+      "checksum": "85ea2569e3f8d0eea69f26c121f2d774"
     },
     "R/cyt_xgb.R": {
-      "checksum": "90169528f5c551a88f3e479e0cd15428"
+      "checksum": "e9be414a2783dcf7032fb7c56c769752"
     },
     "R/CytokineProfileShinyApp-package.R": {
-      "checksum": "09f3dee604c06c87af5d5fbc52bde21f"
+      "checksum": "244673afb3a7c6e7aed11789ee4ec208"
     },
     "R/data.R": {
       "checksum": "c5165fc17a2d4ab3445ba9dd9342dd9c"
@@ -7922,13 +7909,13 @@
       "checksum": "852a51980303f01e85f22e4548454064"
     },
     "R/global_variables.R": {
-      "checksum": "c541db94a4ea00bb4ae3d660020d054a"
+      "checksum": "975d9f68694ac5040430e74fc8503019"
     },
     "R/libraries.R": {
       "checksum": "23134b48544e203dbdcc85b87ac31c42"
     },
     "R/mod_analysis_results_server.R": {
-      "checksum": "5101c6a0f70dabdd4d95c9c4b77f7abc"
+      "checksum": "2cf70f60d9d575e9d40d1b360f4f6140"
     },
     "R/mod_contact_ui.R": {
       "checksum": "9268f23f21a8f4fce8e47de43547271a"
@@ -7943,19 +7930,19 @@
       "checksum": "9123658fe530fe6e86c61b2dd6cdef0d"
     },
     "R/mod_navigation_server.R": {
-      "checksum": "a1bffeac4b5be30f390b5c4c16184560"
+      "checksum": "9c06112c68861ff910ed27810739c7ff"
     },
     "R/mod_news_ui.R": {
       "checksum": "029b10e72c16e2de24b095fdf1aec801"
     },
     "R/mod_options_server.R": {
-      "checksum": "247a6875b3b525d42bfe6922e8846dcc"
+      "checksum": "5ca9f6f0447a158b2bdfaa66280b529a"
     },
     "R/mod_persistent_state_server.R": {
       "checksum": "644dd535438ef06ef01ff9d37bc3314a"
     },
     "R/mod_save_key_inputs_server.R": {
-      "checksum": "78dff894495b41e8feb6749c4d1da4e8"
+      "checksum": "e24645a6db3cbafc6e70c02e87d2b210"
     },
     "R/mod_step1_data_ui.R": {
       "checksum": "6e77e6ce852fd0c3022e66e0ee614847"
@@ -7991,10 +7978,10 @@
       "checksum": "c5755312311b0bfbf82dd758798d67c5"
     },
     "R/ui_contract_helpers.R": {
-      "checksum": "326d195080327a1e8935db09f5da029f"
+      "checksum": "566ce6c9565c51f80565f657cc59e9d0"
     },
     "R/utils.R": {
-      "checksum": "c63107fcbbe82fd4c5caf0dd2847807a"
+      "checksum": "ee0726e6c521c26625bba5262e71435e"
     },
     "README.md": {
       "checksum": "5dd6816a3c390335ebd02cb747d37917"
@@ -8003,7 +7990,7 @@
       "checksum": "248d8a8e428b18a68d743a0a3403bda3"
     },
     "renv.lock": {
-      "checksum": "bcf64530ecdc8b15e15c345ad022ca9a"
+      "checksum": "549ca9b5cdfe6ac0bee897a01b9df0db"
     },
     "scripts/benchmark_synthetic_data.R": {
       "checksum": "ba5fe39f0ea9d43946205d0cb42d3bdb"
@@ -8014,98 +8001,14 @@
     "server_old.R": {
       "checksum": "db6d4a42ff01fa7ead056a02eb401caf"
     },
-    "ShinyLoadTest/recording.log": {
-      "checksum": "0288b9720d3284e91522ef76f6df195b"
-    },
-    "ShinyLoadTest/recording.log.post.0": {
-      "checksum": "8bc9f7a3f81d2aa5c681d6c66a9853a2"
-    },
-    "ShinyLoadTest/recording.log.post.1": {
-      "checksum": "82f7f368dc2588b143501c8c06ee96d4"
-    },
-    "ShinyLoadTest/recording.log.post.10": {
-      "checksum": "3d2a9b1a488dc2c9734573d134edbe76"
-    },
-    "ShinyLoadTest/recording.log.post.11": {
-      "checksum": "3d2a9b1a488dc2c9734573d134edbe76"
-    },
-    "ShinyLoadTest/recording.log.post.12": {
-      "checksum": "3d2a9b1a488dc2c9734573d134edbe76"
-    },
-    "ShinyLoadTest/recording.log.post.13": {
-      "checksum": "3f44a8105da91f0c326bd762e20e79d5"
-    },
-    "ShinyLoadTest/recording.log.post.14": {
-      "checksum": "186486ad26a60dfd635877b0ca51730e"
-    },
-    "ShinyLoadTest/recording.log.post.15": {
-      "checksum": "186486ad26a60dfd635877b0ca51730e"
-    },
-    "ShinyLoadTest/recording.log.post.16": {
-      "checksum": "3f44a8105da91f0c326bd762e20e79d5"
-    },
-    "ShinyLoadTest/recording.log.post.17": {
-      "checksum": "825636f69d566266b36bf91988ad4804"
-    },
-    "ShinyLoadTest/recording.log.post.18": {
-      "checksum": "825636f69d566266b36bf91988ad4804"
-    },
-    "ShinyLoadTest/recording.log.post.19": {
-      "checksum": "825636f69d566266b36bf91988ad4804"
-    },
-    "ShinyLoadTest/recording.log.post.2": {
-      "checksum": "3f44a8105da91f0c326bd762e20e79d5"
-    },
-    "ShinyLoadTest/recording.log.post.3": {
-      "checksum": "2be93d976fde3c39ba9fd3e149c1ee2d"
-    },
-    "ShinyLoadTest/recording.log.post.4": {
-      "checksum": "3f44a8105da91f0c326bd762e20e79d5"
-    },
-    "ShinyLoadTest/recording.log.post.5": {
-      "checksum": "3f44a8105da91f0c326bd762e20e79d5"
-    },
-    "ShinyLoadTest/recording.log.post.6": {
-      "checksum": "3f44a8105da91f0c326bd762e20e79d5"
-    },
-    "ShinyLoadTest/recording.log.post.7": {
-      "checksum": "3f44a8105da91f0c326bd762e20e79d5"
-    },
-    "ShinyLoadTest/recording.log.post.8": {
-      "checksum": "3d2a9b1a488dc2c9734573d134edbe76"
-    },
-    "ShinyLoadTest/recording.log.post.9": {
-      "checksum": "3d2a9b1a488dc2c9734573d134edbe76"
-    },
     "ShinyLoadTest/route_manifest.csv": {
       "checksum": "3b89c7894ddf343631609e0f3c76589c"
     },
     "ShinyLoadTest/shinycannon-1.2.0-85f280d.jar": {
       "checksum": "0de3ededf1119b3173c0587621b60c47"
     },
-    "ShinyLoadTest/sPLSDA_Test/recording.log": {
-      "checksum": "0288b9720d3284e91522ef76f6df195b"
-    },
-    "ShinyLoadTest/sPLSDA_Test/report.html": {
-      "checksum": "f7a20e55c9e5b0716ece6c940c8e771b"
-    },
-    "ShinyLoadTest/sPLSDA_Test/sessions/0_0_0.csv": {
-      "checksum": "8a70aebfc20eb6d2816d706722d9d914"
-    },
-    "ShinyLoadTest/sPLSDA_Test/sessions/1_0_1.csv": {
-      "checksum": "de936cb29f074db3f7439a556d7eb84e"
-    },
-    "ShinyLoadTest/sPLSDA_Test/sessions/2_0_2.csv": {
-      "checksum": "06d1154431be300fca67a591ec6c2d6b"
-    },
-    "ShinyLoadTest/sPLSDA_Test/sessions/3_0_3.csv": {
-      "checksum": "de9e238d15b71959d59baba0fab52028"
-    },
-    "ShinyLoadTest/sPLSDA_Test/shinycannon-version.txt": {
-      "checksum": "ba048eb1e602346b5b055848cb7f84c2"
-    },
     "shinyTest.R": {
-      "checksum": "38bd6c9a0e0b515ee058eb8046308483"
+      "checksum": "fc9ec36114ad4d98cb48a165d598d483"
     },
     "testing_code.R": {
       "checksum": "fdf0f1fc3d96d65249a8813491a16450"
@@ -8120,7 +8023,7 @@
       "checksum": "1eb9da544286e11bfab9ba6740b1f76f"
     },
     "tests/testthat/_snaps/windows-4.5/app-data/app-data-preview_transform.png": {
-      "checksum": "baadba4e209ea80d457575550e349bce"
+      "checksum": "e185fcc5702f625fa0b9188533e7154d"
     },
     "tests/testthat/_snaps/windows-4.5/app-data/app-data-summary_statistics.png": {
       "checksum": "7ca225a101945715c055e56f83bae8fb"
@@ -8183,28 +8086,28 @@
       "checksum": "898af8712cdca355b6ff39cfe7157e3e"
     },
     "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-confusion_matrix.png": {
-      "checksum": "172299f36e1499019cdce53371d0d354"
+      "checksum": "98b1074d4d082fbbebdf29c597805ca7"
     },
     "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-cross_validation.png": {
-      "checksum": "db7ffc0ff9717fe62f68a7b31cadfd46"
+      "checksum": "94343cc15229b76a9b406a1f060dbcd5"
     },
     "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-loadings.png": {
-      "checksum": "dfe1fa8fc236bdd138cef21b05ac0a9c"
+      "checksum": "02cdc20a4f231432b7173dcea161d03e"
     },
     "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-roc.png": {
-      "checksum": "466c1f5813c9147f5a535f9cbf6f8344"
+      "checksum": "0ccbef5d8645d584abac724065efe5d0"
     },
     "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-splsda_plot.png": {
-      "checksum": "c67c126f2bef0db106af0dc5e37b92e9"
+      "checksum": "c6d3e25b250f1710c3702b7bb663f144"
     },
     "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-vip_loadings.png": {
-      "checksum": "7a35dae3010b62a0b6ca142985db6761"
+      "checksum": "3bbfb6e950004460c45e86aa48b5b74b"
     },
     "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-vip_model_plot.png": {
-      "checksum": "c6427fbb041dde27044c0da77abcf2a6"
+      "checksum": "a3fbc48b66cc8d23ef3e17ab80b7f0ea"
     },
     "tests/testthat/_snaps/windows-4.5/splsda-1/splsda-group-vip_scores.png": {
-      "checksum": "2c48615ae51e451b34eca70869f0b21f"
+      "checksum": "2eaa96c751b04336776d29c4957be4a5"
     },
     "tests/testthat/_snaps/windows-4.5/splsda-2/splsda-group-trt-results_group_treatment.png": {
       "checksum": "eb3b189d027031e4f26ebb9271a04649"
@@ -8216,22 +8119,22 @@
       "checksum": "b59d4aafe56a04281ef6172c1da14aa5"
     },
     "tests/testthat/helper-test-server.R": {
-      "checksum": "3d82d8ceea93306721839892daceedb3"
+      "checksum": "20f04e508c85e806557ea6e8ee063ab1"
     },
     "tests/testthat/test-app-data.R": {
       "checksum": "04ca8e9d6aa772703ad19795a6d5620c"
     },
     "tests/testthat/test-app-wrappers.R": {
-      "checksum": "81ca003e8b3ceae4b3ba8b51a2e3611f"
+      "checksum": "134da07add78525d7af908733b94317e"
     },
     "tests/testthat/test-core-helpers.R": {
-      "checksum": "339c248b29c9ec63a80dcea4eef90b32"
+      "checksum": "9a577bb427dcb13966da8a54ebdc9626"
     },
     "tests/testthat/test-coverage-branches.R": {
-      "checksum": "98600c2f1b9fdca66742eedf7b87e366"
+      "checksum": "af0b81543ae1254f7c8dcbb50c9400ff"
     },
     "tests/testthat/test-helpers.R": {
-      "checksum": "1919278a9bbe39bd2e640339a4ee1e52"
+      "checksum": "fd91b806ae1d7b0fffcdffda9aa9f1d1"
     },
     "tests/testthat/test-inference.R": {
       "checksum": "2a41f2b6dd15e7129e0bf80bec7293ed"
@@ -8240,22 +8143,25 @@
       "checksum": "3749eb93e2b31b2e6e3896ea85308c7f"
     },
     "tests/testthat/test-models.R": {
-      "checksum": "c2213f7b34c3581d7e69b6fa21555c6f"
+      "checksum": "1ed672871e9ffd96b104b6e2d2d43f01"
     },
     "tests/testthat/test-plots.R": {
       "checksum": "c0284dbef88bc3b8fd661ea1c12397ae"
     },
     "tests/testthat/test-server-analysis.R": {
-      "checksum": "a8547038fe325c18369cd0ee1a9638fb"
+      "checksum": "9fdc778c7117c293339b6363814481bb"
     },
     "tests/testthat/test-server-app-integration.R": {
-      "checksum": "0eb967df57676177b6036e73f1213ea8"
+      "checksum": "c318c07b255972aaf08615f7eebb6cba"
+    },
+    "tests/testthat/test-server-font-controls.R": {
+      "checksum": "ec39efdd3bcec1bfc4ace0c017cd6e35"
     },
     "tests/testthat/test-server-foundations.R": {
-      "checksum": "160b61c0d6e0b21bb5848e1ab02086ef"
+      "checksum": "ab288ede1986431777e91dfe4d0a7c91"
     },
     "tests/testthat/test-server-workflow.R": {
-      "checksum": "831e6618bb1d9f470a59bfaa74928565"
+      "checksum": "bc82b272b76d00f70291e9296c949916"
     },
     "tests/testthat/test-splsda-1.R": {
       "checksum": "5f3b93fbe2938d1139a680310cdddf1e"
@@ -8264,31 +8170,58 @@
       "checksum": "d5a803f39a1e1b321f0af625d44eb257"
     },
     "tests/testthat/test-ui-regressions.R": {
-      "checksum": "784f7283ffb0c0ab1878316b871e4f55"
+      "checksum": "805d1ba87534db4a4a9401ad12d58973"
     },
     "TUTORIALS.md": {
-      "checksum": "ea65a106086602770e97480a74a27422"
+      "checksum": "857af2e0d9300e2a725b6dbef3bfbff9"
     },
     "vignettes/Basic-Tutorial-of-CytokineProfile-Shiny.Rmd": {
-      "checksum": "b5158d049f70ba95eb2a86b0ef17151d"
+      "checksum": "0dda9c666430bac0ad0155fad5c76d36"
     },
     "vignettes/R-installation.Rmd": {
       "checksum": "17fd2c708e321c9bd70df8511a3d23fa"
     },
+    "vignettes/Understanding-Boxplots-and-Violin-Plots.Rmd": {
+      "checksum": "29a079194d16fed18e9192833e783bbb"
+    },
+    "vignettes/Understanding-Correlation-Analysis.Rmd": {
+      "checksum": "eeb59ba6e4228cdddbbb691b0e1b73fa"
+    },
     "vignettes/Understanding-Dual-Flashlight-Plot.Rmd": {
-      "checksum": "1b009015dc58e3fffda00f1128262794"
+      "checksum": "324e5535800ea9e6337a920307f65d07"
+    },
+    "vignettes/Understanding-Error-Bar-Plot.Rmd": {
+      "checksum": "8491b3f0b13b8c88d8b559e568037ff2"
+    },
+    "vignettes/Understanding-Heatmaps.Rmd": {
+      "checksum": "61dfd251f3512a4ec0be071b38f6d4f4"
+    },
+    "vignettes/Understanding-MINT-sPLS-DA.Rmd": {
+      "checksum": "606d1c8c34a4c63f954720b9a5376a5a"
+    },
+    "vignettes/Understanding-Multi-Level-Univariate-Analysis.Rmd": {
+      "checksum": "75ed783f81175800c0f6f49b691ba0d9"
+    },
+    "vignettes/Understanding-PCA.Rmd": {
+      "checksum": "fa25f97f551be3948252a8c42dbaf96d"
+    },
+    "vignettes/Understanding-PLSR.Rmd": {
+      "checksum": "b9b85ff6e9c525e419d1638a0a8cd1fb"
     },
     "vignettes/Understanding-Random-Forest.Rmd": {
-      "checksum": "47546973196dec33277aab2af234d815"
+      "checksum": "41813f0adf3c246c80666e9a38a80e5c"
     },
     "vignettes/Understanding-sPLS-DA.Rmd": {
-      "checksum": "c06ad6418bc349c2dfd2a5f991940f73"
+      "checksum": "111303cf5cc922efa98b8d0efd92db11"
+    },
+    "vignettes/Understanding-Univariate-Test-Selection.Rmd": {
+      "checksum": "abae8faf3145d84f67e2f9d36fdb7259"
     },
     "vignettes/Understanding-Volcano-Plot.Rmd": {
-      "checksum": "310c62dd25c51f297a0c2593dc2e9feb"
+      "checksum": "c450d0d9618b8faee213594c8cc85d78"
     },
     "vignettes/Understanding-XGBoost.Rmd": {
-      "checksum": "ec2b760b51a2798288cf743a709d217b"
+      "checksum": "053bf7e24ca80915445881857421f0f1"
     }
   },
   "users": null

@@ -65,6 +65,35 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
     )
   }
 
+  analysis_tutorial_link <- function(text, href) {
+    shiny::div(
+      style = "margin-top: .75rem;",
+      shiny::p(
+        shiny::tags$a(
+          text,
+          href = href,
+          target = "_blank",
+          style = "text-decoration: underline;"
+        )
+      )
+    )
+  }
+
+  analysis_dynamic_plot_list <- function(res) {
+    do.call(
+      shiny::tagList,
+      lapply(seq_along(res), function(i) {
+        shinycssloaders::withSpinner(
+          shiny::plotOutput(
+            paste0("dynamicPlot_", i),
+            height = "400px"
+          ),
+          type = 8
+        )
+      })
+    )
+  }
+
   copyable_text_dependencies <- function() {
     shiny::tagList(
       shiny::singleton(
@@ -1038,156 +1067,160 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                     )
                   )
                 }
+              ),
+              analysis_tutorial_link(
+                "Learn how to interpret sPLS-DA results",
+                "https://shinyinfo.cytokineprofile.org/articles/Understanding-sPLS-DA.html"
               )
             )
           } else {
             # Multi-group analysis UI (tabs for each group)
-            do.call(
-              shiny::tabsetPanel,
-              c(
-                list(id = "splsda_multigroup_tabs"),
-                lapply(names(res), function(trt) {
-                  shiny::tabPanel(
-                    title = trt,
-                    shiny::tabsetPanel(
-                      type = "tabs",
-                      shiny::tabPanel(
-                        "sPLS-DA Plot",
-                        shinycssloaders::withSpinner(
-                          shiny::plotOutput(
-                            paste0("splsda_overallIndivPlot_", trt),
-                            height = "500px"
-                          ),
-                          type = 8
-                        )
-                      ),
-                      shiny::tabPanel(
-                        "Loadings",
-                        shinycssloaders::withSpinner(
-                          shiny::uiOutput(paste0("splsda_loadingsUI_", trt)),
-                          type = 8
-                        )
-                      ),
-                      shiny::tabPanel(
-                        "VIP Scores",
-                        shinycssloaders::withSpinner(
-                          shiny::uiOutput(paste0("splsda_vipScoresUI_", trt)),
-                          type = 8
-                        )
-                      ),
-                      if (!is.null(res[[trt]]$vip_indiv_plot)) {
+            shiny::tagList(
+              shiny::h4("sPLS-DA Results"),
+              do.call(
+                shiny::tabsetPanel,
+                c(
+                  list(id = "splsda_multigroup_tabs"),
+                  lapply(names(res), function(trt) {
+                    shiny::tabPanel(
+                      title = trt,
+                      shiny::tabsetPanel(
+                        type = "tabs",
                         shiny::tabPanel(
-                          "VIP Model Plot",
+                          "sPLS-DA Plot",
                           shinycssloaders::withSpinner(
                             shiny::plotOutput(
-                              paste0("splsda_vipIndivPlot_", trt),
+                              paste0("splsda_overallIndivPlot_", trt),
                               height = "500px"
                             ),
                             type = 8
                           )
-                        )
-                      },
-                      if (!is.null(res[[trt]]$vip_loadings)) {
+                        ),
                         shiny::tabPanel(
-                          "VIP Loadings",
+                          "Loadings",
                           shinycssloaders::withSpinner(
-                            shiny::uiOutput(paste0(
-                              "splsda_vipLoadingsUI_",
-                              trt
-                            )),
+                            shiny::uiOutput(paste0("splsda_loadingsUI_", trt)),
                             type = 8
                           )
-                        )
-                      },
-                      if (!is.null(res[[trt]]$overall_3D)) {
+                        ),
                         shiny::tabPanel(
-                          "3D Plot",
+                          "VIP Scores",
                           shinycssloaders::withSpinner(
-                            shiny::plotOutput(
-                              paste0("splsda_overall3DPlot_", trt),
-                              height = "500px"
-                            ),
+                            shiny::uiOutput(paste0("splsda_vipScoresUI_", trt)),
                             type = 8
-                          ),
-                          # break line
-                          shiny::br(),
-                          shiny::actionButton(
-                            paste0("splsda_show3d_interactive_", trt),
-                            "Interactive 3D",
-                            icon = shiny::icon("fas fa-cube")
-                          ),
-                          # break line
-                          shiny::br(),
-                        )
-                      },
-
-                      # VIP 3D tab per-trt (no div wrapper)
-                      if (!is.null(res[[trt]]$vip_3D)) {
-                        shiny::tabPanel(
-                          "3D Plot (VIP>1)",
-                          shinycssloaders::withSpinner(
-                            shiny::plotOutput(
-                              paste0("splsda_vip3DPlot_", trt),
-                              height = "500px"
-                            ),
-                            type = 8
-                          ),
-                          # break line
-                          shiny::br(),
-                          shiny::actionButton(
-                            paste0("splsda_show3d_interactive_vip_", trt),
-                            "Interactive 3D (VIP)",
-                            icon = shiny::icon("fas fa-cube")
-                          ),
-                          # break line
-                          shiny::br(),
-                        )
-                      },
-                      if (!is.null(res[[trt]]$overall_ROC)) {
-                        shiny::tabPanel(
-                          "ROC",
-                          shinycssloaders::withSpinner(
-                            shiny::plotOutput(
-                              paste0(
-                                "splsda_overallRocPlot_",
-                                trt
+                          )
+                        ),
+                        if (!is.null(res[[trt]]$vip_indiv_plot)) {
+                          shiny::tabPanel(
+                            "VIP Model Plot",
+                            shinycssloaders::withSpinner(
+                              shiny::plotOutput(
+                                paste0("splsda_vipIndivPlot_", trt),
+                                height = "500px"
                               ),
-                              height = "400px",
-                            ),
-                            type = 8
+                              type = 8
+                            )
                           )
-                        )
-                      },
-
-                      if (!is.null(res[[trt]]$overall_CV)) {
-                        shiny::tabPanel(
-                          "Cross-Validation",
-                          shinycssloaders::withSpinner(
-                            shiny::plotOutput(
-                              paste0(
-                                "splsda_overallCvPlot_",
+                        },
+                        if (!is.null(res[[trt]]$vip_loadings)) {
+                          shiny::tabPanel(
+                            "VIP Loadings",
+                            shinycssloaders::withSpinner(
+                              shiny::uiOutput(paste0(
+                                "splsda_vipLoadingsUI_",
                                 trt
+                              )),
+                              type = 8
+                            )
+                          )
+                        },
+                        if (!is.null(res[[trt]]$overall_3D)) {
+                          shiny::tabPanel(
+                            "3D Plot",
+                            shinycssloaders::withSpinner(
+                              shiny::plotOutput(
+                                paste0("splsda_overall3DPlot_", trt),
+                                height = "500px"
                               ),
-                              height = "400px"
+                              type = 8
                             ),
-                            type = 8
-                          )
-                        )
-                      },
-                      if (!is.null(res[[trt]]$conf_matrix)) {
-                        shiny::tabPanel(
-                          "Confusion Matrix",
-                          shinycssloaders::withSpinner(
-                            shiny::uiOutput(
-                              paste0("splsda_confMatrix_", trt)
+                            shiny::br(),
+                            shiny::actionButton(
+                              paste0("splsda_show3d_interactive_", trt),
+                              "Interactive 3D",
+                              icon = shiny::icon("fas fa-cube")
                             ),
-                            type = 8
+                            shiny::br(),
                           )
-                        )
-                      }
+                        },
+                        if (!is.null(res[[trt]]$vip_3D)) {
+                          shiny::tabPanel(
+                            "3D Plot (VIP>1)",
+                            shinycssloaders::withSpinner(
+                              shiny::plotOutput(
+                                paste0("splsda_vip3DPlot_", trt),
+                                height = "500px"
+                              ),
+                              type = 8
+                            ),
+                            shiny::br(),
+                            shiny::actionButton(
+                              paste0("splsda_show3d_interactive_vip_", trt),
+                              "Interactive 3D (VIP)",
+                              icon = shiny::icon("fas fa-cube")
+                            ),
+                            shiny::br(),
+                          )
+                        },
+                        if (!is.null(res[[trt]]$overall_ROC)) {
+                          shiny::tabPanel(
+                            "ROC",
+                            shinycssloaders::withSpinner(
+                              shiny::plotOutput(
+                                paste0(
+                                  "splsda_overallRocPlot_",
+                                  trt
+                                ),
+                                height = "400px",
+                              ),
+                              type = 8
+                            )
+                          )
+                        },
+                        if (!is.null(res[[trt]]$overall_CV)) {
+                          shiny::tabPanel(
+                            "Cross-Validation",
+                            shinycssloaders::withSpinner(
+                              shiny::plotOutput(
+                                paste0(
+                                  "splsda_overallCvPlot_",
+                                  trt
+                                ),
+                                height = "400px"
+                              ),
+                              type = 8
+                            )
+                          )
+                        },
+                        if (!is.null(res[[trt]]$conf_matrix)) {
+                          shiny::tabPanel(
+                            "Confusion Matrix",
+                            shinycssloaders::withSpinner(
+                              shiny::uiOutput(
+                                paste0("splsda_confMatrix_", trt)
+                              ),
+                              type = 8
+                            )
+                          )
+                        }
+                      )
                     )
-                  )
-                })
+                  })
+                )
+              ),
+              analysis_tutorial_link(
+                "Learn how to interpret sPLS-DA results",
+                "https://shinyinfo.cytokineprofile.org/articles/Understanding-sPLS-DA.html"
               )
             )
           }
@@ -1255,86 +1288,97 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                     )
                   )
                 }
+              ),
+              analysis_tutorial_link(
+                "Learn how to interpret MINT sPLS-DA results",
+                "https://shinyinfo.cytokineprofile.org/articles/Understanding-MINT-sPLS-DA.html"
               )
             )
           } else {
             # UI for multi-group analysis (nested tabs)
-            do.call(
-              shiny::tabsetPanel,
-              c(
-                list(id = "mint_splsda_multigroup_tabs"),
-                lapply(names(res), function(trt) {
-                  shiny::tabPanel(
-                    title = trt,
-                    shiny::tabsetPanel(
-                      type = "tabs",
-                      shiny::tabPanel(
-                        "Global Plot",
-                        shinycssloaders::withSpinner(
-                          shiny::plotOutput(paste0(
-                            "mint_splsda_global_",
-                            trt
-                          )),
-                          type = 8
-                        )
-                      ),
-                      shiny::tabPanel(
-                        "Partial Plots",
-                        shinycssloaders::withSpinner(
-                          shiny::plotOutput(paste0(
-                            "mint_splsda_partial_",
-                            trt
-                          )),
-                          type = 8
-                        )
-                      ),
-                      shiny::tabPanel(
-                        "Variable Loadings",
-                        shinycssloaders::withSpinner(
-                          shiny::uiOutput(paste0(
-                            "mint_splsda_loadings_",
-                            trt
-                          )),
-                          type = 8
-                        )
-                      ),
-                      shiny::tabPanel(
-                        "Correlation",
-                        shinycssloaders::withSpinner(
-                          shiny::plotOutput(paste0(
-                            "mint_splsda_corr_",
-                            trt
-                          )),
-                          type = 8
-                        )
-                      ),
-                      if (!is.null(res[[trt]]$cim_obj)) {
+            shiny::tagList(
+              shiny::h4("MINT sPLS-DA Results"),
+              do.call(
+                shiny::tabsetPanel,
+                c(
+                  list(id = "mint_splsda_multigroup_tabs"),
+                  lapply(names(res), function(trt) {
+                    shiny::tabPanel(
+                      title = trt,
+                      shiny::tabsetPanel(
+                        type = "tabs",
                         shiny::tabPanel(
-                          "CIM",
-                          shinycssloaders::withSpinner(
-                            shiny::plotOutput(
-                              paste0("mint_splsda_cim_", trt),
-                              height = "600px"
-                            ),
-                            type = 8
-                          )
-                        )
-                      },
-                      if (!is.null(res[[trt]]$roc_plot)) {
-                        shiny::tabPanel(
-                          "ROC",
+                          "Global Plot",
                           shinycssloaders::withSpinner(
                             shiny::plotOutput(paste0(
-                              "mint_splsda_roc_",
+                              "mint_splsda_global_",
                               trt
                             )),
                             type = 8
                           )
-                        )
-                      }
+                        ),
+                        shiny::tabPanel(
+                          "Partial Plots",
+                          shinycssloaders::withSpinner(
+                            shiny::plotOutput(paste0(
+                              "mint_splsda_partial_",
+                              trt
+                            )),
+                            type = 8
+                          )
+                        ),
+                        shiny::tabPanel(
+                          "Variable Loadings",
+                          shinycssloaders::withSpinner(
+                            shiny::uiOutput(paste0(
+                              "mint_splsda_loadings_",
+                              trt
+                            )),
+                            type = 8
+                          )
+                        ),
+                        shiny::tabPanel(
+                          "Correlation",
+                          shinycssloaders::withSpinner(
+                            shiny::plotOutput(paste0(
+                              "mint_splsda_corr_",
+                              trt
+                            )),
+                            type = 8
+                          )
+                        ),
+                        if (!is.null(res[[trt]]$cim_obj)) {
+                          shiny::tabPanel(
+                            "CIM",
+                            shinycssloaders::withSpinner(
+                              shiny::plotOutput(
+                                paste0("mint_splsda_cim_", trt),
+                                height = "600px"
+                              ),
+                              type = 8
+                            )
+                          )
+                        },
+                        if (!is.null(res[[trt]]$roc_plot)) {
+                          shiny::tabPanel(
+                            "ROC",
+                            shinycssloaders::withSpinner(
+                              shiny::plotOutput(paste0(
+                                "mint_splsda_roc_",
+                                trt
+                              )),
+                              type = 8
+                            )
+                          )
+                        }
+                      )
                     )
-                  )
-                })
+                  })
+                )
+              ),
+              analysis_tutorial_link(
+                "Learn how to interpret MINT sPLS-DA results",
+                "https://shinyinfo.cytokineprofile.org/articles/Understanding-MINT-sPLS-DA.html"
               )
             )
           }
@@ -1391,80 +1435,91 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                     )
                   )
                 }
+              ),
+              analysis_tutorial_link(
+                "Learn how to interpret PCA results",
+                "https://shinyinfo.cytokineprofile.org/articles/Understanding-PCA.html"
               )
             )
           } else {
-            do.call(
-              shiny::tabsetPanel,
-              c(
-                list(id = "pca_multigroup_tabs"),
-                lapply(names(res), function(trt) {
-                  shiny::tabPanel(
-                    title = trt,
-                    shiny::tabsetPanel(
-                      type = "tabs",
-                      shiny::tabPanel(
-                        "PCA Plot",
-                        shinycssloaders::withSpinner(
-                          shiny::plotOutput(
-                            paste0("pca_indivPlot_", trt),
-                            height = "400px"
-                          ),
-                          type = 8
-                        )
-                      ),
-                      shiny::tabPanel(
-                        "Scree Plot",
-                        shinycssloaders::withSpinner(
-                          shiny::plotOutput(
-                            paste0("pca_screePlot_", trt),
-                            height = "400px"
-                          ),
-                          type = 8
-                        )
-                      ),
-                      shiny::tabPanel(
-                        "Loadings Plots",
-                        shinycssloaders::withSpinner(
-                          shiny::uiOutput(paste0("pca_loadingsUI_", trt)),
-                          type = 8
-                        )
-                      ),
-                      shiny::tabPanel(
-                        "Biplot",
-                        shinycssloaders::withSpinner(
-                          shiny::plotOutput(
-                            paste0("pca_biplot_", trt),
-                            height = "400px"
-                          ),
-                          type = 8
-                        )
-                      ),
-                      shiny::tabPanel(
-                        "Correlation Circle",
-                        shinycssloaders::withSpinner(
-                          shiny::plotOutput(
-                            paste0("pca_corrCircle_", trt),
-                            height = "400px"
-                          ),
-                          type = 8
-                        )
-                      ),
-                      if (!is.null(res[[trt]]$overall_3D)) {
+            shiny::tagList(
+              shiny::h4("PCA Results"),
+              do.call(
+                shiny::tabsetPanel,
+                c(
+                  list(id = "pca_multigroup_tabs"),
+                  lapply(names(res), function(trt) {
+                    shiny::tabPanel(
+                      title = trt,
+                      shiny::tabsetPanel(
+                        type = "tabs",
                         shiny::tabPanel(
-                          "3D Plot",
+                          "PCA Plot",
                           shinycssloaders::withSpinner(
                             shiny::plotOutput(
-                              paste0("pca_3DPlot_", trt),
+                              paste0("pca_indivPlot_", trt),
                               height = "400px"
                             ),
                             type = 8
                           )
-                        )
-                      }
+                        ),
+                        shiny::tabPanel(
+                          "Scree Plot",
+                          shinycssloaders::withSpinner(
+                            shiny::plotOutput(
+                              paste0("pca_screePlot_", trt),
+                              height = "400px"
+                            ),
+                            type = 8
+                          )
+                        ),
+                        shiny::tabPanel(
+                          "Loadings Plots",
+                          shinycssloaders::withSpinner(
+                            shiny::uiOutput(paste0("pca_loadingsUI_", trt)),
+                            type = 8
+                          )
+                        ),
+                        shiny::tabPanel(
+                          "Biplot",
+                          shinycssloaders::withSpinner(
+                            shiny::plotOutput(
+                              paste0("pca_biplot_", trt),
+                              height = "400px"
+                            ),
+                            type = 8
+                          )
+                        ),
+                        shiny::tabPanel(
+                          "Correlation Circle",
+                          shinycssloaders::withSpinner(
+                            shiny::plotOutput(
+                              paste0("pca_corrCircle_", trt),
+                              height = "400px"
+                            ),
+                            type = 8
+                          )
+                        ),
+                        if (!is.null(res[[trt]]$overall_3D)) {
+                          shiny::tabPanel(
+                            "3D Plot",
+                            shinycssloaders::withSpinner(
+                              shiny::plotOutput(
+                                paste0("pca_3DPlot_", trt),
+                                height = "400px"
+                              ),
+                              type = 8
+                            )
+                          )
+                        }
+                      )
                     )
-                  )
-                })
+                  })
+                )
+              ),
+              analysis_tutorial_link(
+                "Learn how to interpret PCA results",
+                "https://shinyinfo.cytokineprofile.org/articles/Understanding-PCA.html"
               )
             )
           }
@@ -1537,6 +1592,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                   )
                 )
               }
+            ),
+            analysis_tutorial_link(
+              "Learn how to interpret PLSR results",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-PLSR.html"
             )
           )
         },
@@ -1619,6 +1678,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                   }
                 )
               )
+            ),
+            analysis_tutorial_link(
+              "Learn how to interpret correlation results",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Correlation-Analysis.html"
             )
           )
         },
@@ -1654,6 +1717,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                   )
                 )
               }
+            ),
+            analysis_tutorial_link(
+              "Learn how to interpret Random Forest results",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Random-Forest.html"
             )
           )
         },
@@ -1684,6 +1751,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                   )
                 )
               }
+            ),
+            analysis_tutorial_link(
+              "Learn how to interpret XGBoost results",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-XGBoost.html"
             )
           )
         },
@@ -1734,6 +1805,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                 width = "100%"
               ),
               type = 8
+            ),
+            analysis_tutorial_link(
+              "Learn how to interpret heatmap results",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Heatmaps.html"
             )
           )
         },
@@ -1812,12 +1887,36 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
             )
           )
         },
+        "Boxplots" = {
+          shiny::tagList(
+            shiny::h4("Boxplot Results"),
+            analysis_dynamic_plot_list(res),
+            analysis_tutorial_link(
+              "Learn how to interpret boxplots and violin plots",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.html"
+            )
+          )
+        },
+        "Violin Plots" = {
+          shiny::tagList(
+            shiny::h4("Violin Plot Results"),
+            analysis_dynamic_plot_list(res),
+            analysis_tutorial_link(
+              "Learn how to interpret boxplots and violin plots",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.html"
+            )
+          )
+        },
         "Error-Bar Plot" = {
           shiny::tagList(
             shiny::h4("Error-Bar Plot Results"),
             shinycssloaders::withSpinner(
               shiny::plotOutput("errorBarPlotOutput", height = "auto"),
               type = 8
+            ),
+            analysis_tutorial_link(
+              "Learn how to interpret error-bar plot results",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Error-Bar-Plot.html"
             )
           )
         },
@@ -1827,6 +1926,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
             shinycssloaders::withSpinner(
               DT::dataTableOutput("univariateResults"),
               type = 8
+            ),
+            analysis_tutorial_link(
+              "Learn how to choose the right univariate test",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Univariate-Test-Selection.html"
             )
           )
         },
@@ -1876,6 +1979,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                   )
                 )
               }
+            ),
+            analysis_tutorial_link(
+              "Learn how to interpret multi-level univariate results",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Multi-Level-Univariate-Analysis.html"
             )
           )
         },
@@ -1925,6 +2032,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                   type = 8
                 )
               )
+            ),
+            analysis_tutorial_link(
+              "Learn how to interpret multi-level univariate results",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Multi-Level-Univariate-Analysis.html"
             )
           )
         },
@@ -1976,6 +2087,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
                   type = 8
                 )
               )
+            ),
+            analysis_tutorial_link(
+              "Learn how to interpret multi-level univariate results",
+              "https://shinyinfo.cytokineprofile.org/articles/Understanding-Multi-Level-Univariate-Analysis.html"
             )
           )
         },
@@ -1987,19 +2102,7 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
               length(res) > 0 &&
               all(sapply(res, function(x) inherits(x, "ggplot")))
           ) {
-            # Handle functions that return a list of ggplot objects (like Boxplots)
-            do.call(
-              shiny::tagList,
-              lapply(seq_along(res), function(i) {
-                shinycssloaders::withSpinner(
-                  shiny::plotOutput(
-                    paste0("dynamicPlot_", i),
-                    height = "400px"
-                  ),
-                  type = 8
-                )
-              })
-            )
+            analysis_dynamic_plot_list(res)
           }
         }
       )
