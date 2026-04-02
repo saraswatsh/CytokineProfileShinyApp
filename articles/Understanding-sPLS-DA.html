@@ -78,133 +78,173 @@
     
     
 <div class="section level2">
-<h2 id="sparse-partial-least-squares-discriminant-analysis-spls-da">Sparse Partial Least Squares Discriminant Analysis (sPLS-DA)<a class="anchor" aria-label="anchor" href="#sparse-partial-least-squares-discriminant-analysis-spls-da"></a>
+<h2 id="when-to-use-spls-da">When to use (s)PLS-DA<a class="anchor" aria-label="anchor" href="#when-to-use-spls-da"></a>
 </h2>
-<p>Sparse Partial Least Squares Discriminant Analysis (sPLS-DA) is a
-supervised multivariate method that projects samples into new components
-that best separate predefined groups while selecting a small set of
-discriminative variables (features). This page shows how to interpret
-the main figures produced by the app and how to reproduce them.</p>
+<p>Sparse Partial Least Squares Discriminant Analysis, or sPLS-DA, is a
+supervised multivariate method. It is useful when your goal is to see
+whether whole cytokine profiles separate predefined groups and which
+features drive that separation.</p>
+<p>Because the method uses the class labels directly, it is more
+powerful for discrimination than unsupervised methods such as PCA, but
+it also requires more caution when interpreting apparent separation.</p>
 </div>
 <div class="section level2">
-<h2 id="example-results-cd3cd28-treatment">Example Results: CD3/CD28 Treatment<a class="anchor" aria-label="anchor" href="#example-results-cd3cd28-treatment"></a>
+<h2 id="example-context">Example context<a class="anchor" aria-label="anchor" href="#example-context"></a>
 </h2>
-<p>For this brief interpretation tutorial, we will use the results
-generated using the CD3/CD28 treatment condition from the
-<code>ExampleData1</code> dataset built into the application. The groups
-compared in this example are Non-diabetic (ND), Pre-Diabetic (PreT2D),
-and Type 2 Diabetes (T2D).</p>
+<p>This article uses results from the <code>ExampleData1</code> dataset
+built into the application. The example focuses on the CD3/CD28
+treatment condition and compares Non-Diabetic (ND), Pre-Diabetic
+(PreT2D), and Type 2 Diabetes (T2D) subjects.</p>
+</div>
+<div class="section level2">
+<h2 id="which-app-arguments-matter-most">Which app arguments matter most<a class="anchor" aria-label="anchor" href="#which-app-arguments-matter-most"></a>
+</h2>
+<p>The settings that most strongly affect interpretation are:</p>
+<ul>
+<li>
+<code>sPLS-DA Comparison Column</code>: defines the classes the
+model is trying to separate.</li>
+<li>
+<code>sPLS-DA Stratification Column</code>: adds a second visual
+grouping layer when you want shapes or labels within the main
+classes.</li>
+<li>
+<code>Number of Variables</code>: controls how many cytokines are
+kept on each component.</li>
+<li>
+<code>Cross-Validation Option</code> and
+<code>Number of Folds</code>: control how model stability is
+checked.</li>
+<li>
+<code>Number of Components</code>: controls how much latent
+structure the model calculates and displays.</li>
+<li>
+<code>Plot ROC</code>, <code>Draw Ellipse</code>,
+<code>Shaded Background Prediction</code>, and
+<code>Confusion Matrix</code>: add validation and visual aids that help
+you judge how convincing the separation really is.</li>
+<li>
+<code>Perform Batch Correction?</code>,
+<code>Select Batch Column</code>,
+<code>Perform Multilevel Analysis?</code>, and
+<code>Select Repeated Measures Column</code>: matter only when your
+study includes known batch effects or repeated measurements.</li>
+</ul>
+<p>For app users, the most practical rule is to avoid changing many of
+these at once. Start with a reasonable number of variables and
+components, then use cross-validation and ROC outputs to judge whether
+the model is actually supporting the visual separation.</p>
+</div>
+<div class="section level2">
+<h2 id="what-outputs-matter-most">What outputs matter most<a class="anchor" aria-label="anchor" href="#what-outputs-matter-most"></a>
+</h2>
 <div class="section level3">
-<h3 id="d-component-scores-classification-plot">2D Component Scores (Classification) Plot<a class="anchor" aria-label="anchor" href="#d-component-scores-classification-plot"></a>
+<h3 id="d-component-scores-plot">2D component scores plot<a class="anchor" aria-label="anchor" href="#d-component-scores-plot"></a>
 </h3>
 <p><img src="../reference/figures/splsda_results_Page_1.png"></p>
-<p>This plot shows us the classification of the groups chosen for
-comparison. Generally, we would look for any clustering or separation of
-the groups. Ellipses seen in this figure are based on a 95% confidence
-region, so there may be overlap however less overlap suggests better
-discrimination. A better way to see discrimination would be to use the
-option for <code>shaded background prediction</code>, however it takes a
-bit longer due to computational time. The axis labels show the variance
-explained by the component 1 in the x-axis (39% in this example) and
-component 2 in the y-axis (33% in this example). The title of the plot
-displays the model accuracy which can provide a surface level view of
-the classification done by the model. In our case the model accuracy is
-55.6% in classifying the three different groups which is not great as it
-is almost by chance. An accuracy of ≥ 70% is generally acceptable as it
-shows good discrimination.</p>
+<p>This plot shows where samples fall after the cytokine data are
+compressed into latent components. Clearer clustering and less overlap
+between groups suggest stronger discrimination.</p>
+<p>In this example, the group separation is only moderate. The displayed
+model accuracy is about 55.6%, which is not strong for a three-class
+problem. That means the visual separation should be interpreted
+cautiously rather than as proof of a reliable classifier.</p>
 </div>
 <div class="section level3">
-<h3 id="loadings-plot---component-1">Loadings Plot - Component 1<a class="anchor" aria-label="anchor" href="#loadings-plot---component-1"></a>
+<h3 id="loadings-plot">Loadings plot<a class="anchor" aria-label="anchor" href="#loadings-plot"></a>
 </h3>
 <p><img src="../reference/figures/splsda_results_Page_4.png"></p>
-<p>The loadings plot show the variables driving the separation along the
-first component. The loadings plot show the magnitude of the loadings
-(seen by the scale at the bottom). The signs, whether negative or
-positive are of direction relative to the component’s score and should
-not be interpreted as a p-value would and should be interpreted as to
-how strong the contribution of those features are in the model. To make
-interpretation easy, we can think about taking the absolute value of the
-loadings, for example in our plot we see that cytokine IFN-G has a
-magnitude of ≈ -0.4. Based on this, the |-0.4| magnitude would be 0.4
-which would still make it the cytokine with the strongest contribution
-to the model associated with T2D. Similarly, cytokine IL-31 is the 3rd
-strongest contributor to the model associated with PreT2D group with a
-magnitude of 0.3.</p>
+<p>The loadings plot shows which cytokines contribute most to a
+component. Larger absolute loading values indicate stronger contribution
+to the separation captured by that component.</p>
+<p>The sign of the loading is directional, not a p-value. In practice,
+app users usually care most about the magnitude because it identifies
+the cytokines that are driving the component most strongly.</p>
 </div>
 <div class="section level3">
-<h3 id="variable-importance-in-projection-vip-scores---component-1">Variable Importance in Projection (VIP) Scores - Component 1<a class="anchor" aria-label="anchor" href="#variable-importance-in-projection-vip-scores---component-1"></a>
+<h3 id="vip-scores">VIP scores<a class="anchor" aria-label="anchor" href="#vip-scores"></a>
 </h3>
 <p><img src="../reference/figures/splsda_results_Page_5.png"></p>
-<p>VIP scores are another way to measure the most influential cytokines
-in the model. Once again, we can see the same cytokines that we saw in
-the loadings plot as the stronger contributors to have high VIP scores.
-A general rule of thumb is that variables with VIP scores &gt; 1 are
-considered to be the most influential (Tenenhaus 1998), which are used
-for a second sPLS-DA model to determine if the classification is
-improved. The secondary model is omitted from this tutorial.</p>
+<p>Variable Importance in Projection (VIP) scores summarize how
+influential each cytokine is in the fitted model. A common rule of thumb
+is that VIP values above 1 indicate particularly influential
+variables.</p>
+<p>VIP is useful because it gives a more model-level view of importance
+than a single loading plot. If the same cytokines appear important in
+both the loadings and VIP views, confidence in their relevance usually
+improves.</p>
 </div>
 <div class="section level3">
-<h3 id="receiver-operating-characteristic-roc-curve-and-area-under-the-curve-auc">Receiver Operating Characteristic (ROC) Curve and Area Under the
-Curve (AUC)<a class="anchor" aria-label="anchor" href="#receiver-operating-characteristic-roc-curve-and-area-under-the-curve-auc"></a>
+<h3 id="roc-and-auc">ROC and AUC<a class="anchor" aria-label="anchor" href="#roc-and-auc"></a>
 </h3>
 <p><img src="../reference/figures/splsda_results_Page_2.png"></p>
-<p>The ROC curve and AUC value is a great way to evaluate the model’s
-performance as the curve plots the true positive rate (sensitivity)
-against the false positive rate (1-specificity). The AUC value provides
-a single measure of a model’s ability to discriminate between classes,
-with values closer to 1 indicating better performance. In our example,
-the comparison of PreT2D vs Others shows us the best discrimination of
-the model with an AUC value of 0.8. Since it is a multiclass comparison,
-the AUC value is treated as one group versus all the others combined
-(i.e. PreT2D vs. Others (ND +T2D)). Therefore, PreT2D has a fairly
-distinct profile compared with the combined ND+T2D group and the model
-is reasonably good at discriminating PreT2D from the other groups.</p>
+<p>ROC curves summarize discrimination performance. In multiclass
+settings, the app reports one-vs-rest style performance, so the AUC for
+one group should be read as “how well this group is separated from the
+others combined.”</p>
+<p>In this example, PreT2D shows the best one-vs-rest discrimination,
+with an AUC around 0.8. That suggests the model distinguishes PreT2D
+better than the other classes, even though the overall model accuracy is
+still modest.</p>
 </div>
 <div class="section level3">
-<h3 id="cross-validation-performance">Cross-Validation Performance<a class="anchor" aria-label="anchor" href="#cross-validation-performance"></a>
+<h3 id="cross-validation-performance">Cross-validation performance<a class="anchor" aria-label="anchor" href="#cross-validation-performance"></a>
 </h3>
 <p><img src="../reference/figures/splsda_results_Page_3.png"></p>
-<p>The sPLS-DA method in the application offers two different types of
-cross-validation methods; Leave-One-Out (LOOCV) and M-fold
-cross-validation. These methods are also used to evaluate the
-performance of the model alongside the ROC curve and AUC as sPLS-DA is
-prone to overfitting especially when working with small sample size and
-large number of variables.</p>
-<p>Difference between LOOCV and M-fold cross-validation:</p>
-<ul>
-<li><p>LOOCV: This method involves training the model on all data points
-except one, and then testing it on that single left-out data point. This
-process is repeated for every data point, and the results are averaged.
-LOOCV is computationally intensive but provides a nearly unbiased
-estimate of the model’s performance, especially useful for small
-datasets.</p></li>
-<li><p>M-fold Cross-Validation: In M-fold cross-validation (e.g., 5-fold
-or 10-fold), the dataset is randomly divided into M equally sized
-subsets (folds). The model is trained on M-1 folds and validated on the
-remaining fold. This process is repeated 100 times, with each fold
-serving as the validation set exactly once. The results from each fold
-are then averaged to produce a single performance estimate.</p></li>
-</ul>
-<p>In our example, we can see that the LOOCV error rate is plotted
-across the first 2 components. The error rate is the rate of
-misclassification in the model which in our case LOOCV shows an error
-rate of approximately 49.5%. This is can be also reworded as, LOOCV
-shows us an accuracy of 50.5%, which is similar to our overall model
-accuracy that we saw earlier in the 2D classification plot.</p>
+<p>Cross-validation is one of the most important outputs in supervised
+multivariate analysis. It tells you whether the apparent separation is
+likely to generalize beyond the current dataset.</p>
+<p>In the example, the error rate remains fairly high, which matches the
+modest overall accuracy. That agreement is useful: it means the
+validation outputs are reinforcing the same cautious interpretation.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="common-cautions">Common cautions<a class="anchor" aria-label="anchor" href="#common-cautions"></a>
+</h2>
+<p>Keep these points in mind when using sPLS-DA:</p>
+<ul>
+<li>It is supervised, so apparent separation can look stronger than it
+would in an unsupervised method.</li>
+<li>Small sample sizes and large variable counts increase overfitting
+risk.</li>
+<li>A visually attractive score plot is not enough on its own;
+cross-validation and ROC summaries matter.</li>
+<li>The selected variables are model-dependent, so they should be
+treated as candidates for follow-up rather than final biological
+conclusions by themselves.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="how-to-reproduce-the-result-in-the-app">How to reproduce the result in the app<a class="anchor" aria-label="anchor" href="#how-to-reproduce-the-result-in-the-app"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Filter the dataset to the groups and treatment condition you want to
+compare.</li>
+<li>Choose
+<code>Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)</code>.</li>
+<li>Set <code>sPLS-DA Comparison Column</code>,
+<code>Number of Variables</code>, and
+<code>Number of Components</code>.</li>
+<li>Decide whether to turn on <code>Cross-Validation Option</code>,
+<code>Plot ROC</code>, <code>Draw Ellipse</code>,
+<code>Shaded Background Prediction</code>, and
+<code>Confusion Matrix</code>.</li>
+<li>Review the score plot, loadings, VIP scores, and validation metrics
+together.</li>
+</ol>
 <div class="section level3">
-<h3 id="below-is-a-short-animation-on-how-to-obtain-the-same-result-from-the-application">Below is a short animation on how to obtain the same result from the
-application:<a class="anchor" aria-label="anchor" href="#below-is-a-short-animation-on-how-to-obtain-the-same-result-from-the-application"></a>
+<h3 id="app-walkthrough">App walkthrough<a class="anchor" aria-label="anchor" href="#app-walkthrough"></a>
 </h3>
 <p><img src="../reference/figures/sPLS-DA.gif"></p>
 </div>
 <div class="section level3">
-<h3 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<h3 id="reference">Reference<a class="anchor" aria-label="anchor" href="#reference"></a>
 </h3>
-<p>Tenenhaus, M. (1998). La regression PLS: theorie et pratique. Paris:
-Editions Technic.</p>
+<p>Tenenhaus, M. (1998). <em>La regression PLS: theorie et
+pratique</em>. Paris: Editions Technic.</p>
 <hr>
-<p><em>Last updated:</em> March 30, 2026</p>
+<p><em>Last updated:</em> April 02, 2026</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

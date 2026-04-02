@@ -1,128 +1,153 @@
 # Understanding (s)PLS-DA
 
-## Sparse Partial Least Squares Discriminant Analysis (sPLS-DA)
+## When to use (s)PLS-DA
 
-Sparse Partial Least Squares Discriminant Analysis (sPLS-DA) is a
-supervised multivariate method that projects samples into new components
-that best separate predefined groups while selecting a small set of
-discriminative variables (features). This page shows how to interpret
-the main figures produced by the app and how to reproduce them.
+Sparse Partial Least Squares Discriminant Analysis, or sPLS-DA, is a
+supervised multivariate method. It is useful when your goal is to see
+whether whole cytokine profiles separate predefined groups and which
+features drive that separation.
 
-## Example Results: CD3/CD28 Treatment
+Because the method uses the class labels directly, it is more powerful
+for discrimination than unsupervised methods such as PCA, but it also
+requires more caution when interpreting apparent separation.
 
-For this brief interpretation tutorial, we will use the results
-generated using the CD3/CD28 treatment condition from the `ExampleData1`
-dataset built into the application. The groups compared in this example
-are Non-diabetic (ND), Pre-Diabetic (PreT2D), and Type 2 Diabetes (T2D).
+## Example context
 
-### 2D Component Scores (Classification) Plot
+This article uses results from the `ExampleData1` dataset built into the
+application. The example focuses on the CD3/CD28 treatment condition and
+compares Non-Diabetic (ND), Pre-Diabetic (PreT2D), and Type 2 Diabetes
+(T2D) subjects.
+
+## Which app arguments matter most
+
+The settings that most strongly affect interpretation are:
+
+- `sPLS-DA Comparison Column`: defines the classes the model is trying
+  to separate.
+- `sPLS-DA Stratification Column`: adds a second visual grouping layer
+  when you want shapes or labels within the main classes.
+- `Number of Variables`: controls how many cytokines are kept on each
+  component.
+- `Cross-Validation Option` and `Number of Folds`: control how model
+  stability is checked.
+- `Number of Components`: controls how much latent structure the model
+  calculates and displays.
+- `Plot ROC`, `Draw Ellipse`, `Shaded Background Prediction`, and
+  `Confusion Matrix`: add validation and visual aids that help you judge
+  how convincing the separation really is.
+- `Perform Batch Correction?`, `Select Batch Column`,
+  `Perform Multilevel Analysis?`, and `Select Repeated Measures Column`:
+  matter only when your study includes known batch effects or repeated
+  measurements.
+
+For app users, the most practical rule is to avoid changing many of
+these at once. Start with a reasonable number of variables and
+components, then use cross-validation and ROC outputs to judge whether
+the model is actually supporting the visual separation.
+
+## What outputs matter most
+
+### 2D component scores plot
 
 ![](../reference/figures/splsda_results_Page_1.png)
 
-This plot shows us the classification of the groups chosen for
-comparison. Generally, we would look for any clustering or separation of
-the groups. Ellipses seen in this figure are based on a 95% confidence
-region, so there may be overlap however less overlap suggests better
-discrimination. A better way to see discrimination would be to use the
-option for `shaded background prediction`, however it takes a bit longer
-due to computational time. The axis labels show the variance explained
-by the component 1 in the x-axis (39% in this example) and component 2
-in the y-axis (33% in this example). The title of the plot displays the
-model accuracy which can provide a surface level view of the
-classification done by the model. In our case the model accuracy is
-55.6% in classifying the three different groups which is not great as it
-is almost by chance. An accuracy of ≥ 70% is generally acceptable as it
-shows good discrimination.
+This plot shows where samples fall after the cytokine data are
+compressed into latent components. Clearer clustering and less overlap
+between groups suggest stronger discrimination.
 
-### Loadings Plot - Component 1
+In this example, the group separation is only moderate. The displayed
+model accuracy is about 55.6%, which is not strong for a three-class
+problem. That means the visual separation should be interpreted
+cautiously rather than as proof of a reliable classifier.
+
+### Loadings plot
 
 ![](../reference/figures/splsda_results_Page_4.png)
 
-The loadings plot show the variables driving the separation along the
-first component. The loadings plot show the magnitude of the loadings
-(seen by the scale at the bottom). The signs, whether negative or
-positive are of direction relative to the component’s score and should
-not be interpreted as a p-value would and should be interpreted as to
-how strong the contribution of those features are in the model. To make
-interpretation easy, we can think about taking the absolute value of the
-loadings, for example in our plot we see that cytokine IFN-G has a
-magnitude of ≈ -0.4. Based on this, the \|-0.4\| magnitude would be 0.4
-which would still make it the cytokine with the strongest contribution
-to the model associated with T2D. Similarly, cytokine IL-31 is the 3rd
-strongest contributor to the model associated with PreT2D group with a
-magnitude of 0.3.
+The loadings plot shows which cytokines contribute most to a component.
+Larger absolute loading values indicate stronger contribution to the
+separation captured by that component.
 
-### Variable Importance in Projection (VIP) Scores - Component 1
+The sign of the loading is directional, not a p-value. In practice, app
+users usually care most about the magnitude because it identifies the
+cytokines that are driving the component most strongly.
+
+### VIP scores
 
 ![](../reference/figures/splsda_results_Page_5.png)
 
-VIP scores are another way to measure the most influential cytokines in
-the model. Once again, we can see the same cytokines that we saw in the
-loadings plot as the stronger contributors to have high VIP scores. A
-general rule of thumb is that variables with VIP scores \> 1 are
-considered to be the most influential (Tenenhaus 1998), which are used
-for a second sPLS-DA model to determine if the classification is
-improved. The secondary model is omitted from this tutorial.
+Variable Importance in Projection (VIP) scores summarize how influential
+each cytokine is in the fitted model. A common rule of thumb is that VIP
+values above 1 indicate particularly influential variables.
 
-### Receiver Operating Characteristic (ROC) Curve and Area Under the Curve (AUC)
+VIP is useful because it gives a more model-level view of importance
+than a single loading plot. If the same cytokines appear important in
+both the loadings and VIP views, confidence in their relevance usually
+improves.
+
+### ROC and AUC
 
 ![](../reference/figures/splsda_results_Page_2.png)
 
-The ROC curve and AUC value is a great way to evaluate the model’s
-performance as the curve plots the true positive rate (sensitivity)
-against the false positive rate (1-specificity). The AUC value provides
-a single measure of a model’s ability to discriminate between classes,
-with values closer to 1 indicating better performance. In our example,
-the comparison of PreT2D vs Others shows us the best discrimination of
-the model with an AUC value of 0.8. Since it is a multiclass comparison,
-the AUC value is treated as one group versus all the others combined
-(i.e. PreT2D vs. Others (ND +T2D)). Therefore, PreT2D has a fairly
-distinct profile compared with the combined ND+T2D group and the model
-is reasonably good at discriminating PreT2D from the other groups.
+ROC curves summarize discrimination performance. In multiclass settings,
+the app reports one-vs-rest style performance, so the AUC for one group
+should be read as “how well this group is separated from the others
+combined.”
 
-### Cross-Validation Performance
+In this example, PreT2D shows the best one-vs-rest discrimination, with
+an AUC around 0.8. That suggests the model distinguishes PreT2D better
+than the other classes, even though the overall model accuracy is still
+modest.
+
+### Cross-validation performance
 
 ![](../reference/figures/splsda_results_Page_3.png)
 
-The sPLS-DA method in the application offers two different types of
-cross-validation methods; Leave-One-Out (LOOCV) and M-fold
-cross-validation. These methods are also used to evaluate the
-performance of the model alongside the ROC curve and AUC as sPLS-DA is
-prone to overfitting especially when working with small sample size and
-large number of variables.
+Cross-validation is one of the most important outputs in supervised
+multivariate analysis. It tells you whether the apparent separation is
+likely to generalize beyond the current dataset.
 
-Difference between LOOCV and M-fold cross-validation:
+In the example, the error rate remains fairly high, which matches the
+modest overall accuracy. That agreement is useful: it means the
+validation outputs are reinforcing the same cautious interpretation.
 
-- LOOCV: This method involves training the model on all data points
-  except one, and then testing it on that single left-out data point.
-  This process is repeated for every data point, and the results are
-  averaged. LOOCV is computationally intensive but provides a nearly
-  unbiased estimate of the model’s performance, especially useful for
-  small datasets.
+## Common cautions
 
-- M-fold Cross-Validation: In M-fold cross-validation (e.g., 5-fold or
-  10-fold), the dataset is randomly divided into M equally sized subsets
-  (folds). The model is trained on M-1 folds and validated on the
-  remaining fold. This process is repeated 100 times, with each fold
-  serving as the validation set exactly once. The results from each fold
-  are then averaged to produce a single performance estimate.
+Keep these points in mind when using sPLS-DA:
 
-In our example, we can see that the LOOCV error rate is plotted across
-the first 2 components. The error rate is the rate of misclassification
-in the model which in our case LOOCV shows an error rate of
-approximately 49.5%. This is can be also reworded as, LOOCV shows us an
-accuracy of 50.5%, which is similar to our overall model accuracy that
-we saw earlier in the 2D classification plot.
+- It is supervised, so apparent separation can look stronger than it
+  would in an unsupervised method.
+- Small sample sizes and large variable counts increase overfitting
+  risk.
+- A visually attractive score plot is not enough on its own;
+  cross-validation and ROC summaries matter.
+- The selected variables are model-dependent, so they should be treated
+  as candidates for follow-up rather than final biological conclusions
+  by themselves.
 
-### Below is a short animation on how to obtain the same result from the application:
+## How to reproduce the result in the app
+
+1.  Filter the dataset to the groups and treatment condition you want to
+    compare.
+2.  Choose
+    `Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)`.
+3.  Set `sPLS-DA Comparison Column`, `Number of Variables`, and
+    `Number of Components`.
+4.  Decide whether to turn on `Cross-Validation Option`, `Plot ROC`,
+    `Draw Ellipse`, `Shaded Background Prediction`, and
+    `Confusion Matrix`.
+5.  Review the score plot, loadings, VIP scores, and validation metrics
+    together.
+
+### App walkthrough
 
 ![](../reference/figures/sPLS-DA.gif)
 
-### References
+### Reference
 
-Tenenhaus, M. (1998). La regression PLS: theorie et pratique. Paris:
+Tenenhaus, M. (1998). *La regression PLS: theorie et pratique*. Paris:
 Editions Technic.
 
 ------------------------------------------------------------------------
 
-*Last updated:* March 30, 2026
+*Last updated:* April 02, 2026

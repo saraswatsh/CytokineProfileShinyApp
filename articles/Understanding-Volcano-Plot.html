@@ -78,59 +78,142 @@
     
     
 <div class="section level2">
-<h2 id="volcano-plot">Volcano Plot<a class="anchor" aria-label="anchor" href="#volcano-plot"></a>
+<h2 id="when-to-use-a-volcano-plot">When to use a volcano plot<a class="anchor" aria-label="anchor" href="#when-to-use-a-volcano-plot"></a>
 </h2>
-<p>The volcano plot is a type of scatter plot that simultaneously
-displays a measure of statistical significance (p-value) against the
-magnitude of change (fold change). It is an ideal tool for quickly
-identifying the most biologically relevant data points.</p>
-<p>Below is a plot generated for the comparison of subjects with Type 2
-Diabetes (T2D) vs. Non Diabetic (ND).</p>
+<p>A volcano plot is most useful when you are comparing two groups and
+want to see both magnitude of change and statistical evidence at the
+same time. In CytokineProfile Shiny, it is a fast way to identify
+cytokines that look both biologically large and statistically notable in
+the same figure.</p>
+</div>
+<div class="section level2">
+<h2 id="what-the-app-is-showing">What the app is showing<a class="anchor" aria-label="anchor" href="#what-the-app-is-showing"></a>
+</h2>
+<p>The example below compares subjects with Type 2 Diabetes (T2D)
+against Non-Diabetic (ND) subjects.</p>
 <p><img src="../reference/figures/volcanoplot_vignette.png"></p>
 <div class="section level3">
-<h3 id="the-axes">The Axes<a class="anchor" aria-label="anchor" href="#the-axes"></a>
+<h3 id="the-axes">The axes<a class="anchor" aria-label="anchor" href="#the-axes"></a>
 </h3>
 <ul>
-<li><p>X-axis: Average log2 Fold Change (log2FC) This axis quantifies
-how much the level of a specific variable has changed between the
-groups. It is used to represent up-regulation and down-regulation
-symmetrically. For interpretation, when looking at positive values (&gt;
-0), the cytokines are more abundant (up-regulated) in subjects. On the
-other hand, when looking at negative values (&lt; 0), the cytokines are
-less abundant (down-regulated) in subjects.</p></li>
-<li><p>Y-axis: -Log10 p-value This axis represents the statistical
-significance of the change observed for each cytokine. The p-value from
-a t-test is transformed using the negative logarithm base 10. This
-transformation is convenient because smaller p-values (which indicate
-greater significance) become larger numbers.</p></li>
+<li>X-axis: Average log2 fold change (<code>log2FC</code>) Positive
+values indicate higher abundance in the first condition of the
+comparison, while negative values indicate lower abundance.</li>
+<li>Y-axis: <code>-log10(p-value)</code> Larger values indicate smaller
+p-values. Points higher on the plot therefore have stronger statistical
+evidence against no difference.</li>
 </ul>
 </div>
 <div class="section level3">
-<h3 id="visual-cues">Visual Cues<a class="anchor" aria-label="anchor" href="#visual-cues"></a>
+<h3 id="the-visual-cues">The visual cues<a class="anchor" aria-label="anchor" href="#the-visual-cues"></a>
 </h3>
 <ul>
-<li>Data Points: Each circle represents a different variable or cytokine
-in this example.</li>
-<li>Vertical Dashed Lines: These are set at log2FC = -1 and log2FC = 1.
-These lines represent a fold-change threshold (in this case, a 2-fold
-change). Data points falling outside these lines show a substantial
-change.</li>
-<li>Horizontal Dashed Line: This line is drawn at a -log10(P-Value) of
-2, which corresponds to a p-value of 0.01. Any cytokine above this line
-is considered statistically significant.</li>
+<li>Each point is one cytokine.</li>
+<li>The vertical dashed lines mark the fold-change threshold. In this
+example, <code>log2FC = -1</code> and <code>log2FC = 1</code> correspond
+to a 2-fold decrease or increase.</li>
+<li>The horizontal dashed line marks the p-value threshold. In this
+example, <code>-log10(p-value) = 2</code>, which corresponds to
+<code>p = 0.01</code>.</li>
 </ul>
 </div>
-<div class="section level3">
-<h3 id="interpretation">Interpretation<a class="anchor" aria-label="anchor" href="#interpretation"></a>
-</h3>
 </div>
+<div class="section level2">
+<h2 id="which-app-arguments-matter-most">Which app arguments matter most<a class="anchor" aria-label="anchor" href="#which-app-arguments-matter-most"></a>
+</h2>
+<p>The main settings to pay attention to are:</p>
+<ul>
+<li>
+<code>Comparison Column</code>: decides which categorical variable
+defines the two groups being compared.</li>
+<li>
+<code>Condition 1</code> and <code>Condition 2</code>: decide which
+two levels of that column are contrasted.</li>
+<li>
+<code>Log2 Fold Change Threshold</code>: determines how large a
+change must be before you visually treat it as biologically
+substantial.</li>
+<li>
+<code>P-Value Threshold</code>: controls the statistical evidence
+cutoff.</li>
+<li>
+<code>Top Labels</code>: affects readability only. It changes how
+many of the strongest points get labeled, not the underlying
+calculations.</li>
+</ul>
+<p>A good workflow is to set the comparison first, keep the default
+thresholds, and then tighten or relax the thresholds only if you have a
+clear reporting reason.</p>
+</div>
+<div class="section level2">
+<h2 id="how-to-interpret-the-figure">How to interpret the figure<a class="anchor" aria-label="anchor" href="#how-to-interpret-the-figure"></a>
+</h2>
+<p>The most interpretable points are usually the ones in the upper
+corners:</p>
+<ul>
+<li>Upper right: large positive fold change and strong statistical
+evidence.</li>
+<li>Upper left: large negative fold change and strong statistical
+evidence.</li>
+<li>Center but high: statistically detectable changes that may be too
+small to matter biologically.</li>
+<li>Far left or far right but low: large fold changes that may be
+unstable, noisy, or underpowered.</li>
+</ul>
+<p>For this example figure:</p>
+<ul>
+<li>Cytokines in the upper-left region are the strongest candidates for
+lower abundance in T2D relative to ND.</li>
+<li>Cytokines in the upper-right region would be candidates for higher
+abundance in T2D relative to ND.</li>
+<li>Points above the horizontal line but between the vertical lines
+should be read as statistically supported but modest in magnitude.</li>
+<li>Points outside the vertical lines but below the horizontal line may
+still be interesting for follow-up, but they should not be treated as
+strong differential findings on statistical grounds alone.</li>
+</ul>
+<p>The key idea is that a volcano plot rewards agreement between effect
+size and p-value. A point that looks strong on only one of those
+dimensions deserves more caution.</p>
+</div>
+<div class="section level2">
+<h2 id="common-cautions">Common cautions<a class="anchor" aria-label="anchor" href="#common-cautions"></a>
+</h2>
+<p>Keep these limits in mind when reading volcano plots:</p>
+<ul>
+<li>The p-values come from repeated two-group testing, so
+multiple-comparison context still matters even when the figure is
+visually intuitive.</li>
+<li>Fold change can look large when sample sizes are small or group
+variability is high.</li>
+<li>A volcano plot is best for two-group comparisons. If you want to
+compare three or more groups together, other methods are often more
+informative.</li>
+<li>This figure helps prioritize candidates; it does not replace
+checking the raw distributions.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="how-to-reproduce-the-result-in-the-app">How to reproduce the result in the app<a class="anchor" aria-label="anchor" href="#how-to-reproduce-the-result-in-the-app"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Load a dataset and filter it to the two groups you want to
+compare.</li>
+<li>Choose <code>Volcano Plot</code>.</li>
+<li>Select <code>Comparison Column</code>, <code>Condition 1</code>, and
+<code>Condition 2</code>.</li>
+<li>Adjust <code>Log2 Fold Change Threshold</code>,
+<code>P-Value Threshold</code>, and <code>Top Labels</code> only if
+needed.</li>
+<li>Review the highlighted points together with the labels and any
+follow-up plots.</li>
+</ol>
 <div class="section level3">
-<h3 id="below-is-a-short-animation-on-how-to-obtain-the-same-result-from-the-application">Below is a short animation on how to obtain the same result from the
-application:<a class="anchor" aria-label="anchor" href="#below-is-a-short-animation-on-how-to-obtain-the-same-result-from-the-application"></a>
+<h3 id="app-walkthrough">App walkthrough<a class="anchor" aria-label="anchor" href="#app-walkthrough"></a>
 </h3>
 <p><img src="../reference/figures/VolcanoPlot.gif"></p>
 <hr>
-<p><em>Last updated:</em> March 30, 2026</p>
+<p><em>Last updated:</em> April 02, 2026</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

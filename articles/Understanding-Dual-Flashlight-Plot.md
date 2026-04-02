@@ -1,73 +1,114 @@
 # Understanding Dual-Flashlight Plot
 
-## Dual-Flashlight Plot
+## When to use a dual-flashlight plot
 
-The dual-flashlight plot is a combined visualization of strictly
-standardized mean difference (SSMD) or effect size versus log2
-fold-change, designed to help quickly identify cytokines that are both
-highly different between two conditions and statistically significant.
+The dual-flashlight plot is useful when you want to screen for cytokines
+that show both a meaningful fold change and a meaningful effect size
+threshold. In CytokineProfile Shiny, it is best treated as a
+prioritization plot rather than as a formal hypothesis-testing figure.
 
-Below is a plot generated for the comparison of subjects with Type 2
-Diabetes (T2D) vs. Non Diabetic (ND).
+## What the app is showing
+
+The example below compares subjects with Type 2 Diabetes (T2D) against
+Non-Diabetic (ND) subjects.
 
 ![](../reference/figures/dualflashlightplot_vignette.png)
 
-### The Axes
+### The axes
 
-- X-axis: Average log2 Fold Change (log2FC) This axis quantifies how
-  much the level of a specific variable has changed between the groups.
-  It is used to represent up-regulation and down-regulation
-  symmetrically. For interpretation, when looking at positive values (\>
-  0), the cytokines are more abundant (up-regulated) in subjects. On the
-  other hand, when looking at negative values (\< 0), the cytokines are
-  less abundant (down-regulated) in subjects.
+- X-axis: Average log2 fold change (`log2FC`) Positive values indicate
+  higher abundance in one group, and negative values indicate lower
+  abundance.
+- Y-axis: Strictly standardized mean difference (`SSMD`) SSMD is an
+  effect-size measure that combines mean difference and within-group
+  variability. Larger absolute values indicate stronger group
+  separation.
 
-- Y-axis: Standardized Mean Difference (SSMD) SSMD is a measure of
-  effect size. It indicates the magnitude of the difference between the
-  two groups while taking into account the variability within each
-  group. In our plot for T2D vs. ND subjects, there are categories for
-  the effect and significance.
+### The visual cues
 
-The categories for effect size are as follows:
+- Each point is one cytokine.
+- The vertical dashed lines mark the user-chosen `log2FC` threshold.
+- The highlighted points are the cytokines that cross both the `SSMD`
+  threshold and the `log2FC` threshold.
+- The labels usually identify the strongest hits according to the
+  ranking criterion used in the app.
 
-- Strong effect: SSMD \>= 1
-- Moderate effect: 0.5 \<= SSMD \< 1
-- Weak effect: SSMD \< 0.5
+## Which app arguments matter most
 
-What determines significance is if the SSMD value is greater than the
-provided threshold **AND** the log2 fold change is greater than the
-provided threshold.
+The most important controls are:
 
-### Visual Cues
+- `Comparison Column`: decides which categorical variable defines the
+  comparison.
+- `Condition 1` and `Condition 2`: decide which two levels are
+  contrasted in the plot.
+- `SSMD Threshold`: controls how large the effect size must be before a
+  point is treated as a notable hit.
+- `Log2 Fold Change Threshold`: controls how large the fold change must
+  be.
+- `Top Labels`: controls how many of the top-ranked cytokines are
+  labeled.
 
-- Data Points: Each circle represents a different variable or cytokine
-  in this example.
-- Vertical Dashed Lines: These are set at log2FC = -2 and log2FC = 2.
-  Any variable falling outside these lines has undergone at least a
-  4-fold change and is considered to have a large change in expression.
-- Horizontal dashed line at SSMD = 0 separates net positive from
-  negative effects.
-- The significant legend identifies significant cytokines that are
-  statistically significant **AND** have a log2FC value greater than the
-  threshold provided.
+These thresholds are not cosmetic. They determine which cytokines get
+emphasized, so they should be set intentionally and reported clearly.
 
-### Interpretation
+## How to interpret the figure
 
-- IL-12.P70: This is the only protein colored red, indicating it is
-  statistically significant (p \< 0.01). It is located in the top-left
-  quadrant with a log2FC of approximately -2.8. This means IL-12.P70 is
-  significantly down-regulated by more than 7-fold.  
-- IL-6: This protein has the highest position on the y-axis, meaning it
-  has the lowest p-value and is the most statistically significant
-  finding in the dataset. However, its log2FC is approximately -0.8.
-  While this change is statistically significant, its magnitude is
-  modest (less than a 2-fold change) and does not cross the fold-change
-  threshold line.
+A dual-flashlight plot is easiest to read in terms of agreement between
+the two axes:
 
-### Below is a short animation on how to obtain the same result from the application:
+- Points far from zero on the x-axis have larger fold changes.
+- Points high on the y-axis have stronger SSMD effect sizes.
+- Points that cross both thresholds are often the most compelling
+  screening candidates.
+- Points with strong SSMD but small fold change may be consistent yet
+  not large in magnitude.
+- Points with large fold change but weak SSMD may reflect unstable or
+  variable signals.
+
+For the example shown:
+
+- A point in the far upper-left region would represent a cytokine with a
+  large negative fold change and a strong effect size.
+- A point near the center horizontally but high vertically would suggest
+  consistent separation without a large fold change.
+- A point far left or right but not high on SSMD should be treated more
+  cautiously because the magnitude of change is not matched by equally
+  strong standardized separation.
+
+## Common cautions
+
+The most important caution is conceptual:
+
+- This plot is not driven by p-values.
+- A highlighted point is a threshold-based hit, not automatically a
+  statistically significant result.
+
+That makes the plot very useful for screening, but it should be paired
+with univariate testing or direct inspection of the raw data when you
+want inferential evidence.
+
+Additional cautions:
+
+- Threshold choice strongly affects which points look important.
+- Very small sample sizes can make both fold change and SSMD less
+  stable.
+- The direction of the fold change depends on the group ordering, so
+  always confirm which group is treated as the reference.
+
+## How to reproduce the result in the app
+
+1.  Filter the dataset to the two groups you want to compare.
+2.  Choose `Dual-Flashlight Plot`.
+3.  Select `Comparison Column`, `Condition 1`, and `Condition 2`.
+4.  Set `SSMD Threshold`, `Log2 Fold Change Threshold`, and
+    `Top Labels`.
+5.  Review the highlighted cytokines as prioritized candidates for
+    follow-up.
+
+### App walkthrough
 
 ![](../reference/figures/DualFlashlightPlot.gif)
 
 ------------------------------------------------------------------------
 
-*Last updated:* March 30, 2026
+*Last updated:* April 02, 2026

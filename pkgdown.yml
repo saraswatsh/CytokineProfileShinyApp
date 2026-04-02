@@ -4,12 +4,16 @@ pkgdown_sha: ~
 articles:
   Basic-Tutorial-of-CytokineProfile-Shiny: Basic-Tutorial-of-CytokineProfile-Shiny.html
   R-installation: R-installation.html
+  Understanding-Correlation-Analysis: Understanding-Correlation-Analysis.html
   Understanding-Dual-Flashlight-Plot: Understanding-Dual-Flashlight-Plot.html
+  Understanding-Heatmaps: Understanding-Heatmaps.html
+  Understanding-Multi-Level-Univariate-Analysis: Understanding-Multi-Level-Univariate-Analysis.html
+  Understanding-PCA: Understanding-PCA.html
   Understanding-Random-Forest: Understanding-Random-Forest.html
   Understanding-sPLS-DA: Understanding-sPLS-DA.html
   Understanding-Volcano-Plot: Understanding-Volcano-Plot.html
   Understanding-XGBoost: Understanding-XGBoost.html
-last_built: 2026-03-30T15:21Z
+last_built: 2026-04-02T13:35Z
 urls:
   reference: https://shinyinfo.cytokineprofile.org/reference
   article: https://shinyinfo.cytokineprofile.org/articles

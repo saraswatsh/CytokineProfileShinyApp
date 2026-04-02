@@ -78,83 +78,139 @@
     
     
 <div class="section level2">
-<h2 id="dual-flashlight-plot">Dual-Flashlight Plot<a class="anchor" aria-label="anchor" href="#dual-flashlight-plot"></a>
+<h2 id="when-to-use-a-dual-flashlight-plot">When to use a dual-flashlight plot<a class="anchor" aria-label="anchor" href="#when-to-use-a-dual-flashlight-plot"></a>
 </h2>
-<p>The dual-flashlight plot is a combined visualization of strictly
-standardized mean difference (SSMD) or effect size versus log2
-fold-change, designed to help quickly identify cytokines that are both
-highly different between two conditions and statistically
-significant.</p>
-<p>Below is a plot generated for the comparison of subjects with Type 2
-Diabetes (T2D) vs. Non Diabetic (ND).</p>
+<p>The dual-flashlight plot is useful when you want to screen for
+cytokines that show both a meaningful fold change and a meaningful
+effect size threshold. In CytokineProfile Shiny, it is best treated as a
+prioritization plot rather than as a formal hypothesis-testing
+figure.</p>
+</div>
+<div class="section level2">
+<h2 id="what-the-app-is-showing">What the app is showing<a class="anchor" aria-label="anchor" href="#what-the-app-is-showing"></a>
+</h2>
+<p>The example below compares subjects with Type 2 Diabetes (T2D)
+against Non-Diabetic (ND) subjects.</p>
 <p><img src="../reference/figures/dualflashlightplot_vignette.png"></p>
 <div class="section level3">
-<h3 id="the-axes">The Axes<a class="anchor" aria-label="anchor" href="#the-axes"></a>
+<h3 id="the-axes">The axes<a class="anchor" aria-label="anchor" href="#the-axes"></a>
 </h3>
 <ul>
-<li><p>X-axis: Average log2 Fold Change (log2FC) This axis quantifies
-how much the level of a specific variable has changed between the
-groups. It is used to represent up-regulation and down-regulation
-symmetrically. For interpretation, when looking at positive values (&gt;
-0), the cytokines are more abundant (up-regulated) in subjects. On the
-other hand, when looking at negative values (&lt; 0), the cytokines are
-less abundant (down-regulated) in subjects.</p></li>
-<li><p>Y-axis: Standardized Mean Difference (SSMD) SSMD is a measure of
-effect size. It indicates the magnitude of the difference between the
-two groups while taking into account the variability within each group.
-In our plot for T2D vs. ND subjects, there are categories for the effect
-and significance.</p></li>
-</ul>
-<p>The categories for effect size are as follows:</p>
-<ul>
-<li>Strong effect: SSMD &gt;= 1</li>
-<li>Moderate effect: 0.5 &lt;= SSMD &lt; 1</li>
-<li>Weak effect: SSMD &lt; 0.5</li>
-</ul>
-<p>What determines significance is if the SSMD value is greater than the
-provided threshold <strong>AND</strong> the log2 fold change is greater
-than the provided threshold.</p>
-</div>
-<div class="section level3">
-<h3 id="visual-cues">Visual Cues<a class="anchor" aria-label="anchor" href="#visual-cues"></a>
-</h3>
-<ul>
-<li>Data Points: Each circle represents a different variable or cytokine
-in this example.</li>
-<li>Vertical Dashed Lines: These are set at log2FC = -2 and log2FC = 2.
-Any variable falling outside these lines has undergone at least a 4-fold
-change and is considered to have a large change in expression.</li>
-<li>Horizontal dashed line at SSMD = 0 separates net positive from
-negative effects.</li>
-<li>The significant legend identifies significant cytokines that are
-statistically significant <strong>AND</strong> have a log2FC value
-greater than the threshold provided.</li>
+<li>X-axis: Average log2 fold change (<code>log2FC</code>) Positive
+values indicate higher abundance in one group, and negative values
+indicate lower abundance.</li>
+<li>Y-axis: Strictly standardized mean difference (<code>SSMD</code>)
+SSMD is an effect-size measure that combines mean difference and
+within-group variability. Larger absolute values indicate stronger group
+separation.</li>
 </ul>
 </div>
 <div class="section level3">
-<h3 id="interpretation">Interpretation<a class="anchor" aria-label="anchor" href="#interpretation"></a>
+<h3 id="the-visual-cues">The visual cues<a class="anchor" aria-label="anchor" href="#the-visual-cues"></a>
 </h3>
 <ul>
-<li>IL-12.P70: This is the only protein colored red, indicating it is
-statistically significant (p &lt; 0.01). It is located in the top-left
-quadrant with a log2FC of approximately -2.8. This means IL-12.P70 is
-significantly down-regulated by more than 7-fold.<br>
-</li>
-<li>IL-6: This protein has the highest position on the y-axis, meaning
-it has the lowest p-value and is the most statistically significant
-finding in the dataset. However, its log2FC is approximately -0.8. While
-this change is statistically significant, its magnitude is modest (less
-than a 2-fold change) and does not cross the fold-change threshold
-line.</li>
+<li>Each point is one cytokine.</li>
+<li>The vertical dashed lines mark the user-chosen <code>log2FC</code>
+threshold.</li>
+<li>The highlighted points are the cytokines that cross both the
+<code>SSMD</code> threshold and the <code>log2FC</code> threshold.</li>
+<li>The labels usually identify the strongest hits according to the
+ranking criterion used in the app.</li>
 </ul>
 </div>
+</div>
+<div class="section level2">
+<h2 id="which-app-arguments-matter-most">Which app arguments matter most<a class="anchor" aria-label="anchor" href="#which-app-arguments-matter-most"></a>
+</h2>
+<p>The most important controls are:</p>
+<ul>
+<li>
+<code>Comparison Column</code>: decides which categorical variable
+defines the comparison.</li>
+<li>
+<code>Condition 1</code> and <code>Condition 2</code>: decide which
+two levels are contrasted in the plot.</li>
+<li>
+<code>SSMD Threshold</code>: controls how large the effect size must
+be before a point is treated as a notable hit.</li>
+<li>
+<code>Log2 Fold Change Threshold</code>: controls how large the fold
+change must be.</li>
+<li>
+<code>Top Labels</code>: controls how many of the top-ranked
+cytokines are labeled.</li>
+</ul>
+<p>These thresholds are not cosmetic. They determine which cytokines get
+emphasized, so they should be set intentionally and reported
+clearly.</p>
+</div>
+<div class="section level2">
+<h2 id="how-to-interpret-the-figure">How to interpret the figure<a class="anchor" aria-label="anchor" href="#how-to-interpret-the-figure"></a>
+</h2>
+<p>A dual-flashlight plot is easiest to read in terms of agreement
+between the two axes:</p>
+<ul>
+<li>Points far from zero on the x-axis have larger fold changes.</li>
+<li>Points high on the y-axis have stronger SSMD effect sizes.</li>
+<li>Points that cross both thresholds are often the most compelling
+screening candidates.</li>
+<li>Points with strong SSMD but small fold change may be consistent yet
+not large in magnitude.</li>
+<li>Points with large fold change but weak SSMD may reflect unstable or
+variable signals.</li>
+</ul>
+<p>For the example shown:</p>
+<ul>
+<li>A point in the far upper-left region would represent a cytokine with
+a large negative fold change and a strong effect size.</li>
+<li>A point near the center horizontally but high vertically would
+suggest consistent separation without a large fold change.</li>
+<li>A point far left or right but not high on SSMD should be treated
+more cautiously because the magnitude of change is not matched by
+equally strong standardized separation.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="common-cautions">Common cautions<a class="anchor" aria-label="anchor" href="#common-cautions"></a>
+</h2>
+<p>The most important caution is conceptual:</p>
+<ul>
+<li>This plot is not driven by p-values.</li>
+<li>A highlighted point is a threshold-based hit, not automatically a
+statistically significant result.</li>
+</ul>
+<p>That makes the plot very useful for screening, but it should be
+paired with univariate testing or direct inspection of the raw data when
+you want inferential evidence.</p>
+<p>Additional cautions:</p>
+<ul>
+<li>Threshold choice strongly affects which points look important.</li>
+<li>Very small sample sizes can make both fold change and SSMD less
+stable.</li>
+<li>The direction of the fold change depends on the group ordering, so
+always confirm which group is treated as the reference.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="how-to-reproduce-the-result-in-the-app">How to reproduce the result in the app<a class="anchor" aria-label="anchor" href="#how-to-reproduce-the-result-in-the-app"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Filter the dataset to the two groups you want to compare.</li>
+<li>Choose <code>Dual-Flashlight Plot</code>.</li>
+<li>Select <code>Comparison Column</code>, <code>Condition 1</code>, and
+<code>Condition 2</code>.</li>
+<li>Set <code>SSMD Threshold</code>,
+<code>Log2 Fold Change Threshold</code>, and
+<code>Top Labels</code>.</li>
+<li>Review the highlighted cytokines as prioritized candidates for
+follow-up.</li>
+</ol>
 <div class="section level3">
-<h3 id="below-is-a-short-animation-on-how-to-obtain-the-same-result-from-the-application">Below is a short animation on how to obtain the same result from the
-application:<a class="anchor" aria-label="anchor" href="#below-is-a-short-animation-on-how-to-obtain-the-same-result-from-the-application"></a>
+<h3 id="app-walkthrough">App walkthrough<a class="anchor" aria-label="anchor" href="#app-walkthrough"></a>
 </h3>
 <p><img src="../reference/figures/DualFlashlightPlot.gif"></p>
 <hr>
-<p><em>Last updated:</em> March 30, 2026</p>
+<p><em>Last updated:</em> April 02, 2026</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
