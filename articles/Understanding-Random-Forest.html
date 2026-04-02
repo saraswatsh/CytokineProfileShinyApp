@@ -87,6 +87,18 @@ usually performs well with minimal tuning compared with more sensitive
 boosting methods.</p>
 </div>
 <div class="section level2">
+<h2 id="when-not-to-use-random-forest">When not to use Random Forest<a class="anchor" aria-label="anchor" href="#when-not-to-use-random-forest"></a>
+</h2>
+<p>Random Forest is usually not the best first choice when:</p>
+<ul>
+<li>the outcome is numeric rather than categorical</li>
+<li>you need an unsupervised view of structure before building a
+classifier</li>
+<li>the dataset is too small for a meaningful train/test or validation
+workflow</li>
+</ul>
+</div>
+<div class="section level2">
 <h2 id="example-context">Example context<a class="anchor" aria-label="anchor" href="#example-context"></a>
 </h2>
 <p>This example uses the <code>ExampleData1</code> dataset after
@@ -208,9 +220,27 @@ validation outputs.</li>
 <h3 id="app-walkthrough">App walkthrough<a class="anchor" aria-label="anchor" href="#app-walkthrough"></a>
 </h3>
 <p><img src="../reference/figures/rf.gif"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="what-to-read-next">What to read next<a class="anchor" aria-label="anchor" href="#what-to-read-next"></a>
+</h2>
+<p>Related articles:</p>
+<ul>
+<li>
+<a href="Understanding-XGBoost.html">Understanding XGBoost</a> for a
+more tuning-sensitive boosting alternative.</li>
+<li>
+<a href="Understanding-sPLS-DA.html">Understanding (s)PLS-DA</a> for
+supervised multivariate separation with interpretable latent
+components.</li>
+<li>
+<a href="Understanding-Boxplots-and-Violin-Plots.html">Understanding
+Boxplots and Violin Plots</a> when top-ranked features need
+raw-distribution follow-up.</li>
+</ul>
 <hr>
 <p><em>Last updated:</em> April 02, 2026</p>
-</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

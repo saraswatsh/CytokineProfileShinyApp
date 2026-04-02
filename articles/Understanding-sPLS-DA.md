@@ -11,6 +11,16 @@ Because the method uses the class labels directly, it is more powerful
 for discrimination than unsupervised methods such as PCA, but it also
 requires more caution when interpreting apparent separation.
 
+## When not to use (s)PLS-DA
+
+sPLS-DA is usually not the best first choice when:
+
+- the response is numeric rather than categorical
+- the goal is unsupervised pattern discovery rather than supervised
+  discrimination
+- batch-aware integration is required across multiple studies, in which
+  case MINT is a better fit
+
 ## Example context
 
 This article uses results from the `ExampleData1` dataset built into the
@@ -147,6 +157,22 @@ Keep these points in mind when using sPLS-DA:
 
 Tenenhaus, M. (1998). *La regression PLS: theorie et pratique*. Paris:
 Editions Technic.
+
+## What to read next
+
+Related articles:
+
+- [Understanding
+  PCA](https://shinyinfo.cytokineprofile.org/articles/Understanding-PCA.md)
+  for an unsupervised first look at the same dataset.
+- [Understanding MINT
+  sPLS-DA](https://shinyinfo.cytokineprofile.org/articles/Understanding-MINT-sPLS-DA.md)
+  for supervised separation across multiple batches or studies.
+- [Understanding Random
+  Forest](https://shinyinfo.cytokineprofile.org/articles/Understanding-Random-Forest.md)
+  and [Understanding
+  XGBoost](https://shinyinfo.cytokineprofile.org/articles/Understanding-XGBoost.md)
+  for alternative classifiers.
 
 ------------------------------------------------------------------------
 

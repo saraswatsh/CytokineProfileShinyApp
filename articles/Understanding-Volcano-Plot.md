@@ -8,6 +8,16 @@ time. In CytokineProfile Shiny, it is a fast way to identify cytokines
 that look both biologically large and statistically notable in the same
 figure.
 
+## When not to use a volcano plot
+
+A volcano plot is usually not the best fit when:
+
+- you want to compare more than two groups in one workflow
+- your emphasis is threshold-based effect-size screening rather than
+  p-values
+- you need raw distribution context for a small set of cytokines rather
+  than broad screening
+
 ## What the app is showing
 
 The example below compares subjects with Type 2 Diabetes (T2D) against
@@ -108,6 +118,20 @@ Keep these limits in mind when reading volcano plots:
 ### App walkthrough
 
 ![](../reference/figures/VolcanoPlot.gif)
+
+## What to read next
+
+Related articles:
+
+- [Understanding Dual-Flashlight
+  Plot](https://shinyinfo.cytokineprofile.org/articles/Understanding-Dual-Flashlight-Plot.md)
+  for threshold-based effect-size screening without p-value emphasis.
+- [Understanding Error-Bar
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Error-Bar-Plot.md)
+  for compact group summaries.
+- [Understanding Boxplots and Violin
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.md)
+  for distribution-level follow-up on prioritized hits.
 
 ------------------------------------------------------------------------
 

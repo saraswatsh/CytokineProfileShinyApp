@@ -145,19 +145,31 @@ worth saving.
 
 ![](../reference/figures/Shiny_Step4.gif)
 
-## Suggested next articles
+## What to read next
 
 After this overview, the next useful articles are:
 
 - [Understanding Volcano
   Plot](https://shinyinfo.cytokineprofile.org/articles/Understanding-Volcano-Plot.md)
   for two-group differential patterns.
+- [Understanding Univariate Test
+  Selection](https://shinyinfo.cytokineprofile.org/articles/Understanding-Univariate-Test-Selection.md)
+  for choosing the right testing workflow.
+- [Understanding Boxplots and Violin
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.md)
+  for inspecting raw distributions before formal testing.
 - [Understanding Dual-Flashlight
   Plot](https://shinyinfo.cytokineprofile.org/articles/Understanding-Dual-Flashlight-Plot.md)
   for threshold-based effect-size screening.
 - [Understanding
+  PLSR](https://shinyinfo.cytokineprofile.org/articles/Understanding-PLSR.md)
+  for predicting a numeric outcome from many cytokines.
+- [Understanding
   (s)PLS-DA](https://shinyinfo.cytokineprofile.org/articles/Understanding-sPLS-DA.md)
   for supervised multivariate discrimination.
+- [Understanding MINT
+  sPLS-DA](https://shinyinfo.cytokineprofile.org/articles/Understanding-MINT-sPLS-DA.md)
+  for multi-batch supervised discrimination.
 - [Understanding Random
   Forest](https://shinyinfo.cytokineprofile.org/articles/Understanding-Random-Forest.md)
   and [Understanding

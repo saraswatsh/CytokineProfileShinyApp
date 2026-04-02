@@ -89,6 +89,18 @@ powerful for discrimination than unsupervised methods such as PCA, but
 it also requires more caution when interpreting apparent separation.</p>
 </div>
 <div class="section level2">
+<h2 id="when-not-to-use-spls-da">When not to use (s)PLS-DA<a class="anchor" aria-label="anchor" href="#when-not-to-use-spls-da"></a>
+</h2>
+<p>sPLS-DA is usually not the best first choice when:</p>
+<ul>
+<li>the response is numeric rather than categorical</li>
+<li>the goal is unsupervised pattern discovery rather than supervised
+discrimination</li>
+<li>batch-aware integration is required across multiple studies, in
+which case MINT is a better fit</li>
+</ul>
+</div>
+<div class="section level2">
 <h2 id="example-context">Example context<a class="anchor" aria-label="anchor" href="#example-context"></a>
 </h2>
 <p>This article uses results from the <code>ExampleData1</code> dataset
@@ -243,9 +255,27 @@ together.</li>
 </h3>
 <p>Tenenhaus, M. (1998). <em>La regression PLS: theorie et
 pratique</em>. Paris: Editions Technic.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="what-to-read-next">What to read next<a class="anchor" aria-label="anchor" href="#what-to-read-next"></a>
+</h2>
+<p>Related articles:</p>
+<ul>
+<li>
+<a href="Understanding-PCA.html">Understanding PCA</a> for an
+unsupervised first look at the same dataset.</li>
+<li>
+<a href="Understanding-MINT-sPLS-DA.html">Understanding MINT
+sPLS-DA</a> for supervised separation across multiple batches or
+studies.</li>
+<li>
+<a href="Understanding-Random-Forest.html">Understanding Random
+Forest</a> and <a href="Understanding-XGBoost.html">Understanding
+XGBoost</a> for alternative classifiers.</li>
+</ul>
 <hr>
 <p><em>Last updated:</em> April 02, 2026</p>
-</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

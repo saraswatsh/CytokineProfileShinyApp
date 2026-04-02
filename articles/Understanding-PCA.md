@@ -15,6 +15,15 @@ exploratory:
   model?
 - Which cytokines appear to drive the strongest sources of variation?
 
+## When not to use PCA
+
+PCA is usually not the best first choice when:
+
+- your main goal is supervised class separation
+- the outcome is a numeric response you want to predict
+- you need formal group-wise statistical testing rather than exploratory
+  structure
+
 ## What outputs matter most
 
 The PCA workflow in CytokineProfile Shiny can produce several
@@ -119,6 +128,20 @@ Keep these limits in mind:
     adjust `Plotting Symbols`.
 5.  Read the individuals plot together with the scree and loadings
     views.
+
+## What to read next
+
+Related articles:
+
+- [Understanding
+  PLSR](https://shinyinfo.cytokineprofile.org/articles/Understanding-PLSR.md)
+  if the goal is numeric prediction rather than unsupervised structure.
+- [Understanding
+  (s)PLS-DA](https://shinyinfo.cytokineprofile.org/articles/Understanding-sPLS-DA.md)
+  if class separation is the main question.
+- [Understanding
+  Heatmaps](https://shinyinfo.cytokineprofile.org/articles/Understanding-Heatmaps.md)
+  for broader matrix-style pattern discovery.
 
 ------------------------------------------------------------------------
 

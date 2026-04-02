@@ -7,6 +7,16 @@ that show both a meaningful fold change and a meaningful effect size
 threshold. In CytokineProfile Shiny, it is best treated as a
 prioritization plot rather than as a formal hypothesis-testing figure.
 
+## When not to use a dual-flashlight plot
+
+This plot is usually not the best fit when:
+
+- you need p-value-centered inference rather than threshold-based
+  screening
+- you want to compare more than two groups at once
+- your question is about full raw distributions rather than prioritized
+  hits
+
 ## What the app is showing
 
 The example below compares subjects with Type 2 Diabetes (T2D) against
@@ -108,6 +118,20 @@ Additional cautions:
 ### App walkthrough
 
 ![](../reference/figures/DualFlashlightPlot.gif)
+
+## What to read next
+
+Related articles:
+
+- [Understanding Volcano
+  Plot](https://shinyinfo.cytokineprofile.org/articles/Understanding-Volcano-Plot.md)
+  when p-values are central to the screening goal.
+- [Understanding Error-Bar
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Error-Bar-Plot.md)
+  for compact group summaries.
+- [Understanding Boxplots and Violin
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.md)
+  for distribution-level follow-up on prioritized hits.
 
 ------------------------------------------------------------------------
 

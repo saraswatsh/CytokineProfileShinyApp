@@ -12,6 +12,15 @@ In CytokineProfile Shiny, heatmaps are especially helpful for:
 - spotting cytokines that co-vary across the dataset
 - summarizing many features in one compact figure
 
+## When not to use a heatmap
+
+A heatmap is usually not the best stand-alone choice when:
+
+- your main goal is formal testing rather than pattern discovery
+- you need an explicit predictive model
+- the audience must see raw distributions rather than color-coded
+  summaries
+
 ## What the app is showing
 
 A heatmap converts the numeric cytokine matrix into a color-coded grid:
@@ -84,6 +93,20 @@ Important cautions for heatmaps are:
     be interpreted in study context.
 5.  Inspect the figure both with and without clustering if you want to
     separate raw ordering from similarity structure.
+
+## What to read next
+
+Related articles:
+
+- [Understanding Correlation
+  Analysis](https://shinyinfo.cytokineprofile.org/articles/Understanding-Correlation-Analysis.md)
+  for targeted association screening.
+- [Understanding
+  PCA](https://shinyinfo.cytokineprofile.org/articles/Understanding-PCA.md)
+  for a low-dimensional view of structure.
+- [Understanding Boxplots and Violin
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.md)
+  when a cluster needs raw-distribution follow-up.
 
 ------------------------------------------------------------------------
 

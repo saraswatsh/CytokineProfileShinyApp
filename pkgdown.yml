@@ -4,16 +4,21 @@ pkgdown_sha: ~
 articles:
   Basic-Tutorial-of-CytokineProfile-Shiny: Basic-Tutorial-of-CytokineProfile-Shiny.html
   R-installation: R-installation.html
+  Understanding-Boxplots-and-Violin-Plots: Understanding-Boxplots-and-Violin-Plots.html
   Understanding-Correlation-Analysis: Understanding-Correlation-Analysis.html
   Understanding-Dual-Flashlight-Plot: Understanding-Dual-Flashlight-Plot.html
+  Understanding-Error-Bar-Plot: Understanding-Error-Bar-Plot.html
   Understanding-Heatmaps: Understanding-Heatmaps.html
+  Understanding-MINT-sPLS-DA: Understanding-MINT-sPLS-DA.html
   Understanding-Multi-Level-Univariate-Analysis: Understanding-Multi-Level-Univariate-Analysis.html
   Understanding-PCA: Understanding-PCA.html
+  Understanding-PLSR: Understanding-PLSR.html
   Understanding-Random-Forest: Understanding-Random-Forest.html
   Understanding-sPLS-DA: Understanding-sPLS-DA.html
+  Understanding-Univariate-Test-Selection: Understanding-Univariate-Test-Selection.html
   Understanding-Volcano-Plot: Understanding-Volcano-Plot.html
   Understanding-XGBoost: Understanding-XGBoost.html
-last_built: 2026-04-02T13:35Z
+last_built: 2026-04-02T17:44Z
 urls:
   reference: https://shinyinfo.cytokineprofile.org/reference
   article: https://shinyinfo.cytokineprofile.org/articles

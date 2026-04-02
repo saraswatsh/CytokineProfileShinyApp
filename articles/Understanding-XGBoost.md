@@ -8,6 +8,15 @@ earlier ones. It is often useful when you want a highly flexible
 classifier and are willing to pay more attention to tuning and
 validation than you would for Random Forest.
 
+## When not to use XGBoost
+
+XGBoost is usually not the best first choice when:
+
+- you want the simplest robust baseline classifier rather than an
+  aggressively tuned one
+- the dataset is small enough that tuning instability is a major concern
+- the outcome is numeric rather than categorical
+
 ## Example context
 
 This example uses the `ExampleData1` dataset after filtering to subjects
@@ -105,6 +114,20 @@ rather than pushing the model to fit as tightly as possible.
 ### App walkthrough
 
 ![](../reference/figures/xgb.gif)
+
+## What to read next
+
+Related articles:
+
+- [Understanding Random
+  Forest](https://shinyinfo.cytokineprofile.org/articles/Understanding-Random-Forest.md)
+  for a simpler and often more stable first classifier.
+- [Understanding
+  (s)PLS-DA](https://shinyinfo.cytokineprofile.org/articles/Understanding-sPLS-DA.md)
+  for a supervised latent-component alternative.
+- [Understanding Boxplots and Violin
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.md)
+  when important features need raw-distribution follow-up.
 
 ------------------------------------------------------------------------
 

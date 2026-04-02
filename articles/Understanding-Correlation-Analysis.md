@@ -10,6 +10,15 @@ helps answer questions such as:
 - Do those relationships look linear or only monotonic?
 - Do correlations change between two biological groups?
 
+## When not to use correlation analysis
+
+Correlation analysis is usually not the best first choice when:
+
+- your main goal is comparing group averages rather than associations
+- the response of interest is categorical rather than numeric
+- you need prediction or classification rather than association
+  screening
+
 ## What the app is showing
 
 The correlation workflow centers on one numeric response variable and
@@ -89,6 +98,21 @@ Important cautions include:
     you want to compare biological subgroups.
 5.  Use the table and the plot together to decide which associations
     deserve follow-up.
+
+## What to read next
+
+Related articles:
+
+- [Understanding
+  Heatmaps](https://shinyinfo.cytokineprofile.org/articles/Understanding-Heatmaps.md)
+  for broader matrix-style clustering views.
+- [Understanding
+  PCA](https://shinyinfo.cytokineprofile.org/articles/Understanding-PCA.md)
+  for unsupervised multivariate structure.
+- [Understanding Boxplots and Violin
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.md)
+  if you need to inspect the raw distributions behind a strong
+  correlation.
 
 ------------------------------------------------------------------------
 

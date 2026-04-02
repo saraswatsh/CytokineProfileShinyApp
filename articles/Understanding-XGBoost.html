@@ -87,6 +87,18 @@ classifier and are willing to pay more attention to tuning and
 validation than you would for Random Forest.</p>
 </div>
 <div class="section level2">
+<h2 id="when-not-to-use-xgboost">When not to use XGBoost<a class="anchor" aria-label="anchor" href="#when-not-to-use-xgboost"></a>
+</h2>
+<p>XGBoost is usually not the best first choice when:</p>
+<ul>
+<li>you want the simplest robust baseline classifier rather than an
+aggressively tuned one</li>
+<li>the dataset is small enough that tuning instability is a major
+concern</li>
+<li>the outcome is numeric rather than categorical</li>
+</ul>
+</div>
+<div class="section level2">
 <h2 id="example-context">Example context<a class="anchor" aria-label="anchor" href="#example-context"></a>
 </h2>
 <p>This example uses the <code>ExampleData1</code> dataset after
@@ -207,9 +219,26 @@ biological conclusions.</li>
 <h3 id="app-walkthrough">App walkthrough<a class="anchor" aria-label="anchor" href="#app-walkthrough"></a>
 </h3>
 <p><img src="../reference/figures/xgb.gif"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="what-to-read-next">What to read next<a class="anchor" aria-label="anchor" href="#what-to-read-next"></a>
+</h2>
+<p>Related articles:</p>
+<ul>
+<li>
+<a href="Understanding-Random-Forest.html">Understanding Random
+Forest</a> for a simpler and often more stable first classifier.</li>
+<li>
+<a href="Understanding-sPLS-DA.html">Understanding (s)PLS-DA</a> for
+a supervised latent-component alternative.</li>
+<li>
+<a href="Understanding-Boxplots-and-Violin-Plots.html">Understanding
+Boxplots and Violin Plots</a> when important features need
+raw-distribution follow-up.</li>
+</ul>
 <hr>
 <p><em>Last updated:</em> April 02, 2026</p>
-</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

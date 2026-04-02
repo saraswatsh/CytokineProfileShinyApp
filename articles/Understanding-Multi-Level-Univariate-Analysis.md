@@ -15,6 +15,16 @@ available in the app:
 This is the right workflow when you want interpretable per-cytokine
 inference while still respecting study design.
 
+## When not to use multi-level univariate analysis
+
+This workflow is usually not the best fit when:
+
+- the study is only a simple two-group comparison
+- the main question is multivariate patterning rather than per-cytokine
+  inference
+- the outcome is classification or prediction instead of hypothesis
+  testing
+
 ## What the app is doing
 
 The app fits one model per cytokine, then reports global results,
@@ -144,6 +154,20 @@ Important cautions for these workflows are:
     really requires them.
 5.  Review global results, pairwise follow-ups, and assumption summaries
     together.
+
+## What to read next
+
+Related articles:
+
+- [Understanding Univariate Test
+  Selection](https://shinyinfo.cytokineprofile.org/articles/Understanding-Univariate-Test-Selection.md)
+  for deciding which testing branch fits the design.
+- [Understanding Error-Bar
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Error-Bar-Plot.md)
+  for a compact summary figure after testing.
+- [Understanding Boxplots and Violin
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.md)
+  for inspecting assumptions and raw distributions.
 
 ------------------------------------------------------------------------
 

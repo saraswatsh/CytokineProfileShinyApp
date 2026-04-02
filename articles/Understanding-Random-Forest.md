@@ -8,6 +8,16 @@ importance. It is often a good first machine-learning method because it
 usually performs well with minimal tuning compared with more sensitive
 boosting methods.
 
+## When not to use Random Forest
+
+Random Forest is usually not the best first choice when:
+
+- the outcome is numeric rather than categorical
+- you need an unsupervised view of structure before building a
+  classifier
+- the dataset is too small for a meaningful train/test or validation
+  workflow
+
 ## Example context
 
 This example uses the `ExampleData1` dataset after filtering to subjects
@@ -108,6 +118,21 @@ Important limits to keep in mind:
 ### App walkthrough
 
 ![](../reference/figures/rf.gif)
+
+## What to read next
+
+Related articles:
+
+- [Understanding
+  XGBoost](https://shinyinfo.cytokineprofile.org/articles/Understanding-XGBoost.md)
+  for a more tuning-sensitive boosting alternative.
+- [Understanding
+  (s)PLS-DA](https://shinyinfo.cytokineprofile.org/articles/Understanding-sPLS-DA.md)
+  for supervised multivariate separation with interpretable latent
+  components.
+- [Understanding Boxplots and Violin
+  Plots](https://shinyinfo.cytokineprofile.org/articles/Understanding-Boxplots-and-Violin-Plots.md)
+  when top-ranked features need raw-distribution follow-up.
 
 ------------------------------------------------------------------------
 
