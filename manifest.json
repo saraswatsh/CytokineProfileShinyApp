@@ -6962,31 +6962,31 @@
   },
   "files": {
     ".covrignore": {
-      "checksum": "7db78918147e1ce049dcdc8be29afe63"
+      "checksum": "0812bbe97b1436736995816d575521b8"
     },
     ".github/workflows/pkgdown.yaml": {
       "checksum": "002faabdbbaac9799074b7e95527eb01"
     },
     ".github/workflows/R-CMD-check.yaml": {
-      "checksum": "fd4dfe57eea9e3d6e7da5113b6ba70f0"
+      "checksum": "c0a5853569ea2ec6cfa01cb2ec42a7d4"
     },
     ".github/workflows/test-coverage.yaml": {
-      "checksum": "6b77c4a9af1b4f21f1d3b39e90ab91c9"
+      "checksum": "3bce6026dd087c4f3cdd189c3125f263"
     },
     ".posit/publish/CytokineProfile-dev-KM5S.toml": {
       "checksum": "1cf188d2104d91a740655c7b66b05912"
     },
     ".posit/publish/deployments/deployment-VAD0.toml": {
-      "checksum": "6df6e7be8d47cf2471ddab37beb3c6a6"
+      "checksum": "86add73e14e64f3f7f3a8c80427a94a9"
     },
     ".Rbuildignore": {
-      "checksum": "2ea9de3153c1a44d613e15bd7b84dd28"
+      "checksum": "b820c924acc55a668653da95155bfc4f"
     },
     ".Renviron": {
-      "checksum": "09effb492dfdd262600517abad4a6c81"
+      "checksum": "0b04df42ad0f2908058231f0a67e6bcd"
     },
     ".Rprofile": {
-      "checksum": "fc884b27fd82a53858b936666fc3c4e2"
+      "checksum": "f6b8fdd12663ebbf25ce44e443777c04"
     },
     ".vscode/launch.json": {
       "checksum": "8799f3582b7bab5f4fd39bc454c02787"
@@ -6995,10 +6995,10 @@
       "checksum": "50f14a6029329e3db4ade613d3256781"
     },
     "_pkgdown.yml": {
-      "checksum": "32721d25c84fed360ecfcafa7405ae66"
+      "checksum": "9949116ebac939e0ff228c12fd9edd9f"
     },
     "app.R": {
-      "checksum": "fb08db2cafd5e0f801061ebcb68a18e9"
+      "checksum": "e72b956c60a9e6c5d7f47435ae537a04"
     },
     "app_server_stages.baseline.R": {
       "checksum": "09916881b82da84f625ba17d22d892d5"
@@ -7061,7 +7061,7 @@
       "checksum": "d29a40278434f9d67efcdf14046c6469"
     },
     "DESCRIPTION": {
-      "checksum": "597844a99a5d5aa7c124cb95e1c8f50d"
+      "checksum": "c5d3bd13ff071d6017168f767dc5986e"
     },
     "doc/Basic-Tutorial-of-CytokineProfile-Shiny.html": {
       "checksum": "2f207b1bf615b8b6255f5befb1900b73"
@@ -7730,7 +7730,7 @@
       "checksum": "79c4b882664c8c594519fd9fa4bc6837"
     },
     "inst/app/app.R": {
-      "checksum": "7fc91a920a4d2599afaac5ff0c46e6aa"
+      "checksum": "482d0fbcd552ce9c3d98a586931a8b37"
     },
     "inst/app/config.yml": {
       "checksum": "38a98fae4d4966e86d189c1c74c90174"
@@ -7748,76 +7748,76 @@
       "checksum": "8e37d7de575b4c556aaed64b86dc8b49"
     },
     "man/adjust_p.Rd": {
-      "checksum": "c40a29592fc53ec8728f6aefe4e06ef5"
+      "checksum": "2b50c0f56cac5d1fc8dc020a22ce5e62"
     },
     "man/apply_scale.Rd": {
-      "checksum": "31561226e7e97f285d6813dba678c91b"
+      "checksum": "624b8f97caf146f61e980e9d43031d77"
     },
     "man/cyt_anova.Rd": {
-      "checksum": "decf64e449501c4d7eae605429ac013d"
+      "checksum": "177ec56f99050ff83674eddad1439a76"
     },
     "man/cyt_bp.Rd": {
-      "checksum": "04298c7fbbe45a0ad7d5906d28a55eeb"
+      "checksum": "daacb90dcca0545cbc53b76dd9138971"
     },
     "man/cyt_bp2.Rd": {
-      "checksum": "af32672e8b94df98e0e6c64c04067383"
+      "checksum": "2e52bdf97b2499a4096ed9139db67bae"
     },
     "man/cyt_corr.Rd": {
-      "checksum": "f87599e40c820bb31703270b66be3921"
+      "checksum": "c2ae5a67b6d7ce82118e0efd7cdf8266"
     },
     "man/cyt_dualflashplot.Rd": {
-      "checksum": "eeecd8ca7847b9371e173965c482c4e2"
+      "checksum": "6beb622669aae8f4e102a43d70da2b4a"
     },
     "man/cyt_errbp.Rd": {
-      "checksum": "359b94c831e62571a68c675f7f817127"
+      "checksum": "e3226605b7e752712cfed06c7080f051"
     },
     "man/cyt_export.Rd": {
-      "checksum": "3d5622b1a72b10e528f9d7e6a2f4adbb"
+      "checksum": "53745d8fa26cb981a83ea96c797fe9dd"
     },
     "man/cyt_heatmap.Rd": {
-      "checksum": "d49d6cc8af5b2743a5b34cb3a3915339"
+      "checksum": "44ec141ce06158a90019e979b56b1372"
     },
     "man/cyt_mint_splsda.Rd": {
-      "checksum": "5949afc724ee45fab3f0063a46569d5b"
+      "checksum": "2de272f7e56edc39ea3af5a4e4881710"
     },
     "man/cyt_pca.Rd": {
-      "checksum": "a52aff7211719fa361ed566aab8d8a0a"
+      "checksum": "40d40be59284f8b37b9fc0e7f6c1b475"
     },
     "man/cyt_plsr.Rd": {
-      "checksum": "4b990ac68d05f9da886ffab606d9c274"
+      "checksum": "9df8c651929e7607e88223ed50ee7078"
     },
     "man/cyt_rf.Rd": {
-      "checksum": "2dfc8a006a6d8ce29153e5b502ae82ad"
+      "checksum": "58a965408809658d711c38ae1002a3d9"
     },
     "man/cyt_skku.Rd": {
-      "checksum": "da6f32427f1eb7278d662ea74bc29777"
+      "checksum": "e133018ab0f5162fdc443b9774e08375"
     },
     "man/cyt_splsda.Rd": {
-      "checksum": "b9decdb173eada7e3832be01b8a11f6c"
+      "checksum": "3e025fa291a3325bdb5b392a40b4f45d"
     },
     "man/cyt_ttest.Rd": {
-      "checksum": "d41e4103fb1cbc452d95b5bc7f802c50"
+      "checksum": "b83a9c6bcfe8279a27866d0d974e1003"
     },
     "man/cyt_univariate.Rd": {
-      "checksum": "279aa09e1f0e88e6f0c59dd89928928a"
+      "checksum": "acbd1e422c3b4b8a98692a0e7b9422e8"
     },
     "man/cyt_univariate_multi.Rd": {
-      "checksum": "7cc6748cecadad5af1a66d5ed7c4306c"
+      "checksum": "17748ef1cd566eece143457e2878a18d"
     },
     "man/cyt_violin.Rd": {
-      "checksum": "0fcc136cb256fdaf5e73f715317f0829"
+      "checksum": "6fe5100daaefb90098c4f841b967b27e"
     },
     "man/cyt_volc.Rd": {
-      "checksum": "80cea6801e8637483326bb4de24c0d4f"
+      "checksum": "e35f663354f4109cf79bf8404541d23f"
     },
     "man/cyt_xgb.Rd": {
-      "checksum": "bde0b700be49fba673f2304db55d93b0"
+      "checksum": "ba8a167c6119dee6ef4a683b433c111b"
     },
     "man/CytokineProfileShinyApp-package.Rd": {
-      "checksum": "79ccd7a8664479cc27009acf5f3f290f"
+      "checksum": "aa926ad4acd5f4999796db83d7012ce3"
     },
     "man/ExampleData1.Rd": {
-      "checksum": "f4f24e21dc85aabf0c2f78c1e83ceb07"
+      "checksum": "0803925881a6eae6a4706dd537ae6f6e"
     },
     "man/ExampleData2.Rd": {
       "checksum": "77e38b5a9e5a279e7ebe26c4c3b66fed"
@@ -7829,7 +7829,7 @@
       "checksum": "00d1a18e0fe69077bd2c6f11a9dc9e02"
     },
     "man/ExampleData5.Rd": {
-      "checksum": "b61072c33e947b68a7f575b81427577a"
+      "checksum": "10d9b219486485299f3664aa930bbe00"
     },
     "man/figures/DualFlashlightPlot.gif": {
       "checksum": "d67e72d979011db98727e9369bde2651"
@@ -7838,16 +7838,16 @@
       "checksum": "5cbb8a7366cd9d369ca1893f68f577d2"
     },
     "man/figures/lifecycle-deprecated.svg": {
-      "checksum": "391f696f961e28914508628a7af31b74"
+      "checksum": "8b9317939d546a8bd0ae4da30c658f78"
     },
     "man/figures/lifecycle-experimental.svg": {
-      "checksum": "691b1eb2aec9e1bec96b79d11ba5e631"
+      "checksum": "e1c8d33150e179ed17231c575895092b"
     },
     "man/figures/lifecycle-stable.svg": {
-      "checksum": "ed42e3fbd7cc30bc6ca8fa9b658e24a8"
+      "checksum": "383d1a195cfb97ae7af9a37a877b88eb"
     },
     "man/figures/lifecycle-superseded.svg": {
-      "checksum": "bf2f1ad432ecccee3400afe533404113"
+      "checksum": "6920593141a53e9e05a9d7c6fd393650"
     },
     "man/figures/logo.png": {
       "checksum": "3d968826327814265c06b8853caca17d"
@@ -7910,16 +7910,19 @@
       "checksum": "00036dc43ba589f114a1edf6dc1449f8"
     },
     "man/run_app.Rd": {
-      "checksum": "8292e49daed6e9bad54c53ca5987ef68"
+      "checksum": "d1ace26d05417dbac0427d005d652f44"
     },
     "Meta/vignette.rds": {
       "checksum": "712c7432dc6d3713143301ec246e126a"
     },
     "NAMESPACE": {
-      "checksum": "8ce32a3495c20fae6dd8dd650202e008"
+      "checksum": "6a1385366586a8a9bd8fa23a28e57244"
     },
     "NEWS.md": {
-      "checksum": "6131d4e05abff4756d6f11ad2afa1ac8"
+      "checksum": "b94a75d9250f9967df7fce81d34fb84b"
+    },
+    "notes/helper-text-revision-todo.md": {
+      "checksum": "83e56e813c103665d43b28e18e4eda9a"
     },
     "notes/shinyloadtest-server-logic-review.md": {
       "checksum": "7665c6b4ebc1ae222922c9152fb9f264"
@@ -7949,55 +7952,55 @@
       "checksum": "79c4b882664c8c594519fd9fa4bc6837"
     },
     "R/app_page_ui.R": {
-      "checksum": "fb3b17b21d8a70463304fba850bd480c"
+      "checksum": "3e70945fd88854f10dc99ddf8a4ae03b"
     },
     "R/app_runtime.R": {
-      "checksum": "c315ad2c3b5fd1e38846083807294936"
+      "checksum": "c68436a33fcf23922fe85fd195381803"
     },
     "R/app_server.R": {
-      "checksum": "7f629579d2ced0e4a6e979d82206c713"
+      "checksum": "d538e3998c7ad95678c4aeb07acb6f83"
     },
     "R/app_stage_helpers.R": {
-      "checksum": "7d84acf0a40d623bd5aed982ceb2e9d4"
+      "checksum": "8546da389ba749984f3056ecc7c89d42"
     },
     "R/app_ui.R": {
-      "checksum": "fa0889cd2cd99499b46a2da4aad04435"
+      "checksum": "ce0f28201860625ecbdc60eb8669e5f7"
     },
     "R/app_ui_helpers.R": {
-      "checksum": "dec71aa7c60a415f192bfa6335143004"
+      "checksum": "8eb80d6bf8df141677af6b46fb19eb84"
     },
     "R/cyt_anova.R": {
       "checksum": "ea18f98eb68e53ae3eaa524da38952e9"
     },
     "R/cyt_bp.R": {
-      "checksum": "d93714110808ac28edbe29c2bc8f04e8"
+      "checksum": "5b8862435ff83336c4c36bc5eb41dc96"
     },
     "R/cyt_bp2.R": {
       "checksum": "05d106a2a2592e18b93af4d0a8e9a740"
     },
     "R/cyt_corr.R": {
-      "checksum": "9e98944260a76005a43660a318a1e814"
+      "checksum": "a7a8077e9d6c589524b92204190d5e11"
     },
     "R/cyt_dualflashplot.R": {
       "checksum": "fce1c4b79030a017d1986a9574280861"
     },
     "R/cyt_errbp.R": {
-      "checksum": "e181f694e53cd92de11224e5ae2d5519"
+      "checksum": "83e2098925e274d55ee1c09be99a3e2d"
     },
     "R/cyt_export.R": {
       "checksum": "301e7467d074f20adf7eba5a8a65bf60"
     },
     "R/cyt_heatmap.R": {
-      "checksum": "533e128976478a7606a4bbf90f652fe5"
+      "checksum": "f829ecd03fb9a582f6859b899a1a2b7e"
     },
     "R/cyt_mint_splsda.R": {
-      "checksum": "33932bb271b0042ae1e6382dc593f593"
+      "checksum": "540b6474aae4b3b35382a4bd32a52551"
     },
     "R/cyt_pca.R": {
-      "checksum": "142e54d9dc5fe979655812fe0b7a7c57"
+      "checksum": "25fa5ee08a538396b6d3ee12fd16a30e"
     },
     "R/cyt_plsr.R": {
-      "checksum": "5c8eef454797fc1cd8d9e48fc9dd2fee"
+      "checksum": "2566e595fe7402f91f12ef933dc66451"
     },
     "R/cyt_rf.R": {
       "checksum": "d18793e4e15b6b67d8e7bd363195a309"
@@ -8012,13 +8015,13 @@
       "checksum": "960670d26ec69d3d13143d844a824fed"
     },
     "R/cyt_univariate.R": {
-      "checksum": "ddc1ae4486cd21ff99a82e1bf1cdbdbf"
+      "checksum": "cf9e391378fd3a281e8c8c32b7efd921"
     },
     "R/cyt_univariate_multi.R": {
-      "checksum": "9e99379383facf34a4c60c5f099f4114"
+      "checksum": "4f7f81bc27a99fcac13e56a8570d7f82"
     },
     "R/cyt_violin.R": {
-      "checksum": "d7d38e392552ff2c662f146c00645218"
+      "checksum": "10103ecfe5554e88860740ca580857f0"
     },
     "R/cyt_volc.R": {
       "checksum": "85ea2569e3f8d0eea69f26c121f2d774"
@@ -8027,94 +8030,91 @@
       "checksum": "e9be414a2783dcf7032fb7c56c769752"
     },
     "R/CytokineProfileShinyApp-package.R": {
-      "checksum": "244673afb3a7c6e7aed11789ee4ec208"
+      "checksum": "e7dd1400f9301b2860c7a052497c1947"
     },
     "R/data.R": {
       "checksum": "c5165fc17a2d4ab3445ba9dd9342dd9c"
     },
     "R/font_settings.R": {
-      "checksum": "852a51980303f01e85f22e4548454064"
+      "checksum": "bbbeb938c03fcf9d1b4cb7252e257931"
     },
     "R/global_variables.R": {
-      "checksum": "975d9f68694ac5040430e74fc8503019"
-    },
-    "R/libraries.R": {
-      "checksum": "23134b48544e203dbdcc85b87ac31c42"
+      "checksum": "2db9facba282464ba70b7b95be774b5f"
     },
     "R/mod_analysis_results_server.R": {
-      "checksum": "2cf70f60d9d575e9d40d1b360f4f6140"
+      "checksum": "d69f3887700ae3a9d504a178e1e5bde3"
     },
     "R/mod_contact_ui.R": {
-      "checksum": "9268f23f21a8f4fce8e47de43547271a"
+      "checksum": "aea2f1f57b1330e04bf5dfa2bd34c854"
     },
     "R/mod_data_filtering_server.R": {
-      "checksum": "4c90e4855f3c744391ec5d488426b2d5"
+      "checksum": "3fe1eb57951725761ea51d8014c4cfc6"
     },
     "R/mod_data_handling_server.R": {
-      "checksum": "9c23299d1789eb6793345b3929919693"
+      "checksum": "9ae44519234910d32f013d19b160879f"
     },
     "R/mod_home_ui.R": {
-      "checksum": "9123658fe530fe6e86c61b2dd6cdef0d"
+      "checksum": "c4cc1c42b88b19a8805d5e7fbc2f600d"
     },
     "R/mod_navigation_server.R": {
-      "checksum": "9c06112c68861ff910ed27810739c7ff"
+      "checksum": "f24c69d1b9cdc0f2c89bdd40531cbd4b"
     },
     "R/mod_news_ui.R": {
-      "checksum": "029b10e72c16e2de24b095fdf1aec801"
+      "checksum": "b082afef9b9f2dc7b1d6b9e3842ecf96"
     },
     "R/mod_options_server.R": {
-      "checksum": "5ca9f6f0447a158b2bdfaa66280b529a"
+      "checksum": "cc6934d97719aa1ee63b0fdf9d852a40"
     },
     "R/mod_persistent_state_server.R": {
-      "checksum": "644dd535438ef06ef01ff9d37bc3314a"
+      "checksum": "d62fb77c30888113d81546be4e3c3818"
     },
     "R/mod_save_key_inputs_server.R": {
-      "checksum": "e24645a6db3cbafc6e70c02e87d2b210"
+      "checksum": "fee080763283d9d65bc7ba600ddf7fcc"
     },
     "R/mod_step1_data_ui.R": {
-      "checksum": "6e77e6ce852fd0c3022e66e0ee614847"
+      "checksum": "53b1c9b3ceba69eab3bd6e1230a8b04c"
     },
     "R/mod_step2_preprocess_ui.R": {
-      "checksum": "eb13018c8c53fac35da6e474c48b7497"
+      "checksum": "334143fc47ed4841782d95ef08e7174f"
     },
     "R/mod_step3_analysis_select_ui.R": {
-      "checksum": "2e88cf8961400ffbb097629008e35563"
+      "checksum": "f0d7bc4598487def08a92f46e6d72c41"
     },
     "R/mod_step4_analysis_args_ui.R": {
-      "checksum": "697398ff9dcccd121b388a4555cd1fc1"
+      "checksum": "31735f388ba69ff2629576cd1050fc4e"
     },
     "R/mod_step5_results_ui.R": {
-      "checksum": "b1a8e46705154162923259fd1cfbf15c"
+      "checksum": "704b4d686184f01d0cfb198ea9dad3b5"
     },
     "R/mod_theme_server.R": {
-      "checksum": "5a5bced5e54c8375586f58dc971b9da3"
+      "checksum": "1e76d5d4854ce569c63099ee1ffe8d3a"
     },
     "R/mod_tutorials_ui.R": {
-      "checksum": "f239fb62ff8d3adc1c1f5b487dfd7d9c"
+      "checksum": "5bf50b15d72b99df97c392676f74efbc"
     },
     "R/mod_update_inputs_server.R": {
       "checksum": "8b398ba019c147b4565aeec68c6cd037"
     },
     "R/mod_wizard_step_control_server.R": {
-      "checksum": "33eb23a1d7364180e903effbdbf02322"
+      "checksum": "761ea3a751a2c87615ea64ea0d321437"
     },
     "R/run_app.R": {
-      "checksum": "6961264c00ae1ac95a143e79d8c0203b"
+      "checksum": "c9934bb3b4dfaabdc89637eefe7e0f05"
     },
     "R/step2_helpers.R": {
-      "checksum": "c5755312311b0bfbf82dd758798d67c5"
+      "checksum": "044ccf5ea32ff32528d2066323a8166d"
     },
     "R/ui_contract_helpers.R": {
-      "checksum": "566ce6c9565c51f80565f657cc59e9d0"
+      "checksum": "b725ecb53141f681855ae64a96ebccfe"
     },
     "R/utils.R": {
-      "checksum": "ee0726e6c521c26625bba5262e71435e"
+      "checksum": "8be7081c4b00f6380b71a042a92d23c8"
     },
     "README.md": {
       "checksum": "5dd6816a3c390335ebd02cb747d37917"
     },
     "README.Rmd": {
-      "checksum": "248d8a8e428b18a68d743a0a3403bda3"
+      "checksum": "6567affc183ea09adaeb5283c50d7304"
     },
     "renv.lock": {
       "checksum": "7003e821b7e6c0e391c9c706c71ba172"
@@ -8128,11 +8128,104 @@
     "server_old.R": {
       "checksum": "db6d4a42ff01fa7ead056a02eb401caf"
     },
+    "ShinyLoadTest/fixing-shinyloadtest.md": {
+      "checksum": "7583052cbee99854b071921e08c99b63"
+    },
     "ShinyLoadTest/route_manifest.csv": {
       "checksum": "3b89c7894ddf343631609e0f3c76589c"
     },
     "ShinyLoadTest/shinycannon-1.2.0-85f280d.jar": {
       "checksum": "0de3ededf1119b3173c0587621b60c47"
+    },
+    "ShinyLoadTest/sPLSDA_5users/recording.log": {
+      "checksum": "b2975e5dfdf5eef1786e382dfa71bfb7"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/0_0_0.csv": {
+      "checksum": "46a294246211cdf41ca5157ed7166fad"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/1_1_0.csv": {
+      "checksum": "7164628ce2a9294f7d7e4b4cc1a33161"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/10_4_1.csv": {
+      "checksum": "732a645f3edef5a37d24c2849e0b6fc7"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/11_0_2.csv": {
+      "checksum": "b2acd4682e254f06267266d544188e22"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/12_3_2.csv": {
+      "checksum": "4600798c12af7bddc6b4db27f1aec083"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/13_1_2.csv": {
+      "checksum": "6e1003b56548627d89b57e2a43742a81"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/14_2_3.csv": {
+      "checksum": "94b95cb6fe3f2d36e99d4e12508dc2be"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/2_2_0.csv": {
+      "checksum": "8733b4f05c4d8bcbb01bbcf503d32bee"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/3_3_0.csv": {
+      "checksum": "549d4403257eafc066163bf62a6884a4"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/4_4_0.csv": {
+      "checksum": "24a2fe3139374c722993975585c97a3c"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/5_0_1.csv": {
+      "checksum": "b561f8f61b3dce910174c789dee7ba6e"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/6_1_1.csv": {
+      "checksum": "bafa27905c49a76181a5d4950bd9f41f"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/7_2_1.csv": {
+      "checksum": "f2848da8be4da3b348e6f623b4601687"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/8_3_1.csv": {
+      "checksum": "ae6ec308bfd01c616aaee9ba8ff2343a"
+    },
+    "ShinyLoadTest/sPLSDA_5users/sessions/9_2_2.csv": {
+      "checksum": "799cbf499c767b7ecfcb74d62367cd34"
+    },
+    "ShinyLoadTest/sPLSDA_5users/shinycannon-version.txt": {
+      "checksum": "ba048eb1e602346b5b055848cb7f84c2"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log": {
+      "checksum": "b2975e5dfdf5eef1786e382dfa71bfb7"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.0": {
+      "checksum": "efd92d63cd69980f9649138b5daf7ef3"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.1": {
+      "checksum": "2be93d976fde3c39ba9fd3e149c1ee2d"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.10": {
+      "checksum": "4c7e07ffcf5b323aa8a4fa4e3d4945c8"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.11": {
+      "checksum": "4c7e07ffcf5b323aa8a4fa4e3d4945c8"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.2": {
+      "checksum": "efd92d63cd69980f9649138b5daf7ef3"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.3": {
+      "checksum": "efd92d63cd69980f9649138b5daf7ef3"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.4": {
+      "checksum": "efd92d63cd69980f9649138b5daf7ef3"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.5": {
+      "checksum": "efd92d63cd69980f9649138b5daf7ef3"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.6": {
+      "checksum": "efd92d63cd69980f9649138b5daf7ef3"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.7": {
+      "checksum": "efd92d63cd69980f9649138b5daf7ef3"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.8": {
+      "checksum": "4c7e07ffcf5b323aa8a4fa4e3d4945c8"
+    },
+    "ShinyLoadTest/sPLSDA_Recording/recording.log.post.9": {
+      "checksum": "4c7e07ffcf5b323aa8a4fa4e3d4945c8"
     },
     "shinyTest.R": {
       "checksum": "fc9ec36114ad4d98cb48a165d598d483"
@@ -8141,7 +8234,7 @@
       "checksum": "fdf0f1fc3d96d65249a8813491a16450"
     },
     "tests/testthat.R": {
-      "checksum": "252f5c27f2b4d046d5454ab74e1c2afd"
+      "checksum": "46ff079470fea29b18402ec0d7337dac"
     },
     "tests/testthat/_snaps/windows-4.5/app-data/app-data-filtered_data.png": {
       "checksum": "1df70f4ecc83773442b3311d00000c45"
@@ -8243,112 +8336,112 @@
       "checksum": "e4319e440f4603b6b058cbe400d41a42"
     },
     "tests/testthat/helper-fixtures.R": {
-      "checksum": "b59d4aafe56a04281ef6172c1da14aa5"
+      "checksum": "c7a73ff5c41750bf703d5f8903bfe962"
     },
     "tests/testthat/helper-test-server.R": {
-      "checksum": "20f04e508c85e806557ea6e8ee063ab1"
+      "checksum": "ec40ecd2e59100bb302fb607a1fe3f17"
     },
     "tests/testthat/test-app-data.R": {
-      "checksum": "04ca8e9d6aa772703ad19795a6d5620c"
+      "checksum": "aa573f508f1f5c9a5e5bbc080f52ec1e"
     },
     "tests/testthat/test-app-wrappers.R": {
-      "checksum": "134da07add78525d7af908733b94317e"
+      "checksum": "c5edb6573ceede797058c3b5bae36edd"
     },
     "tests/testthat/test-core-helpers.R": {
-      "checksum": "9a577bb427dcb13966da8a54ebdc9626"
+      "checksum": "d1b192d637dd724177fbaf444c73a424"
     },
     "tests/testthat/test-coverage-branches.R": {
-      "checksum": "af0b81543ae1254f7c8dcbb50c9400ff"
+      "checksum": "8b5dfc563f887fbce2d9e216e85261b2"
     },
     "tests/testthat/test-helpers.R": {
-      "checksum": "fd91b806ae1d7b0fffcdffda9aa9f1d1"
+      "checksum": "eea62ff4cb66d2ba385f42180aee0470"
     },
     "tests/testthat/test-inference.R": {
-      "checksum": "2a41f2b6dd15e7129e0bf80bec7293ed"
+      "checksum": "f3d9c1d306290207ebec169ecf7c0cec"
     },
     "tests/testthat/test-menu-routing.R": {
-      "checksum": "3749eb93e2b31b2e6e3896ea85308c7f"
+      "checksum": "7651ab53d8a1c303bbc996ca836ed588"
     },
     "tests/testthat/test-models.R": {
-      "checksum": "1ed672871e9ffd96b104b6e2d2d43f01"
+      "checksum": "064231354e59241368971166d0691f87"
     },
     "tests/testthat/test-plots.R": {
-      "checksum": "c0284dbef88bc3b8fd661ea1c12397ae"
+      "checksum": "e41abc55ed81e16088659297d989da58"
     },
     "tests/testthat/test-server-analysis.R": {
-      "checksum": "9fdc778c7117c293339b6363814481bb"
+      "checksum": "e27aa77a816be1a72c2cd04246b9ab3d"
     },
     "tests/testthat/test-server-app-integration.R": {
-      "checksum": "c318c07b255972aaf08615f7eebb6cba"
+      "checksum": "003f455b909fa58e39956e405df81e37"
     },
     "tests/testthat/test-server-font-controls.R": {
-      "checksum": "ec39efdd3bcec1bfc4ace0c017cd6e35"
+      "checksum": "e147b5feab3f13a5aa835b6e1dbbd545"
     },
     "tests/testthat/test-server-foundations.R": {
-      "checksum": "ab288ede1986431777e91dfe4d0a7c91"
+      "checksum": "a008a9916934c554ace8945eb62d7443"
     },
     "tests/testthat/test-server-workflow.R": {
-      "checksum": "bc82b272b76d00f70291e9296c949916"
+      "checksum": "ba7b7de3c0f67d51d1d2f458c784dea1"
     },
     "tests/testthat/test-splsda-1.R": {
-      "checksum": "5f3b93fbe2938d1139a680310cdddf1e"
+      "checksum": "eafb41d36e8de7e21a51d6a9ab87b9dd"
     },
     "tests/testthat/test-splsda-2.R": {
-      "checksum": "d5a803f39a1e1b321f0af625d44eb257"
+      "checksum": "df19c1ace4ff6cf0535f17294c7a1aa6"
     },
     "tests/testthat/test-ui-regressions.R": {
-      "checksum": "805d1ba87534db4a4a9401ad12d58973"
+      "checksum": "97228f1d737496228359f31859bebd99"
     },
     "TUTORIALS.md": {
-      "checksum": "857af2e0d9300e2a725b6dbef3bfbff9"
+      "checksum": "d195afb56dfdca61a1e6803e56682dfa"
     },
     "vignettes/Basic-Tutorial-of-CytokineProfile-Shiny.Rmd": {
-      "checksum": "0dda9c666430bac0ad0155fad5c76d36"
+      "checksum": "ad910c3885726216ccaa0805425eb78f"
     },
     "vignettes/R-installation.Rmd": {
-      "checksum": "17fd2c708e321c9bd70df8511a3d23fa"
+      "checksum": "f944e1b784b2f41bf1cd7439bda71e01"
     },
     "vignettes/Understanding-Boxplots-and-Violin-Plots.Rmd": {
-      "checksum": "29a079194d16fed18e9192833e783bbb"
+      "checksum": "5cf1bca888fa34b96a94c648a7600c8d"
     },
     "vignettes/Understanding-Correlation-Analysis.Rmd": {
-      "checksum": "eeb59ba6e4228cdddbbb691b0e1b73fa"
+      "checksum": "143d83c08c003412c7b9536791295120"
     },
     "vignettes/Understanding-Dual-Flashlight-Plot.Rmd": {
-      "checksum": "324e5535800ea9e6337a920307f65d07"
+      "checksum": "a890d4c185dd339d4e015afc6af38638"
     },
     "vignettes/Understanding-Error-Bar-Plot.Rmd": {
-      "checksum": "8491b3f0b13b8c88d8b559e568037ff2"
+      "checksum": "bd4ec32532bc3e8c7effaec5d90b8194"
     },
     "vignettes/Understanding-Heatmaps.Rmd": {
-      "checksum": "61dfd251f3512a4ec0be071b38f6d4f4"
+      "checksum": "1ced6d4a8e7c253dffd4bd1a52c3f92e"
     },
     "vignettes/Understanding-MINT-sPLS-DA.Rmd": {
-      "checksum": "606d1c8c34a4c63f954720b9a5376a5a"
+      "checksum": "ea8aa944509ccb7cecf1e8c823db8d90"
     },
     "vignettes/Understanding-Multi-Level-Univariate-Analysis.Rmd": {
-      "checksum": "75ed783f81175800c0f6f49b691ba0d9"
+      "checksum": "7c459bfdadca328a4e7fe89798765483"
     },
     "vignettes/Understanding-PCA.Rmd": {
-      "checksum": "fa25f97f551be3948252a8c42dbaf96d"
+      "checksum": "27ee3833d1e260b72ab2f1e8a51cfb8c"
     },
     "vignettes/Understanding-PLSR.Rmd": {
-      "checksum": "b9b85ff6e9c525e419d1638a0a8cd1fb"
+      "checksum": "5b205a06b4d78e76200e8751e226fff6"
     },
     "vignettes/Understanding-Random-Forest.Rmd": {
-      "checksum": "41813f0adf3c246c80666e9a38a80e5c"
+      "checksum": "d62d319cf2cbc1f316af42395db0025b"
     },
     "vignettes/Understanding-sPLS-DA.Rmd": {
-      "checksum": "111303cf5cc922efa98b8d0efd92db11"
+      "checksum": "9d049f8831f7c0e1890e742a9d2b342d"
     },
     "vignettes/Understanding-Univariate-Test-Selection.Rmd": {
-      "checksum": "abae8faf3145d84f67e2f9d36fdb7259"
+      "checksum": "3afc3922234d1736eb736bf0a760c48f"
     },
     "vignettes/Understanding-Volcano-Plot.Rmd": {
-      "checksum": "c450d0d9618b8faee213594c8cc85d78"
+      "checksum": "e7f8d2dc86334f34550fc6a476d6aad3"
     },
     "vignettes/Understanding-XGBoost.Rmd": {
-      "checksum": "053bf7e24ca80915445881857421f0f1"
+      "checksum": "bb7ef74d627056c7a00343704e58531e"
     }
   },
   "users": null

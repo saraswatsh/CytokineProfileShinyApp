@@ -510,55 +510,6 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
     )
   })
 
-  # Development-notice modal: show once per session when user lands on Home.
-  shiny::observe({
-    cfg <- tryCatch(config::get(), error = function(e) list(build_type = NULL))
-    is_devel <- identical(cfg$build_type, "development") ||
-      identical(cfg$build_type, "devel")
-
-    if (
-      is_devel &&
-        identical(currentPage(), "home") &&
-        !isTRUE(dev_notice_shown())
-    ) {
-      shiny::showModal(
-        shiny::modalDialog(
-          title = NULL,
-          # Warning-styled content
-          shiny::div(
-            class = "alert alert-warning",
-            role = "alert",
-            shiny::tags$h4("Development Build", class = "alert-heading"),
-            shiny::tags$p(
-              "This is a development build of CytokineProfile. Some features may be incomplete or unstable."
-            ),
-            shiny::tags$p("Press OK to continue to the app.")
-          ),
-          footer = shiny::tagList(
-            shiny::actionButton("dev_notice_ok", "OK", class = "btn-primary")
-          ),
-          size = "m",
-          easyClose = FALSE
-        )
-      )
-
-      # Override the global wide-modal CSS just for this shown dialog so it appears centered
-      # and medium width. Requires shinyjs, which is loaded by app_ui().
-      try(
-        {
-          shinyjs::runjs(
-            "$('#shiny-modal .modal-dialog').css({'max-width':'640px','width':'640px','margin':'auto'});"
-          )
-        },
-        silent = TRUE
-      )
-    }
-  })
-
-  shiny::observeEvent(input$dev_notice_ok, {
-    shiny::removeModal()
-    dev_notice_shown(TRUE)
-  })
   totalPages <- 5
   stepHeader <- function(step) {
     pct <- round((step - 1) / (totalPages - 1) * 100)

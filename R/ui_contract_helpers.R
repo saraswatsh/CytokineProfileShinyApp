@@ -19,18 +19,71 @@ ui_two_group_test_choices <- function() {
 ui_two_group_univariate_help_text <- function() {
   paste(
     "Choose how the app compares two groups for each numeric outcome.",
-    "Use Auto if you are unsure.",
-    "The app will pick between Welch's t-test and the Wilcoxon test based on the data,",
-    "while the other options force one method for every outcome."
+    "Use Auto as the default starting point unless you already know which test you want.",
+    "In Auto mode, the app chooses between Welch's t-test and the Wilcoxon test based on the data structure for each outcome.",
+    "Choose Welch's t-test when comparing group means is appropriate and you are comfortable assuming roughly symmetric numeric values.",
+    "Choose Wilcoxon when you want a rank-based comparison that is less sensitive to outliers and non-normal data.",
+    "Forcing one method across all outcomes makes the workflow more consistent, but it may be less well matched to some variables."
   )
 }
 
 ui_error_bar_test_help_text <- function() {
   paste(
     "Choose which statistical test is used when the plot adds pairwise significance labels.",
-    "Use Auto if you are unsure.",
-    "The app will choose between Welch's t-test and the Wilcoxon test,",
-    "while the other options force one method across all outcomes."
+    "Use Auto if you want the app to make the safest default choice for each outcome.",
+    "Auto switches between Welch's t-test and the Wilcoxon test based on the data rather than forcing one rule everywhere.",
+    "Choose Welch's t-test when the mean is the summary you care about and the groups are reasonably well behaved.",
+    "Choose Wilcoxon when you want a rank-based comparison that is more robust to skewed values or outliers.",
+    "Using one fixed method across all outcomes can make interpretation simpler, but it may be less appropriate for some features."
+  )
+}
+
+ui_p_adjust_help_text <- function() {
+  shiny::HTML(paste(
+    "Use this when you are testing many cytokines or features at the same time.<br><br>",
+    "Adjustment makes the reported p-values more conservative so fewer findings appear significant just by chance.<br><br>",
+    "A practical default is <b>Benjamini-Hochberg</b> when you are doing exploratory biomarker work and want to control the expected false discovery rate.<br><br>",
+    "<b>None</b>: keep the raw p-values exactly as calculated; this is easiest to read but least protected against false positives across many tests.<br>",
+    "<b>Bonferroni</b>: very strict; best when false positives would be especially costly and you prefer a small, high-confidence result set.<br>",
+    "<b>Holm</b>: still controls family-wise error like Bonferroni, but is usually a bit less harsh.<br>",
+    "<b>Hochberg</b>: another family-wise error method that can be slightly more powerful when its assumptions fit.<br>",
+    "<b>Hommel</b>: an advanced family-wise error method that is valid but less commonly chosen in routine app workflows.<br>",
+    "<b>Benjamini-Hochberg</b>: controls the expected false discovery rate and is often the most practical balance for omics-style screening analyses.<br>",
+    "<b>Benjamini-Yekutieli</b>: similar to Benjamini-Hochberg, but more conservative when tests may be strongly dependent."
+  ))
+}
+
+ui_model_outcome_help_text <- function(model_name) {
+  paste(
+    "Choose the categorical column the", model_name, "model should learn to predict.",
+    "This is the outcome or class label, such as case versus control, treatment group, or responder status.",
+    "Pick the column that represents the main biological or clinical question for this model.",
+    "If the chosen column has many small groups, the model can become harder to train and interpret reliably."
+  )
+}
+
+ui_train_fraction_help_text <- function() {
+  paste(
+    "Choose what fraction of the samples is used to train the model.",
+    "The remaining samples are held back for testing so you can judge how the fitted model behaves on unseen data.",
+    "A value around 0.7 is a practical starting point for many datasets.",
+    "Larger fractions give the model more data to learn from, while smaller fractions leave a stronger holdout check but can make the trained model less stable."
+  )
+}
+
+ui_binary_roc_help_text <- function(model_name) {
+  paste(
+    "Show an ROC curve for the fitted", model_name, "model.",
+    "This is most informative for two-class problems, where it summarizes how well the model separates the two groups across thresholds.",
+    "Leave it off for multiclass work or when you want a simpler output focused on feature importance and classification summaries."
+  )
+}
+
+ui_cv_folds_help_text <- function() {
+  paste(
+    "Choose how many parts the data are split into during cross-validation.",
+    "Five folds are a common starting point, while ten folds can give a slightly more stable estimate if runtime is acceptable.",
+    "More folds usually use more data for training in each run, but they also increase computation time."
   )
 }
 
