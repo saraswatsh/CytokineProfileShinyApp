@@ -13,6 +13,7 @@ cyt_volc(
   p_value_thresh = 0.05,
   top_labels = 10,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -36,6 +37,9 @@ Default is 10.}
 
 \item{output_file}{Optional. A file path to save the plot. If NULL (default), the function
 returns a list of ggplot objects.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
@@ -61,4 +65,7 @@ data_df <- ExampleData1[,-c(2:3)]
 cyt_volc(data_df, "Group", cond1 = "T2D", cond2 = "ND",
 fold_change_thresh = 2.0, top_labels= 15)
 
+}
+\author{
+Xiaohua Douglas Zhang and Shubh Saraswat
 }

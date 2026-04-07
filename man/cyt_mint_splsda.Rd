@@ -18,7 +18,9 @@ cyt_mint_splsda(
   cim = FALSE,
   scale = NULL,
   roc = FALSE,
-  progress = NULL
+  font_settings = NULL,
+  progress = NULL,
+  custom_fn = NULL
 )
 }
 \arguments{
@@ -56,13 +58,21 @@ Default is 2.}
 
 \item{cim}{Logical. Whether to compute and plot the Clustered Image Map (CIM) heatmap. Default is \code{FALSE}.}
 
-\item{scale}{Character. Option for data transformation; if set to \code{"log2"}, a log2
-transformation is applied to the continuous variables. Default is \code{NULL}.}
+\item{scale}{Character. Optional transformation applied to numeric
+predictors. Supported values are \code{NULL} (default; no
+transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+\code{"zscore"}, or \code{"custom"}.}
 
 \item{roc}{Logical. Whether to compute and plot the ROC curve for the model.
 Default is \code{FALSE}.}
 
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
+
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
+
+\item{custom_fn}{Optional transformation function used when
+\code{scale = "custom"}.}
 }
 \value{
 In Download mode, a PDF file is written. In Interactive mode, a named list
@@ -84,4 +94,13 @@ cyt_mint_splsda(data_df, group_col = "Group",
  batch_col = "Batch", colors = c("black", "purple"),
  ellipse = TRUE, var_num = 25, comp_num = 2,
  scale = "log2")
+}
+\references{
+Rohart F, Eslami A, Matigian, N, Bougeard S, Le Cao K-A (2017).
+MINT: A multivariate integrative approach to identify a reproducible
+biomarker signature across multiple experiments and platforms. BMC
+Bioinformatics 18:128.
+}
+\author{
+Shubh Saraswat
 }

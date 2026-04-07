@@ -3,11 +3,20 @@
 
 <!-- badges: start -->
 
-[![](https://img.shields.io/badge/devel%20version-0.0.0.9000-green.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp)
-[![Last
+**Stable Build Status:** [![Last
 Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShinyApp.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/commits/main)
+[![R-CMD-check](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml)
+
+**Development Version:**
+[![](https://img.shields.io/badge/devel%20version-0.0.0.9000-green.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/tree/devel)
+[![R-CMD-check.yaml](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml/badge.svg?branch=devel)](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml)
+[![Last
+Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShinyApp/devel.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/commits/devel)
 [![Development](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![CodeFactor](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/badge)](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp)
+
+[![CodeFactor](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/badge/devel)](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/overview/devel)
+[![codecov](https://codecov.io/gh/saraswatsh/CytokineProfileShinyApp/branch/devel/graph/badge.svg?token=0SIQVV5WD3)](https://app.codecov.io/gh/saraswatsh/CytokineProfileShinyApp/tree/devel)
+
 <!-- badges: end -->
 
 # CytokineProfile Shiny Application <a href="https://shinyinfo.cytokineprofile.org/"><img src="man/figures/logo.png" alt="CytokineProfileShiny App website" align="right" height="134"/></a>
@@ -37,9 +46,10 @@ App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
 
 - Multiple Analysis Functions:
 
-  - Choose from several analysis functions, including:
-    1.  ANOVA
-    2.  Boxplots and Enhanced Boxplots
+  - Choose from several analysis functions, including but not limited
+    to:
+    1.  Univariate Analysis (e.g., T-test/Wilcoxon/ANOVA/Kruskal-Wallis)
+    2.  Boxplots
     3.  Error-Bar Plots
     4.  Dual-Flashlight Plot
     5.  Heatmap
@@ -84,6 +94,10 @@ The app is structured as a multi-step wizard:
 - Transformation: Apply log2 transformation if needed.
   - Preview data distribution with and without transformation.
 - Convert columns to categorical variables.
+- Convert selected columns back to numeric while keeping non-parsable
+  values as missing.
+- Automatically recognize more numeric-looking columns even when common
+  missing-value tokens are present.
 - Filter Data: Apply filters to categorical variables.
 - Missing Value Handling: Choose to impute them using various methods.
 

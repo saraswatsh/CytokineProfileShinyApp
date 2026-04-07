@@ -24,19 +24,33 @@ navbar:
 articles:
 - title: Installation for Locally Running the Application
   contents: R-installation
-- title: Basic Tutorial of CytokineProfile Shiny
+- title: Getting Started with the App
   contents: Basic-Tutorial-of-CytokineProfile-Shiny
-- title: Exploratory Analysis Demonstrations
+- title: Univariate Testing Guides
   contents:
-  - Understanding-Dual-Flashlight-Plot
+  - Understanding-Univariate-Test-Selection
+  - Understanding-Multi-Level-Univariate-Analysis
+- title: Exploratory Analysis Guides
+  contents:
+  - Understanding-Boxplots-and-Violin-Plots
+  - Understanding-Error-Bar-Plot
   - Understanding-Volcano-Plot
-- title: Multivariate Analysis Demonstrations
-  contents: Understanding-sPLS-DA
-- title: Machine Learning Methods Demonstrations
+  - Understanding-Dual-Flashlight-Plot
+  - Understanding-Heatmaps
+  - Understanding-Correlation-Analysis
+- title: Multivariate Analysis Guides
+  contents:
+  - Understanding-PCA
+  - Understanding-PLSR
+  - Understanding-sPLS-DA
+  - Understanding-MINT-sPLS-DA
+- title: Machine Learning Guides
   contents:
   - Understanding-Random-Forest
   - Understanding-XGBoost
 reference:
+- title: Running the Application
+  contents: run_app
 - title: Exploratory Analysis
   description: |
     Functions for exploring raw data, summarizing statistics,
@@ -50,10 +64,13 @@ reference:
   - cyt_volc
   - cyt_heatmap
   - cyt_dualflashplot
+  - cyt_violin
 - title: Univariate Analysis
   description: |
     Functions for performing univariate statistical tests.
   contents:
+  - cyt_univariate
+  - cyt_univariate_multi
   - cyt_anova
   - cyt_ttest
 - title: Multivariate Analysis
@@ -68,6 +85,11 @@ reference:
   contents:
   - cyt_rf
   - cyt_xgb
+- title: Utility Functions
+  contents:
+  - cyt_export
+  - adjust_p
+  - apply_scale
 - title: Datasets
   contents:
   - ExampleData1
@@ -80,4 +102,3 @@ footer:
   right: Built with pkgdown
 development:
   mode: auto
-

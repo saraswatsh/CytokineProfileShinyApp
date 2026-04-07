@@ -14,3 +14,20 @@ inst/doc
 server_old.R
 testing_code.R
 .vscode
+.Renviron
+R/libraries.R
+/.quarto/
+**/*.quarto_ipynb
+ShinyLoadTest/
+benchmark_cytokineprofile.R
+benchmark_shiny_app.R
+shinyTest.R
+server.R
+benchmark-results/
+# {shinytest2}: Ignore new debug snapshots for `$expect_values()`
+*_.new.png
+.Rprofile
+.posit
+/scripts
+notes
+app_server_stages.baseline.R

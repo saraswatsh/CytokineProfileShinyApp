@@ -61,6 +61,6 @@ Pugh GH, Fouladvand S, SantaCruz-Calvo S, Agrawal M, Zhang XD, Chen J,
 Kern PA, Nikolajczyk BS.
 T cells dominate peripheral inflammation in a cross-sectional analysis of
 obesity-associated diabetes. \emph{Obesity (Silver Spring)}. 2022;30(10):
-1983–1994. doi:10.1002/oby.23528.
+1983-1994. doi:10.1002/oby.23528.
 }
 \keyword{datasets}

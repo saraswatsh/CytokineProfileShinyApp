@@ -1,20 +1,22 @@
-#' Two Sample T-test Comparisons.
+#' Two Sample T-test Comparisons. `r lifecycle::badge("deprecated")`
 #'
 #' This function performs pairwise comparisons between two groups for each combination
 #' of a categorical predictor (with exactly two levels) and a continuous outcome variable.
 #' It first converts any character variables in \code{data} to factors and, if specified,
-#' applies a log2 transformation to the continuous variables. The function conducts a Shapiro-Wilk
-#' normality test to decide whether to use a Two-Sample T-Test vs. a Wilcoxon Rank Sum Test.
+#' applies a shared scaling or transformation to the continuous variables. The
+#' function conducts a Shapiro-Wilk normality test to decide whether to use a
+#' Two-Sample T-Test vs. a Wilcoxon Rank Sum Test.
 #' The resulting p-values are printed and returned.
 #'
 #' @param data A matrix or data frame containing continuous and categorical variables.
 #' @param scale A character specifying a transformation for continuous variables.
-#'   Options are \code{NULL} (default) and \code{"log2"}. When \code{scale = "log2"},
-#'   a log2 transformation is applied and a two-sample t-test is used; when \code{scale} is \code{NULL},
-#'   a Mann-Whitney U test is performed.
+#'   Options are \code{NULL} (default; no transformation), \code{"none"},
+#'   \code{"log2"}, \code{"log10"}, \code{"zscore"}, or \code{"custom"}.
 #' @param format_output Logical. If TRUE, returns the results as a tidy data frame.
 #'   Default is FALSE.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
+#' @param custom_fn Optional transformation function used when
+#'   \code{scale = "custom"}.
 #' @return If \code{format_output} is FALSE, returns a list of p-values (named by Outcome and Categorical variable).
 #'   If TRUE, returns a data frame with columns "Outcome", "Categorical", "Comparison", and "P_value".
 #'
@@ -28,8 +30,14 @@ cyt_ttest <- function(
   data,
   scale = NULL,
   format_output = FALSE,
-  progress = NULL
+  progress = NULL,
+  custom_fn = NULL
 ) {
+  lifecycle::deprecate_warn(
+    "0.0.1", # version when deprecation begins
+    "CytokineProfileShinyApp::cyt_ttest()",
+    "CytokineProfileShinyApp::cyt_univariate()"
+  )
   x1_df <- as.data.frame(data)
   # convert chars to factors
   char_cols <- sapply(x1_df, is.character)
@@ -37,12 +45,16 @@ cyt_ttest <- function(
     x1_df[char_cols] <- lapply(x1_df[char_cols], as.factor)
   }
 
-  # Add scale if user inputs scale
-  if (!is.null(scale) && scale == "log2") {
-    num_cols <- sapply(x1_df, is.numeric)
-    x1_df[num_cols] <- lapply(x1_df[num_cols], function(x) {
-      log2(x)
-    })
+  if (!is.null(scale)) {
+    num_cols <- names(x1_df)[sapply(x1_df, is.numeric)]
+    if (length(num_cols) > 0L) {
+      x1_df <- apply_scale(
+        data = x1_df,
+        columns = num_cols,
+        scale = scale,
+        custom_fn = custom_fn
+      )
+    }
   }
   # loop over every factor with exactly 2 levels against each numeric
   test_results <- list()
@@ -122,7 +134,7 @@ cyt_ttest <- function(
   }
 
   # otherwise return the raw list of htest objects
-  return(list(
+  list(
     test_results = test_results
-  ))
+  )
 }

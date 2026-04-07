@@ -21,6 +21,8 @@
 #'                   Default is 10.
 #' @param output_file Optional. A file path to save the plot. If NULL (default), the function
 #'                    returns a list of ggplot objects.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If output_file is NULL, a list of ggplot objects (one per pair) is returned.
 #'         If output_file is provided, the plot(s) are written to that file and the function returns NULL invisibly.
@@ -29,6 +31,7 @@
 #' @importFrom dplyr arrange mutate desc row_number
 #' @importFrom ggrepel geom_text_repel
 #' @export
+#' @author Xiaohua Douglas Zhang and Shubh Saraswat
 #' @examples
 #' # Loading data
 #' data_df <- ExampleData1[,-c(2:3)]
@@ -45,10 +48,36 @@ cyt_volc <- function(
   p_value_thresh = 0.05,
   top_labels = 10,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 ) {
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text",
+      "annotation_text"
+    ),
+    activate = !is.null(font_settings)
+  )
+  label_size <- if (is.null(resolved_fonts)) {
+    3
+  } else {
+    font_settings_ggplot_text_size(
+      resolved_fonts$annotation_text,
+      default_size = 3
+    )
+  }
+
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Validating input data")
+    progress$set(message = "Running Volcano Plot...", value = 0)
+    progress$inc(0.05, detail = "Checking inputs")
   }
   if (!is.data.frame(data)) {
     stop("Input data must be a data frame.")
@@ -58,7 +87,7 @@ cyt_volc <- function(
     condition_pairs <- list(c(cond1, cond2))
   } else {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Generating condition pairs")
+      progress$inc(0.05, detail = "Building comparison list")
     }
     conditions <- unique(data[[group_col]])
     condition_pairs <- utils::combn(conditions, 2, simplify = FALSE)
@@ -73,9 +102,10 @@ cyt_volc <- function(
   plot_list <- list()
   total_pairs <- length(condition_pairs)
   pair_count <- 0
+  pair_inc <- if (total_pairs > 0L) 0.70 / total_pairs else 0
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Processing condition pairs")
+    progress$inc(0.05, detail = "Calculating volcano statistics")
   }
   for (pair in condition_pairs) {
     pair_count <- pair_count + 1
@@ -99,7 +129,7 @@ cyt_volc <- function(
         if (length(x) < 2 || length(y) < 2) {
           NA
         } else {
-          mean(y, na.rm = TRUE) / mean(x, na.rm = TRUE)
+          mean(x, na.rm = TRUE) / mean(y, na.rm = TRUE)
         }
       },
       as.list(data_cond1[, numeric_cols, drop = FALSE]),
@@ -124,51 +154,129 @@ cyt_volc <- function(
       stringsAsFactors = FALSE
     )
 
-    plot_data <- plot_data %>%
+    plot_data <- plot_data |>
       dplyr::mutate(
-        significant = (abs(fc_log) >= log2(fold_change_thresh)) &
-          (p_log >= -log10(p_value_thresh))
-      ) %>%
-      dplyr::arrange(desc(significant), desc(p_log)) %>%
+        direction = dplyr::case_when(
+          fc_log >= log2(fold_change_thresh) &
+            p_log >= -log10(p_value_thresh) ~ "Upregulated",
+          fc_log <= -log2(fold_change_thresh) &
+            p_log >= -log10(p_value_thresh) ~ "Downregulated",
+          TRUE ~ "Not Significant"
+        ),
+        direction = factor(
+          direction,
+          levels = c("Upregulated", "Downregulated", "Not Significant")
+        )
+      ) |>
+      dplyr::arrange(
+        dplyr::desc(direction != "Not Significant"),
+        dplyr::desc(p_log)
+      ) |>
       dplyr::mutate(
-        label = ifelse(dplyr::row_number() <= top_labels, variable, "")
+        label = ifelse(
+          dplyr::row_number() <= top_labels & direction != "Not Significant",
+          variable,
+          ""
+        )
       )
 
     if (!is.null(progress)) {
       progress$inc(
-        0.05,
-        detail = paste("Processed pair", pair_count, "of", total_pairs)
+        pair_inc,
+        detail = paste(
+          "Building comparison",
+          pair_count,
+          "of",
+          total_pairs,
+          ":",
+          current_cond1,
+          "vs",
+          current_cond2
+        )
       )
     }
-    p <- ggplot2::ggplot(plot_data, aes(x = fc_log, y = p_log, label = label)) +
-      ggplot2::geom_point(aes(color = significant), size = 2) +
+    p <- ggplot2::ggplot(
+      plot_data,
+      ggplot2::aes(x = fc_log, y = p_log, label = label)
+    ) +
+      ggplot2::geom_point(
+        ggplot2::aes(
+          color = direction,
+          size = p_log, # size encodes significance magnitude
+          alpha = direction # de-emphasize non-significant points
+        )
+      ) +
       ggplot2::geom_vline(
         xintercept = c(log2(fold_change_thresh), -log2(fold_change_thresh)),
         linetype = "dashed",
-        color = "blue"
+        color = "grey40"
       ) +
       ggplot2::geom_hline(
         yintercept = -log10(p_value_thresh),
         linetype = "dashed",
-        color = "blue"
+        color = "grey40"
       ) +
-      ggrepel::geom_text_repel(size = 3, max.overlaps = 50) +
+      ggrepel::geom_text_repel(
+        size = label_size,
+        max.overlaps = 50,
+        min.segment.length = 0.2,
+        box.padding = 0.4
+      ) +
       ggplot2::scale_color_manual(
-        values = c("FALSE" = "grey", "TRUE" = "red")
+        name = "Regulation",
+        values = c(
+          "Upregulated" = "#E84646", # red
+          "Downregulated" = "#2166AC", # blue
+          "Not Significant" = "grey70"
+        )
+      ) +
+      ggplot2::scale_alpha_manual(
+        values = c(
+          "Upregulated" = 0.9,
+          "Downregulated" = 0.9,
+          "Not Significant" = 0.4
+        ),
+        guide = "none" # don't show alpha in legend
+      ) +
+      ggplot2::scale_size_continuous(
+        name = expression(-log[10](p)),
+        range = c(1.5, 5), # min/max point size
+        breaks = c(2, 5, 10), # meaningful p-value landmarks
+        labels = c("0.01", "1e-5", "1e-10")
+      ) +
+      ggplot2::guides(
+        color = ggplot2::guide_legend(
+          override.aes = list(size = 4), # make legend color swatches readable
+          order = 1
+        ),
+        size = ggplot2::guide_legend(order = 2)
       ) +
       ggplot2::labs(
         title = paste("Volcano Plot:", current_cond1, "vs", current_cond2),
-        x = "Log2 Fold Change",
-        y = "-Log10 P-Value"
+        subtitle = paste0(
+          "FC threshold: ",
+          fold_change_thresh,
+          "x  |  p-value threshold: ",
+          p_value_thresh
+        ),
+        x = expression(log[2] ~ "Fold Change"),
+        y = expression(-log[10] ~ "(p-value)")
       ) +
-      ggplot2::theme_minimal()
+      ggplot2::theme_minimal() +
+      ggplot2::theme(
+        legend.position = "right",
+        legend.box = "vertical",
+        panel.grid.minor = ggplot2::element_blank()
+      )
+
+    p <- apply_font_settings_ggplot(p, resolved_fonts)
 
     plot_list[[paste(current_cond1, "vs", current_cond2)]] <- p
   }
 
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Saving plots to file")
+      progress$inc(0.05, detail = "Writing output file")
     }
     ext <- tools::file_ext(output_file)
     if (tolower(ext) == "pdf") {
@@ -178,9 +286,14 @@ cyt_volc <- function(
       }
       grDevices::dev.off()
       if (!is.null(progress)) {
-        progress$inc(0.05, detail = "File saved")
+        progress$inc(0.05, detail = "Finished writing output file")
+        progress$set(
+          message = "Running Volcano Plot...",
+          value = 1,
+          detail = "Finished"
+        )
       }
-      return(invisible(NULL))
+      invisible(NULL)
     } else if (tolower(ext) %in% c("png", "jpg", "jpeg")) {
       grDevices::png(
         filename = output_file,
@@ -191,14 +304,37 @@ cyt_volc <- function(
       )
       print(plot_list[[1]])
       grDevices::dev.off()
-      return(invisible(NULL))
+      if (!is.null(progress)) {
+        progress$inc(0.05, detail = "Finished writing output file")
+        progress$set(
+          message = "Running Volcano Plot...",
+          value = 1,
+          detail = "Finished"
+        )
+      }
+      invisible(NULL)
     } else {
       stop("Output file must have extension .pdf, .png, .jpg, or .jpeg")
     }
   } else {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Returning list of plots")
+      progress$inc(0.05, detail = "Formatting results")
+      progress$set(
+        message = "Running Volcano Plot...",
+        value = 1,
+        detail = "Finished"
+      )
     }
-    return(list(plot = p, stats = plot_data[, -5]))
+    list(
+      plot = p,
+      stats = plot_data |>
+        dplyr::select(
+          variable,
+          log2_fold_change = fc_log,
+          p_value = p_log,
+          direction
+        ) |>
+        dplyr::arrange(direction, dplyr::desc(p_value))
+    )
   }
 }

@@ -15,7 +15,9 @@ cyt_splsda(
   comp_num = 2,
   cv_opt = NULL,
   fold_num = 5,
+  seed = 123456,
   scale = NULL,
+  custom_fn = NULL,
   ellipse = FALSE,
   bg = FALSE,
   roc = FALSE,
@@ -25,6 +27,7 @@ cyt_splsda(
   pch_values = NULL,
   output_file = NULL,
   font_scale = 1,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -60,8 +63,16 @@ Default is \code{NULL}.}
 
 \item{fold_num}{Numeric. The number of folds to use if \code{cv_opt} is "Mfold". Default is 5.}
 
-\item{scale}{Character. Option for data transformation; if set to \code{"log2"}, a log2
-transformation is applied to the continuous variables. Default is \code{NULL}.}
+\item{seed}{Optional integer seed for reproducible cross-validation.
+Default is \code{123}.}
+
+\item{scale}{Character. Optional transformation applied to numeric
+predictors. Supported values are \code{NULL} (default; no
+transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+\code{"zscore"}, or \code{"custom"}.}
+
+\item{custom_fn}{Optional transformation function used when
+\code{scale = "custom"}.}
 
 \item{ellipse}{Logical. Whether to draw a 95\\% confidence ellipse on the figures.
 Default is \code{FALSE}.}
@@ -89,6 +100,9 @@ to be used in the plots.}
 If set to NULL, the function runs in interactive mode.}
 
 \item{font_scale}{Numeric. Apply a scale to font size in the figures for better readability.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
@@ -121,4 +135,7 @@ conf_mat = FALSE, var_num = 25, cv_opt = NULL, comp_num = 2,
 pch_values = c(16, 4), style = NULL, ellipse = TRUE,
 group_col = "Group", group_col2 = "Treatment", roc = FALSE)
 
+}
+\author{
+Xiaohua Douglas Zhang and Shubh Saraswat
 }

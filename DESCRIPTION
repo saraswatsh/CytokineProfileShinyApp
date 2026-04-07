@@ -10,13 +10,14 @@ Description: An interactive Shiny application that provides comprehensive cytoki
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Config/testthat/edition: 3
+Config/testthat/parallel: true
 URL: https://github.com/saraswatsh/CytokineProfileShinyApp, https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud, https://shinyinfo.cytokineprofile.org/
 Depends: 
     R (>= 4.3)
 Imports: 
     shiny,
     shinyjs,
-    base64enc,
     readxl,
     bslib,
     shinyhelper,
@@ -25,7 +26,6 @@ Imports:
     shinyWidgets,
     shinycssloaders,
     fontawesome,
-    jsonlite,
     skimr, 
     mixOmics,
     dplyr,
@@ -44,10 +44,16 @@ Imports:
     reshape2, 
     recipes, 
     impute,
-    plotly,
     patchwork,
     rlang,
-    vroom
+    vroom,
+    config,
+    data.table, 
+    lifecycle,
+    car,
+    Ckmeans.1d.dp,
+    emmeans,
+    shinytest2
 Suggests:
     spelling,
     BiocManager,
@@ -55,8 +61,9 @@ Suggests:
     knitr,
     rmarkdown,
     devtools,
-    Ckmeans.1d.dp,
-    learnr
+    plotly,
+    learnr,
+    htmltools
 NeedsCompilation: no
 License: GPL (>= 2)
 LazyData: true

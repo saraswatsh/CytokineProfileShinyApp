@@ -13,6 +13,8 @@
 #' If NULL (default), the function returns a list of two ggplot objects.
 #' @param print_res_raw Logical. If TRUE, prints and returns the summary statistics for raw data.
 #' @param print_res_log Logical. If TRUE, prints and returns the summary statistics for log2 data.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If output_file is NULL, returns a list with:
 #'   - p_skew: Overlayed histogram of raw and log2 skewness.
@@ -24,6 +26,7 @@
 #' @importFrom gridExtra grid.arrange
 #' @import dplyr
 #' @export
+#' @author Xiaohua Douglas Zhang and Shubh Saraswat
 #' @examples
 #' # Example with grouping columns (e.g., "Group" and "Treatment")
 #' data(ExampleData1)
@@ -40,14 +43,31 @@ cyt_skku <- function(
   output_file = NULL,
   print_res_raw = FALSE,
   print_res_log = FALSE,
+  font_settings = NULL,
   progress = NULL
 ) {
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text"
+    ),
+    activate = !is.null(font_settings)
+  )
+
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Loading libraries and data")
+    progress$set(message = "Running Skewness and Kurtosis Plots...", value = 0)
+    progress$inc(0.05, detail = "Preparing data")
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Determining grouping and measurement columns")
+    progress$inc(0.05, detail = "Preparing grouped measurements")
   }
   if (!is.null(group_cols)) {
     measure_cols <- setdiff(names(data), group_cols)
@@ -88,11 +108,13 @@ cyt_skku <- function(
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Computing metrics for raw and log2 data")
+    progress$inc(0.1, detail = "Calculating skewness and kurtosis")
   }
   raw_list <- list()
   log_list <- list()
-  for (col in measure_cols) {
+  iter_inc <- if (length(measure_cols) > 0L) 0.55 / length(measure_cols) else 0
+  for (col_idx in seq_along(measure_cols)) {
+    col <- measure_cols[[col_idx]]
     Y_raw <- data[[col]]
     df_raw <- compute_metrics(Y_raw, grouping)
     df_raw$measurement <- col
@@ -102,7 +124,19 @@ cyt_skku <- function(
     df_log <- compute_metrics(Y_log, grouping)
     df_log$measurement <- col
     log_list[[col]] <- df_log
-    if (!is.null(progress)) progress$inc(0.01, detail = paste("Processed", col))
+    if (!is.null(progress)) {
+      progress$inc(
+        iter_inc,
+        detail = paste(
+          "Processing measurement",
+          col_idx,
+          "of",
+          length(measure_cols),
+          ":",
+          col
+        )
+      )
+    }
   }
 
   raw_results <- do.call(rbind, raw_list)
@@ -124,17 +158,26 @@ cyt_skku <- function(
   )
 
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Generating histograms")
+    progress$inc(0.1, detail = "Building histograms")
   }
-  p_skew <- ggplot2::ggplot(df_skew, aes(x = value, fill = Transformation)) +
+  p_skew <- ggplot2::ggplot(
+    df_skew,
+    ggplot2::aes(x = value, fill = Transformation)
+  ) +
     ggplot2::geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
     ggplot2::labs(x = "Skewness", title = "Distribution of Skewness") +
     ggplot2::theme_minimal()
 
-  p_kurt <- ggplot2::ggplot(df_kurt, aes(x = value, fill = Transformation)) +
+  p_kurt <- ggplot2::ggplot(
+    df_kurt,
+    ggplot2::aes(x = value, fill = Transformation)
+  ) +
     ggplot2::geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
     ggplot2::labs(x = "Kurtosis", title = "Distribution of Kurtosis") +
     ggplot2::theme_minimal()
+
+  p_skew <- apply_font_settings_ggplot(p_skew, resolved_fonts)
+  p_kurt <- apply_font_settings_ggplot(p_kurt, resolved_fonts)
 
   if (print_res_raw) {
     print(raw_results)
@@ -145,24 +188,34 @@ cyt_skku <- function(
 
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Saving histograms to PDF")
+      progress$inc(0.05, detail = "Writing output file")
     }
     grDevices::pdf(file = output_file, width = 10, height = 5)
     gridExtra::grid.arrange(p_skew, p_kurt, ncol = 2)
     grDevices::dev.off()
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "PDF saved")
+      progress$inc(0.05, detail = "Finished writing output file")
+      progress$set(
+        message = "Running Skewness and Kurtosis Plots...",
+        value = 1,
+        detail = "Finished"
+      )
     }
-    return(invisible(NULL))
+    invisible(NULL)
   } else {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Returning histogram plots")
+      progress$inc(0.05, detail = "Formatting results")
+      progress$set(
+        message = "Running Skewness and Kurtosis Plots...",
+        value = 1,
+        detail = "Finished"
+      )
     }
-    return(list(
+    list(
       p_skew = p_skew,
       p_kurt = p_kurt,
       raw_results = as.matrix(raw_results),
       log_results = as.matrix(log_results)
-    ))
+    )
   }
 }

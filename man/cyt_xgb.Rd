@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyt_xgb.R
 \name{cyt_xgb}
 \alias{cyt_xgb}
-\title{Run XGBoost Classification on Cytokine Data.}
+\title{Run XGBoost Classification on Cytokine Data}
 \usage{
 cyt_xgb(
   data,
@@ -21,79 +21,121 @@ cyt_xgb(
   subsample = 1,
   min_child_weight = 1,
   top_n_features = 10,
+  verbose = 0,
   plot_roc = FALSE,
+  print_results = FALSE,
+  seed = 123456,
+  scale = c("none", "log2", "log10", "zscore", "custom"),
+  custom_fn = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 }
 \arguments{
-\item{data}{A data frame containing the cytokine data, with one column as the grouping variable
-and the rest as numerical features.}
+\item{data}{A data frame containing numeric predictor variables and one
+grouping column.  Non-numeric predictor columns will be coerced to
+numeric if possible.}
 
-\item{group_col}{A string representing the name of the column with the grouping variable
-(i.e., the target variable for classification).}
+\item{group_col}{Character string naming the column that contains the class
+labels (target variable).  Required.}
 
-\item{train_fraction}{A numeric value between 0 and 1 representing the proportion of data to use for training (default is 0.7).}
+\item{train_fraction}{Numeric between 0 and 1 specifying the proportion of
+samples used for model training.  Default is \code{0.7}.}
 
-\item{nrounds}{An integer specifying the number of boosting rounds (default is 500).}
+\item{nrounds}{Integer specifying the number of boosting rounds.  Default
+is \code{500}.}
 
-\item{max_depth}{An integer specifying the maximum depth of the trees (default is 6).}
+\item{max_depth}{Integer specifying the maximum depth of each tree.
+Default is \code{6}.}
 
-\item{learning_rate}{A numeric value representing the learning rate (default is 0.1).}
+\item{learning_rate}{Numeric specifying the learning rate.  Default is
+\code{0.1}.}
 
-\item{nfold}{An integer specifying the number of folds for cross-validation (default is 5).}
+\item{nfold}{Integer specifying the number of folds for cross-validation
+when \code{cv = TRUE}.  Default is \code{5}.}
 
-\item{cv}{A logical value indicating whether to perform cross-validation (default is FALSE).}
+\item{cv}{Logical indicating whether to perform cross-validation using
+\code{xgb.cv}.  Default is \code{FALSE}.}
 
-\item{objective}{A string specifying the XGBoost objective function (default is "multi:softprob" for multi-class classification).}
+\item{objective}{Character string specifying the objective function.
+Default is \code{"multi:softprob"}.}
 
-\item{early_stopping_rounds}{An integer specifying the number of rounds with no improvement to stop training early (default is NULL).}
+\item{early_stopping_rounds}{Integer.  Number of rounds without improvement
+before training stops early.  Default is \code{NULL}.}
 
-\item{eval_metric}{A string specifying the evaluation metric (default is "mlogloss").}
+\item{eval_metric}{Character specifying the evaluation metric.  Default is
+\code{"mlogloss"}.}
 
-\item{min_split_loss}{A numeric value for the minimum loss reduction required to make a further partition (default is 0).}
+\item{min_split_loss}{Numeric.  Minimum loss reduction required to make a
+further partition.  Default is \code{0}.}
 
-\item{colsample_bytree}{A numeric value specifying the subsample ratio of columns when constructing each tree (default is 1).}
+\item{colsample_bytree}{Numeric.  Subsample ratio of columns per tree.
+Default is \code{1}.}
 
-\item{subsample}{A numeric value specifying the subsample ratio of the training instances (default is 1).}
+\item{subsample}{Numeric.  Subsample ratio of training instances.  Default
+is \code{1}.}
 
-\item{min_child_weight}{A numeric value specifying the minimum sum of instance weight needed in a child (default is 1).}
+\item{min_child_weight}{Numeric.  Minimum sum of instance weight in a
+child.  Default is \code{1}.}
 
-\item{top_n_features}{An integer specifying the number of top features to display in the importance plot (default is 10).}
+\item{top_n_features}{Integer.  Number of top features to display in the
+importance plot.  Default is \code{10}.}
 
-\item{plot_roc}{A logical value indicating whether to plot the ROC curve and calculate the AUC for binary classification (default is FALSE).}
+\item{verbose}{Integer (0, 1, or 2) controlling verbosity of
+\code{xgb.train}.  Default is \code{0}.}
 
-\item{output_file}{Optional. A file path to save the outputs as a PDF file. If provided, outputs are written to the file and results are returned invisibly.}
+\item{plot_roc}{Logical.  Whether to plot the ROC curve and compute AUC
+for binary classification.  Default is \code{FALSE}.}
 
-\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
+\item{print_results}{Logical.  If \code{TRUE}, prints the confusion matrix,
+top features, and cross-validation metrics to the console.  Default is
+\code{FALSE}.}
+
+\item{seed}{Optional integer seed for reproducibility.  Default is
+\code{123}.}
+
+\item{scale}{Character string specifying a transformation to apply to
+numeric predictors prior to model fitting.  One of \code{"none"}
+(default), \code{"log2"}, \code{"log10"}, \code{"zscore"}, or
+\code{"custom"}.}
+
+\item{custom_fn}{A custom transformation function used when
+\code{scale = "custom"}.  Ignored otherwise.}
+
+\item{output_file}{Optional.  A file path to save outputs as a PDF.  If
+\code{NULL} (default), a named list is returned for interactive display.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
+
+\item{progress}{Optional.  A Shiny \code{Progress} object for reporting
+progress updates.}
 }
 \value{
-A list containing:
-\item{summary_text}{A character string summarizing key results (interactive mode only).}
-\item{model}{The trained XGBoost model.}
-\item{confusion_matrix}{The confusion matrix (test set).}
-\item{importance}{The feature importance data for the top features.}
-\item{class_mapping}{A named vector showing the mapping from class labels to numeric values used for training.}
-\item{cv_results}{Cross-validation results if performed (otherwise NULL).}
-\item{plot}{A ggplot object showing the feature importance plot.}
+When \code{output_file} is \code{NULL}, an invisible named list
+with elements \code{summary_text}, \code{model}, \code{confusion_matrix},
+\code{importance}, \code{class_mapping}, \code{cv_results},
+\code{importance_plot}, and \code{roc_plot}.  When \code{output_file} is
+provided, a PDF is written and the function returns \code{NULL}
+invisibly.
 }
 \description{
-This function trains and evaluates an XGBoost classification model on cytokine data.
-It allows for hyperparameter tuning, cross-validation, and visualizes feature importance.
+This function trains and evaluates an XGBoost classification model on
+cytokine data.  It allows for hyperparameter tuning, cross-validation,
+and visualizes feature importance.
 }
 \examples{
-# Example usage:
 data_df0 <- ExampleData1
-data_df <- data.frame(data_df0[, 1:3], log2(data_df0[, -c(1:3)]))
-data_df <- data_df[, -c(2,3)]
-data_df <- dplyr::filter(data_df, Group != "ND")
+data_df  <- data.frame(data_df0[, 1:3], log2(data_df0[, -c(1:3)]))
+data_df  <- data_df[, -c(2:3)]
+data_df  <- dplyr::filter(data_df, Group != "ND")
+cyt_xgb(data = data_df, group_col = "Group", nrounds = 250,
+        max_depth = 4, learning_rate = 0.05, nfold = 5,
+        cv = FALSE, objective = "multi:softprob",
+        eval_metric = "auc", plot_roc = TRUE, print_results = FALSE)
 
-cyt_xgb(
-  data = data_df, group_col = "Group",
-  nrounds = 500, max_depth = 4, learning_rate = 0.05,
-  nfold = 5, cv = FALSE, eval_metric = "mlogloss",
-  early_stopping_rounds = NULL, top_n_features = 10,
-  plot_roc = TRUE
-)
-
+}
+\author{
+Shubh Saraswat and Xiaohua Douglas Zhang
 }

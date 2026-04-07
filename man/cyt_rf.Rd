@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyt_rf.R
 \name{cyt_rf}
 \alias{cyt_rf}
-\title{Run Random Forest Classification on Cytokine Data.}
+\title{Run Random Forest Classification on Cytokine Data}
 \usage{
 cyt_rf(
   data,
@@ -14,65 +14,100 @@ cyt_rf(
   k_folds = 5,
   step = 0.5,
   run_rfcv = TRUE,
+  verbose = FALSE,
+  seed = 123456,
+  cv = FALSE,
+  cv_folds = 5,
+  scale = c("none", "log2", "log10", "zscore", "custom"),
+  custom_fn = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 }
 \arguments{
-\item{data}{A data frame containing the cytokine data, with one column as the grouping variable
-(target variable) and the rest as numerical features.}
+\item{data}{A data frame containing the cytokine measurements.  One column
+should correspond to the grouping variable (the outcome) and the
+remaining columns should be numeric predictors.}
 
-\item{group_col}{A string representing the name of the column with the grouping variable.}
+\item{group_col}{A string naming the column in \code{data} that contains
+the grouping variable.}
 
-\item{ntree}{An integer specifying the number of trees to grow in the forest (default is 500).}
+\item{ntree}{Integer specifying the number of trees to grow.  Default is
+\code{500}.}
 
-\item{mtry}{An integer specifying the number of variables randomly selected at each split (default is 5).}
+\item{mtry}{Integer specifying the number of variables randomly sampled at
+each split.  Default is \code{5}.}
 
-\item{train_fraction}{A numeric value between 0 and 1 representing the proportion of data to use for training (default is 0.7).}
+\item{train_fraction}{Numeric between 0 and 1 giving the proportion of
+data used for training.  Default is \code{0.7}.}
 
-\item{plot_roc}{A logical value indicating whether to plot the ROC curve and compute the AUC for binary classification (default is FALSE).}
+\item{plot_roc}{Logical.  If \code{TRUE} and the problem is binary, an ROC
+curve and AUC are computed and returned.  Default is \code{FALSE}.}
 
-\item{k_folds}{An integer specifying the number of folds for cross-validation (default is 5).}
+\item{k_folds}{Integer specifying the number of folds for \code{rfcv} when
+\code{run_rfcv = TRUE}.  Default is \code{5}.}
 
-\item{step}{A numeric value specifying the fraction of variables to remove at each step during cross-validation for feature selection (default is 0.5).}
+\item{step}{Numeric specifying the fraction of variables removed at each
+step during \code{rfcv}.  Default is \code{0.5}.}
 
-\item{run_rfcv}{A logical value indicating whether to run Random Forest cross-validation for feature selection (default is TRUE).}
+\item{run_rfcv}{Logical indicating whether to run Random Forest
+cross-validation for feature selection.  Default is \code{TRUE}.}
 
-\item{output_file}{Optional. A file path to save the outputs (plots and summaries) as a PDF file.
-If NULL (default), the function returns a list of objects for interactive display.}
+\item{verbose}{Logical.  When \code{TRUE}, training and test performance
+metrics, confusion matrices, and cross-validation details are printed.
+Default is \code{FALSE}.}
 
-\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
+\item{seed}{Optional integer seed for reproducibility.  Default is
+\code{123}.}
+
+\item{cv}{Logical indicating whether to perform a separate k-fold
+classification cross-validation using \code{caret}.  Default is
+\code{FALSE}.}
+
+\item{cv_folds}{Integer specifying the number of folds for classification
+cross-validation when \code{cv = TRUE}.  Default is \code{5}.}
+
+\item{scale}{Character string specifying a transformation to apply to
+numeric predictor columns prior to model fitting.  One of \code{"none"}
+(default), \code{"log2"}, \code{"log10"}, \code{"zscore"}, or
+\code{"custom"}.}
+
+\item{custom_fn}{A custom transformation function used when
+\code{scale = "custom"}.}
+
+\item{output_file}{Optional.  A file path to save outputs as a PDF.  If
+\code{NULL} (default), a named list is returned for interactive display.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
+
+\item{progress}{Optional.  A Shiny \code{Progress} object for reporting
+progress updates.}
 }
 \value{
-A list containing:
-\itemize{
-\item \code{model}: the trained Random Forest model,
-\item \code{train_confusion}: confusion matrix from the training set,
-\item \code{accuracy_train}: overall training set accuracy,
-\item \code{test_confusion}: confusion matrix from the test set,
-\item \code{accuracy_test}: overall test set accuracy,
-\item \code{vip_plot}: a ggplot object of variable importance,
-\item \code{importance_data}: a data frame with variable importance metrics,
-\item \code{roc_plot}: (if applicable) a ggplot object of the ROC curve,
-\item \code{rfcv_result}: (if run_rfcv is TRUE) cross-validation results,
-\item \code{rfcv_data}: (if run_rfcv is TRUE) a data frame of RF CV results,
-\item \code{rfcv_plot}: (if run_rfcv is TRUE) a ggplot object of RF CV error vs. number of variables.
-}
-If \code{output_file} is provided, a PDF is generated and the function returns \code{NULL} invisibly.
+When \code{output_file} is \code{NULL}, an invisible named list
+with elements \code{summary_text}, \code{vip_plot}, \code{roc_plot},
+\code{rfcv_plot}, \code{rfcv_data}, \code{importance_data}, and
+\code{cv_results}.  When \code{output_file} is provided, a PDF is
+written and the function returns \code{NULL} invisibly.
 }
 \description{
-This function trains and evaluates a Random Forest classification model on cytokine data.
-It includes variable importance visualization, cross-validation for feature selection,
-and performance metrics such as accuracy, sensitivity, and specificity. For binary classification,
-the function can also plot the ROC curve and compute the AUC.
+This function trains and evaluates a Random Forest classification model on
+cytokine data.  It includes variable importance visualization,
+cross-validation for feature selection, and performance metrics such as
+accuracy, sensitivity, and specificity.  For binary classification the
+function can also plot the ROC curve and compute the AUC.
 }
 \examples{
 data.df0 <- ExampleData1
-data.df <- data.frame(data.df0[, 1:3], log2(data.df0[, -c(1:3)]))
-data.df <- data.df[, -c(2:3)]
-data.df <- dplyr::filter(data.df, Group != "ND")
-
+data.df  <- data.frame(data.df0[, 1:3], log2(data.df0[, -c(1:3)]))
+data.df  <- data.df[, -c(2:3)]
+data.df  <- dplyr::filter(data.df, Group != "ND")
 cyt_rf(data = data.df, group_col = "Group", k_folds = 5, ntree = 1000,
-  mtry = 4, run_rfcv = TRUE, plot_roc = TRUE)
+       mtry = 4, run_rfcv = TRUE, plot_roc = TRUE, verbose = FALSE)
 
+}
+\author{
+Shubh Saraswat and Xiaohua Douglas Zhang
 }

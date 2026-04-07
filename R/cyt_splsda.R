@@ -27,8 +27,14 @@
 #' @param cv_opt Character. Option for cross-validation method: either "loocv" or "Mfold".
 #'   Default is \code{NULL}.
 #' @param fold_num Numeric. The number of folds to use if \code{cv_opt} is "Mfold". Default is 5.
-#' @param scale Character. Option for data transformation; if set to \code{"log2"}, a log2
-#'   transformation is applied to the continuous variables. Default is \code{NULL}.
+#' @param seed Optional integer seed for reproducible cross-validation.
+#'   Default is \code{123}.
+#' @param scale Character. Optional transformation applied to numeric
+#'   predictors. Supported values are \code{NULL} (default; no
+#'   transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+#'   \code{"zscore"}, or \code{"custom"}.
+#' @param custom_fn Optional transformation function used when
+#'   \code{scale = "custom"}.
 #' @param comp_num Numeric. The number of components to calculate in the sPLS-DA model.
 #'   Default is 2.
 #' @param pch_values A vector of integers specifying the plotting characters (pch values)
@@ -41,6 +47,8 @@
 #'   repeated measurements (e.g., patient or sample IDs). If provided, a
 #'   multilevel analysis will be performed. Default is \code{NULL}.
 #' @param font_scale Numeric. Apply a scale to font size in the figures for better readability.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #'
 #' @return In Download mode (output_file not NULL), a PDF file is written and the function
@@ -57,7 +65,7 @@
 #'         9. vip_ROC: ROC curve plot for the VIP>1 model
 #'         10. vip_CV: Cross-validation error plot for the VIP>1 model
 #'         11. conf_matrix: Confusion matrix text output
-#'
+#' @author Xiaohua Douglas Zhang and Shubh Saraswat
 #' @examples
 #' data_df <- ExampleData1[,-c(3)]
 #' data_df <- dplyr::filter(data_df, Group != "ND", Treatment != "Unstimulated")
@@ -71,7 +79,6 @@
 #' @export
 #' @importFrom mixOmics splsda background.predict perf vip auroc plotIndiv plotLoadings
 #' @import ggplot2
-#' @import plotly
 #' @importFrom plot3D scatter3D
 #' @importFrom reshape2 melt
 #' @importFrom caret confusionMatrix
@@ -89,7 +96,9 @@ cyt_splsda <- function(
   comp_num = 2,
   cv_opt = NULL,
   fold_num = 5,
+  seed = 123456,
   scale = NULL,
+  custom_fn = NULL,
   ellipse = FALSE,
   bg = FALSE,
   roc = FALSE,
@@ -99,13 +108,39 @@ cyt_splsda <- function(
   pch_values = NULL,
   output_file = NULL,
   font_scale = 1,
+  font_settings = NULL,
   progress = NULL
 ) {
   `%notin%` <- function(x, y) !(x %in% y)
 
   if (!is.null(progress)) {
-    progress$set(message = "Starting sPLS-DA...", value = 0)
+    progress$set(message = "Running sPLS-DA...", value = 0)
   }
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text",
+      "strip_text",
+      "variable_names",
+      "point_labels"
+    ),
+    legacy = list(
+      base_size = 11 * font_scale,
+      variable_names = 10 * max(font_scale - 0.5, 0.25),
+      point_labels = 10 * max(font_scale, 0.25)
+    ),
+    activate = !is.null(font_settings) || !identical(font_scale, 1)
+  )
+  mixomics_indiv_args <- font_settings_mixomics_indiv_args(resolved_fonts)
+  mixomics_loadings_args <- font_settings_mixomics_loadings_args(resolved_fonts)
+  base_font_args <- font_settings_base_graphics(resolved_fonts)
 
   # --- arg normalization ---------------------------------------------------
   if (is.null(group_col) && !is.null(group_col2)) {
@@ -130,26 +165,16 @@ cyt_splsda <- function(
   )))
   id_cols <- id_cols[id_cols %in% names(data)]
 
-  if (identical(scale, "log2")) {
-    num_cols <- names(data)[
-      vapply(data, is.numeric, logical(1)) & names(data) %notin% id_cols
-    ]
-    if (length(num_cols)) {
-      # offset if needed
-      if (any(data[, num_cols] <= 0, na.rm = TRUE)) {
-        min_pos <- suppressWarnings(min(
-          data[, num_cols][data[, num_cols] > 0],
-          na.rm = TRUE
-        ))
-        off <- if (is.finite(min_pos)) min_pos / 2 else 1e-6
-        data[, num_cols] <- log2(data[, num_cols] + off)
-        warning(
-          "Non-positive values detected; applied log2 with a small offset."
-        )
-      } else {
-        data[, num_cols] <- log2(data[, num_cols])
-      }
-    }
+  num_cols <- names(data)[
+    vapply(data, is.numeric, logical(1)) & names(data) %notin% id_cols
+  ]
+  if (!is.null(scale) && length(num_cols) > 0L) {
+    data <- apply_scale(
+      data = data,
+      columns = num_cols,
+      scale = scale,
+      custom_fn = custom_fn
+    )
   }
 
   # within-batch z-scaling (only if sensible)
@@ -188,6 +213,9 @@ cyt_splsda <- function(
     pch_levels <- rep(pch_values, length.out = length(levs_all))
   }
   names(col_levels) <- names(pch_levels) <- levs_all
+  if (!is.null(progress)) {
+    progress$inc(0.10, detail = "Preparing analysis inputs")
+  }
 
   # helper to compute accuracy cleanly (avoids 0% bug)
   .acc_pct <- function(pred_class, ref_factor) {
@@ -207,6 +235,10 @@ cyt_splsda <- function(
     exclude <- exclude[exclude %in% names(df)]
     X <- df[, setdiff(names(df), exclude), drop = FALSE]
     X <- X[, vapply(X, is.numeric, logical(1)), drop = FALSE]
+
+    # Remove columns that are completely NA
+    X <- X[, !vapply(X, function(x) all(is.na(x)), logical(1)), drop = FALSE]
+
     if (ncol(X) < 2) {
       stop("Need at least 2 numeric predictors after filtering/selection.")
     }
@@ -279,11 +311,9 @@ cyt_splsda <- function(
       title = title,
       legend.title = group_col,
       ellipse = isTRUE(ellipse),
-      background = bg_obj,
-      size.xlabel = rel(1 * font_scale),
-      size.ylabel = rel(1 * font_scale),
-      size.axis = rel(1 * font_scale)
+      background = bg_obj
     )
+    args <- c(args, mixomics_indiv_args)
 
     # Key rule: labels OR shapes, never both
     if (isTRUE(ind_names_resolved) || is.character(ind_names_resolved)) {
@@ -308,9 +338,20 @@ cyt_splsda <- function(
   }
 
   # main worker for one dataset (overall or by level of group_col2)
-  run_one <- function(df_subset, label) {
+  run_one <- function(df_subset, label, progress_share) {
+    stage_weights <- list(
+      prepare = 0.18,
+      fit = 0.22,
+      predict = 0.15,
+      plots = 0.20,
+      cross_validation = if (!is.null(cv_opt)) 0.10 else 0,
+      loadings = 0.15
+    )
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = paste("Preparing:", label))
+      progress$inc(
+        progress_share * stage_weights$prepare,
+        detail = paste("Preparing data for", label)
+      )
     }
     xy <- .x_y(df_subset)
     X <- xy$X
@@ -327,7 +368,10 @@ cyt_splsda <- function(
 
     # fit
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Fitting sPLS-DA")
+      progress$inc(
+        progress_share * stage_weights$fit,
+        detail = paste("Fitting sPLS-DA model for", label)
+      )
     }
     args <- list(
       X = X,
@@ -343,7 +387,10 @@ cyt_splsda <- function(
 
     # predict + accuracy for selected component
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Predicting")
+      progress$inc(
+        progress_share * stage_weights$predict,
+        detail = paste("Calculating predictions for", label)
+      )
     }
     pred <- stats::predict(mdl, X, dist = "max.dist")
     pred_class <- pred$class$max.dist[, comp_num_eff]
@@ -351,7 +398,10 @@ cyt_splsda <- function(
 
     # plots (interactive)
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Plotting")
+      progress$inc(
+        progress_share * stage_weights$plots,
+        detail = paste("Building score plots for", label)
+      )
     }
     lab_res <- .resolve_ind_names(
       df_subset,
@@ -431,7 +481,7 @@ cyt_splsda <- function(
           sprintf("%.2f", sc[, 3])
         ),
         hoverinfo = "text"
-      ) %>%
+      ) |>
         plotly::layout(
           title = paste("Interactive 3D Plot:", label),
           scene = list(
@@ -460,9 +510,14 @@ cyt_splsda <- function(
     # CV (optional)
     indiv_CV <- NULL
     if (!is.null(cv_opt)) {
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$cross_validation,
+          detail = paste("Running cross-validation for", label)
+        )
+      }
       if (identical(cv_opt, "loocv")) {
-        set.seed(123)
-        cv_res <- mixOmics::perf(mdl, validation = "loo")
+        cv_res <- mixOmics::perf(mdl, validation = "loo", seed = seed)
         dist_use <- "max.dist"
         er <- cv_res$error.rate$overall[, dist_use, drop = TRUE]
         k_star <- tryCatch(
@@ -488,16 +543,16 @@ cyt_splsda <- function(
             )
           ) +
           ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
-          ggplot2::theme_minimal() +
-          theme(text = element_text(size = 11 * font_scale))
+          ggplot2::theme_minimal()
+        indiv_CV <- apply_font_settings_ggplot(indiv_CV, resolved_fonts)
       } else if (identical(cv_opt, "mfold")) {
-        set.seed(123)
         folds_safe <- max(2, min(fold_num, nrow(X)))
         cv_res <- mixOmics::perf(
           mdl,
           validation = "Mfold",
           folds = folds_safe,
-          nrepeat = 100
+          nrepeat = 100,
+          seed = seed
         )
         dist_use <- "max.dist"
         er <- cv_res$error.rate$overall[, dist_use, drop = TRUE]
@@ -524,30 +579,34 @@ cyt_splsda <- function(
             )
           ) +
           ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
-          ggplot2::theme_minimal() +
-          theme(text = element_text(size = 11 * font_scale))
+          ggplot2::theme_minimal()
+        indiv_CV <- apply_font_settings_ggplot(indiv_CV, resolved_fonts)
       }
     }
 
     # loadings + VIP
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Loadings & VIP")
+      progress$inc(
+        progress_share * stage_weights$loadings,
+        detail = paste("Building loadings and VIP summaries for", label)
+      )
     }
     loadings <- lapply(seq_len(comp_num_eff), function(k) {
       .record_plot({
-        mixOmics::plotLoadings(
-          mdl,
-          comp = k,
-          contrib = "max",
-          method = "mean",
-          size.name = 1 * (font_scale - 0.5),
-          size.legend = 1 * (font_scale - 0.5),
-          size.title = 1 * font_scale,
-          size.axis = 1 * font_scale,
-          size.labs = 1 * font_scale,
-          legend.color = col_levels[levels(Y)],
-          title = paste("Loadings Comp", k, ":", label),
-          legend = TRUE
+        do.call(
+          mixOmics::plotLoadings,
+          c(
+            list(
+              mdl,
+              comp = k,
+              contrib = "max",
+              method = "mean",
+              legend.color = col_levels[levels(Y)],
+              title = paste("Loadings Comp", k, ":", label),
+              legend = TRUE
+            ),
+            mixomics_loadings_args
+          )
         )
       })
     })
@@ -577,8 +636,8 @@ cyt_splsda <- function(
           x = "Variable",
           y = "VIP"
         ) +
-        ggplot2::theme_minimal() +
-        theme(text = element_text(size = 11 * font_scale))
+        ggplot2::theme_minimal() |>
+          apply_font_settings_ggplot(font_settings = resolved_fonts)
     })
 
     vip_indiv_plot <- vip_loadings <- vip_3D <- vip_ROC <- vip_CV <- vip_3D_interactive <- NULL
@@ -613,19 +672,20 @@ cyt_splsda <- function(
       ))
       vip_loadings <- lapply(seq_len(comp_num_eff), function(k) {
         .record_plot({
-          mixOmics::plotLoadings(
-            mdl_vip,
-            comp = k,
-            contrib = "max",
-            method = "mean",
-            size.name = 1 * (font_scale - 0.5),
-            size.legend = 1 * (font_scale - 0.5),
-            size.title = 1 * font_scale,
-            size.axis = 1 * font_scale,
-            size.labs = 1 * font_scale,
-            legend.color = col_levels[levels(Y)],
-            title = paste("Loadings (VIP>1) Comp", k, ":", label),
-            legend = TRUE
+          do.call(
+            mixOmics::plotLoadings,
+            c(
+              list(
+                mdl_vip,
+                comp = k,
+                contrib = "max",
+                method = "mean",
+                legend.color = col_levels[levels(Y)],
+                title = paste("Loadings (VIP>1) Comp", k, ":", label),
+                legend = TRUE
+              ),
+              mixomics_loadings_args
+            )
           )
         })
       })
@@ -680,7 +740,7 @@ cyt_splsda <- function(
             sprintf("%.2f", sc[, 3])
           ),
           hoverinfo = "text"
-        ) %>%
+        ) |>
           plotly::layout(
             title = paste("Interactive 3D Plot (VIP>1):", label),
             scene = list(
@@ -705,8 +765,7 @@ cyt_splsda <- function(
       }
       if (!is.null(cv_opt)) {
         if (identical(cv_opt, "loocv")) {
-          set.seed(123)
-          cv2 <- mixOmics::perf(mdl_vip, validation = "loo")
+          cv2 <- mixOmics::perf(mdl_vip, validation = "loo", seed = seed)
           dist_use <- "max.dist"
           er <- cv2$error.rate$overall[, dist_use, drop = TRUE]
           k_star <- tryCatch(cv2$choice.ncomp[[dist_use]], error = function(e) {
@@ -729,16 +788,16 @@ cyt_splsda <- function(
               )
             ) +
             ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
-            ggplot2::theme_minimal() +
-            theme(text = element_text(size = 11 * font_scale))
+            ggplot2::theme_minimal()
+          vip_CV <- apply_font_settings_ggplot(vip_CV, resolved_fonts)
         } else if (identical(cv_opt, "mfold")) {
-          set.seed(123)
           folds_safe <- max(2, min(fold_num, nrow(Xvip)))
           cv2 <- mixOmics::perf(
             mdl_vip,
             validation = "Mfold",
             folds = folds_safe,
-            nrepeat = 100
+            nrepeat = 100,
+            seed = seed
           )
           dist_use <- "max.dist"
           er <- cv2$error.rate$overall[, dist_use, drop = TRUE]
@@ -762,8 +821,8 @@ cyt_splsda <- function(
               )
             ) +
             ggplot2::geom_vline(xintercept = k_star, linetype = 2) +
-            ggplot2::theme_minimal() +
-            theme(text = element_text(size = 11 * font_scale))
+            ggplot2::theme_minimal()
+          vip_CV <- apply_font_settings_ggplot(vip_CV, resolved_fonts)
         }
       }
     }
@@ -830,7 +889,8 @@ cyt_splsda <- function(
       .plot_indiv(
         mdl,
         Y,
-        sprintf("%s With Accuracy: %s %%", label, round(acc1, 1))
+        sprintf("%s With Accuracy: %s %%", label, round(acc1, 1)),
+        ind_names_resolved = lab_res
       )
       # 3D (if any)
       if (!is.null(style) && tolower(style) == "3d" && comp_num_eff == 3) {
@@ -880,19 +940,20 @@ cyt_splsda <- function(
 
       # loadings
       for (k in seq_len(comp_num_eff)) {
-        mixOmics::plotLoadings(
-          mdl,
-          comp = k,
-          contrib = "max",
-          method = "mean",
-          size.name = 1 * (font_scale - 0.5),
-          size.legend = 1 * (font_scale - 0.5),
-          size.title = 1 * font_scale,
-          size.axis = 1 * font_scale,
-          size.labs = 1 * font_scale,
-          legend.color = col_levels[levels(Y)],
-          title = paste("Loadings Comp", k, ":", label),
-          legend = TRUE
+        do.call(
+          mixOmics::plotLoadings,
+          c(
+            list(
+              mdl,
+              comp = k,
+              contrib = "max",
+              method = "mean",
+              legend.color = col_levels[levels(Y)],
+              title = paste("Loadings Comp", k, ":", label),
+              legend = TRUE
+            ),
+            mixomics_loadings_args
+          )
         )
       }
 
@@ -905,7 +966,8 @@ cyt_splsda <- function(
             "sPLS-DA (VIP > 1): %s With Accuracy: %s %%",
             label,
             round(acc2, 1)
-          )
+          ),
+          ind_names_resolved = lab_res
         )
         if (!is.null(style) && tolower(style) == "3d" && comp_num_eff == 3) {
           sc2 <- mdl_vip$variates$X
@@ -950,19 +1012,20 @@ cyt_splsda <- function(
           print(vip_CV)
         }
         for (k in seq_len(comp_num_eff)) {
-          mixOmics::plotLoadings(
-            mdl_vip,
-            comp = k,
-            contrib = "max",
-            method = "mean",
-            size.name = 1 * (font_scale - 0.5),
-            size.legend = 1 * (font_scale - 0.5),
-            size.title = 1 * font_scale,
-            legend.color = col_levels[levels(Y)],
-            size.axis = 1 * font_scale,
-            size.labs = 1 * font_scale,
-            title = paste("Loadings (VIP>1) Comp", k, ":", label),
-            legend = TRUE
+          do.call(
+            mixOmics::plotLoadings,
+            c(
+              list(
+                mdl_vip,
+                comp = k,
+                contrib = "max",
+                method = "mean",
+                legend.color = col_levels[levels(Y)],
+                title = paste("Loadings (VIP>1) Comp", k, ":", label),
+                legend = TRUE
+              ),
+              mixomics_loadings_args
+            )
           )
         }
       }
@@ -988,20 +1051,43 @@ cyt_splsda <- function(
 
   # --- overall vs split by group_col2 -------------------------------------
   if (is.null(group_col2) || identical(group_col, group_col2)) {
-    res <- run_one(data, "Overall Analysis")
+    res <- run_one(
+      data,
+      resolve_analysis_display_label(group_col),
+      progress_share = 0.80
+    )
     if (!is.null(output_file)) {
       res$pdf_file <- output_file
     }
-    return(res)
+    if (!is.null(progress)) {
+      progress$set(
+        message = "Running sPLS-DA...",
+        value = 1,
+        detail = "Finished"
+      )
+    }
+    res
   } else {
     trts <- unique(data[[group_col2]])
+    progress_share <- 0.80 / max(length(trts), 1L)
     out <- lapply(trts, function(tt) {
-      run_one(data[data[[group_col2]] == tt, , drop = FALSE], as.character(tt))
+      run_one(
+        data[data[[group_col2]] == tt, , drop = FALSE],
+        resolve_analysis_display_label(group_col, as.character(tt)),
+        progress_share = progress_share
+      )
     })
     names(out) <- trts
     if (!is.null(output_file)) {
       attr(out, "pdf_file") <- output_file
     }
-    return(out)
+    if (!is.null(progress)) {
+      progress$set(
+        message = "Running sPLS-DA...",
+        value = 1,
+        detail = "Finished"
+      )
+    }
+    out
   }
 }

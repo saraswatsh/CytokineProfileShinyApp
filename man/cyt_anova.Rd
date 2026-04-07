@@ -2,7 +2,7 @@
 % Please edit documentation in R/cyt_anova.R
 \name{cyt_anova}
 \alias{cyt_anova}
-\title{ANOVA Analysis on Continuous Variables.}
+\title{ANOVA Analysis on Continuous Variables. \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 \usage{
 cyt_anova(data, format_output = FALSE, progress = NULL)
 }

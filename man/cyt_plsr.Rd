@@ -7,6 +7,7 @@
 cyt_plsr(
   data,
   response_col,
+  predictor_cols = NULL,
   group_col = NULL,
   ind_names = FALSE,
   comp_num = 2,
@@ -15,9 +16,11 @@ cyt_plsr(
   cv_opt = NULL,
   fold_num = 5,
   scale = NULL,
+  custom_fn = NULL,
   ellipse = FALSE,
   pls_colors = NULL,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 )
 }
@@ -26,6 +29,8 @@ cyt_plsr(
 
 \item{response_col}{The name of the column containing the response variable.
 Must be numeric.}
+
+\item{predictor_cols}{Character vector of column names to use as predictors.}
 
 \item{group_col}{The name of the column to use for grouping samples in the
 score plot. If \code{NULL}, no grouping is applied.}
@@ -47,8 +52,13 @@ Cross-Validation).}
 \item{fold_num}{The number of folds for M-fold cross-validation. Only
 applicable if \code{cv_opt = "Mfold"}.}
 
-\item{scale}{Character string. If "log2", applies log2 transformation to
-numeric predictor columns.}
+\item{scale}{Character string specifying an optional transformation for
+numeric predictor columns. Supported values are \code{NULL} (default; no
+transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+\code{"zscore"}, or \code{"custom"}.}
+
+\item{custom_fn}{Optional transformation function used when
+\code{scale = "custom"}.}
 
 \item{ellipse}{Logical. If \code{TRUE}, draws 95\% confidence ellipses on the
 score plot.}
@@ -56,6 +66,9 @@ score plot.}
 \item{pls_colors}{A character vector of colors to use for grouping.}
 
 \item{output_file}{Optional. A file path to save the plots as a PDF.}
+
+\item{font_settings}{Optional named list of font sizes for supported plot
+text elements.}
 
 \item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
 }
@@ -78,11 +91,14 @@ provided.}
 \description{
 This function wraps the mixOmics \code{pls()} and \code{spls()} functions to perform
 regression of one or more response variables on a set of predictors.
-It automatically handles optional log2 scaling, extraction of numeric columns
-and grouping information, and returns a small list of recorded plots for
-display in Shiny.  The first plot (\code{indiv_plot}) is a score plot of the
+It automatically handles optional predictor scaling, extraction of numeric
+columns and grouping information, and returns a small list of recorded plots
+for display in Shiny. The first plot (\code{indiv_plot}) is a score plot of the
 first two latent components colored by a grouping variable (if provided).
 The second plot (\code{pred_plot}) is a scatterplot of the observed vs predicted
-response values for the first response variable.  Additional plots could
+response values for the first response variable. Additional plots could
 easily be added (e.g. loadings), but these two provide basic diagnostics.
+}
+\author{
+Shubh Saraswat
 }

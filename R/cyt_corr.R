@@ -17,6 +17,8 @@
 #'   least two levels, the function will compare the correlations between the
 #'   first two levels of `group_var`.
 #' @param plot Logical. If `TRUE`, the function will generate and return a correlation plot.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return A list containing:
 #'   \item{results}{A data frame with overall correlation results, including
@@ -37,6 +39,7 @@
 #' @importFrom utils tail
 #' @import ggcorrplot
 #' @import ggplot2
+#' @author Shubh Saraswat
 #' @export
 cyt_corr <- function(
   data,
@@ -45,6 +48,7 @@ cyt_corr <- function(
   group_var = NULL,
   compare_groups = FALSE,
   plot = FALSE,
+  font_settings = NULL,
   progress = NULL
 ) {
   stopifnot(is.data.frame(data))
@@ -63,14 +67,31 @@ cyt_corr <- function(
   }
   others <- setdiff(num_cols, target)
   x <- data[[target]]
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size", "plot_title", "x_text", "y_text",
+      "legend_title", "legend_text", "cell_text"
+    ),
+    activate = !is.null(font_settings)
+  )
+  show_cell_labels <- is.list(font_settings) && "cell_text" %in% names(font_settings)
+  cell_label_size <- if (show_cell_labels) {
+    font_settings_ggplot_text_size(
+      resolved_fonts$cell_text,
+      default_size = 4
+    )
+  } else {
+    4
+  }
 
   if (!is.null(progress)) {
-    progress$set(message = "Starting Correlation Analysis...", value = 0)
+    progress$set(message = "Running Correlation Analysis...", value = 0)
   }
 
   compute_one <- function(method) {
     if (!is.null(progress)) {
-      progress$inc(0.1, detail = "Computing Metrics")
+      progress$inc(0.1, detail = "Calculating overall correlations")
     }
     # overall table via cor.test for accurate p
     one_vs_all <- lapply(others, function(v) {
@@ -101,15 +122,15 @@ cyt_corr <- function(
       )
     })
     res <- do.call(rbind, one_vs_all)
-    res$p_bonf <- round(stats::p.adjust(res$p, "bonferroni"), 4)
-    res$p_bh <- round(stats::p.adjust(res$p, "BH"), 4)
+    res$p_bonf <- round(adjust_p(res$p, method = "bonferroni"), 4)
+    res$p_bh <- round(adjust_p(res$p, method = "BH"), 4)
     res <- res[order(-abs(res$r)), ]
 
     # square heatmap matrix
     heat_vars <- unique(c(target, res$variable))
 
     if (!is.null(progress)) {
-      progress$inc(0.1, detail = "Generating Correlation Heatmap")
+      progress$inc(0.1, detail = "Building correlation heatmap")
     }
 
     heat_mat <- stats::cor(
@@ -128,7 +149,8 @@ cyt_corr <- function(
         mat,
         hc.order = FALSE, # keep our order; don't re-cluster
         type = "full",
-        lab = FALSE,
+        lab = show_cell_labels,
+        lab_size = cell_label_size,
         show.diag = TRUE,
         outline.color = "white", # <-- documented arg name
         ggtheme = ggplot2::theme_minimal()
@@ -175,6 +197,8 @@ cyt_corr <- function(
           colour = "#cc0000",
           linewidth = 0.6
         )
+
+      apply_font_settings_ggplot(p, resolved_fonts)
     }
 
     # Creating heatmap of the correlation
@@ -188,7 +212,7 @@ cyt_corr <- function(
 
     if (!is.null(group_var) && group_var %in% names(data)) {
       if (!is.null(progress)) {
-        progress$inc(0.1, detail = "Computing Groupwise Metrics")
+        progress$inc(0.1, detail = "Calculating grouped correlations")
       }
 
       g <- factor(data[[group_var]])
@@ -234,8 +258,8 @@ cyt_corr <- function(
       )
 
       # adjust p's (BH and Bonferroni)
-      groupwise$p_bonf <- stats::p.adjust(groupwise$p, "bonferroni")
-      groupwise$p_bh <- stats::p.adjust(groupwise$p, "BH")
+      groupwise$p_bonf <- adjust_p(groupwise$p, method = "bonferroni")
+      groupwise$p_bh <- adjust_p(groupwise$p, method = "BH")
       groupwise <- groupwise[order(-abs(groupwise$r)), ]
 
       # 2) per-group HEAT MATRICES + PLOTS (new)
@@ -293,8 +317,8 @@ cyt_corr <- function(
           r_diff = m$r1 - m$r2,
           z = z,
           p_diff = pz,
-          p_diff_bonf = stats::p.adjust(pz, "bonferroni"),
-          p_diff_bh = stats::p.adjust(pz, "BH"),
+          p_diff_bonf = adjust_p(pz, method = "bonferroni"),
+          p_diff_bh = adjust_p(pz, method = "BH"),
           g1 = g1,
           g2 = g2,
           stringsAsFactors = FALSE
@@ -302,7 +326,7 @@ cyt_corr <- function(
       }
     }
     if (!is.null(progress)) {
-      progress$inc(0.7, detail = "Finishing up")
+      progress$inc(0.7, detail = "Formatting results")
     }
     list(
       table = res,

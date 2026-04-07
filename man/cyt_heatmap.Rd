@@ -2,43 +2,98 @@
 % Please edit documentation in R/cyt_heatmap.R
 \name{cyt_heatmap}
 \alias{cyt_heatmap}
-\title{Heat Map.}
+\title{Heat Map}
 \usage{
 cyt_heatmap(
   data,
-  scale = c(NULL, "log2", "row_zscore", "col_zscore"),
+  scale = NULL,
   annotation_col = NULL,
   annotation_side = c("auto", "row", "col"),
+  show_row_names = FALSE,
+  show_col_names = TRUE,
+  fontsize_row = 10,
+  fontsize_col = 10,
+  font_settings = NULL,
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  title = NULL,
+  filename = NULL,
   progress = NULL
 )
 }
 \arguments{
-\item{data}{A data frame containing the input data. Only numeric columns will be used.}
+\item{data}{A data frame.  Only numeric columns are used to construct the
+heat map.}
 
-\item{scale}{Character. Optional scaling method. One of NULL (no scaling), "log2" (log2 transformation), "row_zscore" (z-score normalization by row), or "col_zscore" (z-score normalization by column). Default is NULL.}
+\item{scale}{Character specifying an optional scaling.  One of \code{NULL}
+(no scaling), \code{"log2"}, \code{"log10"}, \code{"row_zscore"},
+\code{"col_zscore"}, or \code{"zscore"} (apply both row and column
+z-scoring).  Default is \code{NULL}.}
 
-\item{annotation_col}{Optional. A character string specifying a column name in \code{data} or a vector of annotations matching the number of rows or columns in \code{data} for adding colored annotations to the heatmap.}
+\item{annotation_col}{Optional.  Either the name of a column in \code{data}
+or a vector of length equal to the number of rows or columns of the
+numeric matrix.  If a column name is supplied the function determines
+whether it annotates rows or columns based on its length or the value of
+\code{annotation_side}.}
 
-\item{annotation_side}{Character. Specifies whether the annotation should be applied to rows or columns. One of "auto" (automatically determine based on length), "row", or "col". Default is "auto".}
+\item{annotation_side}{Character.  One of \code{"auto"} (default),
+\code{"row"}, or \code{"col"}.  When \code{"auto"} the side is determined
+by matching the length of \code{annotation_col} to rows or columns.}
 
-\item{progress}{Optional. A Shiny \code{Progress} object for reporting progress updates.}
+\item{show_row_names}{Logical.  If \code{TRUE} row names are shown.
+Default is \code{FALSE}.}
+
+\item{show_col_names}{Logical.  If \code{FALSE} column names are hidden.
+Default is \code{TRUE}.}
+
+\item{fontsize_row}{Numeric.  Font size for row names.  Default is
+\code{10}.}
+
+\item{fontsize_col}{Numeric.  Font size for column names.  Default is
+\code{10}.}
+
+\item{font_settings}{Optional named list of font sizes for supported heatmap
+text elements.}
+
+\item{cluster_rows}{Logical.  If \code{TRUE} (default), rows are clustered.}
+
+\item{cluster_cols}{Logical.  If \code{TRUE} (default), columns are
+clustered.}
+
+\item{title}{Character.  Optional title displayed at the top of the heat
+map.  If \code{NULL} (default), no title is printed.}
+
+\item{filename}{Character.  Optional file path ending in \code{".pdf"} or
+\code{".png"} (case insensitive).  When supplied the heat map is written
+to disk and screen rendering is suppressed.  If \code{NULL} (default),
+the plot is drawn on the active graphics device.}
+
+\item{progress}{Optional.  A Shiny \code{Progress} object for reporting
+progress updates.}
 }
 \value{
-A pheatmap object representing the generated heatmap.
+Invisibly returns the pheatmap object created by
+\code{pheatmap::pheatmap()}.
 }
 \description{
-Heat Map.
+This function creates a heatmap using the numeric columns from the provided
+data frame.  It provides the ability to hide row and column names, adjust
+font sizes and clustering, and apply additional transformations such as
+log10 or combined z-scoring.  An optional \code{title} is displayed as the
+plot title; an optional \code{filename} (ending in \code{.pdf} or
+\code{.png}) saves the heat map to disk.  Both may be supplied together.
 }
 \examples{
-# Load sample data
 data("ExampleData1")
 data_df <- ExampleData1
-# Generate a heatmap with log2 scaling and annotation based on
-# the "Group" column
 cyt_heatmap(
-  data = data_df[, -c(2:3)],
-  scale = "log2",  # Optional scaling
-  annotation_col = "Group"
+  data            = data_df[, -c(2:3)],
+  scale           = "log2",
+  annotation_col  = "Group",
+  annotation_side = "auto",
+  title           = "Cytokine Heatmap"
 )
-
+}
+\author{
+Shubh Saraswat
 }

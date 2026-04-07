@@ -25,17 +25,29 @@
 #' @param bg Logical. Whether to draw the prediction background in the figures.
 #'   Default is \code{FALSE}.
 #' @param var_num Numeric. The number of variables to be used in the PLS-DA model.
-#' @param scale Character. Option for data transformation; if set to \code{"log2"}, a log2
-#'   transformation is applied to the continuous variables. Default is \code{NULL}.
+#' @param scale Character. Optional transformation applied to numeric
+#'   predictors. Supported values are \code{NULL} (default; no
+#'   transformation), \code{"none"}, \code{"log2"}, \code{"log10"},
+#'   \code{"zscore"}, or \code{"custom"}.
 #' @param comp_num Numeric. The number of components to calculate in the sPLS-DA model.
 #'   Default is 2.
 #' @param cim Logical. Whether to compute and plot the Clustered Image Map (CIM) heatmap. Default is \code{FALSE}.
 #' @param roc Logical. Whether to compute and plot the ROC curve for the model.
 #'   Default is \code{FALSE}.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
+#' @param custom_fn Optional transformation function used when
+#'   \code{scale = "custom"}.
 #' @return In Download mode, a PDF file is written. In Interactive mode, a named list
 #'         (`results_list`) of plots and results is returned. If `group_col2` is used,
 #'         a nested list is returned, with each element corresponding to a level of `group_col2`.
+#' @author Shubh Saraswat
+#' @references Rohart F, Eslami A, Matigian, N, Bougeard S, Le Cao K-A (2017).
+#' MINT: A multivariate integrative approach to identify a reproducible
+#' biomarker signature across multiple experiments and platforms. BMC
+#' Bioinformatics 18:128.
+#'
 #' @examples
 #' # Loading ExampleData5 dataset with batch column
 #' data_df <- ExampleData5[,-c(2,4)]
@@ -66,21 +78,63 @@ cyt_mint_splsda <- function(
   cim = FALSE,
   scale = NULL,
   roc = FALSE,
-  progress = NULL
+  font_settings = NULL,
+  progress = NULL,
+  custom_fn = NULL
 ) {
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text",
+      "strip_text",
+      "variable_names",
+      "point_labels"
+    ),
+    activate = !is.null(font_settings)
+  )
+  mixomics_indiv_args <- font_settings_mixomics_indiv_args(resolved_fonts)
+  mixomics_loadings_args <- font_settings_mixomics_loadings_args(resolved_fonts)
+  plotvar_args <- font_settings_plotvar_args(
+    resolved_fonts,
+    show_var_names = FALSE
+  )
+  base_font_args <- font_settings_base_graphics(resolved_fonts)
+
   # --- Helper function to run the core analysis ---
   run_mint_analysis <- function(
     data_subset,
     analysis_label = "",
-    is_pdf_mode = !is.null(output_file)
+    is_pdf_mode = !is.null(output_file),
+    progress_share = 0
   ) {
+    display_label <- resolve_analysis_display_label(
+      group_col,
+      analysis_label
+    )
+    stage_weights <- list(
+      prepare = 0.15,
+      fit = 0.25,
+      predict = 0.15,
+      plots = 0.20,
+      corr = 0.10,
+      extra = 0.10,
+      results = 0.05
+    )
+
     # --- 1. Data Preparation ---
     data_subset[[group_col]] <- as.factor(data_subset[[group_col]])
     data_subset[[batch_col]] <- as.factor(data_subset[[batch_col]])
     if (nlevels(data_subset[[group_col]]) < 2) {
       message(paste(
         "Skipping '",
-        analysis_label,
+        display_label,
         "': requires at least two group levels.",
         sep = ""
       ))
@@ -89,7 +143,7 @@ cyt_mint_splsda <- function(
     if (nlevels(data_subset[[batch_col]]) < 2) {
       message(paste(
         "Skipping '",
-        analysis_label,
+        display_label,
         "': MINT requires at least two batches.",
         sep = ""
       ))
@@ -102,6 +156,12 @@ cyt_mint_splsda <- function(
       drop = FALSE
     ]
     X <- X[, sapply(X, is.numeric)]
+    if (!is.null(progress)) {
+      progress$inc(
+        progress_share * stage_weights$prepare,
+        detail = paste("Preparing data for", display_label)
+      )
+    }
 
     # --- 2. Run MINT sPLS-DA Model ---
     final_model <- mixOmics::mint.splsda(
@@ -111,6 +171,12 @@ cyt_mint_splsda <- function(
       ncomp = comp_num,
       keepX = rep(var_num, comp_num)
     )
+    if (!is.null(progress)) {
+      progress$inc(
+        progress_share * stage_weights$fit,
+        detail = paste("Fitting MINT sPLS-DA model for", display_label)
+      )
+    }
 
     # --- 3. Calculate Prediction Accuracy ---
     mint_predict <- stats::predict(
@@ -123,14 +189,19 @@ cyt_mint_splsda <- function(
     final_predictions <- mint_predict$class$max.dist[, comp_num]
     accuracy <- sum(Y == final_predictions) / length(Y)
     acc_percent <- signif(accuracy * 100, 2)
+    if (!is.null(progress)) {
+      progress$inc(
+        progress_share * stage_weights$predict,
+        detail = paste("Calculating predictions for", display_label)
+      )
+    }
 
     # --- 4. Prepare plot titles and background object ---
-    title_label <- if (nzchar(analysis_label)) {
-      paste("MINT sPLS-DA:", analysis_label)
-    } else {
-      "MINT sPLS-DA Global Plot"
-    }
+    title_label <- paste("MINT sPLS-DA:", display_label)
     main_title <- paste(title_label, "- Accuracy:", acc_percent, "%")
+    partial_plot_title <- paste("Partial Plots:", display_label)
+    corr_circle_title <- paste("Correlation Circle:", display_label)
+    cim_title <- paste("CIM (Comp 1 -", comp_num, "):", display_label)
     bg_obj <- NULL
     if (bg) {
       try(
@@ -144,6 +215,12 @@ cyt_mint_splsda <- function(
         silent = TRUE
       )
     }
+    if (!is.null(progress)) {
+      progress$inc(
+        progress_share * stage_weights$plots,
+        detail = paste("Building score plots for", display_label)
+      )
+    }
     record_base_plot <- function(expr) {
       tf <- tempfile(fileext = ".png")
       grDevices::png(tf, width = 960, height = 720, res = 120)
@@ -152,56 +229,103 @@ cyt_mint_splsda <- function(
       force(expr)
       grDevices::recordPlot()
     }
+    draw_corr_circle_plot <- function(model, plot_title) {
+      plot_obj <- do.call(
+        mixOmics::plotVar,
+        c(
+          list(
+            model,
+            var.names = FALSE,
+            legend = TRUE,
+            title = plot_title,
+            style = "ggplot2"
+          ),
+          plotvar_args
+        )
+      )
+
+      if (inherits(plot_obj, "ggplot")) {
+        plot_obj <- apply_font_settings_ggplot(plot_obj, resolved_fonts)
+        print(plot_obj)
+      } else {
+        plot_obj
+      }
+    }
 
     # --- 5. Handle Output: PDF vs. Interactive ---
     if (is_pdf_mode) {
-      mixOmics::plotIndiv(
-        final_model,
-        study = "global",
-        group = Y,
-        col = colors,
-        legend = TRUE,
-        legend.title = group_col,
-        subtitle = main_title,
-        ellipse = ellipse,
-        background = bg_obj
+      do.call(
+        mixOmics::plotIndiv,
+        c(
+          list(
+            final_model,
+            study = "global",
+            group = Y,
+            col = colors,
+            legend = TRUE,
+            legend.title = group_col,
+            subtitle = main_title,
+            ellipse = ellipse,
+            background = bg_obj
+          ),
+          mixomics_indiv_args
+        )
       )
-      mixOmics::plotIndiv(
-        final_model,
-        study = "all.partial",
-        group = Y,
-        col = colors,
-        legend = TRUE,
-        title = paste("Partial Plots:", analysis_label)
+      do.call(
+        mixOmics::plotIndiv,
+        c(
+          list(
+            final_model,
+            study = "all.partial",
+            group = Y,
+            col = colors,
+            legend = TRUE,
+            title = partial_plot_title
+          ),
+          mixomics_indiv_args
+        )
       )
-      mixOmics::plotVar(
-        final_model,
-        var.names = FALSE,
-        legend = TRUE,
-        title = paste("Correlation Circle:", analysis_label)
-      )
+      draw_corr_circle_plot(final_model, corr_circle_title)
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$corr,
+          detail = paste("Building correlation circle for", display_label)
+        )
+      }
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$extra,
+          detail = paste("Building additional plots for", display_label)
+        )
+      }
       if (cim) {
         mixOmics::cim(
           final_model,
           comp = 1,
           row.sideColors = colors[as.numeric(Y)],
           row.names = FALSE,
-          title = paste("CIM (Comp 1 -", comp_num, "):", analysis_label)
+          title = cim_title
         )
       }
       for (i in 1:comp_num) {
-        mixOmics::plotLoadings(
-          final_model,
-          comp = i,
-          legend.color = colors,
-          study = "all.partial",
-          contrib = "max",
-          method = "mean",
-          title = paste(
-            "Partial Loadings for Component",
-            i,
-            "in",
-            analysis_label
+        do.call(
+          mixOmics::plotLoadings,
+          c(
+            list(
+              final_model,
+              comp = i,
+              legend.color = colors,
+              study = "all.partial",
+              contrib = "max",
+              method = "mean",
+              title = paste(
+                "Partial Loadings for Component",
+                i,
+                "in",
+                display_label
+              )
+            ),
+            mixomics_loadings_args
           )
         )
       }
@@ -227,6 +351,12 @@ cyt_mint_splsda <- function(
           }
         )
       }
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$results,
+          detail = paste("Formatting results for", display_label)
+        )
+      }
       return(NULL)
     } else {
       # For interactive mode, create and return the list of plot objects
@@ -239,7 +369,7 @@ cyt_mint_splsda <- function(
             comp = 1:comp_num,
             row.sideColors = colors[as.numeric(Y)],
             row.names = FALSE,
-            title = paste("CIM (Comp 1 -", comp_num, "):", analysis_label)
+            title = cim_title
           )
         })
       }
@@ -263,18 +393,24 @@ cyt_mint_splsda <- function(
               {
                 op <- graphics::par(no.readonly = TRUE)
                 on.exit(graphics::par(op), add = TRUE)
-                mixOmics::plotLoadings(
-                  final_model,
-                  comp = i,
-                  legend.color = colors,
-                  study = s_idx,
-                  contrib = "max",
-                  method = "mean",
-                  title = paste(
-                    "Partial Loadings for Component",
-                    i,
-                    "\nStudy:",
-                    studies[s_idx]
+                do.call(
+                  mixOmics::plotLoadings,
+                  c(
+                    list(
+                      final_model,
+                      comp = i,
+                      legend.color = colors,
+                      study = s_idx,
+                      contrib = "max",
+                      method = "mean",
+                      title = paste(
+                        "Partial Loadings for Component",
+                        i,
+                        "\nStudy:",
+                        studies[s_idx]
+                      )
+                    ),
+                    mixomics_loadings_args
                   )
                 )
               },
@@ -288,7 +424,12 @@ cyt_mint_splsda <- function(
                     studies[s_idx]
                   )
                 )
-                mtext(e$message, side = 1, line = -1, cex = 0.8)
+                mtext(
+                  e$message,
+                  side = 1,
+                  line = -1,
+                  cex = base_font_args$legend_cex %||% 0.8
+                )
               }
             )
           })
@@ -321,57 +462,89 @@ cyt_mint_splsda <- function(
       }
       results_list <- list(
         global_indiv_plot = record_base_plot({
-          mixOmics::plotIndiv(
-            final_model,
-            study = "global",
-            group = Y,
-            col = colors,
-            legend = TRUE,
-            legend.title = group_col,
-            subtitle = main_title,
-            ellipse = ellipse,
-            background = bg_obj
+          do.call(
+            mixOmics::plotIndiv,
+            c(
+              list(
+                final_model,
+                study = "global",
+                group = Y,
+                col = colors,
+                legend = TRUE,
+                legend.title = group_col,
+                subtitle = main_title,
+                ellipse = ellipse,
+                background = bg_obj
+              ),
+              mixomics_indiv_args
+            )
           )
         }),
         partial_indiv_plot = record_base_plot({
-          mixOmics::plotIndiv(
-            final_model,
-            study = "all.partial",
-            group = Y,
-            col = colors,
-            legend = TRUE,
-            title = paste("Partial Plots:", analysis_label)
+          do.call(
+            mixOmics::plotIndiv,
+            c(
+              list(
+                final_model,
+                study = "all.partial",
+                group = Y,
+                col = colors,
+                legend = TRUE,
+                title = partial_plot_title
+              ),
+              mixomics_indiv_args
+            )
           )
         }),
         correlation_circle_plot = record_base_plot({
-          mixOmics::plotVar(
-            final_model,
-            var.names = FALSE,
-            legend = TRUE,
-            title = paste("Correlation Circle:", analysis_label)
-          )
+          draw_corr_circle_plot(final_model, corr_circle_title)
         }),
         cim_obj = cim_obj, # Assign the CIM object here
         partial_loadings_plots = partial_loadings_plots, # Assign the list of plots here
         roc_plot = roc_plot # Assign the ROC plot here
       )
-      return(results_list)
+      if (!is.null(progress)) {
+        progress$inc(
+          progress_share * stage_weights$corr,
+          detail = paste("Building correlation circle for", display_label)
+        )
+        progress$inc(
+          progress_share * stage_weights$extra,
+          detail = paste("Building additional plots for", display_label)
+        )
+        progress$inc(
+          progress_share * stage_weights$results,
+          detail = paste("Formatting results for", display_label)
+        )
+      }
+      results_list
     }
   }
 
   # --- Main Execution ---
   if (!is.null(progress)) {
-    progress$set(message = "Starting MINT sPLS-DA...", value = 0)
+    progress$set(message = "Running MINT sPLS-DA...", value = 0)
   }
-  if (!is.null(scale) && scale == "log2") {
-    id_cols <- unique(c(group_col, group_col2, batch_col))
-    id_cols <- id_cols[!sapply(id_cols, is.null)]
-    numeric_cols <- data[, !(names(data) %in% id_cols), drop = FALSE]
-    data <- data.frame(data[, id_cols, drop = FALSE], log2(numeric_cols))
+  if (!is.null(scale)) {
+    id_cols <- unique(na.omit(c(group_col, group_col2, batch_col)))
+    numeric_cols <- names(data)[
+      vapply(data, is.numeric, logical(1)) & !(names(data) %in% id_cols)
+    ]
+    if (length(numeric_cols) > 0L) {
+      data <- apply_scale(
+        data = data,
+        columns = numeric_cols,
+        scale = scale,
+        custom_fn = custom_fn
+      )
+    }
   }
   num_groups <- nlevels(as.factor(data[[group_col]]))
   if (is.null(colors) || length(colors) < num_groups) {
     colors <- grDevices::rainbow(num_groups)
+  }
+  if (!is.null(progress)) {
+    progress$inc(0.10, detail = "Preparing analysis inputs")
   }
   is_pdf <- !is.null(output_file)
   if (is_pdf) {
@@ -382,16 +555,19 @@ cyt_mint_splsda <- function(
     results <- run_mint_analysis(
       data,
       analysis_label = "",
-      is_pdf_mode = is_pdf
+      is_pdf_mode = is_pdf,
+      progress_share = 0.80
     )
   } else {
     treatments <- levels(as.factor(data[[group_col2]]))
+    progress_share <- 0.80 / max(length(treatments), 1L)
     if (is_pdf) {
       for (trt in treatments) {
         run_mint_analysis(
           data[data[[group_col2]] == trt, , drop = FALSE],
           trt,
-          TRUE
+          TRUE,
+          progress_share = progress_share
         )
       }
       results <- paste("Output file generated:", normalizePath(output_file))
@@ -400,14 +576,19 @@ cyt_mint_splsda <- function(
         run_mint_analysis(
           data[data[[group_col2]] == trt, , drop = FALSE],
           trt,
-          FALSE
+          FALSE,
+          progress_share = progress_share
         )
       })
       names(results) <- treatments
     }
   }
   if (!is.null(progress)) {
-    progress$set(value = 1, detail = "Analysis complete.")
+    progress$set(
+      message = "Running MINT sPLS-DA...",
+      value = 1,
+      detail = "Finished"
+    )
   }
-  return(results)
+  results
 }

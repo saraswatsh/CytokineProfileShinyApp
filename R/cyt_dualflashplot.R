@@ -16,9 +16,13 @@
 #' @param top_labels An integer specifying the number of top variables (based on absolute SSMD) to label in the plot (default = 15).
 #' @param output_file Optional. A file path to save the plot as a PDF (or PNG if extension is .png). If NULL (default),
 #' the function returns a ggplot object.
+#' @param font_settings Optional named list of font sizes for supported plot
+#'   text elements.
 #' @param progress Optional. A Shiny \code{Progress} object for reporting progress updates.
 #' @return If output_file is NULL, a ggplot object representing the dual-flash plot is returned;
 #' otherwise, the plot is saved to the specified file and the function returns NULL invisibly.
+#'
+#' @author Xiaohua Douglas Zhang and Shubh Saraswat
 #'
 #' @examples
 #' data_df <- ExampleData1[, -c(2:3)]
@@ -46,21 +50,47 @@ cyt_dualflashplot <- function(
   log2fc_thresh = 1,
   top_labels = 15,
   output_file = NULL,
+  font_settings = NULL,
   progress = NULL
 ) {
+  resolved_fonts <- normalize_font_settings(
+    font_settings = font_settings,
+    supported_fields = c(
+      "base_size",
+      "plot_title",
+      "x_title",
+      "y_title",
+      "x_text",
+      "y_text",
+      "legend_title",
+      "legend_text",
+      "annotation_text"
+    ),
+    activate = !is.null(font_settings)
+  )
+  label_size <- if (is.null(resolved_fonts)) {
+    3
+  } else {
+    font_settings_ggplot_text_size(
+      resolved_fonts$annotation_text,
+      default_size = 3
+    )
+  }
+
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Validating input data")
+    progress$set(message = "Running Dual-Flashlight Plot...", value = 0)
+    progress$inc(0.05, detail = "Checking inputs")
   }
   if (!is.data.frame(data)) {
     stop("Input must be a data frame.")
   }
 
   if (!is.null(progress)) {
-    progress$inc(0.05, detail = "Reshaping data to long format")
+    progress$inc(0.05, detail = "Preparing long-format data")
   }
-  data_long <- data %>%
+  data_long <- data |>
     tidyr::pivot_longer(
-      cols = -all_of(group_var),
+      cols = -dplyr::all_of(group_var),
       names_to = "cytokine",
       values_to = "level"
     )
@@ -68,28 +98,28 @@ cyt_dualflashplot <- function(
   if (!is.null(progress)) {
     progress$inc(0.1, detail = "Calculating summary statistics")
   }
-  stats <- data_long %>%
-    dplyr::group_by(cytokine, .data[[group_var]]) %>%
+  stats <- data_long |>
+    dplyr::group_by(cytokine, .data[[group_var]]) |>
     dplyr::summarise(
       mean = mean(level, na.rm = TRUE),
       variance = stats::var(level, na.rm = TRUE),
       .groups = "drop"
-    ) %>%
+    ) |>
     tidyr::pivot_wider(
-      names_from = all_of(group_var),
+      names_from = dplyr::all_of(group_var),
       values_from = c(mean, variance)
-    ) %>%
+    ) |>
     dplyr::mutate(
-      ssmd = (get(paste0("mean_", group1)) - get(paste0("mean_", group2))) /
+      ssmd = (.data[[paste0("mean_", group1)]] -
+        .data[[paste0("mean_", group2)]]) /
         sqrt(
-          (get(paste0("variance_", group1)) +
-            get(paste0("variance_", group2))) /
-            2
+          .data[[paste0("variance_", group1)]] +
+            .data[[paste0("variance_", group2)]]
         ),
       log2FC = log2(
-        get(paste0("mean_", group1)) / get(paste0("mean_", group2))
+        .data[[paste0("mean_", group1)]] / .data[[paste0("mean_", group2)]]
       ),
-      SSMD_Category = case_when(
+      SSMD_Category = dplyr::case_when(
         abs(ssmd) >= 1 ~ "Strong Effect",
         abs(ssmd) >= 0.5 ~ "Moderate Effect",
         TRUE ~ "Weak Effect"
@@ -98,23 +128,34 @@ cyt_dualflashplot <- function(
     )
 
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Selecting top variables for labels")
+    progress$inc(0.1, detail = "Selecting labels")
   }
   top_stats <- dplyr::top_n(stats, n = top_labels, wt = abs(ssmd))
 
   if (!is.null(progress)) {
-    progress$inc(0.1, detail = "Generating plot")
+    progress$inc(0.1, detail = "Building plot")
   }
-  p <- ggplot2::ggplot(stats, aes(x = log2FC, y = ssmd, label = cytokine)) +
-    ggplot2::geom_point(aes(color = SSMD_Category, shape = Significant)) +
+  p <- ggplot2::ggplot(
+    stats,
+    ggplot2::aes(x = log2FC, y = ssmd, label = cytokine)
+  ) +
+    ggplot2::geom_point(ggplot2::aes(
+      color = SSMD_Category,
+      shape = Significant
+    )) +
     ggrepel::geom_text_repel(
       data = top_stats,
-      size = 3,
+      size = label_size,
       vjust = 1.5,
       hjust = 1.1,
       max.overlaps = 50
     ) +
     ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+    ggplot2::geom_hline(
+      yintercept = c(ssmd_thresh, -ssmd_thresh),
+      linetype = "dashed",
+      color = "blue"
+    ) +
     ggplot2::geom_vline(
       xintercept = c(log2fc_thresh, -log2fc_thresh),
       linetype = "dashed",
@@ -125,11 +166,25 @@ cyt_dualflashplot <- function(
       y = "SSMD",
       title = paste("SSMD vs log2FC for", group1, "vs", group2)
     ) +
+    ggplot2::scale_color_manual(
+      name = "SSMD Category",
+      values = c(
+        "Strong Effect" = "#2166AC",
+        "Moderate Effect" = "#F4A582",
+        "Weak Effect" = "grey70"
+      )
+    ) +
+    ggplot2::scale_shape_manual(
+      name = "Significant",
+      values = c("TRUE" = 17, "FALSE" = 16)
+    ) +
     ggplot2::theme_minimal()
+
+  p <- apply_font_settings_ggplot(p, resolved_fonts)
 
   if (!is.null(output_file)) {
     if (!is.null(progress)) {
-      progress$inc(0.1, detail = "Saving plot to file")
+      progress$inc(0.1, detail = "Writing output file")
     }
     ext <- tools::file_ext(output_file)
     if (tolower(ext) == "pdf") {
@@ -153,13 +208,23 @@ cyt_dualflashplot <- function(
       grDevices::dev.off()
     }
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Plot saved")
+      progress$inc(0.05, detail = "Finished writing output file")
+      progress$set(
+        message = "Running Dual-Flashlight Plot...",
+        value = 1,
+        detail = "Finished"
+      )
     }
-    return(invisible(NULL))
+    invisible(NULL)
   } else {
     if (!is.null(progress)) {
-      progress$inc(0.05, detail = "Returning plot")
+      progress$inc(0.05, detail = "Formatting results")
+      progress$set(
+        message = "Running Dual-Flashlight Plot...",
+        value = 1,
+        detail = "Finished"
+      )
     }
-    return(list(plot = p, stats = top_stats))
+    list(plot = p, stats = stats)
   }
 }
