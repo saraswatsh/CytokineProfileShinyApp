@@ -33,7 +33,7 @@ knitr::opts_chunk$set(
 
 The goal of CytokineProfile Shiny is to conduct quality control using biological meaningful cutoff on raw measured values of cytokines. Specifically, test on distributional symmetry to suggest the adopt of transformation. Conduct exploratory analysis including summary statistics, generate enriched barplots, and boxplots. Further, conduct univariate analysis and multivariate analysis for advance analysis. It provides an overall user-friendly experience for users to conduct analyses on their own data. For advanced users, the CytoProfile R package is available on [Github](https://github.com/saraswatsh/CytoProfile) and at [CRAN](https://cran.r-project.org/package=CytoProfile).
 
-The Shiny application is available at [CytokineProfile Shiny App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
+The Shiny application is available at [CytokineProfile Shiny App](https://shiny.cytokineprofile.org).
 
 ## Features
 

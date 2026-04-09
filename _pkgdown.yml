@@ -7,7 +7,7 @@ home:
   tagline: An Interactive Web Application for Comprehensive Cytokine Data Analysis
   links:
   - text: App Link
-    href: https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud
+    href: https://shiny.cytokineprofile.org
   - text: Report a bug
     href: https://github.com/saraswatsh/CytokineProfileShinyApp/issues
 navbar:
