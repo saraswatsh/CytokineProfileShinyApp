@@ -14,7 +14,7 @@ An interactive Shiny application that provides comprehensive cytokine profiling 
 Useful links:
 \itemize{
   \item \url{https://github.com/saraswatsh/CytokineProfileShinyApp}
-  \item \url{https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud}
+  \item \url{https://shiny.cytokineprofile.org}
   \item \url{https://shinyinfo.cytokineprofile.org/}
 }
 

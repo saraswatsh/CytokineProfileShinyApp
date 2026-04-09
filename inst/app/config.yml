@@ -5,4 +5,4 @@ default:
 devel:
   inherits: default
   build_type: "development"
-  announcement: 'Development version - use with caution. For stable version, please use the <a href="https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud/" target="_blank">stable version of the app</a>.'
+  announcement: 'Development version - use with caution. For stable version, please use the <a href="https://shiny.cytokineprofile.org/" target="_blank">stable version of the app</a>.'
