@@ -27,7 +27,7 @@ package is available on
 [CRAN](https://cran.r-project.org/package=CytoProfile).
 
 The Shiny application is available at [CytokineProfile Shiny
-App](https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud).
+App](https://shiny.cytokineprofile.org).
 
 ## Features
 

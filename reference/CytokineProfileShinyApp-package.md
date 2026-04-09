@@ -24,7 +24,7 @@ Useful links:
 
 - <https://github.com/saraswatsh/CytokineProfileShinyApp>
 
-- <https://saraswatsh-cytokineprofileshiny.share.connect.posit.cloud>
+- <https://shiny.cytokineprofile.org>
 
 - <https://shinyinfo.cytokineprofile.org/>
 
