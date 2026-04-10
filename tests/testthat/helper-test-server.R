@@ -61,6 +61,100 @@ test_server_wait <- function(session, seconds = 0.6, cycles = 4L) {
   invisible(NULL)
 }
 
+test_server_output_html <- function(output, id) {
+  htmltools::renderTags(output[[id]])$html
+}
+
+local_capture_shiny_updates <- function() {
+  calls <- list()
+
+  record_update <- function(fun_name) {
+    force(fun_name)
+
+    function(session, inputId, ...) {
+      calls[[length(calls) + 1L]] <<- c(
+        list(fun = fun_name, inputId = inputId),
+        list(...)
+      )
+      invisible(NULL)
+    }
+  }
+
+  testthat::local_mocked_bindings(
+    updateCheckboxInput = record_update("updateCheckboxInput"),
+    updateCheckboxGroupInput = record_update("updateCheckboxGroupInput"),
+    updateSelectInput = record_update("updateSelectInput"),
+    updateSelectizeInput = record_update("updateSelectizeInput"),
+    updateRadioButtons = record_update("updateRadioButtons"),
+    updateTextInput = record_update("updateTextInput"),
+    updateNumericInput = record_update("updateNumericInput"),
+    updateSliderInput = record_update("updateSliderInput"),
+    .package = "shiny"
+  )
+
+  filter_calls <- function(fun = NULL, inputId = NULL) {
+    Filter(
+      function(call) {
+        (is.null(fun) || identical(call$fun, fun)) &&
+          (is.null(inputId) || identical(call$inputId, inputId))
+      },
+      calls
+    )
+  }
+
+  list(
+    calls = function() calls,
+    clear = function() {
+      calls <<- list()
+      invisible(NULL)
+    },
+    find = filter_calls,
+    last = function(fun = NULL, inputId = NULL) {
+      matches <- filter_calls(fun = fun, inputId = inputId)
+      if (!length(matches)) {
+        return(NULL)
+      }
+
+      matches[[length(matches)]]
+    }
+  )
+}
+
+capture_session_input_messages <- function(session) {
+  calls <- list()
+
+  session$sendInputMessage <- function(inputId, message) {
+    calls[[length(calls) + 1L]] <<- list(inputId = inputId, message = message)
+    invisible(NULL)
+  }
+
+  filter_calls <- function(inputId = NULL) {
+    Filter(
+      function(call) {
+        is.null(inputId) || identical(call$inputId, inputId)
+      },
+      calls
+    )
+  }
+
+  list(
+    calls = function() calls,
+    clear = function() {
+      calls <<- list()
+      invisible(NULL)
+    },
+    find = filter_calls,
+    last = function(inputId = NULL) {
+      matches <- filter_calls(inputId = inputId)
+      if (!length(matches)) {
+        return(NULL)
+      }
+
+      matches[[length(matches)]]
+    }
+  )
+}
+
 set_test_input <- function(session, id, value) {
   do.call(session$setInputs, stats::setNames(list(value), id))
   test_server_flush(session)
@@ -84,6 +178,14 @@ mod_navigation_server <- getFromNamespace(
   "mod_navigation_server",
   "CytokineProfileShinyApp"
 )
+mod_update_inputs_server <- getFromNamespace(
+  "mod_update_inputs_server",
+  "CytokineProfileShinyApp"
+)
+mod_options_server <- getFromNamespace(
+  "mod_options_server",
+  "CytokineProfileShinyApp"
+)
 apply_scale <- getFromNamespace(
   "apply_scale",
   "CytokineProfileShinyApp"
@@ -99,6 +201,17 @@ wrap_server_with_app_ctx <- function(server_fun, app_ctx) {
   function(input, output, session) {
     server_fun(input, output, session, app_ctx)
   }
+}
+
+prepare_app_server_step4 <- function(session, app_ctx, func_name) {
+  set_test_input(session, "theme_choice", "flatly")
+  prepare_app_server_step3(session, app_ctx = app_ctx)
+  app_ctx$selected_function(func_name)
+  app_ctx$userState$selected_function <- func_name
+  app_ctx$currentPage("step4")
+  app_ctx$currentStep(4)
+  test_server_flush(session)
+  invisible(NULL)
 }
 
 enter_app_workflow <- function(session) {
