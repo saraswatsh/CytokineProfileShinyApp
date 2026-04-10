@@ -80,7 +80,7 @@ mod_contact_ui <- function(id = NULL, ns = NULL) {
       shiny::p(
         "For issues related to the application, submit an issue at the ",
         shiny::tags$a(
-          href = "https://github.com/saraswatsh/CytokineProfileShinyApp/issues",
+          href = "https://github.com/ZhangLabUKY/CytokineProfileShinyApp/issues",
           "GitHub repository."
         ),
         "For additional questions or concerns, contact the maintainer Shubh Saraswat with the provided email above."

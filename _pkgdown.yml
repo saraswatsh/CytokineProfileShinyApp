@@ -9,7 +9,7 @@ home:
   - text: App Link
     href: https://shiny.cytokineprofile.org
   - text: Report a bug
-    href: https://github.com/saraswatsh/CytokineProfileShinyApp/issues
+    href: https://github.com/ZhangLabUKY/CytokineProfileShinyApp/issues
 navbar:
   title: CytokineProfile Shiny App
   left:
