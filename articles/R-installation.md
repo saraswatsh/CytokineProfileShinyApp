@@ -24,7 +24,7 @@ if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
 Install the package directly from GitHub with:
 
 ``` r
-pak::pak("saraswatsh/CytokineProfileShinyApp")
+pak::pak("ZhangLabUKY/CytokineProfileShinyApp")
 ```
 
 `pak` will resolve and install the package dependencies, including
