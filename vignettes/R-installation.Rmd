@@ -33,7 +33,7 @@ if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
 Install the package directly from GitHub with:
 
 ```{r, eval = FALSE}
-pak::pak("saraswatsh/CytokineProfileShinyApp")
+pak::pak("ZhangLabUKY/CytokineProfileShinyApp")
 ```
 
 `pak` will resolve and install the package dependencies, including Bioconductor dependencies required by the app.

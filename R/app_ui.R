@@ -332,7 +332,7 @@ app_ui <- function() {
         shiny::tags$a(
           shiny::icon("github"),
           "GitHub Repository",
-          href = "https://github.com/saraswatsh/CytokineProfileShinyApp",
+          href = "https://github.com/ZhangLabUKY/CytokineProfileShinyApp",
           target = "_blank",
           class = "btn btn-light btn-sm me-2"
         ),

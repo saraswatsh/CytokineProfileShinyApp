@@ -13,7 +13,7 @@ An interactive Shiny application that provides comprehensive cytokine profiling 
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/saraswatsh/CytokineProfileShinyApp}
+  \item \url{https://github.com/ZhangLabUKY/CytokineProfileShinyApp}
   \item \url{https://shiny.cytokineprofile.org}
   \item \url{https://shinyinfo.cytokineprofile.org/}
 }
