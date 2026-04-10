@@ -11,7 +11,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/blob/devel/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/blob/master/DESCRIPTION)
 
 Saraswat S, Zhang X (2026). *CytokineProfileShinyApp: Comphrensive
 Cytokine Profiling Analysis Shiny Application*. R package version
