@@ -11,16 +11,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/saraswatsh/CytokineProfileShinyApp/blob/master/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/blob/devel/DESCRIPTION)
 
 Saraswat S, Zhang X (2026). *CytokineProfileShinyApp: Comphrensive
 Cytokine Profiling Analysis Shiny Application*. R package version
-0.0.0.9000, <https://github.com/saraswatsh/CytokineProfileShinyApp>.
+0.0.0.9000, <https://github.com/ZhangLabUKY/CytokineProfileShinyApp>.
 
     @Manual{,
       title = {CytokineProfileShinyApp: Comphrensive Cytokine Profiling Analysis Shiny Application},
       author = {Shubh Saraswat and Xiaohua Douglas Zhang},
       year = {2026},
       note = {R package version 0.0.0.9000},
-      url = {https://github.com/saraswatsh/CytokineProfileShinyApp},
+      url = {https://github.com/ZhangLabUKY/CytokineProfileShinyApp},
     }

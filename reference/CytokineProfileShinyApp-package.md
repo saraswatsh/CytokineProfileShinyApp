@@ -22,7 +22,7 @@ K-A, Boitard S, and Besse P (2011)
 
 Useful links:
 
-- <https://github.com/saraswatsh/CytokineProfileShinyApp>
+- <https://github.com/ZhangLabUKY/CytokineProfileShinyApp>
 
 - <https://shiny.cytokineprofile.org>
 

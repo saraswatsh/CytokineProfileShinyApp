@@ -1,18 +1,18 @@
 # CytokineProfile Shiny Application
 
 **Stable Build Status:** [![Last
-Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShinyApp.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/commits/main)
-[![R-CMD-check](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml)
+Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShinyApp.svg)](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/commits/main)
+[![R-CMD-check](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml)
 
 **Development Version:**
-[![](https://img.shields.io/badge/devel%20version-0.0.0.9000-green.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/tree/devel)
-[![R-CMD-check.yaml](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml/badge.svg?branch=devel)](https://github.com/saraswatsh/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml)
+[![](https://img.shields.io/badge/devel%20version-0.0.0.9000-green.svg)](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/tree/devel)
+[![R-CMD-check.yaml](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml/badge.svg?branch=devel)](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/actions/workflows/R-CMD-check.yaml)
 [![Last
-Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShinyApp/devel.svg)](https://github.com/saraswatsh/CytokineProfileShinyApp/commits/devel)
+Commit](https://img.shields.io/github/last-commit/saraswatsh/CytokineProfileShinyApp/devel.svg)](https://github.com/ZhangLabUKY/CytokineProfileShinyApp/commits/devel)
 [![Development](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
-[![CodeFactor](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/badge/devel)](https://www.codefactor.io/repository/github/saraswatsh/cytokineprofileshinyapp/overview/devel)
-[![codecov](https://codecov.io/gh/saraswatsh/CytokineProfileShinyApp/branch/devel/graph/badge.svg?token=0SIQVV5WD3)](https://app.codecov.io/gh/saraswatsh/CytokineProfileShinyApp/tree/devel)
+[![CodeFactor](https://www.codefactor.io/repository/github/zhanglabuky/cytokineprofileshinyapp/badge)](https://www.codefactor.io/repository/github/zhanglabuky/cytokineprofileshinyapp/overview/devel)
+[![codecov](https://codecov.io/gh/zhanglabuky/CytokineProfileShinyApp/branch/devel/graph/badge.svg?token=0SIQVV5WD3)](https://app.codecov.io/gh/zhanglabuky/CytokineProfileShinyApp/tree/devel)
 
 The goal of CytokineProfile Shiny is to conduct quality control using
 biological meaningful cutoff on raw measured values of cytokines.
