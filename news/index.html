@@ -38,7 +38,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/ZhangLabUKY/CytokineProfileShinyApp/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/ZhangLabUKY/CytokineProfileShinyApp/blob/devel/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
@@ -63,6 +63,7 @@
 <li>The missing-value help now gives clearer guidance on when to use mean, median, mode, and the two nearest-neighbor options, and the popup is easier to read.</li>
 <li>Two-group testing controls now label <code>Welch t-test</code> more explicitly, so the manual choice matches the app’s underlying behavior more clearly.</li>
 <li>PLSR now handles partially missing predictor data more gracefully by keeping usable rows, dropping only unusable predictors, and giving clearer guidance when sparse columns may need missing-value treatment first.</li>
+<li>sPLS-DA now handles partially missing predictor data more gracefully by dropping unusable predictors, keeping rows that still contain retained predictors, and warning more clearly when sparse columns may need missing-value treatment first.</li>
 <li>If your uploaded data includes out-of-range values, the app now warns you when you click <code>Save &amp; Use</code> and explains what was adjusted in plain language.</li>
 <li>The app now starts more reliably across repo-root, installed-app, and package launcher workflows.</li>
 <li>Step 2 now restores its state more consistently when you move forward and then return, including dynamic categorical filter selections.</li>
@@ -86,10 +87,12 @@
 <li>The missing-value help popup now opens more cleanly and is less likely to be cut off inside the app window.</li>
 <li>The missing-value method selector now keeps its nearest-neighbor options in sync more reliably instead of dropping or mismatching those controls.</li>
 <li>PLSR is now more stable when only one component can be fit, and the VIP&gt;1 follow-up preview now skips safely instead of failing when too few predictors remain.</li>
+<li>sPLS-DA is now more stable when Excel uploads contain empty cells, and the VIP&gt;1 follow-up preview now skips safely instead of failing when too few predictors remain above the threshold.</li>
 <li>Deselecting all categorical columns in Step 2 now stays deselected instead of snapping back to all selected.</li>
 <li>Step 2 dynamic categorical filter selections now restore correctly after you return from Step 3.</li>
 <li>
 <code>kNN (feature-wise)</code> now safely blocks unsupported single-column use with a controlled message instead of a raw failure.</li>
+<li>Running an analysis from Step 4 no longer jumps to Step 5 before the analysis actually succeeds, so failed runs stay on the inputs screen with a clearer error instead of looking completed.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="behind-the-scenes-0-0-0-9000">Behind the Scenes<a class="anchor" aria-label="anchor" href="#behind-the-scenes-0-0-0-9000"></a></h3>

@@ -46,6 +46,10 @@ to read, and more reliable.
   keeping usable rows, dropping only unusable predictors, and giving
   clearer guidance when sparse columns may need missing-value treatment
   first.
+- sPLS-DA now handles partially missing predictor data more gracefully
+  by dropping unusable predictors, keeping rows that still contain
+  retained predictors, and warning more clearly when sparse columns may
+  need missing-value treatment first.
 - If your uploaded data includes out-of-range values, the app now warns
   you when you click `Save & Use` and explains what was adjusted in
   plain language.
@@ -90,12 +94,18 @@ to read, and more reliable.
 - PLSR is now more stable when only one component can be fit, and the
   VIP\>1 follow-up preview now skips safely instead of failing when too
   few predictors remain.
+- sPLS-DA is now more stable when Excel uploads contain empty cells, and
+  the VIP\>1 follow-up preview now skips safely instead of failing when
+  too few predictors remain above the threshold.
 - Deselecting all categorical columns in Step 2 now stays deselected
   instead of snapping back to all selected.
 - Step 2 dynamic categorical filter selections now restore correctly
   after you return from Step 3.
 - `kNN (feature-wise)` now safely blocks unsupported single-column use
   with a controlled message instead of a raw failure.
+- Running an analysis from Step 4 no longer jumps to Step 5 before the
+  analysis actually succeeds, so failed runs stay on the inputs screen
+  with a clearer error instead of looking completed.
 
 ### Behind the Scenes
 

@@ -188,9 +188,9 @@ splsda_colors = c("black", "purple"), bg = FALSE, scale = "log2",
 conf_mat = FALSE, var_num = 25, cv_opt = NULL, comp_num = 2,
 pch_values = c(16, 4), style = NULL, ellipse = TRUE,
 group_col = "Group", group_col2 = "Treatment", roc = FALSE)
-#> Warning: the standard deviation is zero
+#> Warning: sPLS-DA dropped unusable predictors before fitting for CD3/CD28 : IL.17E.IL.25 [observed values=66; reasons=zero or undefined SD] Consider Step 2 'Treat missing values' if you want to retain sparse predictors.
 
-#> Warning: the standard deviation is zero
+#> Warning: sPLS-DA dropped unusable predictors before fitting for LPS : IL.17E.IL.25 [observed values=66; reasons=zero or undefined SD] Consider Step 2 'Treat missing values' if you want to retain sparse predictors.
 
 
 #> $`CD3/CD28`
