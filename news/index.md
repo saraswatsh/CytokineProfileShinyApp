@@ -106,6 +106,9 @@ to read, and more reliable.
 - Running an analysis from Step 4 no longer jumps to Step 5 before the
   analysis actually succeeds, so failed runs stay on the inputs screen
   with a clearer error instead of looking completed.
+- Input validation and export failures now use friendlier app messages,
+  and common missing analysis settings are checked before model code
+  runs.
 
 ### Behind the Scenes
 
