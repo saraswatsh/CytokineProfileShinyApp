@@ -5,6 +5,95 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   builtins_dir <- app_ctx$builtins_dir
   upload_dir <- app_ctx$upload_dir
   builtInList <- app_ctx$builtInList
+  staged_files <- app_ctx$staged_files
+
+  stage_main_upload <- function() {
+    shiny::req(input$datafile)
+    app_stage_uploaded_file(
+      source_path = input$datafile$datapath,
+      target_dir = upload_dir,
+      slot_id = "main_data_upload",
+      registry_env = staged_files,
+      original_name = input$datafile$name,
+      source_id = paste(input$datafile$datapath, input$datafile$name, sep = "::")
+    )
+  }
+
+  stage_bioplex_upload <- function() {
+    shiny::req(shiny::isTruthy(input$bioplex_file))
+    shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+    app_stage_uploaded_file(
+      source_path = input$bioplex_file$datapath,
+      target_dir = upload_dir,
+      slot_id = "bioplex_upload",
+      registry_env = staged_files,
+      original_name = input$bioplex_file$name,
+      source_id = paste(
+        input$bioplex_file$datapath,
+        input$bioplex_file$name,
+        sep = "::"
+      )
+    )
+  }
+
+  stage_builtin_cache <- function() {
+    shiny::req(isTRUE(input$use_builtin))
+    shiny::req(input$built_in_choice)
+    df <- app_builtin_dataset(input$built_in_choice)
+    app_stage_rds_object(
+      object = df,
+      target_dir = builtins_dir,
+      slot_id = "builtin_dataset",
+      registry_env = staged_files,
+      source_id = input$built_in_choice
+    )
+  }
+
+  main_upload_path <- shiny::reactive({
+    shiny::req(input$datafile)
+    path <- app_staged_path(staged_files, "main_data_upload")
+    if (is.null(path) || !file.exists(path)) {
+      path <- stage_main_upload()
+    }
+    path
+  })
+
+  bioplex_upload_path <- shiny::reactive({
+    shiny::req(shiny::isTruthy(input$bioplex_file))
+    shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+    path <- app_staged_path(staged_files, "bioplex_upload")
+    if (is.null(path) || !file.exists(path)) {
+      path <- stage_bioplex_upload()
+    }
+    path
+  })
+
+  builtin_cache_path <- shiny::reactive({
+    shiny::req(isTRUE(input$use_builtin))
+    shiny::req(input$built_in_choice)
+    path <- app_staged_path(staged_files, "builtin_dataset")
+    if (is.null(path) || !file.exists(path)) {
+      path <- stage_builtin_cache()
+    }
+    path
+  })
+
+  stage_with_notification <- function(stage_fun, label) {
+    tryCatch(
+      {
+        stage_fun()
+        TRUE
+      },
+      error = function(e) {
+        shiny::showNotification(
+          paste(label, "could not be staged:", conditionMessage(e)),
+          type = "error",
+          duration = 6
+        )
+        FALSE
+      }
+    )
+  }
   ## ---------------------------
   ## Data Upload and Built-in Data Option
   ## ---------------------------
@@ -24,6 +113,18 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       userState$built_in_choice <- input$built_in_choice
     },
     ignoreNULL = FALSE
+  )
+
+  shiny::observeEvent(
+    list(input$use_builtin, input$built_in_choice),
+    {
+      if (!isTRUE(input$use_builtin) || !shiny::isTruthy(input$built_in_choice)) {
+        return()
+      }
+
+      stage_with_notification(stage_builtin_cache, "Built-in dataset")
+    },
+    ignoreInit = TRUE
   )
   apply_stamp <- shiny::reactiveVal(0)
   shiny::observeEvent(
@@ -73,6 +174,10 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(
     input$datafile,
     {
+      if (!stage_with_notification(stage_main_upload, "Uploaded file")) {
+        return()
+      }
+
       # New upload -> clear persisted bioplex state so editor uses uploaded file
       bioplex$active <- FALSE
       bioplex$final <- NULL
@@ -125,6 +230,10 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(
     input$bioplex_file,
     {
+      if (!stage_with_notification(stage_bioplex_upload, "Bio-Plex workbook")) {
+        return()
+      }
+
       bioplex$active <- FALSE
       bioplex$final <- NULL
       bioplex$df <- NULL
@@ -169,22 +278,15 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
       df <- bioplex$final
     } else if (isTRUE(input$use_builtin)) {
-      shiny::req(input$built_in_choice)
-      df <- app_builtin_dataset(input$built_in_choice)
-      dest <- file.path(builtins_dir, paste0(input$built_in_choice, ".rds"))
-      if (!file.exists(dest)) saveRDS(df, dest)
+      df <- readRDS(builtin_cache_path())
     } else {
       shiny::req(input$datafile)
       safe_name <- basename(input$datafile$name)
       ext <- tolower(tools::file_ext(safe_name))
       if (ext %in% c("csv", "txt")) {
-        df <- read_uploaded_flat_file(input$datafile$datapath, ext)
+        df <- read_uploaded_flat_file(main_upload_path(), ext)
       } else if (ext %in% c("xls", "xlsx")) {
-        dest <- file.path(upload_dir, safe_name)
-        # Always copy Excel uploads into our upload dir, overwriting previous
-        # copies with the same filename so re-uploading a wrong file refreshes
-        # the stored file immediately.
-        file.copy(input$datafile$datapath, dest, overwrite = TRUE)
+        dest <- main_upload_path()
         all_sheets <- tryCatch(readxl::excel_sheets(dest), error = function(e) {
           character()
         })
@@ -297,9 +399,9 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       return(NULL)
     }
 
-    # Read sheet names directly from the uploaded temp file
+    # Read sheet names from the staged session copy.
     sheets <- tryCatch(
-      readxl::excel_sheets(input$datafile$datapath),
+      readxl::excel_sheets(main_upload_path()),
       error = function(e) character()
     )
 
@@ -336,17 +438,17 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   # flag for conditionalPanel
   output$bioplex_on <- shiny::reactive({
     shiny::isTruthy(input$bioplex_file) &&
-      shiny::isTruthy(input$bioplex_file$datapath)
+      shiny::isTruthy(bioplex_upload_path())
   })
   shiny::outputOptions(output, "bioplex_on", suspendWhenHidden = FALSE)
 
   shiny::observeEvent(input$bioplex_file, {
     # only proceed for Excel uploads
-    shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+    shiny::req(shiny::isTruthy(bioplex_upload_path()))
     shiny::req(grepl("\\.xlsx?$", input$bioplex_file$name, ignore.case = TRUE))
 
     sh <- tryCatch(
-      readxl::excel_sheets(input$bioplex_file$datapath),
+      readxl::excel_sheets(bioplex_upload_path()),
       error = function(e) character(0)
     )
     # update the choices (safe even if the input was just created)
@@ -362,7 +464,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   output$bioplex_sheet_selector <- shiny::renderUI({
     shiny::req(input$bioplex_file)
     sheets <- tryCatch(
-      readxl::excel_sheets(input$bioplex_file$datapath),
+      readxl::excel_sheets(bioplex_upload_path()),
       error = function(e) character()
     )
     if (!length(sheets)) {
@@ -379,12 +481,12 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
 
   # ----- Bio-Plex: build working table from selected sheet(s) -----
   bioplex_build_df <- shiny::reactive({
-    shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+    shiny::req(shiny::isTruthy(bioplex_upload_path()))
     shiny::req(length(input$bioplex_sheets) >= 1) # at least one sheet picked
 
     dfs <- lapply(input$bioplex_sheets, function(sh) {
       x <- readxl::read_excel(
-        input$bioplex_file$datapath,
+        bioplex_upload_path(),
         sheet = sh,
         col_names = FALSE
       )
@@ -415,7 +517,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   # Per-sheet data frames (row 1 -> column names)
   bioplex_per_sheet <- shiny::reactive({
     if (shiny::isTruthy(input$datafile) && length(input$sheet_name) >= 1) {
-      path <- input$datafile$datapath
+      path <- main_upload_path()
       # Ensure we only attempt to read sheets that exist in this workbook
       all_sheets <- tryCatch(readxl::excel_sheets(path), error = function(e) {
         character()
@@ -428,7 +530,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     } else if (
       shiny::isTruthy(input$bioplex_file) && length(input$bioplex_sheets) >= 1
     ) {
-      path <- input$bioplex_file$datapath
+      path <- bioplex_upload_path()
       all_sheets <- tryCatch(readxl::excel_sheets(path), error = function(e) {
         character()
       })
@@ -503,16 +605,10 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       return() # <- important: don't run the file-reading path
     }
     shiny::req(input$datafile)
-    safe_name <- basename(input$datafile$name)
-    ext <- tolower(tools::file_ext(safe_name))
+    ext <- tolower(tools::file_ext(basename(input$datafile$name)))
 
     if (ext %in% c("xls", "xlsx") && length(input$sheet_name) >= 1) {
       # SHEETS MODE a?' tabs appear
-      dest <- file.path(upload_dir, safe_name)
-      # Always overwrite the stored Excel file when opening the editor so that
-      # if the user re-uploads a workbook with the same name the latest upload
-      # is used for downstream persisted reads.
-      file.copy(input$datafile$datapath, dest, overwrite = TRUE)
       bioplex$editor_mode <- "sheets"
       ps <- bioplex_per_sheet() # now points at Option A inputs
       shiny::req(length(ps) >= 1)
@@ -525,11 +621,10 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       # PERSISTED MODE for csv/txt or single-sheet Excel
       df <- switch(
         ext,
-        "csv" = read_uploaded_flat_file(input$datafile$datapath, ext),
-        "txt" = read_uploaded_flat_file(input$datafile$datapath, ext),
+        "csv" = read_uploaded_flat_file(main_upload_path(), ext),
+        "txt" = read_uploaded_flat_file(main_upload_path(), ext),
         "xls" = {
-          dest <- file.path(upload_dir, safe_name)
-          file.copy(input$datafile$datapath, dest, overwrite = TRUE)
+          dest <- main_upload_path()
           all_sheets <- tryCatch(
             readxl::excel_sheets(dest),
             error = function(e) {
@@ -547,8 +642,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
           as.data.frame(readxl::read_excel(dest, sheet = sheet_choice))
         },
         "xlsx" = {
-          dest <- file.path(upload_dir, safe_name)
-          file.copy(input$datafile$datapath, dest, overwrite = TRUE)
+          dest <- main_upload_path()
           all_sheets <- tryCatch(
             readxl::excel_sheets(dest),
             error = function(e) {

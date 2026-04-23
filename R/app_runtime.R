@@ -155,10 +155,262 @@ app_version_string <- function() {
   as.character(app_description_field("Version", default = "0.0.0.9000"))
 }
 
-app_session_temp_dir <- function(name) {
-  path <- file.path(tempdir(), name)
+app_temp_root_name <- function() {
+  "cytokineprofile-shiny"
+}
+
+app_temp_root <- function() {
+  path <- file.path(tempdir(), app_temp_root_name())
   dir.create(path, recursive = TRUE, showWarnings = FALSE)
   normalizePath(path, winslash = "/", mustWork = TRUE)
+}
+
+app_temp_sessions_root <- function() {
+  path <- file.path(app_temp_root(), "sessions")
+  dir.create(path, recursive = TRUE, showWarnings = FALSE)
+  normalizePath(path, winslash = "/", mustWork = TRUE)
+}
+
+app_safe_temp_id <- function(x, default = "session") {
+  if (is.null(x) || !length(x) || is.na(x[[1]])) {
+    x <- ""
+  }
+  x <- as.character(x[[1]])
+  x <- gsub("[^A-Za-z0-9_-]", "-", x)
+  x <- gsub("-{2,}", "-", x)
+  x <- gsub("^-|-$", "", x)
+
+  if (!nzchar(x)) {
+    return(default)
+  }
+
+  x
+}
+
+app_touch_file <- function(path, time = Sys.time()) {
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  if (!file.exists(path)) {
+    file.create(path, showWarnings = FALSE)
+  }
+  suppressWarnings(Sys.setFileTime(path, time))
+  invisible(path)
+}
+
+app_delete_path <- function(path) {
+  if (is.null(path) || !nzchar(path)) {
+    return(invisible(FALSE))
+  }
+
+  if (!file.exists(path) && !dir.exists(path)) {
+    return(invisible(FALSE))
+  }
+
+  unlink(path, recursive = TRUE, force = TRUE)
+  invisible(!file.exists(path) && !dir.exists(path))
+}
+
+app_cleanup_stale_session_dirs <- function(max_age_hours = 24) {
+  sessions_root <- app_temp_sessions_root()
+  session_dirs <- list.dirs(
+    sessions_root,
+    full.names = TRUE,
+    recursive = FALSE
+  )
+
+  if (!length(session_dirs)) {
+    return(invisible(character()))
+  }
+
+  cutoff <- Sys.time() - (as.numeric(max_age_hours) * 60 * 60)
+  removed <- character(0)
+
+  for (session_dir in session_dirs) {
+    heartbeat_path <- file.path(session_dir, ".heartbeat")
+    reference_path <- if (file.exists(heartbeat_path)) {
+      heartbeat_path
+    } else {
+      session_dir
+    }
+
+    info <- file.info(reference_path)
+    mtime <- info$mtime[[1]]
+    if (is.na(mtime) || mtime >= cutoff) {
+      next
+    }
+
+    if (isTRUE(app_delete_path(session_dir))) {
+      removed <- c(removed, session_dir)
+    }
+  }
+
+  invisible(removed)
+}
+
+app_session_temp_root <- function(session) {
+  token <- tryCatch(session$token, error = function(...) "")
+  if (!nzchar(token)) {
+    token <- paste0("pid-", Sys.getpid())
+  }
+
+  path <- file.path(
+    app_temp_sessions_root(),
+    paste0("session-", app_safe_temp_id(token))
+  )
+  dir.create(path, recursive = TRUE, showWarnings = FALSE)
+  normalizePath(path, winslash = "/", mustWork = TRUE)
+}
+
+app_named_session_temp_dir <- function(session_root, name) {
+  path <- file.path(session_root, name)
+  dir.create(path, recursive = TRUE, showWarnings = FALSE)
+  normalizePath(path, winslash = "/", mustWork = TRUE)
+}
+
+app_session_storage <- function(session, stale_hours = 24) {
+  app_cleanup_stale_session_dirs(max_age_hours = stale_hours)
+
+  session_root <- app_session_temp_root(session)
+  heartbeat_path <- file.path(session_root, ".heartbeat")
+  app_touch_file(heartbeat_path)
+
+  list(
+    temp_root = app_temp_root(),
+    sessions_root = app_temp_sessions_root(),
+    session_root = session_root,
+    heartbeat_path = heartbeat_path,
+    upload_dir = app_named_session_temp_dir(session_root, "uploads"),
+    builtins_dir = app_named_session_temp_dir(session_root, "builtins")
+  )
+}
+
+app_staged_slot_key <- function(slot_id) {
+  app_safe_temp_id(slot_id, default = "slot")
+}
+
+app_staged_meta_key <- function(slot_id, field) {
+  paste0(app_staged_slot_key(slot_id), "__", app_safe_temp_id(field, "meta"))
+}
+
+app_staged_path <- function(registry_env, slot_id) {
+  key <- app_staged_slot_key(slot_id)
+  if (!exists(key, envir = registry_env, inherits = FALSE)) {
+    return(NULL)
+  }
+
+  base::get(key, envir = registry_env, inherits = FALSE)
+}
+
+app_staged_source_id <- function(registry_env, slot_id) {
+  key <- app_staged_meta_key(slot_id, "source")
+  if (!exists(key, envir = registry_env, inherits = FALSE)) {
+    return(NULL)
+  }
+
+  base::get(key, envir = registry_env, inherits = FALSE)
+}
+
+app_clear_staged_path <- function(registry_env, slot_id) {
+  key <- app_staged_slot_key(slot_id)
+  meta_key <- app_staged_meta_key(slot_id, "source")
+  existing <- app_staged_path(registry_env, slot_id)
+
+  if (exists(key, envir = registry_env, inherits = FALSE)) {
+    rm(list = key, envir = registry_env)
+  }
+  if (exists(meta_key, envir = registry_env, inherits = FALSE)) {
+    rm(list = meta_key, envir = registry_env)
+  }
+
+  if (!is.null(existing) && nzchar(existing)) {
+    app_delete_path(existing)
+  }
+
+  invisible(NULL)
+}
+
+app_stage_uploaded_file <- function(
+  source_path,
+  target_dir,
+  slot_id,
+  registry_env,
+  original_name = NULL,
+  source_id = NULL
+) {
+  if (is.null(source_id)) {
+    source_name <- if (is.null(original_name)) "" else as.character(original_name)
+    source_id <- paste(source_path, source_name, sep = "::")
+  }
+
+  existing_path <- app_staged_path(registry_env, slot_id)
+  existing_source_id <- app_staged_source_id(registry_env, slot_id)
+  if (
+    !is.null(existing_path) &&
+      nzchar(existing_path) &&
+      file.exists(existing_path) &&
+      identical(existing_source_id, source_id)
+  ) {
+    return(existing_path)
+  }
+
+  fileext <- ""
+  if (!is.null(original_name) && nzchar(original_name)) {
+    ext <- tools::file_ext(original_name)
+    if (nzchar(ext)) {
+      fileext <- paste0(".", tolower(ext))
+    }
+  }
+
+  dest <- tempfile(
+    pattern = paste0(app_staged_slot_key(slot_id), "-"),
+    tmpdir = target_dir,
+    fileext = fileext
+  )
+
+  copied <- isTRUE(file.copy(source_path, dest, overwrite = TRUE))
+  if (!copied) {
+    app_delete_path(dest)
+    stop("Failed to stage uploaded file.", call. = FALSE)
+  }
+
+  app_clear_staged_path(registry_env, slot_id)
+  assign(app_staged_slot_key(slot_id), dest, envir = registry_env)
+  assign(app_staged_meta_key(slot_id, "source"), source_id, envir = registry_env)
+  dest
+}
+
+app_stage_rds_object <- function(
+  object,
+  target_dir,
+  slot_id,
+  registry_env,
+  source_id = NULL
+) {
+  if (is.null(source_id)) {
+    source_id <- slot_id
+  }
+
+  existing_path <- app_staged_path(registry_env, slot_id)
+  existing_source_id <- app_staged_source_id(registry_env, slot_id)
+  if (
+    !is.null(existing_path) &&
+      nzchar(existing_path) &&
+      file.exists(existing_path) &&
+      identical(existing_source_id, source_id)
+  ) {
+    return(existing_path)
+  }
+
+  dest <- tempfile(
+    pattern = paste0(app_staged_slot_key(slot_id), "-"),
+    tmpdir = target_dir,
+    fileext = ".rds"
+  )
+
+  saveRDS(object, dest)
+  app_clear_staged_path(registry_env, slot_id)
+  assign(app_staged_slot_key(slot_id), dest, envir = registry_env)
+  assign(app_staged_meta_key(slot_id, "source"), source_id, envir = registry_env)
+  dest
 }
 
 app_source_checkout_root <- function(app_dir = getwd()) {

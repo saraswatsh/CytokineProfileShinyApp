@@ -7,6 +7,8 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
   get_analysis_font_spec <- app_ctx$get_analysis_font_spec
   font_settings_state_from_inputs <- app_ctx$font_settings_state_from_inputs
   font_settings_state_to_backend <- app_ctx$font_settings_state_to_backend
+  currentStep <- app_ctx$currentStep
+  currentPage <- app_ctx$currentPage
   ## ---------------------------
   ## Analysis and Results
   ## ---------------------------
@@ -788,6 +790,27 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
     shiny::req(analysisResult())
     analysisResult()
   })
+
+  shiny::observeEvent(analysisResult(), {
+    shiny::req(analysisResult())
+    if (!shiny::isTruthy(errorMessage())) {
+      currentPage("step5")
+      currentStep(5)
+    }
+  })
+
+  shiny::observeEvent(errorMessage(), {
+    err <- errorMessage()
+    shiny::req(shiny::isTruthy(err))
+
+    if (identical(currentPage(), "step4")) {
+      shiny::showNotification(
+        err,
+        type = "error",
+        duration = NULL
+      )
+    }
+  }, ignoreInit = TRUE)
 
   exportablePlots <- shiny::reactive({
     shiny::req(analysisResult(), selected_function())

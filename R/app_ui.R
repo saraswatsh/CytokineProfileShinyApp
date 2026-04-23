@@ -416,6 +416,13 @@ app_ui <- function() {
           value = "news"
         ),
         shiny::actionButton(
+          "nav_privacy",
+          "Data Privacy",
+          icon = shiny::icon("shield-alt"),
+          width = "100%",
+          value = "privacy"
+        ),
+        shiny::actionButton(
           "nav_contact",
           "Contact",
           icon = shiny::icon("envelope"),

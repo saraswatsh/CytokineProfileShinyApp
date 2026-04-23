@@ -224,8 +224,34 @@ cyt_splsda <- function(
     100 * mean(pred_factor == ref_factor, na.rm = TRUE)
   }
 
+  .format_predictor_issues <- function(issue_df, include_counts = TRUE) {
+    if (is.null(issue_df) || !nrow(issue_df)) {
+      return("none")
+    }
+
+    paste(
+      apply(issue_df, 1, function(row) {
+        if (isTRUE(include_counts)) {
+          sprintf(
+            "%s [observed values=%s; reasons=%s]",
+            row[["predictor"]],
+            row[["observed_values"]],
+            row[["reasons"]]
+          )
+        } else {
+          sprintf(
+            "%s [%s]",
+            row[["predictor"]],
+            row[["reasons"]]
+          )
+        }
+      }),
+      collapse = "; "
+    )
+  }
+
   # helper to build predictors / groups from a subset
-  .x_y <- function(df) {
+  .x_y <- function(df, label) {
     exclude <- unique(na.omit(c(
       group_col,
       group_col2,
@@ -236,17 +262,110 @@ cyt_splsda <- function(
     X <- df[, setdiff(names(df), exclude), drop = FALSE]
     X <- X[, vapply(X, is.numeric, logical(1)), drop = FALSE]
 
-    # Remove columns that are completely NA
-    X <- X[, !vapply(X, function(x) all(is.na(x)), logical(1)), drop = FALSE]
-
     if (ncol(X) < 2) {
       stop("Need at least 2 numeric predictors after filtering/selection.")
     }
-    Y <- droplevels(factor(df[[group_col]]))
-    if (nlevels(Y) < 2) {
-      stop("Grouping variable must have at least two levels.")
+
+    predictor_issues <- lapply(names(X), function(col) {
+      vals <- X[[col]]
+      observed_vals <- vals[!is.na(vals)]
+      finite_vals <- observed_vals[is.finite(observed_vals)]
+      reasons <- character(0)
+
+      if (any(!is.finite(observed_vals))) {
+        reasons <- c(reasons, "contains non-finite observed values")
+      }
+      if (length(finite_vals) < 3L) {
+        reasons <- c(
+          reasons,
+          sprintf("fewer than 3 observed values (n=%d)", length(finite_vals))
+        )
+      }
+
+      sdv <- stats::sd(finite_vals)
+      if (is.na(sdv) || !is.finite(sdv) || sdv == 0) {
+        reasons <- c(reasons, "zero or undefined SD")
+      }
+
+      if (!length(reasons)) {
+        return(NULL)
+      }
+
+      data.frame(
+        predictor = col,
+        observed_values = length(finite_vals),
+        reasons = paste(unique(reasons), collapse = ", "),
+        stringsAsFactors = FALSE
+      )
+    })
+
+    predictor_issues <- Filter(Negate(is.null), predictor_issues)
+    if (length(predictor_issues)) {
+      predictor_issues <- do.call(rbind, predictor_issues)
+      warning(
+        paste(
+          "sPLS-DA dropped unusable predictors before fitting for",
+          label,
+          ":",
+          .format_predictor_issues(predictor_issues),
+          "Consider Step 2 'Treat missing values' if you want to retain sparse predictors."
+        ),
+        call. = FALSE
+      )
+      X <- X[, setdiff(names(X), predictor_issues$predictor), drop = FALSE]
+    } else {
+      predictor_issues <- data.frame(
+        predictor = character(),
+        observed_values = integer(),
+        reasons = character(),
+        stringsAsFactors = FALSE
+      )
     }
-    list(X = X, Y = Y)
+
+    if (ncol(X) < 2) {
+      stop(
+        paste(
+          "sPLS-DA requires at least 2 usable numeric predictors after filtering missingness.",
+          "Dropped predictors:",
+          .format_predictor_issues(
+            predictor_issues,
+            include_counts = FALSE
+          )
+        )
+      )
+    }
+
+    row_has_predictor <- rowSums(!is.na(as.matrix(X))) > 0
+    dropped_rows <- sum(!row_has_predictor)
+    if (dropped_rows > 0) {
+      warning(
+        sprintf(
+          paste(
+            "sPLS-DA dropped %d row%s with no retained predictor values for %s.",
+            "Consider Step 2 'Treat missing values' if you want to retain sparse predictors."
+          ),
+          dropped_rows,
+          if (dropped_rows == 1) "" else "s",
+          label
+        ),
+        call. = FALSE
+      )
+    }
+    X <- X[row_has_predictor, , drop = FALSE]
+    df_used <- df[row_has_predictor, , drop = FALSE]
+
+    Y <- droplevels(factor(df_used[[group_col]]))
+    if (nlevels(Y) < 2) {
+      stop("Grouping variable must have at least two levels after filtering missingness.")
+    }
+
+    list(
+      X = X,
+      Y = Y,
+      df = df_used,
+      predictor_issues = predictor_issues,
+      dropped_rows = dropped_rows
+    )
   }
 
   # resolve labels for the current subset (TRUE, FALSE, or character vector)
@@ -329,8 +448,15 @@ cyt_splsda <- function(
   # record base graphics into replayable plot objects
   .record_plot <- function(expr) {
     if (grDevices::dev.cur() == 1) {
-      grDevices::png(tempfile(fileext = ".png"))
-      on.exit(grDevices::dev.off(), add = TRUE)
+      tmp_png <- tempfile(fileext = ".png")
+      grDevices::png(tmp_png)
+      on.exit(
+        {
+          grDevices::dev.off()
+          if (file.exists(tmp_png)) unlink(tmp_png)
+        },
+        add = TRUE
+      )
     }
     grDevices::dev.control(displaylist = "enable")
     force(expr)
@@ -353,11 +479,12 @@ cyt_splsda <- function(
         detail = paste("Preparing data for", label)
       )
     }
-    xy <- .x_y(df_subset)
+    xy <- .x_y(df_subset, label)
     X <- xy$X
     Y <- xy$Y
+    df_used <- xy$df
     multilevel_df <- if (!is.null(multilevel_col)) {
-      data.frame(sample = df_subset[[multilevel_col]])
+      data.frame(sample = df_used[[multilevel_col]])
     } else {
       NULL
     }
@@ -404,7 +531,7 @@ cyt_splsda <- function(
       )
     }
     lab_res <- .resolve_ind_names(
-      df_subset,
+      df_used,
       ind_names,
       nrow(data),
       rownames(data)
@@ -421,13 +548,13 @@ cyt_splsda <- function(
     indiv_3D_interactive <- NULL
     # build an ID vector inline (prefer multilevel_col if present)
     ids <- if (
-      !is.null(multilevel_col) && multilevel_col %in% names(df_subset)
+      !is.null(multilevel_col) && multilevel_col %in% names(df_used)
     ) {
-      as.character(df_subset[[multilevel_col]])
-    } else if (!is.null(rownames(df_subset))) {
-      rownames(df_subset)
+      as.character(df_used[[multilevel_col]])
+    } else if (!is.null(rownames(df_used))) {
+      rownames(df_used)
     } else {
-      sprintf("S%03d", seq_len(nrow(sc)))
+      sprintf("S%03d", seq_len(nrow(df_used)))
     }
 
     if (!is.null(style) && tolower(style) == "3d" && comp_num_eff == 3) {
@@ -642,8 +769,9 @@ cyt_splsda <- function(
 
     vip_indiv_plot <- vip_loadings <- vip_3D <- vip_ROC <- vip_CV <- vip_3D_interactive <- NULL
     vip_pred <- NULL
-    vip_filter <- vip_all[, 1] > 1
-    if (sum(vip_filter) > 0) {
+    vip_filter <- !is.na(vip_all[, 1]) & vip_all[, 1] > 1
+    vip_count <- sum(vip_filter)
+    if (vip_count >= 2) {
       Xvip <- X[, vip_filter, drop = FALSE]
       args2 <- list(
         X = Xvip,
@@ -825,6 +953,19 @@ cyt_splsda <- function(
           vip_CV <- apply_font_settings_ggplot(vip_CV, resolved_fonts)
         }
       }
+    } else if (vip_count > 0) {
+      warning(
+        sprintf(
+          paste(
+            "sPLS-DA skipped VIP>1 preview for %s because only %d predictor%s remained above the VIP threshold.",
+            "The main sPLS-DA results are still available."
+          ),
+          label,
+          vip_count,
+          if (vip_count == 1) "" else "s"
+        ),
+        call. = FALSE
+      )
     }
 
     # Confusion matrices (optional)
@@ -958,7 +1099,7 @@ cyt_splsda <- function(
       }
 
       # VIP branch
-      if (sum(vip_filter) > 0) {
+      if (vip_count >= 2) {
         .plot_indiv(
           mdl_vip,
           Y,

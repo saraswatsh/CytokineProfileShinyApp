@@ -33,6 +33,7 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
       "nav_args",
       "nav_results",
       "nav_news",
+      "nav_privacy",
       "nav_contact"
     )) {
       shinyjs::removeClass(id, "active")
@@ -49,6 +50,7 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
       "step4" = "nav_args", # Analysis Arguments
       "step5" = "nav_results", # Results
       "news" = "nav_news",
+      "privacy" = "nav_privacy",
       "contact" = "nav_contact",
       NULL
     )
@@ -101,6 +103,9 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(input$nav_news, {
     currentPage("news")
   })
+  shiny::observeEvent(input$nav_privacy, {
+    currentPage("privacy")
+  })
   shiny::observeEvent(input$nav_contact, {
     currentPage("contact")
   })
@@ -125,10 +130,6 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(input$back4, {
     currentPage("step3")
     currentStep(3)
-  })
-  shiny::observeEvent(input$next4, {
-    currentPage("step5")
-    currentStep(5)
   })
   shiny::observeEvent(input$back5, {
     currentPage("step4")
@@ -505,6 +506,7 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
       "step4" = step4UI(), # Existing function-args form + Run/Back.
       "step5" = resultsUI(), # existing results page
       "news" = newsUI(), # Simple news page
+      "privacy" = privacyUI(), # Simple data-privacy page
       "contact" = contactUI(), # Simple contact page
       homeUI() # Fallback
     )
@@ -659,6 +661,11 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
   newsUI <- function() {
     shiny::tagList(
       shiny::includeMarkdown(app_content_file("NEWS.md"))
+    )
+  }
+  privacyUI <- function() {
+    shiny::tagList(
+      shiny::includeMarkdown(app_content_file("DATA_PRIVACY.md"))
     )
   }
   contactUI <- function() {

@@ -15,6 +15,10 @@ font_test_prepare_step4 <- function(session, app_ctx, func_name) {
   set_test_input(session, "theme_choice", "flatly")
   prepare_app_server_step3(session, app_ctx = app_ctx)
   font_test_open_step4(session, app_ctx, func_name)
+  if (identical(func_name, "Boxplots")) {
+    set_test_input(session, "bp_group_by", "Group")
+    set_test_input(session, "bp_bin_size", 10)
+  }
   invisible(NULL)
 }
 

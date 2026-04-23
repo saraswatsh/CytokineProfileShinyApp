@@ -52,6 +52,40 @@ test_that("exploratory workflow routes a representative boxplot path to step 5",
   })
 })
 
+test_that("analysis stage uses the current filteredData binding on step 4", {
+  local_mocked_browser_side_effects()
+
+  shiny::testServer(app_server, {
+    captured_data <- NULL
+
+    with_temp_pdf_device({
+      testthat::local_mocked_bindings(
+        cyt_bp = function(data, ...) {
+          captured_data <<- data
+          record_test_plot(draw_mock_base_plot("Boxplots"))
+        },
+        .package = "CytokineProfileShinyApp"
+      )
+
+      run_app_server_analysis(
+        session,
+        app_ctx,
+        "menu_boxplots",
+        inputs = list(
+          bp_group_by = "Group",
+          bp_bin_size = 10
+        ),
+        apply_filters = TRUE
+      )
+
+      expect_s3_class(captured_data, "data.frame")
+      expected_data <- app_ctx$filteredData()
+      expected_data$..cyto_id.. <- NULL
+      expect_equal(captured_data, expected_data)
+    })
+  })
+})
+
 test_that("multivariate workflow routes a representative PCA path to step 5", {
   testthat::skip_if_not_installed("mixOmics")
   local_mocked_browser_side_effects()
@@ -111,5 +145,109 @@ test_that("machine-learning workflow routes a representative random forest path 
     expect_equal(app_ctx$userState$rf_group_col, "Group")
     expect_equal(app_ctx$userState$rf_ntree, 10)
     expect_null(app_ctx$errorMessage())
+  })
+})
+
+test_that("sPLS-DA success advances to step 5 only after analysis completes", {
+  local_mocked_browser_side_effects()
+
+  shiny::testServer(app_server, {
+    with_temp_pdf_device({
+      testthat::local_mocked_bindings(
+        cyt_splsda = function(...) {
+          warning(
+            paste(
+              "sPLS-DA dropped unusable predictors before fitting for Group:",
+              "MarkerSparse [observed values=2; reasons=fewer than 3 observed values (n=2)].",
+              "Consider Step 2 'Treat missing values' if you want to retain sparse predictors."
+            ),
+            call. = FALSE
+          )
+
+          list(
+            overall_indiv_plot = record_test_plot(draw_mock_base_plot("sPLS-DA")),
+            overall_3D = NULL,
+            overall_3D_interactive = NULL,
+            overall_ROC = NULL,
+            overall_CV = NULL,
+            loadings = list(record_test_plot(draw_mock_base_plot("Loadings"))),
+            vip_scores = list(
+              ggplot2::ggplot(
+                data.frame(x = 1, y = 1),
+                ggplot2::aes(x, y)
+              ) +
+                ggplot2::geom_blank()
+            ),
+            vip_indiv_plot = NULL,
+            vip_loadings = NULL,
+            vip_3D = NULL,
+            vip_3D_interactive = NULL,
+            vip_ROC = NULL,
+            vip_CV = NULL,
+            conf_matrix = NULL
+          )
+        },
+        .package = "CytokineProfileShinyApp"
+      )
+
+      run_app_server_analysis(
+        session,
+        app_ctx,
+        "menu_splsda",
+        inputs = list(
+          splsda_group_col = "Group",
+          splsda_group_col2 = "Group",
+          splsda_var_num = 5,
+          splsda_comp_num = 2
+        )
+      )
+
+      expect_equal(
+        app_ctx$selected_function(),
+        "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
+      )
+      expect_equal(app_ctx$currentStep(), 5)
+      expect_equal(app_ctx$currentPage(), "step5")
+      expect_null(app_ctx$errorMessage())
+      expect_true(any(grepl(
+        "dropped unusable predictors",
+        app_ctx$warningMessage(),
+        fixed = TRUE
+      )))
+    })
+  })
+})
+
+test_that("sPLS-DA failure stays on step 4 and records the error", {
+  local_mocked_browser_side_effects()
+
+  shiny::testServer(app_server, {
+    testthat::local_mocked_bindings(
+      cyt_splsda = function(...) {
+        stop("Injected sPLS-DA failure", call. = FALSE)
+      },
+      .package = "CytokineProfileShinyApp"
+    )
+
+    run_app_server_analysis(
+      session,
+      app_ctx,
+      "menu_splsda",
+      inputs = list(
+        splsda_group_col = "Group",
+        splsda_group_col2 = "Group",
+        splsda_var_num = 5,
+        splsda_comp_num = 2
+      )
+    )
+
+    expect_equal(
+      app_ctx$selected_function(),
+      "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
+    )
+    expect_equal(app_ctx$currentStep(), 4)
+    expect_equal(app_ctx$currentPage(), "step4")
+    expect_false(identical(app_ctx$currentPage(), "step5"))
+    expect_match(app_ctx$errorMessage(), "Injected sPLS-DA failure")
   })
 })
