@@ -38,3 +38,4 @@ _\.new\.png$
 ^scripts$
 ^app_server_stages\.baseline\.R$
 ^notes$
+^.codecov\.yml$

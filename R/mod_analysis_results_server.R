@@ -13,6 +13,7 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
   ## Analysis and Results
   ## ---------------------------
   errorMessage <- shiny::reactiveVal(NULL)
+  technicalErrorMessage <- shiny::reactiveVal(NULL)
   warningMessage <- shiny::reactiveVal(character())
 
   parse_numeric_input <- function(x) {
@@ -29,6 +30,304 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
     }
 
     x
+  }
+
+  stop_user_preflight <- function(message) {
+    stop(app_user_safe_error(message))
+  }
+
+  has_selection <- function(x) {
+    if (is.null(x)) {
+      return(FALSE)
+    }
+    if (is.character(x)) {
+      return(any(nzchar(trimws(x))))
+    }
+
+    length(x) > 0
+  }
+
+  require_selection <- function(x, message) {
+    if (!has_selection(x)) {
+      stop_user_preflight(message)
+    }
+  }
+
+  require_distinct_pair <- function(x, y, message) {
+    if (identical(x, y)) {
+      stop_user_preflight(message)
+    }
+  }
+
+  require_column_present <- function(df, col, message) {
+    require_selection(col, message)
+    if (!col %in% names(df)) {
+      stop_user_preflight(message)
+    }
+  }
+
+  require_numeric_column <- function(df, col, message) {
+    require_column_present(df, col, message)
+    if (!is.numeric(df[[col]])) {
+      stop_user_preflight(message)
+    }
+  }
+
+  require_group_levels <- function(df, col, message, minimum = 2L) {
+    require_column_present(df, col, message)
+    if (length(unique(stats::na.omit(df[[col]]))) < minimum) {
+      stop_user_preflight(message)
+    }
+  }
+
+  analysis_numeric_predictors <- function(df, exclude = character()) {
+    cols <- names(df)[vapply(df, is.numeric, logical(1))]
+    setdiff(cols, exclude)
+  }
+
+  analysis_preflight <- function(func_to_run, df) {
+    switch(
+      func_to_run,
+      "Two-way ANOVA" = {
+        require_column_present(
+          df,
+          input$twa_primary_cat_var,
+          "Choose a primary group column before running Two-way ANOVA."
+        )
+        require_column_present(
+          df,
+          input$twa_secondary_cat_var,
+          "Choose a secondary group column before running Two-way ANOVA."
+        )
+      },
+      "ANCOVA" = {
+        require_column_present(
+          df,
+          input$anc_primary_cat_var,
+          "Choose a primary group column before running ANCOVA."
+        )
+        require_column_present(
+          df,
+          input$anc_covariate_col,
+          "Choose a covariate column before running ANCOVA."
+        )
+      },
+      "Error-Bar Plot" = {
+        require_column_present(
+          df,
+          input$eb_group_col,
+          "Choose a grouping column before running the Error-Bar Plot."
+        )
+      },
+      "Dual-Flashlight Plot" = {
+        require_column_present(
+          df,
+          input$df_group_var,
+          "Choose a grouping column before running the Dual-Flashlight Plot."
+        )
+        require_selection(
+          input$df_cond1,
+          "Choose the first comparison group before running the Dual-Flashlight Plot."
+        )
+        require_selection(
+          input$df_cond2,
+          "Choose the second comparison group before running the Dual-Flashlight Plot."
+        )
+        require_distinct_pair(
+          input$df_cond1,
+          input$df_cond2,
+          "Choose two different comparison groups for the Dual-Flashlight Plot."
+        )
+      },
+      "Heatmap" = {
+        if (!length(names(df)[vapply(df, is.numeric, logical(1))])) {
+          stop_user_preflight(
+            "Choose data with at least one numeric measurement column before running the Heatmap."
+          )
+        }
+      },
+      "Boxplots" = {
+        if (!length(names(df)[vapply(df, is.numeric, logical(1))])) {
+          stop_user_preflight(
+            "Choose data with at least one numeric measurement column before running this analysis."
+          )
+        }
+      },
+      "Violin Plots" = {
+        if (!length(names(df)[vapply(df, is.numeric, logical(1))])) {
+          stop_user_preflight(
+            "Choose data with at least one numeric measurement column before running this analysis."
+          )
+        }
+      },
+      "Skewness/Kurtosis" = {
+        if (!length(names(df)[vapply(df, is.numeric, logical(1))])) {
+          stop_user_preflight(
+            "Choose data with at least one numeric measurement column before running this analysis."
+          )
+        }
+      },
+      "Volcano Plot" = {
+        if (!length(names(df)[vapply(df, is.numeric, logical(1))])) {
+          stop_user_preflight(
+            "Choose data with at least one numeric measurement column before running the Volcano Plot."
+          )
+        }
+        require_column_present(
+          df,
+          input$volc_group_col,
+          "Choose a grouping column before running the Volcano Plot."
+        )
+        require_selection(
+          input$volc_cond1,
+          "Choose the first comparison group before running the Volcano Plot."
+        )
+        require_selection(
+          input$volc_cond2,
+          "Choose the second comparison group before running the Volcano Plot."
+        )
+        require_distinct_pair(
+          input$volc_cond1,
+          input$volc_cond2,
+          "Choose two different comparison groups for the Volcano Plot."
+        )
+      },
+      "Principal Component Analysis (PCA)" = {
+        require_group_levels(
+          df,
+          input$pca_group_col,
+          message = "Choose a grouping column with at least two groups before running PCA."
+        )
+      },
+      "Partial Least Squares Regression (PLSR)" = {
+        require_numeric_column(
+          df,
+          input$plsr_response_col,
+          "Choose a numeric response column before running PLSR."
+        )
+        pred_cols <- if (length(input$plsr_predictor_cols)) {
+          intersect(input$plsr_predictor_cols, names(df))
+        } else {
+          analysis_numeric_predictors(
+            df,
+            exclude = c(input$plsr_response_col, input$plsr_group_col)
+          )
+        }
+        if (!length(pred_cols)) {
+          stop_user_preflight(
+            "Choose at least one numeric predictor column before running PLSR."
+          )
+        }
+      },
+      "Correlation Plots" = {
+        require_numeric_column(
+          df,
+          input$corr_target,
+          "Choose a numeric target column before running the Correlation Plot."
+        )
+        if (isTRUE(input$corr_by_group)) {
+          require_column_present(
+            df,
+            input$corr_group_col,
+            "Choose a grouping column before running grouped Correlation Plots."
+          )
+        }
+      },
+      "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)" = {
+        require_group_levels(
+          df,
+          input$splsda_group_col,
+          message = "Choose a grouping column with at least two groups before running sPLS-DA."
+        )
+        if (isTRUE(input$splsda_use_batch_corr)) {
+          require_column_present(
+            df,
+            input$splsda_batch_col,
+            "Choose a batch column before running batch-corrected sPLS-DA."
+          )
+        }
+        if (isTRUE(input$splsda_use_multilevel)) {
+          require_column_present(
+            df,
+            input$splsda_multilevel,
+            "Choose a multilevel column before running multilevel sPLS-DA."
+          )
+        }
+        if (identical(input$splsda_ind_names_mode %||% "off", "column")) {
+          require_column_present(
+            df,
+            input$splsda_ind_names_col,
+            "Choose a label column before showing sPLS-DA sample names from a column."
+          )
+        }
+        predictors <- analysis_numeric_predictors(
+          df,
+          exclude = c(
+            input$splsda_group_col,
+            input$splsda_group_col2,
+            input$splsda_batch_col,
+            input$splsda_multilevel
+          )
+        )
+        if (length(predictors) < 2L) {
+          stop_user_preflight(
+            "Choose data with at least two numeric predictor columns before running sPLS-DA."
+          )
+        }
+      },
+      "Multivariate INTegration Sparse Partial Least Squares - Discriminant Analysis (MINT sPLS-DA)" = {
+        require_group_levels(
+          df,
+          input$mint_splsda_group_col,
+          message = "Choose a grouping column with at least two groups before running MINT sPLS-DA."
+        )
+        require_column_present(
+          df,
+          input$mint_splsda_batch_col,
+          "Choose a batch column before running MINT sPLS-DA."
+        )
+        predictors <- analysis_numeric_predictors(
+          df,
+          exclude = c(
+            input$mint_splsda_group_col,
+            input$mint_splsda_group_col2,
+            input$mint_splsda_batch_col
+          )
+        )
+        if (length(predictors) < 2L) {
+          stop_user_preflight(
+            "Choose data with at least two numeric predictor columns before running MINT sPLS-DA."
+          )
+        }
+      },
+      "Random Forest" = {
+        require_group_levels(
+          df,
+          input$rf_group_col,
+          message = "Choose a grouping column with at least two groups before running Random Forest."
+        )
+        if (!length(analysis_numeric_predictors(df, exclude = input$rf_group_col))) {
+          stop_user_preflight(
+            "Choose data with at least one numeric predictor column before running Random Forest."
+          )
+        }
+      },
+      "Extreme Gradient Boosting (XGBoost)" = {
+        require_group_levels(
+          df,
+          input$xgb_group_col,
+          message = "Choose a grouping column with at least two groups before running XGBoost."
+        )
+        if (!length(analysis_numeric_predictors(df, exclude = input$xgb_group_col))) {
+          stop_user_preflight(
+            "Choose data with at least one numeric predictor column before running XGBoost."
+          )
+        }
+      },
+      invisible(NULL)
+    )
+
+    invisible(NULL)
   }
 
   analysis_p_adjust_input <- function(x, none_value, default = "BH") {
@@ -246,6 +545,7 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
 
   analysisResult <- shiny::eventReactive(input$next4, {
     errorMessage(NULL)
+    technicalErrorMessage(NULL)
     warningMessage(character())
 
     shiny::req(filteredData())
@@ -263,6 +563,7 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
 
             func_to_run <- selected_function()
             shiny::req(func_to_run)
+            analysis_preflight(func_to_run, df)
 
             results <- switch(
               func_to_run,
@@ -780,7 +1081,12 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
         )
       },
       error = function(e) {
-        errorMessage(conditionMessage(e))
+        app_note_technical_error(
+          paste("Analysis", selected_function() %||% "run"),
+          e
+        )
+        technicalErrorMessage(conditionMessage(e))
+        errorMessage(app_analysis_user_message(e))
         NULL
       }
     ) # end tryCatch
@@ -918,9 +1224,10 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
   output$errorText <- shiny::renderUI({
     shiny::req(errorMessage())
     shiny::div(
-      style = "color:red; padding:5px; border:1px solid red;",
-      shiny::strong("Error:"),
-      shiny::tags$pre(errorMessage())
+      class = "alert alert-danger",
+      shiny::tags$h4("Analysis could not be completed"),
+      shiny::p(errorMessage()),
+      shiny::p("Change the inputs and run the analysis again.")
     )
   })
 
@@ -3148,77 +3455,87 @@ mod_analysis_results_server <- function(input, output, session, app_ctx) {
       paste0(input$download_filename %||% "Results", ".", ext)
     },
     content = function(file) {
-      tables <- exportableTables()
-      if (length(tables) > 0 && length(exportablePlots()) == 0) {
-        if (length(tables) == 1L) {
-          utils::write.csv(tables[[1]], file, row.names = FALSE)
-          return(invisible(NULL))
-        }
+      tryCatch(
+        {
+          tables <- exportableTables()
+          if (length(tables) > 0 && length(exportablePlots()) == 0) {
+            if (length(tables) == 1L) {
+              utils::write.csv(tables[[1]], file, row.names = FALSE)
+              return(invisible(NULL))
+            }
 
-        base_file <- tools::file_path_sans_ext(file)
-        generated_files <- vapply(
-          names(tables),
-          function(table_name) {
-            generated_file <- paste0(base_file, "_", table_name, ".csv")
-            utils::write.csv(
-              tables[[table_name]],
-              generated_file,
-              row.names = FALSE
+            base_file <- tools::file_path_sans_ext(file)
+            generated_files <- vapply(
+              names(tables),
+              function(table_name) {
+                generated_file <- paste0(base_file, "_", table_name, ".csv")
+                utils::write.csv(
+                  tables[[table_name]],
+                  generated_file,
+                  row.names = FALSE
+                )
+                basename(generated_file)
+              },
+              character(1)
             )
-            basename(generated_file)
-          },
-          character(1)
-        )
 
-        old_wd <- getwd()
-        on.exit(setwd(old_wd), add = TRUE)
-        setwd(dirname(file))
-        utils::zip(zipfile = file, files = generated_files)
-        return(invisible(NULL))
-      }
+            old_wd <- getwd()
+            on.exit(setwd(old_wd), add = TRUE)
+            setwd(dirname(file))
+            utils::zip(zipfile = file, files = generated_files)
+            return(invisible(NULL))
+          }
 
-      plots <- exportablePlots()
-      shiny::req(length(plots) > 0)
+          plots <- exportablePlots()
+          shiny::req(length(plots) > 0)
 
-      fmt <- tolower(input$download_format %||% "pdf")
-      base_file <- tools::file_path_sans_ext(file)
+          fmt <- tolower(input$download_format %||% "pdf")
+          base_file <- tools::file_path_sans_ext(file)
 
-      if (fmt == "pdf") {
-        cyt_export(
-          plots = plots,
-          filename = base_file,
-          format = fmt
-        )
-        return(invisible(NULL))
-      }
+          if (fmt == "pdf") {
+            cyt_export(
+              plots = plots,
+              filename = base_file,
+              format = fmt
+            )
+            return(invisible(NULL))
+          }
 
-      cyt_export(
-        plots = plots,
-        filename = base_file,
-        format = fmt
-      )
+          cyt_export(
+            plots = plots,
+            filename = base_file,
+            format = fmt
+          )
 
-      if (length(plots) == 1L) {
-        generated_file <- paste0(base_file, "_001.", fmt)
-        if (!file.rename(generated_file, file)) {
-          file.copy(generated_file, file, overwrite = TRUE)
+          if (length(plots) == 1L) {
+            generated_file <- paste0(base_file, "_001.", fmt)
+            if (!file.rename(generated_file, file)) {
+              file.copy(generated_file, file, overwrite = TRUE)
+            }
+            return(invisible(NULL))
+          }
+
+          generated_files <- list.files(
+            path = dirname(file),
+            pattern = paste0("^", basename(base_file), "_[0-9]{3}\\.", fmt, "$"),
+            full.names = TRUE
+          )
+          if (!length(generated_files)) {
+            stop("No export files were generated.", call. = FALSE)
+          }
+
+          old_wd <- getwd()
+          on.exit(setwd(old_wd), add = TRUE)
+          setwd(dirname(file))
+          utils::zip(zipfile = file, files = basename(generated_files))
+        },
+        error = function(e) {
+          app_note_technical_error("Export generation", e)
+          stop(app_user_safe_error(
+            "We could not prepare the export. Try again or choose a different format."
+          ))
         }
-        return(invisible(NULL))
-      }
-
-      generated_files <- list.files(
-        path = dirname(file),
-        pattern = paste0("^", basename(base_file), "_[0-9]{3}\\.", fmt, "$"),
-        full.names = TRUE
       )
-      if (!length(generated_files)) {
-        stop("No export files were generated.")
-      }
-
-      old_wd <- getwd()
-      on.exit(setwd(old_wd), add = TRUE)
-      setwd(dirname(file))
-      utils::zip(zipfile = file, files = basename(generated_files))
     }
   )
 

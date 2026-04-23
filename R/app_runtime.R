@@ -472,6 +472,8 @@ app_runtime_env <- function(app_dir = getwd()) {
 }
 
 app_runtime_components <- function(app_dir = getwd()) {
+  options(shiny.sanitize.errors = TRUE)
+
   app_env <- app_runtime_env(app_dir = app_dir)
 
   list(

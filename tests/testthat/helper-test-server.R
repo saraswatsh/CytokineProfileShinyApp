@@ -50,6 +50,40 @@ local_mocked_browser_side_effects <- function() {
   invisible(NULL)
 }
 
+local_capture_shiny_notifications <- function() {
+  mock_env <- parent.frame()
+  calls <- list()
+
+  testthat::local_mocked_bindings(
+    showNotification = function(ui, type = NULL, duration = NULL, ...) {
+      calls[[length(calls) + 1L]] <<- list(
+        ui = ui,
+        type = type,
+        duration = duration,
+        dots = list(...)
+      )
+      invisible(NULL)
+    },
+    .env = mock_env,
+    .package = "shiny"
+  )
+
+  list(
+    calls = function() calls,
+    clear = function() {
+      calls <<- list()
+      invisible(NULL)
+    },
+    last = function() {
+      if (!length(calls)) {
+        return(NULL)
+      }
+
+      calls[[length(calls)]]
+    }
+  )
+}
+
 test_server_flush <- function(session) {
   if (is.function(session$flushReact)) {
     session$flushReact()
@@ -249,6 +283,10 @@ mod_options_server <- getFromNamespace(
 )
 apply_scale <- getFromNamespace(
   "apply_scale",
+  "CytokineProfileShinyApp"
+)
+ui_imputation_method_input_id <- getFromNamespace(
+  "ui_imputation_method_input_id",
   "CytokineProfileShinyApp"
 )
 

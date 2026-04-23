@@ -50,6 +50,7 @@ This development build focuses on making the app easier to use, easier to read, 
 - Step 2 dynamic categorical filter selections now restore correctly after you return from Step 3.
 - `kNN (feature-wise)` now safely blocks unsupported single-column use with a controlled message instead of a raw failure.
 - Running an analysis from Step 4 no longer jumps to Step 5 before the analysis actually succeeds, so failed runs stay on the inputs screen with a clearer error instead of looking completed.
+- Input validation and export failures now use friendlier app messages, and common missing analysis settings are checked before model code runs.
 
 ## Behind the Scenes
 

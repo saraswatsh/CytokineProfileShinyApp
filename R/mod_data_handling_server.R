@@ -85,8 +85,9 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
         TRUE
       },
       error = function(e) {
+        app_note_technical_error(paste(label, "staging"), e)
         shiny::showNotification(
-          paste(label, "could not be staged:", conditionMessage(e)),
+          paste(label, "could not be prepared. Please try uploading it again."),
           type = "error",
           duration = 6
         )
@@ -283,16 +284,34 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       shiny::req(input$datafile)
       safe_name <- basename(input$datafile$name)
       ext <- tolower(tools::file_ext(safe_name))
+      shiny::validate(shiny::need(
+        ext %in% c("csv", "txt", "xls", "xlsx"),
+        "Upload a CSV, TXT, XLS, or XLSX file."
+      ))
       if (ext %in% c("csv", "txt")) {
-        df <- read_uploaded_flat_file(main_upload_path(), ext)
+        df <- tryCatch(
+          read_uploaded_flat_file(main_upload_path(), ext),
+          error = function(e) {
+            app_note_technical_error("Flat-file import", e)
+            shiny::validate(shiny::need(
+              FALSE,
+              paste(
+                "We could not read this file.",
+                "Check that it is saved correctly and try again."
+              )
+            ))
+          }
+        )
       } else if (ext %in% c("xls", "xlsx")) {
         dest <- main_upload_path()
         all_sheets <- tryCatch(readxl::excel_sheets(dest), error = function(e) {
+          app_note_technical_error("Excel sheet discovery", e)
           character()
         })
-        if (length(all_sheets) == 0) {
-          stop("No sheets found in uploaded Excel file.")
-        }
+        shiny::validate(shiny::need(
+          length(all_sheets) > 0,
+          "Choose an Excel file with at least one readable sheet."
+        ))
         # Safely choose the requested sheet(s). If the previously selected
         # sheet(s) don't exist in this workbook, fall back to the first sheet.
         sheet_to_read <- NULL
@@ -303,10 +322,20 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
         if (is.null(sheet_to_read)) {
           sheet_to_read <- all_sheets[1]
         }
-        df <- readxl::read_excel(dest, sheet = sheet_to_read) |>
-          as.data.frame()
-      } else {
-        stop("Unsupported file type.")
+        df <- tryCatch(
+          readxl::read_excel(dest, sheet = sheet_to_read) |>
+            as.data.frame(),
+          error = function(e) {
+            app_note_technical_error("Excel import", e)
+            shiny::validate(shiny::need(
+              FALSE,
+              paste(
+                "We could not read the selected Excel sheet.",
+                "Choose another sheet or upload a different file."
+              )
+            ))
+          }
+        )
       }
     }
     df$..cyto_id.. <- 1:nrow(df)
@@ -621,46 +650,111 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       # PERSISTED MODE for csv/txt or single-sheet Excel
       df <- switch(
         ext,
-        "csv" = read_uploaded_flat_file(main_upload_path(), ext),
-        "txt" = read_uploaded_flat_file(main_upload_path(), ext),
+        "csv" = tryCatch(
+          read_uploaded_flat_file(main_upload_path(), ext),
+          error = function(e) {
+            app_note_technical_error("Bio-Plex flat-file import", e)
+            shiny::showNotification(
+              "We could not read this file. Check that it is saved correctly and try again.",
+              type = "error"
+            )
+            NULL
+          }
+        ),
+        "txt" = tryCatch(
+          read_uploaded_flat_file(main_upload_path(), ext),
+          error = function(e) {
+            app_note_technical_error("Bio-Plex flat-file import", e)
+            shiny::showNotification(
+              "We could not read this file. Check that it is saved correctly and try again.",
+              type = "error"
+            )
+            NULL
+          }
+        ),
         "xls" = {
           dest <- main_upload_path()
           all_sheets <- tryCatch(
             readxl::excel_sheets(dest),
             error = function(e) {
+              app_note_technical_error("Bio-Plex Excel sheet discovery", e)
               character()
             }
           )
+          if (!length(all_sheets)) {
+            shiny::showNotification(
+              "Choose an Excel file with at least one readable sheet.",
+              type = "error"
+            )
+            return()
+          }
           sheet_choice <- NULL
           if (!is.null(input$sheet_name) && length(input$sheet_name) > 0) {
             valid <- intersect(input$sheet_name, all_sheets)
             if (length(valid) >= 1) sheet_choice <- valid[1]
           }
-          if (is.null(sheet_choice) || length(all_sheets) == 0) {
+          if (is.null(sheet_choice)) {
             sheet_choice <- 1L
           }
-          as.data.frame(readxl::read_excel(dest, sheet = sheet_choice))
+          tryCatch(
+            as.data.frame(readxl::read_excel(dest, sheet = sheet_choice)),
+            error = function(e) {
+              app_note_technical_error("Bio-Plex Excel import", e)
+              shiny::showNotification(
+                "We could not read the selected Excel sheet. Choose another sheet or upload a different file.",
+                type = "error"
+              )
+              NULL
+            }
+          )
         },
         "xlsx" = {
           dest <- main_upload_path()
           all_sheets <- tryCatch(
             readxl::excel_sheets(dest),
             error = function(e) {
+              app_note_technical_error("Bio-Plex Excel sheet discovery", e)
               character()
             }
           )
+          if (!length(all_sheets)) {
+            shiny::showNotification(
+              "Choose an Excel file with at least one readable sheet.",
+              type = "error"
+            )
+            return()
+          }
           sheet_choice <- NULL
           if (!is.null(input$sheet_name) && length(input$sheet_name) > 0) {
             valid <- intersect(input$sheet_name, all_sheets)
             if (length(valid) >= 1) sheet_choice <- valid[1]
           }
-          if (is.null(sheet_choice) || length(all_sheets) == 0) {
+          if (is.null(sheet_choice)) {
             sheet_choice <- 1L
           }
-          as.data.frame(readxl::read_excel(dest, sheet = sheet_choice))
+          tryCatch(
+            as.data.frame(readxl::read_excel(dest, sheet = sheet_choice)),
+            error = function(e) {
+              app_note_technical_error("Bio-Plex Excel import", e)
+              shiny::showNotification(
+                "We could not read the selected Excel sheet. Choose another sheet or upload a different file.",
+                type = "error"
+              )
+              NULL
+            }
+          )
         },
-        stop("Unsupported file type.")
+        {
+          shiny::showNotification(
+            "Upload a CSV, TXT, XLS, or XLSX file.",
+            type = "error"
+          )
+          NULL
+        }
       )
+      if (is.null(df)) {
+        return()
+      }
       bioplex$editor_mode <- "persisted"
       bioplex$df <- df
     }
@@ -964,7 +1058,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     sel <- input$bioplex_modal_table_combined_rows_selected
     if (length(sel) != 1) {
       shiny::showNotification(
-        "Please select exactly one row to use as column names.",
+        "Select exactly one row, then choose Set Header.",
         type = "error"
       )
       return()
@@ -1006,7 +1100,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     nm <- .bioplex_unique_name(input$bioplex_newcol_name, names(bioplex$df))
     if (is.null(nm)) {
       shiny::showNotification(
-        "Please enter a non-empty column name.",
+        "Enter a column name before choosing Add.",
         type = "warning"
       )
       return()
@@ -1221,17 +1315,23 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
 
     idx0 <- input$bioplex_modal_table_combined_columns_selected_data %||%
       input$bioplex_modal_table_combined_columns_selected
-    shiny::validate(shiny::need(
-      length(idx0) > 0,
-      "Click footer cells to select column(s), then Delete."
-    ))
+    if (!length(idx0)) {
+      shiny::showNotification(
+        "Select one or more columns from the footer, then choose Delete.",
+        type = "error"
+      )
+      return()
+    }
 
     drop_idx <- as.integer(idx0) + 1L
     drop_idx <- drop_idx[drop_idx >= 1 & drop_idx <= ncol(bioplex$df)]
-    shiny::validate(shiny::need(
-      length(drop_idx) > 0,
-      "No valid columns to delete."
-    ))
+    if (!length(drop_idx)) {
+      shiny::showNotification(
+        "Select a valid column before choosing Delete.",
+        type = "error"
+      )
+      return()
+    }
 
     if (is.null(bioplex$cols_master)) {
       bioplex$cols_master <- bioplex$df
