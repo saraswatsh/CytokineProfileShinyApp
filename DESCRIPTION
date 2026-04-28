@@ -1,6 +1,6 @@
 Package: CytokineProfileShinyApp
 Title: Comphrensive Cytokine Profiling Analysis Shiny Application
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: c(
     person("Shubh", "Saraswat", email = "shubh.saraswat00@gmail.com", role = c("cre", "aut", "cph"),
     comment = c(ORCID = "0009-0009-2359-1484")),

@@ -1799,7 +1799,7 @@ mod_options_server <- function(input, output, session, app_ctx) {
         num_cols <- names(df)[sapply(df, is.numeric)]
         num_cols <- num_cols[num_cols != "..cyto_id.."]
         default_num_vars <- sum(sapply(df, is.numeric))
-        if (!isTRUE(userState$plsr_keepX_manual)) {
+        if (is.null(userState$plsr_keepX) && !isTRUE(userState$plsr_keepX_manual)) {
           userState$plsr_keepX <- default_num_vars
         }
         ui_list <- shiny::tagList(
@@ -2353,7 +2353,10 @@ mod_options_server <- function(input, output, session, app_ctx) {
           return(NULL)
         }
         default_num_vars <- sum(sapply(df, is.numeric))
-        if (!isTRUE(userState$splsda_var_num_manual)) {
+        if (
+          is.null(userState$splsda_var_num) &&
+            !isTRUE(userState$splsda_var_num_manual)
+        ) {
           userState$splsda_var_num <- default_num_vars
         }
         cols <- safe_names(df)
@@ -2862,7 +2865,10 @@ mod_options_server <- function(input, output, session, app_ctx) {
         cols <- safe_names(df)
 
         default_num_vars <- sum(sapply(df, is.numeric))
-        if (!isTRUE(userState$mint_splsda_var_num_manual)) {
+        if (
+          is.null(userState$mint_splsda_var_num) &&
+            !isTRUE(userState$mint_splsda_var_num_manual)
+        ) {
           userState$mint_splsda_var_num <- default_num_vars
         }
 
@@ -3491,21 +3497,30 @@ mod_options_server <- function(input, output, session, app_ctx) {
     default_num_vars <- length(cols_checked)
 
     # If they haven't manually typed a value, update it
-    if (!isTRUE(userState$splsda_var_num_manual)) {
+    if (
+      is.null(userState$splsda_var_num) &&
+        !isTRUE(userState$splsda_var_num_manual)
+    ) {
       shiny::updateNumericInput(
         session,
         "splsda_var_num",
         value = default_num_vars
       )
     }
-    if (!isTRUE(userState$mint_splsda_var_num_manual)) {
+    if (
+      is.null(userState$mint_splsda_var_num) &&
+        !isTRUE(userState$mint_splsda_var_num_manual)
+    ) {
       shiny::updateNumericInput(
         session,
         "mint_splsda_var_num",
         value = default_num_vars
       )
     }
-    if (!isTRUE(userState$plsr_keepX_manual)) {
+    if (
+      is.null(userState$plsr_keepX) &&
+        !isTRUE(userState$plsr_keepX_manual)
+    ) {
       shiny::updateNumericInput(
         session,
         "plsr_keepX",
@@ -3514,11 +3529,12 @@ mod_options_server <- function(input, output, session, app_ctx) {
     }
   })
 
-  # 3) As soon as they type their own number, stop auto-syncing
+  # Mark numeric defaults as manual only when the user explicitly changes them.
   shiny::observeEvent(
     input$splsda_var_num,
     {
       userState$splsda_var_num_manual <- TRUE
+      userState$splsda_var_num <- input$splsda_var_num
     },
     ignoreInit = TRUE
   )
@@ -3527,13 +3543,16 @@ mod_options_server <- function(input, output, session, app_ctx) {
     input$mint_splsda_var_num,
     {
       userState$mint_splsda_var_num_manual <- TRUE
+      userState$mint_splsda_var_num <- input$mint_splsda_var_num
     },
     ignoreInit = TRUE
   )
+
   shiny::observeEvent(
     input$plsr_keepX,
     {
       userState$plsr_keepX_manual <- TRUE
+      userState$plsr_keepX <- input$plsr_keepX
     },
     ignoreInit = TRUE
   )

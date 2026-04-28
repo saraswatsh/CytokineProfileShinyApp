@@ -33,6 +33,7 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
       "nav_args",
       "nav_results",
       "nav_news",
+      "nav_privacy",
       "nav_contact"
     )) {
       shinyjs::removeClass(id, "active")
@@ -49,6 +50,7 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
       "step4" = "nav_args", # Analysis Arguments
       "step5" = "nav_results", # Results
       "news" = "nav_news",
+      "privacy" = "nav_privacy",
       "contact" = "nav_contact",
       NULL
     )
@@ -101,6 +103,9 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(input$nav_news, {
     currentPage("news")
   })
+  shiny::observeEvent(input$nav_privacy, {
+    currentPage("privacy")
+  })
   shiny::observeEvent(input$nav_contact, {
     currentPage("contact")
   })
@@ -125,10 +130,6 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(input$back4, {
     currentPage("step3")
     currentStep(3)
-  })
-  shiny::observeEvent(input$next4, {
-    currentPage("step5")
-    currentStep(5)
   })
   shiny::observeEvent(input$back5, {
     currentPage("step4")
@@ -505,6 +506,7 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
       "step4" = step4UI(), # Existing function-args form + Run/Back.
       "step5" = resultsUI(), # existing results page
       "news" = newsUI(), # Simple news page
+      "privacy" = privacyUI(), # Simple data-privacy page
       "contact" = contactUI(), # Simple contact page
       homeUI() # Fallback
     )
@@ -659,6 +661,11 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
   newsUI <- function() {
     shiny::tagList(
       shiny::includeMarkdown(app_content_file("NEWS.md"))
+    )
+  }
+  privacyUI <- function() {
+    shiny::tagList(
+      shiny::includeMarkdown(app_content_file("DATA_PRIVACY.md"))
     )
   }
   contactUI <- function() {
@@ -1735,7 +1742,11 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
             scale = scale_choice
           ),
           error = function(e) {
-            shiny::validate(shiny::need(FALSE, conditionMessage(e)))
+            app_note_technical_error("Step 2 preprocessing", e)
+            shiny::validate(shiny::need(
+              FALSE,
+              app_friendly_condition_message(e, "preprocessing")
+            ))
           }
         )
       }
@@ -2093,10 +2104,10 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
     } else if (method == "knn_feature") {
       # numeric-only, neighbors across features using impute::impute.knn
       if (!length(num_cols)) {
-        stop("kNN (feature-wise) requires numeric columns.")
+        stop("kNN (feature-wise) requires numeric columns.", call. = FALSE)
       }
       if (length(num_cols) < 2) {
-        stop("kNN (feature-wise) requires at least 2 numeric columns.")
+        stop("kNN (feature-wise) requires at least 2 numeric columns.", call. = FALSE)
       }
 
       M <- as.matrix(dat[num_cols])
@@ -2133,8 +2144,26 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
     impute_method <- input[[ui_imputation_method_input_id()]]
     df <- data_after_filters() # <-- impute the *filtered* data
     sel <- input$imp_cols
+    numeric_sel <- sel[vapply(df[sel], is.numeric, logical(1))]
     if (!length(sel)) {
-      shiny::showNotification("Select >=1 column.", type = "error")
+      shiny::showNotification(
+        "Choose at least one column before applying imputation.",
+        type = "error"
+      )
+      return()
+    }
+    if (identical(impute_method, "knn_feature") && !length(numeric_sel)) {
+      shiny::showNotification(
+        "Feature-wise kNN imputation needs at least one numeric column.",
+        type = "error"
+      )
+      return()
+    }
+    if (identical(impute_method, "knn_feature") && length(numeric_sel) < 2L) {
+      shiny::showNotification(
+        "Feature-wise kNN imputation needs at least two numeric columns.",
+        type = "error"
+      )
       return()
     }
 
@@ -2147,7 +2176,11 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
         scale_for_knn = isTRUE(input$imp_scale)
       ),
       error = function(e) {
-        shiny::showNotification(conditionMessage(e), type = "error")
+        app_note_technical_error("Imputation", e)
+        shiny::showNotification(
+          app_friendly_condition_message(e, "imputation"),
+          type = "error"
+        )
         NULL
       }
     )
@@ -2379,7 +2412,13 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
 
     orig <- raw_filtered()
     num_cols <- intersect(input$selected_numerical_cols, names(orig))
-    shiny::req(length(num_cols) > 0)
+    if (!length(num_cols)) {
+      shiny::showNotification(
+        "Choose at least one numeric column before previewing preprocessing.",
+        type = "error"
+      )
+      return()
+    }
 
     trans <- tryCatch(
       apply_scale(
@@ -2388,7 +2427,11 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
         scale = scale_choice
       ),
       error = function(e) {
-        shiny::showNotification(conditionMessage(e), type = "error")
+        app_note_technical_error("Preprocessing preview", e)
+        shiny::showNotification(
+          app_friendly_condition_message(e, "preprocessing"),
+          type = "error"
+        )
         NULL
       }
     )
