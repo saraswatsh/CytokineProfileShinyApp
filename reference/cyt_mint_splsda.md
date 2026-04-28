@@ -138,12 +138,6 @@ cyt_mint_splsda(data_df, group_col = "Group",
  batch_col = "Batch", colors = c("black", "purple"),
  ellipse = TRUE, var_num = 25, comp_num = 2,
  scale = "log2")
-#> Warning: `aes_string()` was deprecated in ggplot2 3.0.0.
-#> ℹ Please use tidy evaluation idioms with `aes()`.
-#> ℹ See also `vignette("ggplot2-in-packages")` for more information.
-#> ℹ The deprecated feature was likely used in the mixOmics package.
-#>   Please report the issue at
-#>   <https://github.com/mixOmicsTeam/mixOmics/issues/>.
 
 #> $global_indiv_plot
 #> 
