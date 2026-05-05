@@ -16,6 +16,7 @@ Run the following line in the R console if `pak` is not already
 installed:
 
 ``` r
+
 if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
 ```
 
@@ -24,6 +25,7 @@ if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
 Install the package directly from GitHub with:
 
 ``` r
+
 pak::pak("ZhangLabUKY/CytokineProfileShinyApp")
 ```
 
@@ -35,6 +37,7 @@ Bioconductor dependencies required by the app.
 After installation, launch the app with:
 
 ``` r
+
 CytokineProfileShinyApp::run_app()
 ```
 
@@ -44,6 +47,7 @@ If you are developing from a checked-out copy of the repository, you can
 still run the app directly from the packaged launcher with:
 
 ``` r
+
 shiny::runApp("inst/app")
 ```
 
@@ -53,4 +57,4 @@ under `inst/app/`.
 
 ------------------------------------------------------------------------
 
-*Last updated:* April 28, 2026
+*Last updated:* May 05, 2026
