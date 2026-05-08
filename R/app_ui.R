@@ -1,3 +1,5 @@
+options(shiny.maxRequestSize = 1024^3)
+
 announcement_banner <- function(cfg) {
   if (is.null(cfg$announcement)) {
     return(NULL)

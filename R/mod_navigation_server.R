@@ -2107,7 +2107,10 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
         stop("kNN (feature-wise) requires numeric columns.", call. = FALSE)
       }
       if (length(num_cols) < 2) {
-        stop("kNN (feature-wise) requires at least 2 numeric columns.", call. = FALSE)
+        stop(
+          "kNN (feature-wise) requires at least 2 numeric columns.",
+          call. = FALSE
+        )
       }
 
       M <- as.matrix(dat[num_cols])
@@ -2144,6 +2147,7 @@ mod_navigation_server <- function(input, output, session, app_ctx) {
     impute_method <- input[[ui_imputation_method_input_id()]]
     df <- data_after_filters() # <-- impute the *filtered* data
     sel <- input$imp_cols
+    sel <- intersect(sel, names(df))
     numeric_sel <- sel[vapply(df[sel], is.numeric, logical(1))]
     if (!length(sel)) {
       shiny::showNotification(
