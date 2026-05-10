@@ -16,17 +16,6 @@ capture_mock_plot_label <- function(title = NULL, subtitle = NULL) {
   NULL
 }
 
-draw_mock_base_plot <- function(label = NULL) {
-  graphics::plot.new()
-  if (!is.null(label) && length(label)) {
-    label <- as.character(label[[1]])
-    if (nzchar(label)) {
-      graphics::title(main = label)
-    }
-  }
-  invisible(NULL)
-}
-
 mock_title_ggplot <- function(title = NULL) {
   ggplot2::ggplot(
     data.frame(x = 0, y = 0),
@@ -744,6 +733,91 @@ test_that("cyt_splsda supports PDF output, batch scaling, defaults, and confusio
   expect_true(inherits(splsda_result$overall_indiv_plot, "recordedplot"))
   expect_true(length(splsda_result$conf_matrix) > 0)
   expect_gt(length(progress$get_log()$inc), 0)
+})
+
+test_that("cyt_splsda drops sparse predictors, filters empty rows, and fits with partial missingness", {
+  with_temp_pdf_device({
+    splsda_df <- make_splsda_sparse_missing_fixture()
+    warnings <- character()
+    result <- withCallingHandlers(
+      cyt_splsda(
+        splsda_df,
+        group_col = "Group",
+        group_col2 = "Group",
+        var_num = 4,
+        comp_num = 2,
+        scale = "none"
+      ),
+      warning = function(w) {
+        warnings <<- c(warnings, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }
+    )
+
+    expect_true(inherits(result$overall_indiv_plot, "recordedplot"))
+    expect_true(inherits(first_non_null(result$vip_scores), "ggplot"))
+    expect_length(result$loadings, 2)
+    expect_true(any(grepl(
+      "sPLS-DA dropped unusable predictors before fitting",
+      warnings,
+      fixed = TRUE
+    )))
+    expect_true(any(grepl("MarkerSparse", warnings, fixed = TRUE)))
+    expect_true(any(grepl(
+      "sPLS-DA dropped 1 row with no retained predictor values",
+      warnings,
+      fixed = TRUE
+    )))
+    expect_false("MarkerSparse" %in% first_non_null(result$vip_scores)$data$variable)
+  })
+})
+
+test_that("cyt_splsda errors when fewer than two usable predictors remain after filtering missingness", {
+  splsda_df <- make_splsda_unusable_predictor_fixture()
+
+  expect_error(
+    suppressWarnings(cyt_splsda(
+      splsda_df,
+      group_col = "Group",
+      group_col2 = "Group",
+      var_num = 3,
+      comp_num = 2,
+      scale = "none"
+    )),
+    "sPLS-DA requires at least 2 usable numeric predictors after filtering missingness"
+  )
+})
+
+test_that("cyt_splsda skips VIP preview when fewer than two predictors remain above threshold", {
+  with_temp_pdf_device({
+    warnings <- character()
+    result <- withCallingHandlers(
+      cyt_splsda(
+        make_splsda_vip_single_predictor_fixture(),
+        group_col = "Group",
+        group_col2 = "Group",
+        var_num = 3,
+        comp_num = 2,
+        scale = "none"
+      ),
+      warning = function(w) {
+        warnings <<- c(warnings, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }
+    )
+
+    expect_true(inherits(result$overall_indiv_plot, "recordedplot"))
+    expect_true(inherits(first_non_null(result$vip_scores), "ggplot"))
+    expect_length(result$loadings, 2)
+    expect_true(any(grepl(
+      "sPLS-DA skipped VIP>1 preview",
+      warnings,
+      fixed = TRUE
+    )))
+    expect_null(result$vip_indiv_plot)
+    expect_null(result$vip_loadings)
+    expect_null(result$vip_CV)
+  })
 })
 
 test_that("cyt_mint_splsda returns global and partial plots from ExampleData5", {

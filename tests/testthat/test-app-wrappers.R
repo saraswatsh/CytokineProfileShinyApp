@@ -388,7 +388,16 @@ test_that("app_server initializes session state and invokes wrapper stages in or
   }
 
   testthat::local_mocked_bindings(
-    app_session_temp_dir = function(name) paste0("C:/tmp/", name),
+    app_session_storage = function(session, stale_hours = 24) {
+      list(
+        temp_root = "C:/tmp",
+        sessions_root = "C:/tmp/sessions",
+        session_root = "C:/tmp/sessions/session-test-token",
+        heartbeat_path = "C:/tmp/sessions/session-test-token/.heartbeat",
+        upload_dir = "C:/tmp/sessions/session-test-token/uploads",
+        builtins_dir = "C:/tmp/sessions/session-test-token/builtins"
+      )
+    },
     app_builtin_dataset_names = function() c("ExampleData1", "ExampleData2"),
     app_server_stage_runners = function() {
       list(
@@ -407,6 +416,10 @@ test_that("app_server initializes session state and invokes wrapper stages in or
     .package = "CytokineProfileShinyApp"
   )
   testthat::local_mocked_bindings(
+    observe = function(expr, ...) invisible(NULL),
+    .package = "shiny"
+  )
+  testthat::local_mocked_bindings(
     observe_helpers = function(session = NULL, ...) {
       observe_helper_calls[[length(observe_helper_calls) + 1L]] <<- list(
         session = session,
@@ -419,7 +432,15 @@ test_that("app_server initializes session state and invokes wrapper stages in or
 
   input <- list(id = "input")
   output <- list(id = "output")
-  session <- list(userData = new.env(parent = emptyenv()))
+  session_end_callback <- NULL
+  session <- list(
+    userData = new.env(parent = emptyenv()),
+    token = "test-token"
+  )
+  session$onSessionEnded <- function(callback) {
+    session_end_callback <<- callback
+    invisible(NULL)
+  }
 
   result <- app_server(input, output, session)
   expect_equal(
@@ -442,8 +463,17 @@ test_that("app_server initializes session state and invokes wrapper stages in or
   expect_identical(result, first_ctx)
   expect_true(is.environment(parent.env(first_ctx)))
   expect_identical(parent.env(parent.env(first_ctx)), environment(app_server))
-  expect_equal(first_ctx$upload_dir, "C:/tmp/uploads")
-  expect_equal(first_ctx$builtins_dir, "C:/tmp/builtins")
+  expect_equal(first_ctx$temp_root, "C:/tmp")
+  expect_equal(first_ctx$session_temp_root, "C:/tmp/sessions/session-test-token")
+  expect_equal(
+    first_ctx$session_heartbeat_path,
+    "C:/tmp/sessions/session-test-token/.heartbeat"
+  )
+  expect_equal(first_ctx$upload_dir, "C:/tmp/sessions/session-test-token/uploads")
+  expect_equal(
+    first_ctx$builtins_dir,
+    "C:/tmp/sessions/session-test-token/builtins"
+  )
   expect_equal(first_ctx$builtInList, c("ExampleData1", "ExampleData2"))
   expect_true(all(vapply(
     calls,
@@ -455,6 +485,7 @@ test_that("app_server initializes session state and invokes wrapper stages in or
     envir = session$userData,
     inherits = FALSE
   ))
+  expect_true(is.function(session_end_callback))
   expect_length(observe_helper_calls, 1L)
   expect_identical(observe_helper_calls[[1]]$session, session)
 })

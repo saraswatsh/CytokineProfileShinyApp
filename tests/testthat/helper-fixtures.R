@@ -56,6 +56,17 @@ with_temp_pdf_device <- function(code) {
   force(code)
 }
 
+draw_mock_base_plot <- function(label = NULL) {
+  graphics::plot.new()
+  if (!is.null(label) && length(label)) {
+    label <- as.character(label[[1]])
+    if (nzchar(label)) {
+      graphics::title(main = label)
+    }
+  }
+  invisible(NULL)
+}
+
 record_test_plot <- function(code) {
   if (grDevices::dev.cur() == 1) {
     stop("record_test_plot requires an active graphics device.", call. = FALSE)
@@ -73,7 +84,20 @@ suppress_known_plot_warnings <- function(code) {
       warning_message <- conditionMessage(w)
       if (
         grepl("`aes_string\\(\\)` was deprecated", warning_message) ||
-          grepl("the standard deviation is zero", warning_message, fixed = TRUE)
+          grepl("the standard deviation is zero", warning_message, fixed = TRUE) ||
+          grepl(
+            "sPLS-DA dropped unusable predictors before fitting",
+            warning_message,
+            fixed = TRUE
+          ) ||
+          (
+            grepl("sPLS-DA dropped ", warning_message, fixed = TRUE) &&
+              grepl(
+                "no retained predictor values",
+                warning_message,
+                fixed = TRUE
+              )
+          )
       ) {
         invokeRestart("muffleWarning")
       }
@@ -202,6 +226,99 @@ make_plsr_unusable_predictor_fixture <- function() {
     MissingAll = rep(NA_real_, 6),
     SparseFew = c(1, NA, NA, NA, 2, NA),
     Constant = rep(7, 6)
+  )
+}
+
+make_splsda_sparse_missing_fixture <- function() {
+  data.frame(
+    Group = factor(c(rep("A", 6), rep("B", 6))),
+    MarkerA = c(NA, 1.2, 1.7, 2.1, 2.6, 3.0, 6.0, 6.5, 7.0, 7.4, 7.9, 8.3),
+    MarkerB = c(NA, 4.3, 4.0, 4.6, 4.2, 4.8, 5.1, 5.6, 5.3, 5.9, 5.5, 6.0),
+    MarkerC = c(
+      NA,
+      10.2,
+      10.5,
+      10.1,
+      10.7,
+      10.9,
+      12.8,
+      13.2,
+      12.9,
+      13.5,
+      13.1,
+      13.8
+    ),
+    MarkerD = c(NA, 2.1, 2.7, 2.4, 3.0, 2.8, 4.0, 4.6, 4.3, 4.9, 4.5, 5.2),
+    MarkerSparse = c(90, NA, NA, NA, NA, 88, NA, NA, NA, NA, NA, NA)
+  )
+}
+
+make_splsda_unusable_predictor_fixture <- function() {
+  data.frame(
+    Group = factor(c("A", "A", "A", "B", "B", "B")),
+    MissingAll = rep(NA_real_, 6),
+    SparseFew = c(1, NA, NA, NA, 2, NA),
+    Constant = rep(7, 6)
+  )
+}
+
+make_splsda_vip_single_predictor_fixture <- function() {
+  data.frame(
+    Group = factor(c(rep("A", 8), rep("B", 8))),
+    Driver = c(
+      1.0,
+      1.4,
+      1.7,
+      2.1,
+      2.4,
+      2.8,
+      3.1,
+      3.5,
+      6.2,
+      6.6,
+      7.0,
+      7.4,
+      7.7,
+      8.1,
+      8.5,
+      8.9
+    ),
+    WeakNoise = c(
+      3.1,
+      2.7,
+      3.4,
+      2.8,
+      3.3,
+      2.9,
+      3.2,
+      2.6,
+      3.0,
+      2.8,
+      3.5,
+      2.7,
+      3.4,
+      2.9,
+      3.1,
+      2.5
+    ),
+    WeakDrift = c(
+      1.5,
+      1.8,
+      1.4,
+      1.9,
+      1.6,
+      2.0,
+      1.7,
+      2.1,
+      1.6,
+      1.9,
+      1.5,
+      2.0,
+      1.7,
+      2.1,
+      1.8,
+      2.2
+    )
   )
 }
 

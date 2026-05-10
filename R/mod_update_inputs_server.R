@@ -40,6 +40,21 @@ mod_update_inputs_server <- function(input, output, session, app_ctx) {
     )
   }
 
+  restore_numeric_default <- function(stored_value, data = NULL) {
+    if (!is.null(stored_value)) {
+      return(stored_value)
+    }
+
+    if (is.null(data)) {
+      data <- tryCatch(filteredData(), error = function(e) NULL)
+    }
+    if (is.null(data)) {
+      return(NULL)
+    }
+
+    sum(sapply(data, is.numeric))
+  }
+
   shiny::observe({
     if (!identical(currentStep(), 2)) {
       return()
@@ -427,6 +442,7 @@ mod_update_inputs_server <- function(input, output, session, app_ctx) {
       if (
         userState$selected_function == "Partial Least Squares Regression (PLSR)"
       ) {
+        plsr_keepx_value <- restore_numeric_default(userState$plsr_keepX)
         shiny::updateSelectInput(
           session,
           "plsr_group_col",
@@ -455,7 +471,7 @@ mod_update_inputs_server <- function(input, output, session, app_ctx) {
         shiny::updateNumericInput(
           session,
           "plsr_keepX",
-          value = userState$plsr_keepX
+          value = plsr_keepx_value
         )
         shiny::updateRadioButtons(
           session,
@@ -559,6 +575,10 @@ mod_update_inputs_server <- function(input, output, session, app_ctx) {
           "Sparse Partial Least Squares - Discriminant Analysis (sPLS-DA)"
       ) {
         df_now <- shiny::isolate(data_after_filters())
+        splsda_var_num_value <- restore_numeric_default(
+          userState$splsda_var_num,
+          data = shiny::isolate(filteredData())
+        )
         if (shiny::isTruthy(df_now)) {
           cand <- names(df_now)[!vapply(df_now, is.numeric, logical(1))]
           cand <- setdiff(cand, "..cyto_id..")
@@ -598,7 +618,7 @@ mod_update_inputs_server <- function(input, output, session, app_ctx) {
         shiny::updateNumericInput(
           session,
           "splsda_var_num",
-          value = userState$splsda_var_num
+          value = splsda_var_num_value
         )
         shiny::updateRadioButtons(
           session,

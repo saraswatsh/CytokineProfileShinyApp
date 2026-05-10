@@ -348,8 +348,15 @@ cyt_plsr <- function(
 
   .record_plot <- function(expr) {
     if (grDevices::dev.cur() == 1) {
-      grDevices::png(tempfile(fileext = ".png"))
-      on.exit(grDevices::dev.off(), add = TRUE)
+      tmp_png <- tempfile(fileext = ".png")
+      grDevices::png(tmp_png)
+      on.exit(
+        {
+          grDevices::dev.off()
+          if (file.exists(tmp_png)) unlink(tmp_png)
+        },
+        add = TRUE
+      )
     }
     grDevices::dev.control(displaylist = "enable")
     force(expr)

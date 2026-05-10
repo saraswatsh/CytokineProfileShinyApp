@@ -585,3 +585,26 @@ test_that("cyt_corr pearson result table has correct values and correlation boun
   # The target itself should not appear as a row (it is the reference)
   expect_false("IL.10" %in% table$variable)
 })
+
+test_that("cyt_corr handles zero-variance variables without warnings", {
+  zero_var_data <- data.frame(
+    target = c(1, 2, 3, 4, 5),
+    varying = c(2, 4, 6, 8, 10),
+    constant = rep(7, 5)
+  )
+
+  expect_warning(
+    corr_result <- cyt_corr(
+      zero_var_data,
+      target = "target",
+      methods = "pearson",
+      plot = TRUE
+    ),
+    NA
+  )
+
+  corr_table <- corr_result$pearson$table
+  expect_true(is.na(corr_table$r[corr_table$variable == "constant"]))
+  expect_true(is.na(corr_result$pearson$heat_mat["target", "constant"]))
+  expect_s3_class(corr_result$pearson$plot, "ggplot")
+})

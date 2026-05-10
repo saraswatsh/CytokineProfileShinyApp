@@ -5,6 +5,96 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   builtins_dir <- app_ctx$builtins_dir
   upload_dir <- app_ctx$upload_dir
   builtInList <- app_ctx$builtInList
+  staged_files <- app_ctx$staged_files
+
+  stage_main_upload <- function() {
+    shiny::req(input$datafile)
+    app_stage_uploaded_file(
+      source_path = input$datafile$datapath,
+      target_dir = upload_dir,
+      slot_id = "main_data_upload",
+      registry_env = staged_files,
+      original_name = input$datafile$name,
+      source_id = paste(input$datafile$datapath, input$datafile$name, sep = "::")
+    )
+  }
+
+  stage_bioplex_upload <- function() {
+    shiny::req(shiny::isTruthy(input$bioplex_file))
+    shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+    app_stage_uploaded_file(
+      source_path = input$bioplex_file$datapath,
+      target_dir = upload_dir,
+      slot_id = "bioplex_upload",
+      registry_env = staged_files,
+      original_name = input$bioplex_file$name,
+      source_id = paste(
+        input$bioplex_file$datapath,
+        input$bioplex_file$name,
+        sep = "::"
+      )
+    )
+  }
+
+  stage_builtin_cache <- function() {
+    shiny::req(isTRUE(input$use_builtin))
+    shiny::req(input$built_in_choice)
+    df <- app_builtin_dataset(input$built_in_choice)
+    app_stage_rds_object(
+      object = df,
+      target_dir = builtins_dir,
+      slot_id = "builtin_dataset",
+      registry_env = staged_files,
+      source_id = input$built_in_choice
+    )
+  }
+
+  main_upload_path <- shiny::reactive({
+    shiny::req(input$datafile)
+    path <- app_staged_path(staged_files, "main_data_upload")
+    if (is.null(path) || !file.exists(path)) {
+      path <- stage_main_upload()
+    }
+    path
+  })
+
+  bioplex_upload_path <- shiny::reactive({
+    shiny::req(shiny::isTruthy(input$bioplex_file))
+    shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+    path <- app_staged_path(staged_files, "bioplex_upload")
+    if (is.null(path) || !file.exists(path)) {
+      path <- stage_bioplex_upload()
+    }
+    path
+  })
+
+  builtin_cache_path <- shiny::reactive({
+    shiny::req(isTRUE(input$use_builtin))
+    shiny::req(input$built_in_choice)
+    path <- app_staged_path(staged_files, "builtin_dataset")
+    if (is.null(path) || !file.exists(path)) {
+      path <- stage_builtin_cache()
+    }
+    path
+  })
+
+  stage_with_notification <- function(stage_fun, label) {
+    tryCatch(
+      {
+        stage_fun()
+        TRUE
+      },
+      error = function(e) {
+        app_note_technical_error(paste(label, "staging"), e)
+        shiny::showNotification(
+          paste(label, "could not be prepared. Please try uploading it again."),
+          type = "error",
+          duration = 6
+        )
+        FALSE
+      }
+    )
+  }
   ## ---------------------------
   ## Data Upload and Built-in Data Option
   ## ---------------------------
@@ -24,6 +114,18 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       userState$built_in_choice <- input$built_in_choice
     },
     ignoreNULL = FALSE
+  )
+
+  shiny::observeEvent(
+    list(input$use_builtin, input$built_in_choice),
+    {
+      if (!isTRUE(input$use_builtin) || !shiny::isTruthy(input$built_in_choice)) {
+        return()
+      }
+
+      stage_with_notification(stage_builtin_cache, "Built-in dataset")
+    },
+    ignoreInit = TRUE
   )
   apply_stamp <- shiny::reactiveVal(0)
   shiny::observeEvent(
@@ -73,6 +175,10 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(
     input$datafile,
     {
+      if (!stage_with_notification(stage_main_upload, "Uploaded file")) {
+        return()
+      }
+
       # New upload -> clear persisted bioplex state so editor uses uploaded file
       bioplex$active <- FALSE
       bioplex$final <- NULL
@@ -81,6 +187,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       bioplex$deleted_idx <- integer(0)
       bioplex$deleted_by_sheet <- list()
       bioplex$user_columns <- character(0)
+      bioplex$hidden_cols <- character(0)
       # Also clear any excel cache entries related to this datapath so sheets re-read
       excel_cache(list())
 
@@ -125,6 +232,10 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(
     input$bioplex_file,
     {
+      if (!stage_with_notification(stage_bioplex_upload, "Bio-Plex workbook")) {
+        return()
+      }
+
       bioplex$active <- FALSE
       bioplex$final <- NULL
       bioplex$df <- NULL
@@ -132,6 +243,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       bioplex$deleted_idx <- integer(0)
       bioplex$deleted_by_sheet <- list()
       bioplex$user_columns <- character(0)
+      bioplex$hidden_cols <- character(0)
       excel_cache(list())
       userState$sheet_name <- NULL
       userState$selected_columns <- NULL
@@ -169,28 +281,39 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     if (isTRUE(bioplex$active) && !is.null(bioplex$final)) {
       df <- bioplex$final
     } else if (isTRUE(input$use_builtin)) {
-      shiny::req(input$built_in_choice)
-      df <- app_builtin_dataset(input$built_in_choice)
-      dest <- file.path(builtins_dir, paste0(input$built_in_choice, ".rds"))
-      if (!file.exists(dest)) saveRDS(df, dest)
+      df <- readRDS(builtin_cache_path())
     } else {
       shiny::req(input$datafile)
       safe_name <- basename(input$datafile$name)
       ext <- tolower(tools::file_ext(safe_name))
+      shiny::validate(shiny::need(
+        ext %in% c("csv", "txt", "xls", "xlsx"),
+        "Upload a CSV, TXT, XLS, or XLSX file."
+      ))
       if (ext %in% c("csv", "txt")) {
-        df <- read_uploaded_flat_file(input$datafile$datapath, ext)
+        df <- tryCatch(
+          read_uploaded_flat_file(main_upload_path(), ext),
+          error = function(e) {
+            app_note_technical_error("Flat-file import", e)
+            shiny::validate(shiny::need(
+              FALSE,
+              paste(
+                "We could not read this file.",
+                "Check that it is saved correctly and try again."
+              )
+            ))
+          }
+        )
       } else if (ext %in% c("xls", "xlsx")) {
-        dest <- file.path(upload_dir, safe_name)
-        # Always copy Excel uploads into our upload dir, overwriting previous
-        # copies with the same filename so re-uploading a wrong file refreshes
-        # the stored file immediately.
-        file.copy(input$datafile$datapath, dest, overwrite = TRUE)
+        dest <- main_upload_path()
         all_sheets <- tryCatch(readxl::excel_sheets(dest), error = function(e) {
+          app_note_technical_error("Excel sheet discovery", e)
           character()
         })
-        if (length(all_sheets) == 0) {
-          stop("No sheets found in uploaded Excel file.")
-        }
+        shiny::validate(shiny::need(
+          length(all_sheets) > 0,
+          "Choose an Excel file with at least one readable sheet."
+        ))
         # Safely choose the requested sheet(s). If the previously selected
         # sheet(s) don't exist in this workbook, fall back to the first sheet.
         sheet_to_read <- NULL
@@ -201,10 +324,20 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
         if (is.null(sheet_to_read)) {
           sheet_to_read <- all_sheets[1]
         }
-        df <- readxl::read_excel(dest, sheet = sheet_to_read) |>
-          as.data.frame()
-      } else {
-        stop("Unsupported file type.")
+        df <- tryCatch(
+          readxl::read_excel(dest, sheet = sheet_to_read) |>
+            as.data.frame(),
+          error = function(e) {
+            app_note_technical_error("Excel import", e)
+            shiny::validate(shiny::need(
+              FALSE,
+              paste(
+                "We could not read the selected Excel sheet.",
+                "Choose another sheet or upload a different file."
+              )
+            ))
+          }
+        )
       }
     }
     df$..cyto_id.. <- 1:nrow(df)
@@ -297,9 +430,9 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       return(NULL)
     }
 
-    # Read sheet names directly from the uploaded temp file
+    # Read sheet names from the staged session copy.
     sheets <- tryCatch(
-      readxl::excel_sheets(input$datafile$datapath),
+      readxl::excel_sheets(main_upload_path()),
       error = function(e) character()
     )
 
@@ -336,17 +469,17 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   # flag for conditionalPanel
   output$bioplex_on <- shiny::reactive({
     shiny::isTruthy(input$bioplex_file) &&
-      shiny::isTruthy(input$bioplex_file$datapath)
+      shiny::isTruthy(bioplex_upload_path())
   })
   shiny::outputOptions(output, "bioplex_on", suspendWhenHidden = FALSE)
 
   shiny::observeEvent(input$bioplex_file, {
     # only proceed for Excel uploads
-    shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+    shiny::req(shiny::isTruthy(bioplex_upload_path()))
     shiny::req(grepl("\\.xlsx?$", input$bioplex_file$name, ignore.case = TRUE))
 
     sh <- tryCatch(
-      readxl::excel_sheets(input$bioplex_file$datapath),
+      readxl::excel_sheets(bioplex_upload_path()),
       error = function(e) character(0)
     )
     # update the choices (safe even if the input was just created)
@@ -362,7 +495,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   output$bioplex_sheet_selector <- shiny::renderUI({
     shiny::req(input$bioplex_file)
     sheets <- tryCatch(
-      readxl::excel_sheets(input$bioplex_file$datapath),
+      readxl::excel_sheets(bioplex_upload_path()),
       error = function(e) character()
     )
     if (!length(sheets)) {
@@ -379,12 +512,12 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
 
   # ----- Bio-Plex: build working table from selected sheet(s) -----
   bioplex_build_df <- shiny::reactive({
-    shiny::req(shiny::isTruthy(input$bioplex_file$datapath))
+    shiny::req(shiny::isTruthy(bioplex_upload_path()))
     shiny::req(length(input$bioplex_sheets) >= 1) # at least one sheet picked
 
     dfs <- lapply(input$bioplex_sheets, function(sh) {
       x <- readxl::read_excel(
-        input$bioplex_file$datapath,
+        bioplex_upload_path(),
         sheet = sh,
         col_names = FALSE
       )
@@ -408,6 +541,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       shiny::req(bioplex_build_df())
       bioplex$df <- bioplex_build_df()
       bioplex$deleted_idx <- integer(0)
+      bioplex$hidden_cols <- character(0)
       bioplex$active <- FALSE
     },
     ignoreInit = TRUE
@@ -415,7 +549,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   # Per-sheet data frames (row 1 -> column names)
   bioplex_per_sheet <- shiny::reactive({
     if (shiny::isTruthy(input$datafile) && length(input$sheet_name) >= 1) {
-      path <- input$datafile$datapath
+      path <- main_upload_path()
       # Ensure we only attempt to read sheets that exist in this workbook
       all_sheets <- tryCatch(readxl::excel_sheets(path), error = function(e) {
         character()
@@ -428,7 +562,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     } else if (
       shiny::isTruthy(input$bioplex_file) && length(input$bioplex_sheets) >= 1
     ) {
-      path <- input$bioplex_file$datapath
+      path <- bioplex_upload_path()
       all_sheets <- tryCatch(readxl::excel_sheets(path), error = function(e) {
         character()
       })
@@ -503,16 +637,10 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       return() # <- important: don't run the file-reading path
     }
     shiny::req(input$datafile)
-    safe_name <- basename(input$datafile$name)
-    ext <- tolower(tools::file_ext(safe_name))
+    ext <- tolower(tools::file_ext(basename(input$datafile$name)))
 
     if (ext %in% c("xls", "xlsx") && length(input$sheet_name) >= 1) {
       # SHEETS MODE a?' tabs appear
-      dest <- file.path(upload_dir, safe_name)
-      # Always overwrite the stored Excel file when opening the editor so that
-      # if the user re-uploads a workbook with the same name the latest upload
-      # is used for downstream persisted reads.
-      file.copy(input$datafile$datapath, dest, overwrite = TRUE)
       bioplex$editor_mode <- "sheets"
       ps <- bioplex_per_sheet() # now points at Option A inputs
       shiny::req(length(ps) >= 1)
@@ -525,53 +653,117 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       # PERSISTED MODE for csv/txt or single-sheet Excel
       df <- switch(
         ext,
-        "csv" = read_uploaded_flat_file(input$datafile$datapath, ext),
-        "txt" = read_uploaded_flat_file(input$datafile$datapath, ext),
+        "csv" = tryCatch(
+          read_uploaded_flat_file(main_upload_path(), ext),
+          error = function(e) {
+            app_note_technical_error("Bio-Plex flat-file import", e)
+            shiny::showNotification(
+              "We could not read this file. Check that it is saved correctly and try again.",
+              type = "error"
+            )
+            NULL
+          }
+        ),
+        "txt" = tryCatch(
+          read_uploaded_flat_file(main_upload_path(), ext),
+          error = function(e) {
+            app_note_technical_error("Bio-Plex flat-file import", e)
+            shiny::showNotification(
+              "We could not read this file. Check that it is saved correctly and try again.",
+              type = "error"
+            )
+            NULL
+          }
+        ),
         "xls" = {
-          dest <- file.path(upload_dir, safe_name)
-          file.copy(input$datafile$datapath, dest, overwrite = TRUE)
+          dest <- main_upload_path()
           all_sheets <- tryCatch(
             readxl::excel_sheets(dest),
             error = function(e) {
+              app_note_technical_error("Bio-Plex Excel sheet discovery", e)
               character()
             }
           )
+          if (!length(all_sheets)) {
+            shiny::showNotification(
+              "Choose an Excel file with at least one readable sheet.",
+              type = "error"
+            )
+            return()
+          }
           sheet_choice <- NULL
           if (!is.null(input$sheet_name) && length(input$sheet_name) > 0) {
             valid <- intersect(input$sheet_name, all_sheets)
             if (length(valid) >= 1) sheet_choice <- valid[1]
           }
-          if (is.null(sheet_choice) || length(all_sheets) == 0) {
+          if (is.null(sheet_choice)) {
             sheet_choice <- 1L
           }
-          as.data.frame(readxl::read_excel(dest, sheet = sheet_choice))
+          tryCatch(
+            as.data.frame(readxl::read_excel(dest, sheet = sheet_choice)),
+            error = function(e) {
+              app_note_technical_error("Bio-Plex Excel import", e)
+              shiny::showNotification(
+                "We could not read the selected Excel sheet. Choose another sheet or upload a different file.",
+                type = "error"
+              )
+              NULL
+            }
+          )
         },
         "xlsx" = {
-          dest <- file.path(upload_dir, safe_name)
-          file.copy(input$datafile$datapath, dest, overwrite = TRUE)
+          dest <- main_upload_path()
           all_sheets <- tryCatch(
             readxl::excel_sheets(dest),
             error = function(e) {
+              app_note_technical_error("Bio-Plex Excel sheet discovery", e)
               character()
             }
           )
+          if (!length(all_sheets)) {
+            shiny::showNotification(
+              "Choose an Excel file with at least one readable sheet.",
+              type = "error"
+            )
+            return()
+          }
           sheet_choice <- NULL
           if (!is.null(input$sheet_name) && length(input$sheet_name) > 0) {
             valid <- intersect(input$sheet_name, all_sheets)
             if (length(valid) >= 1) sheet_choice <- valid[1]
           }
-          if (is.null(sheet_choice) || length(all_sheets) == 0) {
+          if (is.null(sheet_choice)) {
             sheet_choice <- 1L
           }
-          as.data.frame(readxl::read_excel(dest, sheet = sheet_choice))
+          tryCatch(
+            as.data.frame(readxl::read_excel(dest, sheet = sheet_choice)),
+            error = function(e) {
+              app_note_technical_error("Bio-Plex Excel import", e)
+              shiny::showNotification(
+                "We could not read the selected Excel sheet. Choose another sheet or upload a different file.",
+                type = "error"
+              )
+              NULL
+            }
+          )
         },
-        stop("Unsupported file type.")
+        {
+          shiny::showNotification(
+            "Upload a CSV, TXT, XLS, or XLSX file.",
+            type = "error"
+          )
+          NULL
+        }
       )
+      if (is.null(df)) {
+        return()
+      }
       bioplex$editor_mode <- "persisted"
       bioplex$df <- df
     }
 
     bioplex$deleted_idx <- integer(0)
+    bioplex$hidden_cols <- character(0)
     show_data_editor_modal()
   })
 
@@ -755,6 +947,17 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
         htmltools::tags$tr(lapply(cols, htmltools::tags$th))
       )
     )
+    js_string <- function(x) {
+      x <- gsub("\\\\", "\\\\\\\\", x)
+      x <- gsub("\"", "\\\\\"", x)
+      paste0("\"", x, "\"")
+    }
+    hidden_cols <- intersect(bioplex$hidden_cols %||% character(0), cols)
+    hidden_cols_js <- paste0(
+      "[",
+      paste(vapply(hidden_cols, js_string, character(1)), collapse = ","),
+      "]"
+    )
 
     DT::datatable(
       df[keep, , drop = FALSE],
@@ -773,10 +976,72 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       ),
       rownames = FALSE,
       callback = DT::JS(
+        paste0(
         "
       var $container = $(table.table().container());
       var id   = $container.closest('.datatables').attr('id');
       var selectedDataIdx = [];
+      var initialHiddenCols = ", hidden_cols_js, ";
+      var applyingInitialVisibility = true;
+      var lastAutoFillAction = null;
+      var lastAutoFillIncrementStep = 1;
+
+      $(document).off('mousedown.bioplexAutoFillStep click.bioplexAutoFillStep').on(
+        'mousedown.bioplexAutoFillStep click.bioplexAutoFillStep',
+        'div.dt-autofill-list button',
+        function(){
+          var text = $(this).text() || '';
+          if (text.indexOf('Increment') !== -1 || text.indexOf('decrement') !== -1) {
+            lastAutoFillAction = 'increment';
+            var step = Number($(this).find('input[type=number]').val());
+            lastAutoFillIncrementStep = isFinite(step) ? step : 1;
+          } else {
+            lastAutoFillAction = null;
+          }
+        }
+      );
+
+      function parseAutoFillNumber(value){
+        if (value === null || typeof value === 'undefined') return NaN;
+        if (typeof value === 'number') return value;
+        var text = String(value).replace(/,/g, '').trim();
+        if (!text.length) return NaN;
+        return Number(text);
+      }
+
+      function isBadAutoFillValue(value){
+        if (value === null || typeof value === 'undefined') return true;
+        if (typeof value === 'number') return !isFinite(value);
+        return String(value).trim() === 'NaN';
+      }
+
+      function columnName(dataIdx){
+        return $(table.column(dataIdx).header()).text().trim();
+      }
+
+      function hiddenColumnNames(){
+        var hidden = [];
+        table.columns().every(function(dataIdx){
+          if (!this.visible()) hidden.push(columnName(dataIdx));
+        });
+        return hidden;
+      }
+
+      function sendHiddenColumns(){
+        Shiny.setInputValue(id + '_hidden_cols', hiddenColumnNames(), {priority:'event'});
+      }
+
+      function applyInitialHiddenColumns(){
+        if (!initialHiddenCols.length) return;
+        var hiddenLookup = {};
+        initialHiddenCols.forEach(function(name){ hiddenLookup[name] = true; });
+        table.columns().every(function(dataIdx){
+          if (hiddenLookup[columnName(dataIdx)]) {
+            this.visible(false, false);
+          }
+        });
+        table.columns.adjust().draw(false);
+      }
 
       function redrawHighlights(){
         $(table.cells().nodes()).removeClass('col-selected');
@@ -803,24 +1068,69 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
         redrawHighlights();
       });
 
-      table.on('draw.dt column-visibility.dt', function(){ redrawHighlights(); });
+      table.on('draw.dt', function(){ redrawHighlights(); });
+      table.on('column-visibility.dt', function(){
+        redrawHighlights();
+        if (!applyingInitialVisibility) sendHiddenColumns();
+      });
 
-      // your existing AutoFill handler (unchanged)
+      applyInitialHiddenColumns();
+      applyingInitialVisibility = false;
+      sendHiddenColumns();
+
+      // AutoFill emits slightly different object shapes for fill vs increment.
+      // Send a plain Shiny payload and normalize it here instead of relying on
+      // DT.cellInfo coercion, which can fail before the server observer runs.
       table.on('autoFill.dt', function(e, datatable, cells) {
         var out = [];
+        var incrementMode = lastAutoFillAction === 'increment';
+        var nextIncrementValue = NaN;
         for (var i = 0; i < cells.length; ++i) {
-          var cells_i = cells[i];
+          var cells_i = cells[i] || [];
           for (var j = 0; j < cells_i.length; ++j) {
             var c = cells_i[j];
-            var value = (c.set === null) ? '' : c.set;
-            out.push({ row: c.index.row + 1, col: c.index.column, value: value });
+            if (!c) continue;
+            var idx = c.index || (c.cell && c.cell.index ? c.cell.index() : null);
+            if (!idx) continue;
+            var row = Number(idx.row);
+            var col = Number(idx.column);
+            if (!isFinite(row) || !isFinite(col)) continue;
+            var value = (c.set === null || typeof c.set === 'undefined') ? '' : c.set;
+            if (incrementMode) {
+              if (!isFinite(nextIncrementValue)) {
+                nextIncrementValue = parseAutoFillNumber(c.data);
+                if (!isFinite(nextIncrementValue)) nextIncrementValue = parseAutoFillNumber(c.label);
+                if (!isFinite(nextIncrementValue) && c.cell && c.cell.data) {
+                  nextIncrementValue = parseAutoFillNumber(c.cell.data());
+                }
+              }
+              if (isFinite(nextIncrementValue)) {
+                value = nextIncrementValue;
+                nextIncrementValue += lastAutoFillIncrementStep;
+              }
+            } else if (isBadAutoFillValue(value)) {
+              value = '';
+            }
+            out.push({ row: row + 1, col: col, value: value });
           }
         }
-        Shiny.setInputValue(id + '_cells_filled:DT.cellInfo', out, {priority: 'event'});
-        table.rows().invalidate();
+        lastAutoFillAction = null;
+        Shiny.setInputValue(id + '_cells_filled', { cells: out, nonce: Date.now() }, {priority: 'event'});
       });
     "
+        )
       )
+    )
+  })
+
+  shiny::observeEvent(input$bioplex_modal_table_combined_hidden_cols, {
+    hidden <- unlist(
+      input$bioplex_modal_table_combined_hidden_cols,
+      use.names = FALSE
+    )
+    bioplex$hidden_cols <- intersect(
+      as.character(hidden %||% character(0)),
+      names(bioplex$df %||% data.frame())
     )
   })
 
@@ -870,7 +1180,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     sel <- input$bioplex_modal_table_combined_rows_selected
     if (length(sel) != 1) {
       shiny::showNotification(
-        "Please select exactly one row to use as column names.",
+        "Select exactly one row, then choose Set Header.",
         type = "error"
       )
       return()
@@ -884,12 +1194,15 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     }
 
     # Promote the selected row to headers (safe and unique)
+    old_names <- names(bioplex$df)
+    hidden_idx <- which(old_names %in% (bioplex$hidden_cols %||% character(0)))
     header <- as.character(unlist(bioplex$df[abs_row, , drop = TRUE]))
     header[!nzchar(header)] <- paste0("V", which(!nzchar(header))) # optional fill
     new_names <- make.unique(make.names(header))
 
     bioplex$df <- bioplex$df[-abs_row, , drop = FALSE]
     names(bioplex$df) <- new_names
+    bioplex$hidden_cols <- new_names[hidden_idx[hidden_idx <= length(new_names)]]
 
     # Sync UI + table
     for (i in seq_along(new_names)) {
@@ -912,7 +1225,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     nm <- .bioplex_unique_name(input$bioplex_newcol_name, names(bioplex$df))
     if (is.null(nm)) {
       shiny::showNotification(
-        "Please enter a non-empty column name.",
+        "Enter a column name before choosing Add.",
         type = "warning"
       )
       return()
@@ -933,16 +1246,63 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(input$bioplex_modal_table_combined_cells_filled, {
     x <- input$bioplex_modal_table_combined_cells_filled
     shiny::req(x)
+    if (is.list(x) && !is.data.frame(x) && "cells" %in% names(x)) {
+      x <- x$cells
+    }
 
-    # 1) Coerce to data.frame (DT.cellInfo should already be one, but be defensive)
-    if (is.list(x) && !is.data.frame(x)) {
-      # list of lists -> bind rows
-      x <- do.call(
-        rbind,
-        lapply(x, function(z) as.data.frame(z, stringsAsFactors = FALSE))
+    # 1) Normalize browser AutoFill payloads. Increment/decrement can emit
+    # partial records, so avoid strict data-frame coercion until each record is
+    # safely shaped.
+    normalize_autofill_record <- function(z) {
+      if (is.null(z)) {
+        return(NULL)
+      }
+      if (is.data.frame(z)) {
+        z <- as.list(z[1, , drop = FALSE])
+      }
+      if (!is.list(z)) {
+        return(NULL)
+      }
+
+      row <- suppressWarnings(as.integer(z$row %||% NA_integer_))
+      col <- suppressWarnings(as.integer(z$col %||% NA_integer_))
+      value <- z$value %||% ""
+      if (length(value) == 0 || is.null(value)) {
+        value <- ""
+      }
+
+      data.frame(
+        row = row[1],
+        col = col[1],
+        value = as.character(value[1]),
+        stringsAsFactors = FALSE
       )
     }
-    x <- as.data.frame(x, stringsAsFactors = FALSE)
+
+    if (is.data.frame(x)) {
+      n <- nrow(x)
+      row <- if ("row" %in% names(x)) x$row else rep(NA_integer_, n)
+      col <- if ("col" %in% names(x)) x$col else rep(NA_integer_, n)
+      value <- if ("value" %in% names(x)) x$value else rep("", n)
+      x <- data.frame(
+        row = suppressWarnings(as.integer(row)),
+        col = suppressWarnings(as.integer(col)),
+        value = as.character(value),
+        stringsAsFactors = FALSE
+      )
+    } else if (is.list(x)) {
+      rows <- lapply(x, normalize_autofill_record)
+      rows <- rows[!vapply(rows, is.null, logical(1))]
+      x <- if (length(rows)) {
+        do.call(rbind, rows)
+      } else {
+        data.frame(row = integer(), col = integer(), value = character())
+      }
+    } else {
+      x <- data.frame(row = integer(), col = integer(), value = character())
+    }
+
+    x <- x[is.finite(x$row) & is.finite(x$col), , drop = FALSE]
     shiny::req(nrow(x) > 0, all(c("row", "col", "value") %in% names(x)))
 
     # 2) Rebuild the displayed data to map displayed row -> absolute row
@@ -1020,6 +1380,8 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
 
   shiny::observeEvent(input$bioplex_apply_names_modal, {
     shiny::req(bioplex$df)
+    old_names <- names(bioplex$df)
+    hidden_idx <- which(old_names %in% (bioplex$hidden_cols %||% character(0)))
     new_names <- vapply(
       seq_along(bioplex$df),
       function(i) {
@@ -1030,6 +1392,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     )
     new_names <- make.unique(make.names(new_names))
     names(bioplex$df) <- new_names
+    bioplex$hidden_cols <- new_names[hidden_idx[hidden_idx <= length(new_names)]]
 
     # update column names in the read-only per-sheet views where columns overlap
     ps <- bioplex_per_sheet()
@@ -1127,24 +1490,46 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
 
     idx0 <- input$bioplex_modal_table_combined_columns_selected_data %||%
       input$bioplex_modal_table_combined_columns_selected
-    shiny::validate(shiny::need(
-      length(idx0) > 0,
-      "Click footer cells to select column(s), then Delete."
-    ))
+    if (!length(idx0)) {
+      shiny::showNotification(
+        "Select one or more columns from the footer, then choose Delete.",
+        type = "error"
+      )
+      return()
+    }
 
     drop_idx <- as.integer(idx0) + 1L
     drop_idx <- drop_idx[drop_idx >= 1 & drop_idx <= ncol(bioplex$df)]
-    shiny::validate(shiny::need(
-      length(drop_idx) > 0,
-      "No valid columns to delete."
-    ))
+    if (!length(drop_idx)) {
+      shiny::showNotification(
+        "Select a valid column before choosing Delete.",
+        type = "error"
+      )
+      return()
+    }
 
     if (is.null(bioplex$cols_master)) {
       bioplex$cols_master <- bioplex$df
     }
-    keep_names <- setdiff(names(bioplex$df), names(bioplex$df)[drop_idx])
+    drop_names <- names(bioplex$df)[drop_idx]
+    keep_names <- setdiff(names(bioplex$df), drop_names)
     bioplex$df <- bioplex$df[, keep_names, drop = FALSE]
+    bioplex$hidden_cols <- setdiff(
+      bioplex$hidden_cols %||% character(0),
+      drop_names
+    )
     bioplex$deleted_idx <- integer(0) # reset row deletes on combined view
+  })
+
+  shiny::observeEvent(input$bioplex_modal_restore_cols, {
+    shiny::req(bioplex$cols_master)
+    bioplex$df <- bioplex$cols_master
+    bioplex$cols_master <- NULL
+    bioplex$hidden_cols <- intersect(
+      bioplex$hidden_cols %||% character(0),
+      names(bioplex$df)
+    )
+    bioplex$deleted_idx <- integer(0)
   })
 
   # Helper: clean * and OOR for ONE column, using that column's min/max

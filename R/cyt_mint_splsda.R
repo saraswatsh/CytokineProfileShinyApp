@@ -224,7 +224,13 @@ cyt_mint_splsda <- function(
     record_base_plot <- function(expr) {
       tf <- tempfile(fileext = ".png")
       grDevices::png(tf, width = 960, height = 720, res = 120)
-      on.exit(grDevices::dev.off(), add = TRUE)
+      on.exit(
+        {
+          grDevices::dev.off()
+          if (file.exists(tf)) unlink(tf)
+        },
+        add = TRUE
+      )
       grDevices::dev.control(displaylist = "enable")
       force(expr)
       grDevices::recordPlot()

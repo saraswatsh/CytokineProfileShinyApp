@@ -4,6 +4,8 @@ on:
   push:
     branches: [main, master, devel]
   pull_request:
+  schedule:
+    - cron: '0 10 * * 1'
 
 name: test-coverage.yaml
 

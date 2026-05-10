@@ -95,3 +95,75 @@ test_that("save-key-input observers keep selected columns in sync before analysi
     ))
   })
 })
+
+test_that("imputation notifications explain missing and unsupported feature-wise selections", {
+  local_mocked_browser_side_effects()
+  notifications <- local_capture_shiny_notifications()
+
+  shiny::testServer(app_server, {
+    prepare_app_server_step3(session, app_ctx = app_ctx)
+
+    set_test_input(session, ui_imputation_method_input_id(), "mean")
+    click_test_input(session, "apply_impute")
+    expect_match(
+      notifications$last()$ui,
+      "Choose at least one column before applying imputation.",
+      fixed = TRUE
+    )
+
+    notifications$clear()
+    set_test_input(session, ui_imputation_method_input_id(), "knn_feature")
+    set_test_input(session, "imp_cols", "Group")
+    click_test_input(session, "apply_impute")
+    expect_match(
+      notifications$last()$ui,
+      "Feature-wise kNN imputation needs at least one numeric column.",
+      fixed = TRUE
+    )
+
+    notifications$clear()
+    set_test_input(session, "imp_cols", example1_test_numerical_cols()[1])
+    click_test_input(session, "apply_impute")
+    expect_match(
+      notifications$last()$ui,
+      "Feature-wise kNN imputation needs at least two numeric columns.",
+      fixed = TRUE
+    )
+  })
+})
+
+test_that("Bio-Plex editor notifications explain invalid header and column actions", {
+  local_mocked_browser_side_effects()
+  notifications <- local_capture_shiny_notifications()
+
+  shiny::testServer(app_server, {
+    app_ctx$bioplex$df <- data.frame(A = 1:2, B = 3:4)
+    app_ctx$bioplex$editor_mode <- "persisted"
+    app_ctx$bioplex$deleted_idx <- integer(0)
+    app_ctx$bioplex$user_columns <- character(0)
+
+    click_test_input(session, "bioplex_set_header")
+    expect_match(
+      notifications$last()$ui,
+      "Select exactly one row, then choose Set Header.",
+      fixed = TRUE
+    )
+
+    notifications$clear()
+    click_test_input(session, "bioplex_modal_delete_cols")
+    expect_match(
+      notifications$last()$ui,
+      "Select one or more columns from the footer, then choose Delete.",
+      fixed = TRUE
+    )
+
+    notifications$clear()
+    set_test_input(session, "bioplex_newcol_name", "")
+    click_test_input(session, "bioplex_newcol_confirm")
+    expect_match(
+      notifications$last()$ui,
+      "Enter a column name before choosing Add.",
+      fixed = TRUE
+    )
+  })
+})

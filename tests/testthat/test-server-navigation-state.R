@@ -64,7 +64,10 @@ test_that("wizard back and next buttons update workflow state", {
     expect_equal(app_ctx$currentStep(), 3)
 
     prepare_app_server_step4(session, app_ctx, "Boxplots")
+    set_test_input(session, "bp_group_by", "Group")
+    set_test_input(session, "bp_bin_size", 10)
     click_test_input(session, "next4")
+    wait_for_analysis_settlement(session, app_ctx)
     expect_equal(app_ctx$currentPage(), "step5")
     expect_equal(app_ctx$currentStep(), 5)
 

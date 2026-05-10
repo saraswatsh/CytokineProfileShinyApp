@@ -1,4 +1,6 @@
 local_mocked_browser_side_effects <- function() {
+  mock_env <- parent.frame()
+
   testthat::local_mocked_bindings(
     runjs = function(...) invisible(NULL),
     show = function(...) invisible(NULL),
@@ -6,11 +8,13 @@ local_mocked_browser_side_effects <- function() {
     toggle = function(...) invisible(NULL),
     addClass = function(...) invisible(NULL),
     removeClass = function(...) invisible(NULL),
+    .env = mock_env,
     .package = "shinyjs"
   )
   testthat::local_mocked_bindings(
     feedbackWarning = function(...) invisible(NULL),
     hideFeedback = function(...) invisible(NULL),
+    .env = mock_env,
     .package = "shinyFeedback"
   )
   testthat::local_mocked_bindings(
@@ -25,10 +29,12 @@ local_mocked_browser_side_effects <- function() {
     ) {
       r
     },
+    .env = mock_env,
     .package = "shiny"
   )
   testthat::local_mocked_bindings(
     observe_helpers = function(...) invisible(NULL),
+    .env = mock_env,
     .package = "shinyhelper"
   )
   testthat::local_mocked_bindings(
@@ -37,10 +43,45 @@ local_mocked_browser_side_effects <- function() {
       runners$navigation <- test_navigation_server
       runners
     },
+    .env = mock_env,
     .package = "CytokineProfileShinyApp"
   )
 
   invisible(NULL)
+}
+
+local_capture_shiny_notifications <- function() {
+  mock_env <- parent.frame()
+  calls <- list()
+
+  testthat::local_mocked_bindings(
+    showNotification = function(ui, type = NULL, duration = NULL, ...) {
+      calls[[length(calls) + 1L]] <<- list(
+        ui = ui,
+        type = type,
+        duration = duration,
+        dots = list(...)
+      )
+      invisible(NULL)
+    },
+    .env = mock_env,
+    .package = "shiny"
+  )
+
+  list(
+    calls = function() calls,
+    clear = function() {
+      calls <<- list()
+      invisible(NULL)
+    },
+    last = function() {
+      if (!length(calls)) {
+        return(NULL)
+      }
+
+      calls[[length(calls)]]
+    }
+  )
 }
 
 test_server_flush <- function(session) {
@@ -61,11 +102,62 @@ test_server_wait <- function(session, seconds = 0.6, cycles = 4L) {
   invisible(NULL)
 }
 
+wait_for_analysis_settlement <- function(
+  session,
+  app_ctx,
+  seconds = 0.05,
+  cycles = 20L
+) {
+  for (i in seq_len(cycles)) {
+    test_server_flush(session)
+
+    if (is.function(app_ctx$analysisResult)) {
+      tryCatch(
+        app_ctx$analysisResult(),
+        error = function(e) invisible(NULL)
+      )
+      test_server_flush(session)
+    }
+
+    step_now <- app_ctx$currentStep()
+    page_now <- app_ctx$currentPage()
+    err_now <- app_ctx$errorMessage()
+
+    if (identical(step_now, 5) && identical(page_now, "step5")) {
+      return(invisible("success"))
+    }
+
+    if (
+      identical(step_now, 4) &&
+        identical(page_now, "step4") &&
+        shiny::isTruthy(err_now)
+    ) {
+      return(invisible("failure"))
+    }
+
+    Sys.sleep(seconds)
+  }
+
+  step_now <- app_ctx$currentStep()
+  page_now <- app_ctx$currentPage()
+  err_now <- app_ctx$errorMessage()
+  testthat::fail(sprintf(
+    paste(
+      "Timed out waiting for analysis to settle after clicking next4.",
+      "currentStep=%s, currentPage=%s, errorPresent=%s"
+    ),
+    as.character(step_now %||% NA),
+    as.character(page_now %||% NA),
+    if (shiny::isTruthy(err_now)) "TRUE" else "FALSE"
+  ))
+}
+
 test_server_output_html <- function(output, id) {
   htmltools::renderTags(output[[id]])$html
 }
 
 local_capture_shiny_updates <- function() {
+  mock_env <- parent.frame()
   calls <- list()
 
   record_update <- function(fun_name) {
@@ -89,6 +181,7 @@ local_capture_shiny_updates <- function() {
     updateTextInput = record_update("updateTextInput"),
     updateNumericInput = record_update("updateNumericInput"),
     updateSliderInput = record_update("updateSliderInput"),
+    .env = mock_env,
     .package = "shiny"
   )
 
@@ -174,10 +267,12 @@ app_server_stage_runners <- getFromNamespace(
   "app_server_stage_runners",
   "CytokineProfileShinyApp"
 )
+real_app_server_stage_runners <- app_server_stage_runners
 mod_navigation_server <- getFromNamespace(
   "mod_navigation_server",
   "CytokineProfileShinyApp"
 )
+real_mod_navigation_server <- mod_navigation_server
 mod_update_inputs_server <- getFromNamespace(
   "mod_update_inputs_server",
   "CytokineProfileShinyApp"
@@ -188,6 +283,10 @@ mod_options_server <- getFromNamespace(
 )
 apply_scale <- getFromNamespace(
   "apply_scale",
+  "CytokineProfileShinyApp"
+)
+ui_imputation_method_input_id <- getFromNamespace(
+  "ui_imputation_method_input_id",
   "CytokineProfileShinyApp"
 )
 
@@ -264,27 +363,26 @@ materialize_test_filtered_data <- function(app_ctx, inputs) {
 }
 
 stabilize_test_step3_state <- function(app_ctx, inputs) {
-  data_after_filters <- materialize_test_filtered_data(app_ctx, inputs)
-
   app_ctx$data_after_filters <- shiny::reactive({
-    data_after_filters
+    materialize_test_filtered_data(app_ctx, inputs)
   })
   app_ctx$data_after_imputation <- shiny::reactive({
     imputed <- app_ctx$imputed_data()
     if (!is.null(imputed)) {
       return(imputed)
     }
-    data_after_filters
+    app_ctx$data_after_filters()
   })
   app_ctx$filteredData <- shiny::reactive({
     df <- app_ctx$data_after_imputation()
+    selected_cols <- unique(c(
+      inputs$selected_categorical_cols %||% character(0),
+      inputs$selected_numerical_cols %||% character(0)
+    ))
     cols_to_keep <- if (app_ctx$currentStep() >= 3) {
-      app_ctx$userState$selected_columns %||% character(0)
+      app_ctx$userState$selected_columns %||% selected_cols
     } else {
-      unique(c(
-        inputs$selected_categorical_cols %||% character(0),
-        inputs$selected_numerical_cols %||% character(0)
-      ))
+      selected_cols
     }
     final_cols <- union(cols_to_keep, "..cyto_id..")
     df[, intersect(names(df), final_cols), drop = FALSE]
@@ -295,7 +393,7 @@ stabilize_test_step3_state <- function(app_ctx, inputs) {
 
 test_navigation_server <- function(input, output, session, app_ctx) {
   real_mod_navigation_server(input, output, session, app_ctx)
-  stabilize_test_step3_state(app_ctx, input)
+  stabilize_test_step3_state(app_ctx, session$input)
   invisible(app_ctx)
 }
 
@@ -339,9 +437,6 @@ prepare_app_server_step3 <- function(
   }
 
   click_test_input(session, "next2")
-  if (!is.null(app_ctx)) {
-    stabilize_test_step3_state(app_ctx, session$input)
-  }
   invisible(NULL)
 }
 
@@ -368,14 +463,14 @@ run_app_server_analysis <- function(
   }
 
   click_test_input(session, "next4")
-  test_server_flush(session)
-  invisible(NULL)
+  invisible(wait_for_analysis_settlement(session, app_ctx))
 }
 
 expect_analysis_success <- function(app_ctx, session = NULL) {
   if (!is.null(session)) {
-    test_server_flush(session)
+    wait_for_analysis_settlement(session, app_ctx)
   }
   testthat::expect_null(app_ctx$errorMessage())
-  testthat::expect_false(is.null(app_ctx$analysisResult()))
+  testthat::expect_equal(app_ctx$currentStep(), 5)
+  testthat::expect_equal(app_ctx$currentPage(), "step5")
 }

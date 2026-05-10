@@ -1,3 +1,5 @@
+options(shiny.maxRequestSize = 1024^3)
+
 announcement_banner <- function(cfg) {
   if (is.null(cfg$announcement)) {
     return(NULL)
@@ -292,6 +294,11 @@ app_ui <- function() {
         .dataTables_scrollFootInner th.col-selected {
           background-color: rgba(0, 123, 255, 0.18) !important;
         }
+        div.dt-autofill-list,
+        div.dt-autofill-background,
+        div.dt-autofill-handle {
+          z-index: 2000 !important;
+        }
         tfoot th {
           cursor: pointer;
         }
@@ -414,6 +421,13 @@ app_ui <- function() {
           icon = shiny::icon("bullhorn"),
           width = "100%",
           value = "news"
+        ),
+        shiny::actionButton(
+          "nav_privacy",
+          "Data Privacy",
+          icon = shiny::icon("shield-alt"),
+          width = "100%",
+          value = "privacy"
         ),
         shiny::actionButton(
           "nav_contact",
