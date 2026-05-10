@@ -187,6 +187,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       bioplex$deleted_idx <- integer(0)
       bioplex$deleted_by_sheet <- list()
       bioplex$user_columns <- character(0)
+      bioplex$hidden_cols <- character(0)
       # Also clear any excel cache entries related to this datapath so sheets re-read
       excel_cache(list())
 
@@ -242,6 +243,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       bioplex$deleted_idx <- integer(0)
       bioplex$deleted_by_sheet <- list()
       bioplex$user_columns <- character(0)
+      bioplex$hidden_cols <- character(0)
       excel_cache(list())
       userState$sheet_name <- NULL
       userState$selected_columns <- NULL
@@ -539,6 +541,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       shiny::req(bioplex_build_df())
       bioplex$df <- bioplex_build_df()
       bioplex$deleted_idx <- integer(0)
+      bioplex$hidden_cols <- character(0)
       bioplex$active <- FALSE
     },
     ignoreInit = TRUE
@@ -760,6 +763,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     }
 
     bioplex$deleted_idx <- integer(0)
+    bioplex$hidden_cols <- character(0)
     show_data_editor_modal()
   })
 
@@ -943,6 +947,17 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
         htmltools::tags$tr(lapply(cols, htmltools::tags$th))
       )
     )
+    js_string <- function(x) {
+      x <- gsub("\\\\", "\\\\\\\\", x)
+      x <- gsub("\"", "\\\\\"", x)
+      paste0("\"", x, "\"")
+    }
+    hidden_cols <- intersect(bioplex$hidden_cols %||% character(0), cols)
+    hidden_cols_js <- paste0(
+      "[",
+      paste(vapply(hidden_cols, js_string, character(1)), collapse = ","),
+      "]"
+    )
 
     DT::datatable(
       df[keep, , drop = FALSE],
@@ -961,10 +976,72 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
       ),
       rownames = FALSE,
       callback = DT::JS(
+        paste0(
         "
       var $container = $(table.table().container());
       var id   = $container.closest('.datatables').attr('id');
       var selectedDataIdx = [];
+      var initialHiddenCols = ", hidden_cols_js, ";
+      var applyingInitialVisibility = true;
+      var lastAutoFillAction = null;
+      var lastAutoFillIncrementStep = 1;
+
+      $(document).off('mousedown.bioplexAutoFillStep click.bioplexAutoFillStep').on(
+        'mousedown.bioplexAutoFillStep click.bioplexAutoFillStep',
+        'div.dt-autofill-list button',
+        function(){
+          var text = $(this).text() || '';
+          if (text.indexOf('Increment') !== -1 || text.indexOf('decrement') !== -1) {
+            lastAutoFillAction = 'increment';
+            var step = Number($(this).find('input[type=number]').val());
+            lastAutoFillIncrementStep = isFinite(step) ? step : 1;
+          } else {
+            lastAutoFillAction = null;
+          }
+        }
+      );
+
+      function parseAutoFillNumber(value){
+        if (value === null || typeof value === 'undefined') return NaN;
+        if (typeof value === 'number') return value;
+        var text = String(value).replace(/,/g, '').trim();
+        if (!text.length) return NaN;
+        return Number(text);
+      }
+
+      function isBadAutoFillValue(value){
+        if (value === null || typeof value === 'undefined') return true;
+        if (typeof value === 'number') return !isFinite(value);
+        return String(value).trim() === 'NaN';
+      }
+
+      function columnName(dataIdx){
+        return $(table.column(dataIdx).header()).text().trim();
+      }
+
+      function hiddenColumnNames(){
+        var hidden = [];
+        table.columns().every(function(dataIdx){
+          if (!this.visible()) hidden.push(columnName(dataIdx));
+        });
+        return hidden;
+      }
+
+      function sendHiddenColumns(){
+        Shiny.setInputValue(id + '_hidden_cols', hiddenColumnNames(), {priority:'event'});
+      }
+
+      function applyInitialHiddenColumns(){
+        if (!initialHiddenCols.length) return;
+        var hiddenLookup = {};
+        initialHiddenCols.forEach(function(name){ hiddenLookup[name] = true; });
+        table.columns().every(function(dataIdx){
+          if (hiddenLookup[columnName(dataIdx)]) {
+            this.visible(false, false);
+          }
+        });
+        table.columns.adjust().draw(false);
+      }
 
       function redrawHighlights(){
         $(table.cells().nodes()).removeClass('col-selected');
@@ -991,24 +1068,69 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
         redrawHighlights();
       });
 
-      table.on('draw.dt column-visibility.dt', function(){ redrawHighlights(); });
+      table.on('draw.dt', function(){ redrawHighlights(); });
+      table.on('column-visibility.dt', function(){
+        redrawHighlights();
+        if (!applyingInitialVisibility) sendHiddenColumns();
+      });
 
-      // your existing AutoFill handler (unchanged)
+      applyInitialHiddenColumns();
+      applyingInitialVisibility = false;
+      sendHiddenColumns();
+
+      // AutoFill emits slightly different object shapes for fill vs increment.
+      // Send a plain Shiny payload and normalize it here instead of relying on
+      // DT.cellInfo coercion, which can fail before the server observer runs.
       table.on('autoFill.dt', function(e, datatable, cells) {
         var out = [];
+        var incrementMode = lastAutoFillAction === 'increment';
+        var nextIncrementValue = NaN;
         for (var i = 0; i < cells.length; ++i) {
-          var cells_i = cells[i];
+          var cells_i = cells[i] || [];
           for (var j = 0; j < cells_i.length; ++j) {
             var c = cells_i[j];
-            var value = (c.set === null) ? '' : c.set;
-            out.push({ row: c.index.row + 1, col: c.index.column, value: value });
+            if (!c) continue;
+            var idx = c.index || (c.cell && c.cell.index ? c.cell.index() : null);
+            if (!idx) continue;
+            var row = Number(idx.row);
+            var col = Number(idx.column);
+            if (!isFinite(row) || !isFinite(col)) continue;
+            var value = (c.set === null || typeof c.set === 'undefined') ? '' : c.set;
+            if (incrementMode) {
+              if (!isFinite(nextIncrementValue)) {
+                nextIncrementValue = parseAutoFillNumber(c.data);
+                if (!isFinite(nextIncrementValue)) nextIncrementValue = parseAutoFillNumber(c.label);
+                if (!isFinite(nextIncrementValue) && c.cell && c.cell.data) {
+                  nextIncrementValue = parseAutoFillNumber(c.cell.data());
+                }
+              }
+              if (isFinite(nextIncrementValue)) {
+                value = nextIncrementValue;
+                nextIncrementValue += lastAutoFillIncrementStep;
+              }
+            } else if (isBadAutoFillValue(value)) {
+              value = '';
+            }
+            out.push({ row: row + 1, col: col, value: value });
           }
         }
-        Shiny.setInputValue(id + '_cells_filled:DT.cellInfo', out, {priority: 'event'});
-        table.rows().invalidate();
+        lastAutoFillAction = null;
+        Shiny.setInputValue(id + '_cells_filled', { cells: out, nonce: Date.now() }, {priority: 'event'});
       });
     "
+        )
       )
+    )
+  })
+
+  shiny::observeEvent(input$bioplex_modal_table_combined_hidden_cols, {
+    hidden <- unlist(
+      input$bioplex_modal_table_combined_hidden_cols,
+      use.names = FALSE
+    )
+    bioplex$hidden_cols <- intersect(
+      as.character(hidden %||% character(0)),
+      names(bioplex$df %||% data.frame())
     )
   })
 
@@ -1072,12 +1194,15 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     }
 
     # Promote the selected row to headers (safe and unique)
+    old_names <- names(bioplex$df)
+    hidden_idx <- which(old_names %in% (bioplex$hidden_cols %||% character(0)))
     header <- as.character(unlist(bioplex$df[abs_row, , drop = TRUE]))
     header[!nzchar(header)] <- paste0("V", which(!nzchar(header))) # optional fill
     new_names <- make.unique(make.names(header))
 
     bioplex$df <- bioplex$df[-abs_row, , drop = FALSE]
     names(bioplex$df) <- new_names
+    bioplex$hidden_cols <- new_names[hidden_idx[hidden_idx <= length(new_names)]]
 
     # Sync UI + table
     for (i in seq_along(new_names)) {
@@ -1121,16 +1246,63 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
   shiny::observeEvent(input$bioplex_modal_table_combined_cells_filled, {
     x <- input$bioplex_modal_table_combined_cells_filled
     shiny::req(x)
+    if (is.list(x) && !is.data.frame(x) && "cells" %in% names(x)) {
+      x <- x$cells
+    }
 
-    # 1) Coerce to data.frame (DT.cellInfo should already be one, but be defensive)
-    if (is.list(x) && !is.data.frame(x)) {
-      # list of lists -> bind rows
-      x <- do.call(
-        rbind,
-        lapply(x, function(z) as.data.frame(z, stringsAsFactors = FALSE))
+    # 1) Normalize browser AutoFill payloads. Increment/decrement can emit
+    # partial records, so avoid strict data-frame coercion until each record is
+    # safely shaped.
+    normalize_autofill_record <- function(z) {
+      if (is.null(z)) {
+        return(NULL)
+      }
+      if (is.data.frame(z)) {
+        z <- as.list(z[1, , drop = FALSE])
+      }
+      if (!is.list(z)) {
+        return(NULL)
+      }
+
+      row <- suppressWarnings(as.integer(z$row %||% NA_integer_))
+      col <- suppressWarnings(as.integer(z$col %||% NA_integer_))
+      value <- z$value %||% ""
+      if (length(value) == 0 || is.null(value)) {
+        value <- ""
+      }
+
+      data.frame(
+        row = row[1],
+        col = col[1],
+        value = as.character(value[1]),
+        stringsAsFactors = FALSE
       )
     }
-    x <- as.data.frame(x, stringsAsFactors = FALSE)
+
+    if (is.data.frame(x)) {
+      n <- nrow(x)
+      row <- if ("row" %in% names(x)) x$row else rep(NA_integer_, n)
+      col <- if ("col" %in% names(x)) x$col else rep(NA_integer_, n)
+      value <- if ("value" %in% names(x)) x$value else rep("", n)
+      x <- data.frame(
+        row = suppressWarnings(as.integer(row)),
+        col = suppressWarnings(as.integer(col)),
+        value = as.character(value),
+        stringsAsFactors = FALSE
+      )
+    } else if (is.list(x)) {
+      rows <- lapply(x, normalize_autofill_record)
+      rows <- rows[!vapply(rows, is.null, logical(1))]
+      x <- if (length(rows)) {
+        do.call(rbind, rows)
+      } else {
+        data.frame(row = integer(), col = integer(), value = character())
+      }
+    } else {
+      x <- data.frame(row = integer(), col = integer(), value = character())
+    }
+
+    x <- x[is.finite(x$row) & is.finite(x$col), , drop = FALSE]
     shiny::req(nrow(x) > 0, all(c("row", "col", "value") %in% names(x)))
 
     # 2) Rebuild the displayed data to map displayed row -> absolute row
@@ -1208,6 +1380,8 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
 
   shiny::observeEvent(input$bioplex_apply_names_modal, {
     shiny::req(bioplex$df)
+    old_names <- names(bioplex$df)
+    hidden_idx <- which(old_names %in% (bioplex$hidden_cols %||% character(0)))
     new_names <- vapply(
       seq_along(bioplex$df),
       function(i) {
@@ -1218,6 +1392,7 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     )
     new_names <- make.unique(make.names(new_names))
     names(bioplex$df) <- new_names
+    bioplex$hidden_cols <- new_names[hidden_idx[hidden_idx <= length(new_names)]]
 
     # update column names in the read-only per-sheet views where columns overlap
     ps <- bioplex_per_sheet()
@@ -1336,9 +1511,25 @@ mod_data_handling_server <- function(input, output, session, app_ctx) {
     if (is.null(bioplex$cols_master)) {
       bioplex$cols_master <- bioplex$df
     }
-    keep_names <- setdiff(names(bioplex$df), names(bioplex$df)[drop_idx])
+    drop_names <- names(bioplex$df)[drop_idx]
+    keep_names <- setdiff(names(bioplex$df), drop_names)
     bioplex$df <- bioplex$df[, keep_names, drop = FALSE]
+    bioplex$hidden_cols <- setdiff(
+      bioplex$hidden_cols %||% character(0),
+      drop_names
+    )
     bioplex$deleted_idx <- integer(0) # reset row deletes on combined view
+  })
+
+  shiny::observeEvent(input$bioplex_modal_restore_cols, {
+    shiny::req(bioplex$cols_master)
+    bioplex$df <- bioplex$cols_master
+    bioplex$cols_master <- NULL
+    bioplex$hidden_cols <- intersect(
+      bioplex$hidden_cols %||% character(0),
+      names(bioplex$df)
+    )
+    bioplex$deleted_idx <- integer(0)
   })
 
   # Helper: clean * and OOR for ONE column, using that column's min/max

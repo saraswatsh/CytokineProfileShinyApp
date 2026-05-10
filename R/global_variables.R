@@ -65,6 +65,9 @@ if (getRversion() >= "4.3") {
     "numeric.sd",
     "numeric.hist",
     "direction",
-    "p_value"
+    "p_value",
+    "row",
+    "col",
+    "corr"
   ))
 }

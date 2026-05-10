@@ -79,10 +79,52 @@ cyt_corr <- function(
   cell_label_size <- if (show_cell_labels) {
     font_settings_ggplot_text_size(
       resolved_fonts$cell_text,
-      default_size = 4
+      default_size = 2.6
     )
   } else {
-    4
+    2.6
+  }
+  corr_default_axis_text_size <- 7
+  corr_default_title_size <- 10
+  corr_default_legend_title_size <- 8
+  corr_default_legend_text_size <- 7
+
+  .zero_variance <- function(v) {
+    if (length(v) < 2) {
+      return(TRUE)
+    }
+    s <- stats::sd(v)
+    is.na(s) || s <= sqrt(.Machine$double.eps)
+  }
+
+  .safe_pair_cor <- function(a, b, method) {
+    ok <- stats::complete.cases(a, b)
+    if (sum(ok) < 3) {
+      return(NA_real_)
+    }
+    a <- a[ok]
+    b <- b[ok]
+    if (.zero_variance(a) || .zero_variance(b)) {
+      return(NA_real_)
+    }
+    unname(stats::cor(a, b, method = method))
+  }
+
+  .safe_cor_matrix <- function(df, method) {
+    vars <- names(df)
+    n_vars <- length(vars)
+    mat <- matrix(
+      NA_real_,
+      nrow = n_vars,
+      ncol = n_vars,
+      dimnames = list(vars, vars)
+    )
+    for (i in seq_len(n_vars)) {
+      for (j in seq_len(n_vars)) {
+        mat[i, j] <- .safe_pair_cor(df[[i]], df[[j]], method)
+      }
+    }
+    mat
   }
 
   if (!is.null(progress)) {
@@ -99,6 +141,15 @@ cyt_corr <- function(
       ok <- stats::complete.cases(x, y)
       n <- sum(ok)
       if (n < 3) {
+        return(data.frame(
+          variable = v,
+          r = NA_real_,
+          p = NA_real_,
+          n = n,
+          method = method
+        ))
+      }
+      if (.zero_variance(x[ok]) || .zero_variance(y[ok])) {
         return(data.frame(
           variable = v,
           r = NA_real_,
@@ -124,7 +175,7 @@ cyt_corr <- function(
     res <- do.call(rbind, one_vs_all)
     res$p_bonf <- round(adjust_p(res$p, method = "bonferroni"), 4)
     res$p_bh <- round(adjust_p(res$p, method = "BH"), 4)
-    res <- res[order(-abs(res$r)), ]
+    res <- res[order(-abs(res$r), na.last = TRUE), ]
 
     # square heatmap matrix
     heat_vars <- unique(c(target, res$variable))
@@ -133,28 +184,37 @@ cyt_corr <- function(
       progress$inc(0.1, detail = "Building correlation heatmap")
     }
 
-    heat_mat <- stats::cor(
-      data[, heat_vars, drop = FALSE],
-      use = "pairwise.complete.obs",
-      method = method
-    )
+    heat_mat <- .safe_cor_matrix(data[, heat_vars, drop = FALSE], method)
 
     .build_corrplot <- function(mat, method, target, main_prefix = NULL) {
       # ensure target is first
       ord <- c(target, setdiff(colnames(mat), target))
       mat <- mat[ord, ord]
 
-      # base heatmap
-      p <- ggcorrplot::ggcorrplot(
-        mat,
-        hc.order = FALSE, # keep our order; don't re-cluster
-        type = "full",
-        lab = show_cell_labels,
-        lab_size = cell_label_size,
-        show.diag = TRUE,
-        outline.color = "white", # <-- documented arg name
-        ggtheme = ggplot2::theme_minimal()
-      ) +
+      plot_df <- data.frame(
+        row = factor(rep(rownames(mat), times = ncol(mat)), levels = rownames(mat)),
+        col = factor(rep(colnames(mat), each = nrow(mat)), levels = colnames(mat)),
+        corr = as.vector(mat),
+        stringsAsFactors = FALSE
+      )
+      plot_df$label <- ifelse(
+        is.na(plot_df$corr),
+        "",
+        format(round(plot_df$corr, 2), nsmall = 2, trim = TRUE)
+      )
+
+      p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = col, y = row, fill = corr)) +
+        ggplot2::geom_tile(color = "white", linewidth = 0.2) +
+        ggplot2::scale_fill_gradient2(
+          low = "blue",
+          mid = "white",
+          high = "red",
+          midpoint = 0,
+          limits = c(-1, 1),
+          na.value = "#f2f2f2",
+          name = "Corr"
+        ) +
+        ggplot2::coord_fixed() +
         ggplot2::labs(
           title = paste0(
             if (is.null(main_prefix)) "" else paste0(main_prefix, ": "),
@@ -166,15 +226,35 @@ cyt_corr <- function(
           x = NULL,
           y = NULL
         ) +
+        ggplot2::theme_minimal() +
         ggplot2::theme(
-          axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)
+          panel.grid = ggplot2::element_blank(),
+          axis.text.x = ggplot2::element_text(
+            angle = 45,
+            vjust = 1,
+            hjust = 1,
+            size = corr_default_axis_text_size
+          ),
+          axis.text.y = ggplot2::element_text(size = corr_default_axis_text_size),
+          plot.title = ggplot2::element_text(size = corr_default_title_size),
+          legend.title = ggplot2::element_text(size = corr_default_legend_title_size),
+          legend.text = ggplot2::element_text(size = corr_default_legend_text_size)
         )
+
+      if (show_cell_labels) {
+        p <- p +
+          ggplot2::geom_text(
+            ggplot2::aes(label = label),
+            size = cell_label_size,
+            na.rm = TRUE
+          )
+      }
 
       # --- add a visible outline for the target column and row (no warnings) ---
       n <- ncol(mat)
       idx <- match(target, colnames(mat))
 
-      p +
+      p <- p +
         ggplot2::geom_rect(
           # outline the *column* of the target
           inherit.aes = FALSE,
@@ -238,6 +318,16 @@ cyt_corr <- function(
                 method = method
               ))
             }
+            if (.zero_variance(gx[ok]) || .zero_variance(gy[ok])) {
+              return(data.frame(
+                variable = v,
+                r = NA_real_,
+                p = NA_real_,
+                n = n,
+                group = gl,
+                method = method
+              ))
+            }
             ct <- suppressWarnings(stats::cor.test(
               gx[ok],
               gy[ok],
@@ -260,7 +350,7 @@ cyt_corr <- function(
       # adjust p's (BH and Bonferroni)
       groupwise$p_bonf <- adjust_p(groupwise$p, method = "bonferroni")
       groupwise$p_bh <- adjust_p(groupwise$p, method = "BH")
-      groupwise <- groupwise[order(-abs(groupwise$r)), ]
+      groupwise <- groupwise[order(-abs(groupwise$r), na.last = TRUE), ]
 
       # 2) per-group HEAT MATRICES + PLOTS (new)
       heat_vars <- unique(c(target, setdiff(num_cols, target)))
@@ -273,11 +363,7 @@ cyt_corr <- function(
         sub <- data[g == gl, heat_vars, drop = FALSE]
         # require at least 3 complete rows for a sensible matrix
         if (nrow(na.omit(sub)) >= 3) {
-          mat_g <- stats::cor(
-            sub,
-            use = "pairwise.complete.obs",
-            method = method
-          )
+          mat_g <- .safe_cor_matrix(sub, method)
           # keep target first
           ord <- c(target, setdiff(colnames(mat_g), target))
           mat_g <- mat_g[ord, ord]

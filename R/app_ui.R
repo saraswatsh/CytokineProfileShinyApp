@@ -294,6 +294,11 @@ app_ui <- function() {
         .dataTables_scrollFootInner th.col-selected {
           background-color: rgba(0, 123, 255, 0.18) !important;
         }
+        div.dt-autofill-list,
+        div.dt-autofill-background,
+        div.dt-autofill-handle {
+          z-index: 2000 !important;
+        }
         tfoot th {
           cursor: pointer;
         }

@@ -147,7 +147,17 @@ mod_options_server <- function(input, output, session, app_ctx) {
         "legend_text",
         "cell_text"
       ),
-      default_font_settings = font_settings_defaults(11)
+      default_font_settings = utils::modifyList(
+        font_settings_defaults(9),
+        list(
+          plot_title = 10,
+          x_text = 8,
+          y_text = 8,
+          legend_title = 8,
+          legend_text = 7,
+          cell_text = 6
+        )
+      )
     ),
     "Skewness/Kurtosis" = list(
       prefix = "skku",
